@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/image_picker_service.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/barber_profile_repository.dart';
 
@@ -65,14 +66,14 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(barberProfileProvider(widget.barberId));
     return Scaffold(
-      appBar: AppBar(title: const Text("Portfolio")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.gallery.title', "Portfolio"))),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         onPressed: _uploading ? null : _pickAndUpload,
         icon: _uploading
             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
             : const Icon(Icons.add_a_photo_outlined),
-        label: const Text("Qo'shish"),
+        label: Text(tr(ref, 'mobile.barber.gallery.addBtn', "Qo'shish")),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -83,19 +84,19 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
               .where((u) => u.isNotEmpty)
               .toList();
           if (gallery.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.photo_library_outlined, size: 64, color: AppColors.textMuted),
-                    SizedBox(height: 16),
-                    Text("Portfolio bo'sh",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                    SizedBox(height: 6),
-                    Text("Ishlaringizdan rasm yuklang",
-                        style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                    const Icon(Icons.photo_library_outlined, size: 64, color: AppColors.textMuted),
+                    const SizedBox(height: 16),
+                    Text(tr(ref, 'mobile.barber.gallery.empty', "Portfolio bo'sh"),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Text(tr(ref, 'mobile.barber.gallery.emptyHint', "Ishlaringizdan rasm yuklang"),
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                   ],
                 ),
               ),

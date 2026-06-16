@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/image_picker_service.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_profile_repository.dart';
@@ -75,7 +76,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
     final async = ref.watch(barberProfileProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Profilni tahrirlash")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.profileEdit.title', "Profilni tahrirlash"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
@@ -130,21 +131,28 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                     ),
                     TextButton(
                       onPressed: () => _pickAvatar(user.id),
-                      child: const Text("O'zgartirish"),
+                      child: Text(tr(ref, 'mobile.common.edit', "O'zgartirish")),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
 
-              const Text("Bio", style: TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+              Text(tr(ref, 'mobile.barber.profileEdit.bio', "Bio"),
+                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
-              TextField(controller: _bioController, maxLines: 4, decoration: const InputDecoration(hintText: "O'zingiz haqingizda")),
+              TextField(
+                  controller: _bioController,
+                  maxLines: 4,
+                  decoration: InputDecoration(hintText: tr(ref, 'mobile.barber.profileEdit.bioPlaceholder', "O'zingiz haqingizda"))),
 
               const SizedBox(height: 14),
-              const Text("Manzil", style: TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+              Text(tr(ref, 'mobile.barber.profileEdit.location', "Manzil"),
+                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
-              TextField(controller: _locationController, decoration: const InputDecoration(hintText: "Shahar, tuman")),
+              TextField(
+                  controller: _locationController,
+                  decoration: InputDecoration(hintText: tr(ref, 'mobile.barber.profileEdit.locationPlaceholder', "Shahar, tuman"))),
 
               const SizedBox(height: 14),
               SizedBox(
@@ -153,20 +161,21 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                   onPressed: _saving ? null : () => _saveBio(user.id),
                   child: _saving
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Bio'ni saqlash"),
+                      : Text(tr(ref, 'mobile.barber.profileEdit.saveBio', "Bio'ni saqlash")),
                 ),
               ),
 
               const SizedBox(height: 20),
-              const Text("Boshqaruv", style: TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+              Text(tr(ref, 'mobile.barber.profileEdit.manage', "Boshqaruv"),
+                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
 
-              _LinkTile(icon: Icons.content_cut, label: "Xizmatlarim", onTap: () => context.push('/barber/services')),
-              _LinkTile(icon: Icons.schedule, label: "Ish soatlari", onTap: () => context.push('/barber/hours')),
-              _LinkTile(icon: Icons.photo_library_outlined, label: "Portfolio", onTap: () => context.push('/barber/gallery')),
-              _LinkTile(icon: Icons.notifications_active_outlined, label: "Eslatma sozlamalari", onTap: () => context.push('/barber/reminders')),
-              _LinkTile(icon: Icons.sms_outlined, label: "SMS tarixi", onTap: () => context.push('/barber/sms')),
-              _LinkTile(icon: Icons.share, label: "Ommaviy havola", onTap: () => context.push('/barber/public-link')),
+              _LinkTile(icon: Icons.content_cut, label: tr(ref, 'mobile.barber.profileEdit.linkServices', "Xizmatlarim"), onTap: () => context.push('/barber/services')),
+              _LinkTile(icon: Icons.schedule, label: tr(ref, 'mobile.barber.profileEdit.linkHours', "Ish soatlari"), onTap: () => context.push('/barber/hours')),
+              _LinkTile(icon: Icons.photo_library_outlined, label: tr(ref, 'mobile.barber.profileEdit.linkGallery', "Portfolio"), onTap: () => context.push('/barber/gallery')),
+              _LinkTile(icon: Icons.notifications_active_outlined, label: tr(ref, 'mobile.barber.profileEdit.linkReminders', "Eslatma sozlamalari"), onTap: () => context.push('/barber/reminders')),
+              _LinkTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.barber.profileEdit.linkSms', "SMS tarixi"), onTap: () => context.push('/barber/sms')),
+              _LinkTile(icon: Icons.share, label: tr(ref, 'mobile.barber.profileEdit.linkPublic', "Ommaviy havola"), onTap: () => context.push('/barber/public-link')),
             ],
           );
         },

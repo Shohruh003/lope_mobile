@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_profile_repository.dart';
@@ -62,7 +63,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
     if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final async = ref.watch(barberProfileProvider(user.id));
     return Scaffold(
-      appBar: AppBar(title: const Text("Ommaviy havola")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.publicLink.title', "Ommaviy havola"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Xato: $e")),
@@ -77,9 +78,10 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              const Text(
-                "Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing.",
-                style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+              Text(
+                tr(ref, 'mobile.barber.publicLink.hint',
+                    "Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing."),
+                style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
               ),
               const SizedBox(height: 16),
               if (link == null)

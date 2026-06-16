@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../profile/presentation/profile_screen.dart';
 import 'barber_schedule_screen.dart';
@@ -28,10 +29,10 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
   ];
 
   static const _items = [
-    _TabItem(icon: Icons.calendar_view_day_outlined, activeIcon: Icons.calendar_view_day, label: 'Jadval'),
-    _TabItem(icon: Icons.list_alt_outlined, activeIcon: Icons.list_alt, label: 'Bronlar'),
-    _TabItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, label: 'Statistika'),
-    _TabItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profil'),
+    _TabItem(icon: Icons.calendar_view_day_outlined, activeIcon: Icons.calendar_view_day, labelKey: 'mobile.barber.home.schedule', fallback: 'Jadval'),
+    _TabItem(icon: Icons.list_alt_outlined, activeIcon: Icons.list_alt, labelKey: 'mobile.barber.home.bookings', fallback: 'Bronlar'),
+    _TabItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, labelKey: 'mobile.barber.home.stats', fallback: 'Statistika'),
+    _TabItem(icon: Icons.person_outline, activeIcon: Icons.person, labelKey: 'mobile.barber.home.profile', fallback: 'Profil'),
   ];
 
   @override
@@ -69,7 +70,7 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
                               .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 200.ms),
                           const SizedBox(height: 4),
                           Text(
-                            item.label,
+                            tr(ref, item.labelKey, item.fallback),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
@@ -91,8 +92,9 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
 }
 
 class _TabItem {
-  const _TabItem({required this.icon, required this.activeIcon, required this.label});
+  const _TabItem({required this.icon, required this.activeIcon, required this.labelKey, required this.fallback});
   final IconData icon;
   final IconData activeIcon;
-  final String label;
+  final String labelKey;
+  final String fallback;
 }

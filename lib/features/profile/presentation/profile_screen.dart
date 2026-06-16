@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/l10n.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 
@@ -24,9 +25,9 @@ class ProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           children: [
-            const Text(
-              "Profil",
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+            Text(
+              tr(ref, 'mobile.profile.title', "Profil"),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5),
             ).animate().fadeIn(duration: 400.ms),
             const SizedBox(height: 20),
 
@@ -80,23 +81,23 @@ class ProfileScreen extends ConsumerWidget {
             _SettingsGroup(children: [
               _SettingsTile(
                 icon: Icons.edit_outlined,
-                label: "Profilni tahrirlash",
+                label: tr(ref, 'mobile.profile.edit', "Profilni tahrirlash"),
                 onTap: () => context.push(user?.role == 'barber' ? '/barber/profile' : '/profile-edit'),
               ),
               _SettingsTile(
                 icon: Icons.account_balance_wallet_outlined,
-                label: "Hisobim va to'lovlar",
+                label: tr(ref, 'mobile.profile.transactions', "Hisobim va to'lovlar"),
                 onTap: () => context.push('/transactions'),
               ),
               _SettingsTile(
                 icon: Icons.notifications_outlined,
-                label: "Bildirishnomalar",
+                label: tr(ref, 'mobile.profile.notifications', "Bildirishnomalar"),
                 onTap: () => context.push('/notifications'),
               ),
               if (user?.role == 'user')
                 _SettingsTile(
                   icon: Icons.favorite_outline,
-                  label: "Sevimlilar",
+                  label: tr(ref, 'mobile.profile.favorites', "Sevimlilar"),
                   onTap: () => context.push('/favorites'),
                 ),
             ]).animate().fadeIn(duration: 400.ms, delay: 120.ms),
@@ -107,14 +108,14 @@ class ProfileScreen extends ConsumerWidget {
             _SettingsGroup(children: [
               _SettingsTile(
                 icon: Icons.language_outlined,
-                label: "Til",
+                label: tr(ref, 'mobile.auth.language', "Til"),
                 trailing: Text(_langLabel(currentLocale),
                     style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
                 onTap: () => _showLanguageSheet(context, ref, currentLocale),
               ),
               _SettingsTile(
                 icon: Icons.info_outline,
-                label: "Versiya",
+                label: tr(ref, 'mobile.auth.version', "Versiya"),
                 trailing: const Text("1.0.0",
                     style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
                 onTap: null,
@@ -126,23 +127,23 @@ class ProfileScreen extends ConsumerWidget {
             _SettingsGroup(children: [
               _SettingsTile(
                 icon: Icons.logout,
-                label: "Chiqish",
+                label: tr(ref, 'mobile.auth.logout', "Chiqish"),
                 isDestructive: true,
                 onTap: () async {
                   final yes = await showDialog<bool>(
                     context: context,
                     builder: (_) => AlertDialog(
                       backgroundColor: AppColors.surface,
-                      title: const Text("Chiqishni tasdiqlang"),
-                      content: const Text("Hisobingizdan chiqmoqchimisiz?"),
+                      title: Text(tr(ref, 'mobile.auth.logoutTitle', "Chiqishni tasdiqlang")),
+                      content: Text(tr(ref, 'mobile.auth.logoutAsk', "Hisobingizdan chiqmoqchimisiz?")),
                       actions: [
                         TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text("Bekor qilish")),
+                            child: Text(tr(ref, 'mobile.auth.logoutCancel', "Bekor qilish"))),
                         TextButton(
                             onPressed: () => Navigator.pop(context, true),
                             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-                            child: const Text("Chiqish")),
+                            child: Text(tr(ref, 'mobile.auth.logout', "Chiqish"))),
                       ],
                     ),
                   );
@@ -186,10 +187,10 @@ class ProfileScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Text("Tilni tanlash",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(tr(ref, 'mobile.profile.selectLanguage', "Tilni tanlash"),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
               ),
               ...AppConfig.supportedLanguages.map((code) {
                 final on = code == current;

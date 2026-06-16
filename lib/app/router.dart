@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/tr.dart';
 import '../features/ai_style/presentation/ai_style_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/otp_screen.dart';
@@ -106,23 +107,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Admin role isn't a panel — direct it to a friendly stub.
       GoRoute(
         path: '/admin-blocked',
-        builder: (context, state) => const Scaffold(
-          backgroundColor: AppColors.background,
-          body: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.admin_panel_settings_outlined, size: 64, color: AppColors.textMuted),
-                    SizedBox(height: 16),
-                    Text("Admin panel mobile'da mavjud emas",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
-                    SizedBox(height: 8),
-                    Text("Veb-versiyadan foydalaning: app.lopestyle.uz",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 14), textAlign: TextAlign.center),
-                  ],
+        builder: (context, state) => Consumer(
+          builder: (context, wRef, _) => Scaffold(
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.admin_panel_settings_outlined, size: 64, color: AppColors.textMuted),
+                      const SizedBox(height: 16),
+                      Text(tr(wRef, 'mobile.admin.title', "Admin panel mobile'da mavjud emas"),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      Text(tr(wRef, 'mobile.admin.subtitle', "Veb-versiyadan foydalaning: app.lopestyle.uz"),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                          textAlign: TextAlign.center),
+                    ],
+                  ),
                 ),
               ),
             ),

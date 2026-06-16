@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/barber_profile_repository.dart';
 
@@ -80,7 +81,7 @@ class _BarberWorkingHoursScreenState extends ConsumerState<BarberWorkingHoursScr
   Widget build(BuildContext context) {
     final async = ref.watch(barberProfileProvider(widget.barberId));
     return Scaffold(
-      appBar: AppBar(title: const Text("Ish soatlari")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.hours.title', "Ish soatlari"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Xato: $e")),
@@ -135,7 +136,7 @@ class _BarberWorkingHoursScreenState extends ConsumerState<BarberWorkingHoursScr
                   onPressed: _saving ? null : _save,
                   child: _saving
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Saqlash"),
+                      : Text(tr(ref, 'mobile.common.save', "Saqlash")),
                 ),
               ),
             ],

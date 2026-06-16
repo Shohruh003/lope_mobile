@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/favorites_repository.dart';
 
@@ -14,22 +15,22 @@ class FavoritesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(favoritesProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Sevimlilar")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.customer.favorites.title', "Sevimlilar"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Xato: $e")),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.favorite_border, size: 56, color: AppColors.textMuted),
-                    SizedBox(height: 14),
-                    Text("Sevimlilar ro'yxati bo'sh",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    const Icon(Icons.favorite_border, size: 56, color: AppColors.textMuted),
+                    const SizedBox(height: 14),
+                    Text(tr(ref, 'mobile.customer.favorites.empty', "Sevimlilar ro'yxati bo'sh"),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
                   ],
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
@@ -12,16 +13,17 @@ class ShopBookingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(shopBookingsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Salon bronlari")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.shop.bookings.title', "Salon bronlari"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text("Bron yo'q", style: TextStyle(color: AppColors.textMuted)),
+                padding: const EdgeInsets.all(32),
+                child: Text(tr(ref, 'mobile.shop.bookings.empty', "Bron yo'q"),
+                    style: const TextStyle(color: AppColors.textMuted)),
               ),
             );
           }

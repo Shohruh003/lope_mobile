@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_profile_repository.dart';
@@ -45,7 +46,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
     if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final async = ref.watch(barberProfileProvider(user.id));
     return Scaffold(
-      appBar: AppBar(title: const Text("Eslatma sozlamalari")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.reminders.title', "Eslatma sozlamalari"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Xato: $e")),
@@ -58,26 +59,27 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              const Text(
-                "Mijozlarga SMS bilan eslatma jo'natiladi. Quyida vaqtni va davrni sozlang.",
-                style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+              Text(
+                tr(ref, 'mobile.barber.reminders.hint',
+                    "Mijozlarga SMS bilan eslatma jo'natiladi. Quyida vaqtni va davrni sozlang."),
+                style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
               ),
               const SizedBox(height: 18),
 
-              _SectionLabel("Bron oldidan necha soat"),
+              _SectionLabel(tr(ref, 'mobile.barber.reminders.hoursLabel', "Bron oldidan necha soat")),
               _Stepper(
                 value: _hours,
                 min: 1, max: 24,
-                suffix: " soat",
+                suffix: tr(ref, 'mobile.barber.reminders.hoursSuffix', " soat"),
                 onChanged: (v) => setState(() => _hours = v),
               ),
 
               const SizedBox(height: 18),
-              _SectionLabel("Eslatma davri (kunlarda)"),
+              _SectionLabel(tr(ref, 'mobile.barber.reminders.daysLabel', "Eslatma davri (kunlarda)")),
               _Stepper(
                 value: _days,
                 min: 7, max: 30,
-                suffix: " kun",
+                suffix: tr(ref, 'mobile.barber.reminders.daysSuffix', " kun"),
                 onChanged: (v) => setState(() => _days = v),
               ),
 
@@ -88,7 +90,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
                   onPressed: _saving ? null : () => _save(user.id),
                   child: _saving
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Saqlash"),
+                      : Text(tr(ref, 'mobile.common.save', "Saqlash")),
                 ),
               ),
             ],

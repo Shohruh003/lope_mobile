@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notifications_repository.dart';
@@ -20,7 +21,7 @@ class NotificationsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Bildirishnomalar"),
+        title: Text(tr(ref, 'mobile.notifications.title', "Bildirishnomalar")),
         actions: [
           TextButton(
             onPressed: () async {
@@ -29,7 +30,7 @@ class NotificationsScreen extends ConsumerWidget {
                 ref.invalidate(notificationsProvider(user.role));
               } catch (_) {}
             },
-            child: const Text("Hammasini o'qish"),
+            child: Text(tr(ref, 'mobile.notifications.markAllRead', "Hammasini o'qish")),
           ),
         ],
       ),
@@ -38,16 +39,16 @@ class NotificationsScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.notifications_off_outlined, size: 56, color: AppColors.textMuted),
-                    SizedBox(height: 12),
-                    Text("Bildirishnomalar yo'q",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    const Icon(Icons.notifications_off_outlined, size: 56, color: AppColors.textMuted),
+                    const SizedBox(height: 12),
+                    Text(tr(ref, 'mobile.notifications.empty', "Bildirishnomalar yo'q"),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
                   ],
                 ),
               ),

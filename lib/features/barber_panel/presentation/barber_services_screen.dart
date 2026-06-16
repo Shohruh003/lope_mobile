@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/barber_profile_repository.dart';
 
@@ -16,12 +17,12 @@ class BarberServicesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(barberServicesProvider(barberId));
     return Scaffold(
-      appBar: AppBar(title: const Text("Xizmatlarim")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.services.title', "Xizmatlarim"))),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         onPressed: () => _openEditor(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text("Yangi xizmat"),
+        label: Text(tr(ref, 'mobile.barber.services.addBtn', "Yangi xizmat")),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -29,19 +30,19 @@ class BarberServicesScreen extends ConsumerWidget {
             child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.content_cut, size: 64, color: AppColors.textMuted),
-                    SizedBox(height: 16),
-                    Text("Hali xizmat qo'shilmagan",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                    SizedBox(height: 6),
-                    Text("Pastdagi tugma orqali qo'shing",
-                        style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                    const Icon(Icons.content_cut, size: 64, color: AppColors.textMuted),
+                    const SizedBox(height: 16),
+                    Text(tr(ref, 'mobile.barber.services.empty', "Hali xizmat qo'shilmagan"),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Text(tr(ref, 'mobile.barber.services.emptyHint', "Pastdagi tugma orqali qo'shing"),
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                   ],
                 ),
               ),

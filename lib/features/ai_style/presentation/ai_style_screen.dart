@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/image_picker_service.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/data/balance_repository.dart';
@@ -44,11 +45,11 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
 
   Future<void> _generate() async {
     if (_selfie == null) {
-      setState(() => _errorText = "Avval o'zingizning rasmingizni yuklang");
+      setState(() => _errorText = tr(ref, 'mobile.customer.aiStyle.selfieMissing', "Avval o'zingizning rasmingizni yuklang"));
       return;
     }
     if (_refs.isEmpty) {
-      setState(() => _errorText = "Kamida bitta stil namunasi yuklang");
+      setState(() => _errorText = tr(ref, 'mobile.customer.aiStyle.refMissing', "Kamida bitta stil namunasi yuklang"));
       return;
     }
     setState(() {
@@ -67,10 +68,14 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       final user = ref.read(authControllerProvider).user;
       if (user != null) ref.invalidate(myBalanceProvider(user.id));
     } on Object catch (e) {
-      String msg = "Generatsiya bajarilmadi";
+      String msg = tr(ref, 'mobile.customer.aiStyle.errorGeneric', "Generatsiya bajarilmadi");
       final s = e.toString();
-      if (s.contains('402') || s.contains('balance')) msg = "Balansingiz yetarli emas. Hisobni to'ldiring.";
-      if (s.contains('SocketException')) msg = "Internet bilan muammo";
+      if (s.contains('402') || s.contains('balance')) {
+        msg = tr(ref, 'mobile.customer.aiStyle.errorBalance', "Balansingiz yetarli emas. Hisobni to'ldiring.");
+      }
+      if (s.contains('SocketException')) {
+        msg = tr(ref, 'mobile.customer.aiStyle.errorInternet', "Internet bilan muammo");
+      }
       setState(() => _errorText = msg);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -83,7 +88,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
     final balance = user == null ? null : ref.watch(myBalanceProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(title: const Text("AI Stil")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.customer.aiStyle.title', "AI Stil"))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
@@ -102,7 +107,9 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                   children: [
                     const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 18),
                     const SizedBox(width: 8),
-                    Text("Balans: ${_fmt(b.amount)} so'm",
+                    Text(
+                        tr(ref, 'mobile.customer.aiStyle.balance', "Balans: {{amount}} so'm",
+                            {'amount': _fmt(b.amount)}),
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                     const Spacer(),
                     if (b.aiFreeRemaining != null && b.aiFreeRemaining! > 0)
@@ -112,7 +119,9 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                           color: AppColors.success.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text("Bugun ${b.aiFreeRemaining} ta bepul",
+                        child: Text(
+                            tr(ref, 'mobile.customer.aiStyle.freeRemaining', "Bugun {{n}} ta bepul",
+                                {'n': '${b.aiFreeRemaining}'}),
                             style: const TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w700)),
                       ),
                   ],
@@ -122,7 +131,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
 
           const SizedBox(height: 16),
 
-          const _SectionTitle("1. O'zingizning rasmingiz"),
+          _SectionTitle(tr(ref, 'mobile.customer.aiStyle.step1', "1. O'zingizning rasmingiz")),
           GestureDetector(
             onTap: _pickSelfie,
             child: Container(
@@ -136,10 +145,11 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.add_a_photo_outlined, color: AppColors.textMuted, size: 32),
-                          SizedBox(height: 8),
-                          Text("Selfie qo'shing", style: TextStyle(color: AppColors.textSecondary)),
+                        children: [
+                          const Icon(Icons.add_a_photo_outlined, color: AppColors.textMuted, size: 32),
+                          const SizedBox(height: 8),
+                          Text(tr(ref, 'mobile.customer.aiStyle.addSelfie', "Selfie qo'shing"),
+                              style: const TextStyle(color: AppColors.textSecondary)),
                         ],
                       ),
                     )
@@ -151,7 +161,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
           ),
 
           const SizedBox(height: 18),
-          const _SectionTitle("2. Stil namunalari (1–4 ta)"),
+          _SectionTitle(tr(ref, 'mobile.customer.aiStyle.step2', "2. Stil namunalari (1-4 ta)")),
           Wrap(
             spacing: 8, runSpacing: 8,
             children: [
@@ -192,13 +202,13 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
           ),
 
           const SizedBox(height: 18),
-          const _SectionTitle("3. Jins"),
+          _SectionTitle(tr(ref, 'mobile.customer.aiStyle.step3', "3. Jins")),
           Row(
             children: [
               Expanded(
                 child: ChoiceChip(
                   selectedColor: AppColors.primary.withValues(alpha: 0.25),
-                  label: const Text("Erkak"),
+                  label: Text(tr(ref, 'mobile.customer.aiStyle.male', "Erkak")),
                   selected: _gender == 'male',
                   onSelected: (_) => setState(() => _gender = 'male'),
                 ),
@@ -207,7 +217,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
               Expanded(
                 child: ChoiceChip(
                   selectedColor: AppColors.primary.withValues(alpha: 0.25),
-                  label: const Text("Ayol"),
+                  label: Text(tr(ref, 'mobile.customer.aiStyle.female', "Ayol")),
                   selected: _gender == 'female',
                   onSelected: (_) => setState(() => _gender = 'female'),
                 ),
@@ -238,14 +248,16 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
               icon: _busy
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : const Icon(Icons.auto_awesome),
-              label: Text(_busy ? "Generatsiya..." : "AI orqali yaratish"),
+              label: Text(_busy
+                  ? tr(ref, 'mobile.customer.aiStyle.generating', "Generatsiya...")
+                  : tr(ref, 'mobile.customer.aiStyle.generate', "AI orqali yaratish")),
               onPressed: _busy ? null : _generate,
             ),
           ),
 
           if (_resultUrl != null && _resultUrl!.isNotEmpty) ...[
             const SizedBox(height: 26),
-            const _SectionTitle("Natija"),
+            _SectionTitle(tr(ref, 'mobile.customer.aiStyle.result', "Natija")),
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: CachedNetworkImage(

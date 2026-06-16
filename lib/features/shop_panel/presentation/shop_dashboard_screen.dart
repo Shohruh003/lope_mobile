@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
@@ -37,8 +38,8 @@ class ShopDashboardScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Salonim",
-                          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text(tr(ref, 'mobile.shop.dashboard.salonLabel', "Salonim"),
+                          style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 4),
                       Text((m['name'] ?? '').toString(),
                           style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
@@ -53,8 +54,8 @@ class ShopDashboardScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 18),
 
-              const Text("Bu hafta",
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: -0.2)),
+              Text(tr(ref, 'mobile.shop.dashboard.weekTitle', "Bu hafta"),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: -0.2)),
               const SizedBox(height: 10),
               stats.when(
                 loading: () => const Padding(
@@ -69,22 +70,22 @@ class ShopDashboardScreen extends ConsumerWidget {
                   crossAxisSpacing: 10,
                   childAspectRatio: 1.4,
                   children: [
-                    _StatTile(icon: Icons.event_available, label: "Bronlar", value: "${s.bookings}", color: AppColors.primary),
-                    _StatTile(icon: Icons.people_outline, label: "Mijozlar", value: "${s.clients}", color: AppColors.success),
-                    _StatTile(icon: Icons.attach_money, label: "Daromad", value: _fmt(s.revenue), color: AppColors.warning),
-                    _StatTile(icon: Icons.sms_outlined, label: "SMS", value: "${s.messages}", color: AppColors.danger),
+                    _StatTile(icon: Icons.event_available, label: tr(ref, 'mobile.shop.dashboard.statBookings', "Bronlar"), value: "${s.bookings}", color: AppColors.primary),
+                    _StatTile(icon: Icons.people_outline, label: tr(ref, 'mobile.shop.dashboard.statClients', "Mijozlar"), value: "${s.clients}", color: AppColors.success),
+                    _StatTile(icon: Icons.attach_money, label: tr(ref, 'mobile.shop.dashboard.statRevenue', "Daromad"), value: _fmt(s.revenue), color: AppColors.warning),
+                    _StatTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.shop.dashboard.statSms', "SMS"), value: "${s.messages}", color: AppColors.danger),
                   ],
                 ),
               ),
 
               const SizedBox(height: 22),
-              const Text("Boshqaruv",
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              Text(tr(ref, 'mobile.shop.dashboard.navManagement', "Boshqaruv"),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
               const SizedBox(height: 10),
-              _NavTile(icon: Icons.people_alt_outlined, label: "Mastera (Barberlar)", onTap: () => context.push('/shop/barbers')),
-              _NavTile(icon: Icons.event_note_outlined, label: "Salon bronlari", onTap: () => context.push('/shop/bookings')),
-              _NavTile(icon: Icons.account_balance_wallet_outlined, label: "Hisob va to'lovlar", onTap: () => context.push('/transactions')),
-              _NavTile(icon: Icons.sms_outlined, label: "SMS tarixi", onTap: () => context.push('/barber/sms')),
+              _NavTile(icon: Icons.people_alt_outlined, label: tr(ref, 'mobile.shop.dashboard.navMasters', "Mastera (Barberlar)"), onTap: () => context.push('/shop/barbers')),
+              _NavTile(icon: Icons.event_note_outlined, label: tr(ref, 'mobile.shop.dashboard.navBookings', "Salon bronlari"), onTap: () => context.push('/shop/bookings')),
+              _NavTile(icon: Icons.account_balance_wallet_outlined, label: tr(ref, 'mobile.shop.dashboard.navTransactions', "Hisob va to'lovlar"), onTap: () => context.push('/transactions')),
+              _NavTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.shop.dashboard.navSms', "SMS tarixi"), onTap: () => context.push('/barber/sms')),
             ],
           ),
         ),

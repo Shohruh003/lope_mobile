@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
@@ -13,28 +14,28 @@ class ShopBarbersScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(shopBarbersProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Mastera")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.shop.masters.title', "Mastera"))),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         onPressed: () => _openEditor(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text("Qo'shish"),
+        label: Text(tr(ref, 'mobile.shop.masters.addBtn', "Qo'shish")),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.people_alt_outlined, size: 60, color: AppColors.textMuted),
-                    SizedBox(height: 14),
-                    Text("Hali masterlar qo'shilmagan",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    const Icon(Icons.people_alt_outlined, size: 60, color: AppColors.textMuted),
+                    const SizedBox(height: 14),
+                    Text(tr(ref, 'mobile.shop.masters.empty', "Hali masterlar qo'shilmagan"),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
                   ],
                 ),
               ),

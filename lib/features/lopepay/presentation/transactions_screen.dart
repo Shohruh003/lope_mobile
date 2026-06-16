@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/balance_repository.dart';
@@ -23,7 +24,7 @@ class TransactionsScreen extends ConsumerWidget {
     final history = ref.watch(paymentHistoryProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Hisobim")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.customer.transactions.title', "Hisobim"))),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async {
@@ -43,8 +44,8 @@ class TransactionsScreen extends ConsumerWidget {
               data: (b) => _BalanceCard(amount: b.amount, aiFree: b.aiFreeRemaining, userId: user.id),
             ),
             const SizedBox(height: 22),
-            const Text("Tranzaktsiyalar",
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.3)),
+            Text(tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.3)),
             const SizedBox(height: 10),
             history.when(
               loading: () => const Padding(
@@ -52,9 +53,11 @@ class TransactionsScreen extends ConsumerWidget {
               error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
               data: (list) {
                 if (list.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: Text("Hali tranzaktsiya yo'q", style: TextStyle(color: AppColors.textMuted))),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                        child: Text(tr(ref, 'mobile.customer.transactions.empty', "Hali tranzaktsiya yo'q"),
+                            style: const TextStyle(color: AppColors.textMuted))),
                   );
                 }
                 return Column(
@@ -252,14 +255,17 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Joriy balans",
-              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(tr(ref, 'mobile.customer.transactions.balanceCurrent', "Joriy balans"),
+              style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Text("${_fmt(widget.amount)} so'm",
               style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
           if (widget.aiFree != null) ...[
             const SizedBox(height: 8),
-            Text("Bugun ${widget.aiFree} ta bepul AI Stil qoldi",
+            Text(
+                tr(ref, 'mobile.customer.transactions.freeAiHint',
+                    "Bugun {{n}} ta bepul AI Stil qoldi",
+                    {'n': '${widget.aiFree}'}),
                 style: const TextStyle(color: Colors.white70, fontSize: 12)),
           ],
           const SizedBox(height: 14),
@@ -270,7 +276,8 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             ),
             onPressed: _openTopUpSheet,
-            child: const Text("To'ldirish", style: TextStyle(fontWeight: FontWeight.w700)),
+            child: Text(tr(ref, 'mobile.customer.transactions.topUp', "To'ldirish"),
+                style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),

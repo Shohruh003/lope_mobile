@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/image_picker_service.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 
@@ -77,7 +78,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       _avatarUrl = user.avatar;
     }
     return Scaffold(
-      appBar: AppBar(title: const Text("Profil")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.customer.profileEdit.title', "Profil"))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
         children: [
@@ -110,15 +111,17 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           Center(
             child: TextButton(
               onPressed: () => _pickAvatar(user.id),
-              child: const Text("Avatarni o'zgartirish"),
+              child: Text(tr(ref, 'mobile.customer.profileEdit.changeAvatar', "Avatarni o'zgartirish")),
             ),
           ),
           const SizedBox(height: 14),
-          const Text("Ism", style: TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+          Text(tr(ref, 'mobile.auth.name', "Ism"),
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           TextField(controller: _nameController),
           const SizedBox(height: 14),
-          const Text("Telefon", style: TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+          Text(tr(ref, 'mobile.auth.phone', "Telefon"),
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           TextField(
             controller: TextEditingController(text: user.phone),
@@ -131,7 +134,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               onPressed: _saving ? null : () => _saveName(user.id),
               child: _saving
                   ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text("Saqlash"),
+                  : Text(tr(ref, 'mobile.common.save', "Saqlash")),
             ),
           ),
         ],

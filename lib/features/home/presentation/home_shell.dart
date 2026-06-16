@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
@@ -73,7 +74,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                               .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 200.ms),
                           const SizedBox(height: 4),
                           Text(
-                            _labelFor(item.labelKey),
+                            tr(ref, 'mobile.tabs.${_shortKey(item.labelKey)}', _labelFor(item.labelKey)),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
@@ -93,9 +94,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     );
   }
 
-  /// Small inline label map — keeps the shell independent of L10n boot order
-  /// so the very first frame doesn't show key names. Real i18n is wired
-  /// through the L10n provider for the screens themselves.
+  /// Inline uzbek fallback used until the locale provider hydrates and tr()
+  /// can resolve the proper translation. Once loaded, tr() looks up
+  /// `mobile.tabs.<key>` and overrides this.
   String _labelFor(String key) {
     switch (key) {
       case 'tabs.discover':
@@ -108,6 +109,12 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         return 'Profil';
     }
     return '';
+  }
+
+  String _shortKey(String fullKey) {
+    // 'tabs.discover' -> 'discover'
+    final dot = fullKey.lastIndexOf('.');
+    return dot < 0 ? fullKey : fullKey.substring(dot + 1);
   }
 }
 

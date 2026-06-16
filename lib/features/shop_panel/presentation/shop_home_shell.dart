@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../profile/presentation/profile_screen.dart';
 import 'shop_barbers_screen.dart';
@@ -27,12 +28,18 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
     ProfileScreen(),
   ];
 
-  static const _items = [
-    _Item(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, label: 'Boshqaruv'),
-    _Item(icon: Icons.people_alt_outlined, activeIcon: Icons.people_alt, label: 'Mastera'),
-    _Item(icon: Icons.event_note_outlined, activeIcon: Icons.event_note, label: 'Bronlar'),
-    _Item(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profil'),
-  ];
+  late final List<_Item> _items;
+
+  @override
+  void initState() {
+    super.initState();
+    _items = const [
+      _Item(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, labelKey: 'mobile.shop.home.dashboard', fallback: 'Boshqaruv'),
+      _Item(icon: Icons.people_alt_outlined, activeIcon: Icons.people_alt, labelKey: 'mobile.shop.home.masters', fallback: 'Mastera'),
+      _Item(icon: Icons.event_note_outlined, activeIcon: Icons.event_note, labelKey: 'mobile.shop.home.bookings', fallback: 'Bronlar'),
+      _Item(icon: Icons.person_outline, activeIcon: Icons.person, labelKey: 'mobile.shop.home.profile', fallback: 'Profil'),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +75,7 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
                               .animate(target: active ? 1 : 0)
                               .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 200.ms),
                           const SizedBox(height: 4),
-                          Text(item.label,
+                          Text(tr(ref, item.labelKey, item.fallback),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
@@ -89,8 +96,9 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
 }
 
 class _Item {
-  const _Item({required this.icon, required this.activeIcon, required this.label});
+  const _Item({required this.icon, required this.activeIcon, required this.labelKey, required this.fallback});
   final IconData icon;
   final IconData activeIcon;
-  final String label;
+  final String labelKey;
+  final String fallback;
 }
