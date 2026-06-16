@@ -3,6 +3,17 @@
          avtomatik qoldiradi, lekin release uchun aniq belgilash kerak. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Mikrofon — barber ovoz bilan bron qo'shish uchun -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Push notification (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Telefon qo'ng'iroqlari (tel: URL) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent>
+    </queries>
     <application
         android:label="Lope Style"
         android:name="${applicationName}"

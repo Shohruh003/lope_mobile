@@ -3,6 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
+
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart'
     show BarberBooking, BarberBookingActions, barberDayBookingsProvider, barberAllBookingsProvider, barberPanelRepositoryProvider;
@@ -54,11 +58,32 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     );
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        onPressed: () => _openManualBookingSheet(context, ref, barberId, dateStr),
-        icon: const Icon(Icons.add),
-        label: const Text("Qo'lda bron"),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'voiceFab',
+            backgroundColor: AppColors.warning,
+            onPressed: () => _openVoiceBookingSheet(context, ref, barberId, dateStr),
+            child: const Icon(Icons.mic),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton.small(
+            heroTag: 'genFab',
+            backgroundColor: AppColors.primaryDark,
+            onPressed: () => context.push('/barber/schedule-generator'),
+            child: const Icon(Icons.auto_awesome_motion),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton.extended(
+            heroTag: 'manualFab',
+            backgroundColor: AppColors.primary,
+            onPressed: () => _openManualBookingSheet(context, ref, barberId, dateStr),
+            icon: const Icon(Icons.add),
+            label: const Text("Qo'lda bron"),
+          ),
+        ],
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -307,54 +332,82 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
 
   Future<void> _openRescheduleSheet(BuildContext context, WidgetRef ref,
       BarberBooking b, String barberId, String oldDateStr) async {
-    final dateCtrl = TextEditingController(text: b.date);
-    final timeCtrl = TextEditingController(text: b.time);
+    // Use native pickers — text-input was a UX bug (allowed any string).
+    DateTime selectedDate = DateTime.tryParse(b.date) ?? DateTime.now();
+    final timeParts = b.time.split(':');
+    TimeOfDay selectedTime = TimeOfDay(
+      hour: int.tryParse(timeParts.isNotEmpty ? timeParts[0] : '9') ?? 9,
+      minute: int.tryParse(timeParts.length > 1 ? timeParts[1] : '0') ?? 0,
+    );
+
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20, right: 20, top: 18,
-          bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Vaqtni o'zgartirish",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 14),
-            TextField(
-                controller: dateCtrl,
-                decoration: const InputDecoration(hintText: "Sana (YYYY-MM-DD)")),
-            const SizedBox(height: 10),
-            TextField(
-                controller: timeCtrl,
-                decoration: const InputDecoration(hintText: "Soat (HH:MM)")),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(sheetCtx).pop(true),
-                child: const Text("Saqlash"),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 18,
+            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Vaqtni o'zgartirish",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 14),
+              _PickerRow(
+                icon: Icons.calendar_today,
+                label: "Sana",
+                value: "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}",
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: sheetCtx,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                    lastDate: DateTime.now().add(const Duration(days: 90)),
+                  );
+                  if (picked != null) setSheet(() => selectedDate = picked);
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              _PickerRow(
+                icon: Icons.access_time,
+                label: "Soat",
+                value: "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}",
+                onTap: () async {
+                  final picked = await showTimePicker(context: sheetCtx, initialTime: selectedTime);
+                  if (picked != null) setSheet(() => selectedTime = picked);
+                },
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(sheetCtx).pop(true),
+                  child: const Text("Saqlash"),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
     if (saved != true) return;
+    final dateStr = "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+    final timeStr = "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
+
     try {
       await ref.read(barberPanelRepositoryProvider).reschedule(
             b.id,
-            date: dateCtrl.text.trim(),
-            time: timeCtrl.text.trim(),
+            date: dateStr,
+            time: timeStr,
           );
       ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: oldDateStr)));
-      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateCtrl.text.trim())));
+      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
       ref.invalidate(barberAllBookingsProvider(barberId));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("O'zgartirildi")));
@@ -421,12 +474,169 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     }
   }
 
+  // ---- Voice booking: hold mic to record, release to send ----
+  Future<void> _openVoiceBookingSheet(BuildContext context, WidgetRef ref,
+      String barberId, String dateStr) async {
+    final recorder = AudioRecorder();
+    bool recording = false;
+    bool processing = false;
+    Map<String, dynamic>? parsed;
+    String? error;
+    String? filePath;
+
+    // Permission check upfront. Skip with friendly message if denied.
+    if (!await recorder.hasPermission()) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Mikrofon ruxsati berilmadi")));
+      }
+      return;
+    }
+    if (!context.mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 18,
+            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Ovoz bilan bron",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 6),
+              const Text(
+                "Mikrofonni bosing va aytib bering: ism, telefon, soat",
+                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 22),
+              GestureDetector(
+                onTapDown: (_) async {
+                  if (recording || processing) return;
+                  try {
+                    final dir = await getTemporaryDirectory();
+                    final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+                    await recorder.start(
+                      const RecordConfig(encoder: AudioEncoder.aacLc),
+                      path: path,
+                    );
+                    filePath = path;
+                    setSheet(() {
+                      recording = true;
+                      error = null;
+                    });
+                  } catch (e) {
+                    setSheet(() => error = "Yozib bo'lmadi: $e");
+                  }
+                },
+                onTapUp: (_) async {
+                  if (!recording) return;
+                  final path = await recorder.stop();
+                  filePath = path ?? filePath;
+                  setSheet(() {
+                    recording = false;
+                    processing = true;
+                  });
+                  if (filePath == null) {
+                    setSheet(() {
+                      processing = false;
+                      error = "Yozma topilmadi";
+                    });
+                    return;
+                  }
+                  try {
+                    final res = await ref.read(barberPanelRepositoryProvider)
+                        .parseVoiceBooking(barberId: barberId, audioPath: filePath!);
+                    setSheet(() {
+                      parsed = res;
+                      processing = false;
+                    });
+                  } catch (e) {
+                    setSheet(() {
+                      processing = false;
+                      error = "Tahlil bo'lmadi: $e";
+                    });
+                  }
+                },
+                child: Container(
+                  width: 110, height: 110,
+                  decoration: BoxDecoration(
+                    color: recording ? AppColors.danger : AppColors.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: (recording ? AppColors.danger : AppColors.primary).withValues(alpha: 0.4),
+                        blurRadius: 24,
+                        spreadRadius: recording ? 6 : 0,
+                      ),
+                    ],
+                  ),
+                  child: Icon(recording ? Icons.stop : Icons.mic, color: Colors.white, size: 56),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                recording
+                    ? "Yozilmoqda... qo'lni qo'yib yuborganda yuboriladi"
+                    : (processing ? "Tahlil qilinmoqda..." : "Bosib turing"),
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 10),
+                Text(error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+              ],
+              if (parsed != null) ...[
+                const SizedBox(height: 18),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Tahlil natijasi", style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
+                      Text(parsed.toString(),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(sheetCtx).pop(),
+                    child: const Text("Yopish"),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+    await recorder.dispose();
+    ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
+  }
+
   // ---- Manual booking: barber adds a walk-in client ----
   Future<void> _openManualBookingSheet(BuildContext context, WidgetRef ref,
       String barberId, String dateStr) async {
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
-    final timeCtrl = TextEditingController(text: '09:00');
+    TimeOfDay selectedTime = const TimeOfDay(hour: 9, minute: 0);
     final notesCtrl = TextEditingController();
     final services = await ref.read(barberServicesProvider(barberId).future);
     if (!context.mounted) return;
@@ -456,7 +666,15 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                 const SizedBox(height: 10),
                 TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(hintText: "Telefon (ixtiyoriy)")),
                 const SizedBox(height: 10),
-                TextField(controller: timeCtrl, decoration: const InputDecoration(hintText: "Soat (HH:MM)")),
+                _PickerRow(
+                  icon: Icons.access_time,
+                  label: "Soat",
+                  value: "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}",
+                  onTap: () async {
+                    final picked = await showTimePicker(context: sheetCtx, initialTime: selectedTime);
+                    if (picked != null) setSheet(() => selectedTime = picked);
+                  },
+                ),
                 const SizedBox(height: 10),
                 TextField(controller: notesCtrl, decoration: const InputDecoration(hintText: "Izoh (ixtiyoriy)")),
                 const SizedBox(height: 14),
@@ -504,11 +722,12 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       ),
     );
     if (saved != true) return;
+    final timeStr = "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
     try {
       await ref.read(barberPanelRepositoryProvider).createManual(
             barberId: barberId,
             date: dateStr,
-            time: timeCtrl.text.trim(),
+            time: timeStr,
             serviceIds: selected.toList(),
             guestName: nameCtrl.text.trim(),
             guestPhone: phoneCtrl.text.trim(),
@@ -524,6 +743,41 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
       }
     }
+  }
+}
+
+/// Tappable row that opens a native date/time picker. Used inside the
+/// reschedule + manual booking sheets so the barber can never type garbage
+/// into the time field.
+class _PickerRow extends StatelessWidget {
+  const _PickerRow({required this.icon, required this.label, required this.value, required this.onTap});
+  final IconData icon;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(children: [
+          Icon(icon, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textBright)),
+          const SizedBox(width: 6),
+          const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
+        ]),
+      ),
+    );
   }
 }
 

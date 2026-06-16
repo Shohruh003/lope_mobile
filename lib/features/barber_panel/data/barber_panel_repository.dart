@@ -142,4 +142,40 @@ extension BarberBookingActions on BarberPanelRepository {
       if (notes != null && notes.isNotEmpty) 'notes': notes,
     });
   }
+
+  /// Auto-generate slots between dates based on working hours.
+  Future<void> generateSchedule({
+    required String barberId,
+    required String dateFrom,
+    required String dateTo,
+    required String dayStart,
+    required String dayEnd,
+    required int slotMinutes,
+    String? lunchStart,
+    String? lunchEnd,
+  }) async {
+    await _dio.post('/barbers/$barberId/schedule/generate', data: {
+      'dateFrom': dateFrom,
+      'dateTo': dateTo,
+      'dayStart': dayStart,
+      'dayEnd': dayEnd,
+      'slotMinutes': slotMinutes,
+      // ignore: use_null_aware_elements
+      if (lunchStart != null) 'lunchStart': lunchStart,
+      // ignore: use_null_aware_elements
+      if (lunchEnd != null) 'lunchEnd': lunchEnd,
+    });
+  }
+
+  /// Voice booking — multipart audio blob to the parser endpoint.
+  Future<Map<String, dynamic>> parseVoiceBooking({
+    required String barberId,
+    required String audioPath,
+  }) async {
+    final form = FormData.fromMap({
+      'audio': await MultipartFile.fromFile(audioPath),
+    });
+    final res = await _dio.post('/barbers/$barberId/voice-booking', data: form);
+    return Map<String, dynamic>.from(res.data as Map);
+  }
 }
