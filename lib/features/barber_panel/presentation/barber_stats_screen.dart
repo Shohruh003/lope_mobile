@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/stat_charts.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart';
 
@@ -47,6 +48,8 @@ class BarberStatsScreen extends ConsumerWidget {
 
                   int weekCount = 0, monthCount = 0, totalRev = 0;
                   int weekRev = 0, monthRev = 0;
+                  // Build day-of-week (Mon=0..Sun=6) bucket for the bar chart.
+                  final byDow = List<int>.filled(7, 0);
                   for (final b in list) {
                     final d = DateTime.tryParse(b.date);
                     if (d == null) continue;
@@ -55,6 +58,8 @@ class BarberStatsScreen extends ConsumerWidget {
                     if (d.isAfter(weekAgo)) {
                       weekCount++;
                       weekRev += b.totalPrice;
+                      // weekday: 1=Mon..7=Sun → index 0..6
+                      byDow[d.weekday - 1]++;
                     }
                     if (d.isAfter(monthAgo)) {
                       monthCount++;
@@ -64,6 +69,26 @@ class BarberStatsScreen extends ConsumerWidget {
 
                   return Column(
                     children: [
+                      // Bar chart of last-7-days bookings by weekday.
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Haftalik bronlar",
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                            const SizedBox(height: 8),
+                            WeeklyBookingsBarChart(counts: byDow),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
                       _StatCard(
                         label: 'Bu hafta',
                         primary: '$weekCount ta bron',
