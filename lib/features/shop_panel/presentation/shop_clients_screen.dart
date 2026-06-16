@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
@@ -46,7 +48,10 @@ class ShopClientsScreen extends ConsumerWidget {
               separatorBuilder: (context, i) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
                 final c = list[i];
-                return Container(
+                return InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => context.push('/shop/clients/${Uri.encodeComponent(c.phone)}'),
+                  child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
@@ -98,6 +103,7 @@ class ShopClientsScreen extends ConsumerWidget {
                       onPressed: c.phone.isEmpty ? null : () => _call(c.phone),
                     ),
                   ]),
+                ),
                 ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);
               },
             ),

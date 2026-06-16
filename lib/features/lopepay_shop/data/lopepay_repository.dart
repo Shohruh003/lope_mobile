@@ -90,7 +90,30 @@ class LopepayRepository {
   Future<void> recordPayment(String customerId, int amount) async {
     await _dio.post('/lopepay/customers/$customerId/payments', data: {'amount': amount});
   }
+
+  Future<List<Map<String, dynamic>>> sms() async {
+    final res = await _dio.get('/lopepay/sms');
+    final data = res.data;
+    final list = (data is List)
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return list.cast<Map<String, dynamic>>();
+  }
+
+  Future<List<Map<String, dynamic>>> transactions() async {
+    final res = await _dio.get('/lopepay/transactions');
+    final data = res.data;
+    final list = (data is List)
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return list.cast<Map<String, dynamic>>();
+  }
 }
+
+final lopepaySmsProvider = FutureProvider<List<Map<String, dynamic>>>(
+    (ref) => ref.watch(lopepayRepositoryProvider).sms());
+final lopepayTxnProvider = FutureProvider<List<Map<String, dynamic>>>(
+    (ref) => ref.watch(lopepayRepositoryProvider).transactions());
 
 final lopepayRepositoryProvider = Provider<LopepayRepository>(
     (ref) => LopepayRepository(ref.watch(dioProvider)));
