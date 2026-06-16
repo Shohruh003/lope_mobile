@@ -152,3 +152,87 @@ final shopBarbersProvider = FutureProvider<List<ShopBarber>>(
     (ref) => ref.watch(shopRepositoryProvider).barbers());
 final shopBookingsProvider = FutureProvider<List<ShopBooking>>(
     (ref) => ref.watch(shopRepositoryProvider).bookings());
+
+/// Shop clients (customers who booked at this salon).
+class ShopClient {
+  ShopClient({required this.name, required this.phone, this.lastVisit, this.bookingsCount = 0});
+  final String name;
+  final String phone;
+  final DateTime? lastVisit;
+  final int bookingsCount;
+  factory ShopClient.fromJson(Map<String, dynamic> json) => ShopClient(
+        name: (json['name'] ?? '').toString(),
+        phone: (json['phone'] ?? '').toString(),
+        lastVisit: json['lastVisit'] != null ? DateTime.tryParse(json['lastVisit'].toString()) : null,
+        bookingsCount: ((json['bookingsCount'] ?? json['count'] ?? 0) as num).toInt(),
+      );
+}
+
+class ShopSmsLogEntry {
+  ShopSmsLogEntry({required this.phone, required this.message, required this.status, required this.createdAt});
+  final String phone;
+  final String message;
+  final String status;
+  final DateTime createdAt;
+  factory ShopSmsLogEntry.fromJson(Map<String, dynamic> json) => ShopSmsLogEntry(
+        phone: (json['phone'] ?? '').toString(),
+        message: (json['message'] ?? '').toString(),
+        status: (json['status'] ?? 'unknown').toString(),
+        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
+      );
+}
+
+class ShopTxnEntry {
+  ShopTxnEntry({required this.amount, required this.method, required this.direction, required this.createdAt, this.description});
+  final int amount;
+  final String method;
+  final String direction;
+  final String? description;
+  final DateTime createdAt;
+  factory ShopTxnEntry.fromJson(Map<String, dynamic> json) => ShopTxnEntry(
+        amount: ((json['amount'] ?? 0) as num).toInt(),
+        method: (json['method'] ?? 'internal').toString(),
+        direction: (json['direction'] ?? (((json['amount'] ?? 0) as num) >= 0 ? 'in' : 'out')).toString(),
+        description: json['description']?.toString(),
+        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
+      );
+}
+
+extension ShopRepoExtras on ShopRepository {
+  Future<List<ShopClient>> clients({int page = 1, int limit = 50, String? search}) async {
+    final res = await _dio.get('/barbershop/clients', queryParameters: {
+      'page': page, 'limit': limit,
+      if (search != null && search.isNotEmpty) 'search': search,
+    });
+    final data = res.data;
+    final list = (data is List)
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return list.cast<Map<String, dynamic>>().map(ShopClient.fromJson).toList();
+  }
+
+  Future<List<ShopSmsLogEntry>> smsLog({int page = 1, int limit = 30}) async {
+    final res = await _dio.get('/barbershop/sms', queryParameters: {'page': page, 'limit': limit});
+    final data = res.data;
+    final list = (data is List)
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return list.cast<Map<String, dynamic>>().map(ShopSmsLogEntry.fromJson).toList();
+  }
+
+  Future<List<ShopTxnEntry>> transactions({int page = 1, int limit = 30}) async {
+    final res = await _dio.get('/barbershop/transactions', queryParameters: {'page': page, 'limit': limit});
+    final data = res.data;
+    final list = (data is List)
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return list.cast<Map<String, dynamic>>().map(ShopTxnEntry.fromJson).toList();
+  }
+}
+
+final shopClientsProvider = FutureProvider<List<ShopClient>>(
+    (ref) => ref.watch(shopRepositoryProvider).clients());
+final shopSmsLogProvider = FutureProvider<List<ShopSmsLogEntry>>(
+    (ref) => ref.watch(shopRepositoryProvider).smsLog());
+final shopTransactionsProvider = FutureProvider<List<ShopTxnEntry>>(
+    (ref) => ref.watch(shopRepositoryProvider).transactions());

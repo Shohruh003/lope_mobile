@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/tr.dart';
 import '../features/ai_style/presentation/ai_style_screen.dart';
+import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/otp_screen.dart';
 import '../features/auth/presentation/register_complete_screen.dart';
@@ -18,13 +19,19 @@ import '../features/barber_panel/presentation/barber_services_screen.dart';
 import '../features/barber_panel/presentation/barber_sms_history_screen.dart';
 import '../features/barber_panel/presentation/barber_working_hours_screen.dart';
 import '../features/barbers/presentation/barber_detail_screen.dart';
+import '../features/barbers/presentation/barbershop_detail_screen.dart';
 import '../features/bookings/presentation/booking_screen.dart';
 import '../features/favorites/presentation/favorites_screen.dart';
 import '../features/home/presentation/home_shell.dart';
 import '../features/lopepay/presentation/transactions_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/profile/presentation/profile_edit_screen.dart';
+import '../features/profile/presentation/settings_screen.dart';
+import '../features/reviews/presentation/reviews_screen.dart';
+import '../features/shop_panel/presentation/shop_clients_screen.dart';
 import '../features/shop_panel/presentation/shop_home_shell.dart';
+import '../features/shop_panel/presentation/shop_sms_screen.dart';
+import '../features/shop_panel/presentation/shop_transactions_screen.dart';
 import '../shared/theme/colors.dart';
 import '../features/auth/presentation/auth_controller.dart';
 
@@ -56,6 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/register-phone', builder: (context, state) => const RegisterPhoneScreen()),
+      GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
       GoRoute(
         path: '/register-otp',
         builder: (context, state) {
@@ -82,6 +90,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/ai-style', builder: (context, state) => const AiStyleScreen()),
       GoRoute(path: '/transactions', builder: (context, state) => const TransactionsScreen()),
       GoRoute(path: '/profile-edit', builder: (context, state) => const ProfileEditScreen()),
+      GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+      GoRoute(
+        path: '/barbershop/:id',
+        builder: (context, state) => BarbershopDetailScreen(shopId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/reviews/:id',
+        builder: (context, state) => ReviewsScreen(barberId: state.pathParameters['id']!),
+      ),
 
       // Barber feature paths
       GoRoute(path: '/barber/profile', builder: (context, state) => const BarberProfileEditScreen()),
@@ -103,6 +120,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/barber/reminders', builder: (context, state) => const BarberReminderSettingsScreen()),
       GoRoute(path: '/barber/sms', builder: (context, state) => const BarberSmsHistoryScreen()),
       GoRoute(path: '/barber/public-link', builder: (context, state) => const BarberPublicLinkScreen()),
+
+      // Shop feature paths
+      GoRoute(path: '/shop/clients', builder: (context, state) => const ShopClientsScreen()),
+      GoRoute(path: '/shop/sms', builder: (context, state) => const ShopSmsScreen()),
+      GoRoute(path: '/shop/transactions', builder: (context, state) => const ShopTransactionsScreen()),
 
       // Admin role isn't a panel — direct it to a friendly stub.
       GoRoute(
