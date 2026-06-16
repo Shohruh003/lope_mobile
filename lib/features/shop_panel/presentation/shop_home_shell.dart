@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_drawer.dart';
 import '../../profile/presentation/profile_screen.dart';
 import 'shop_barbers_screen.dart';
 import 'shop_bookings_screen.dart';
@@ -44,6 +47,17 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: const Text("Lope Style", style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+        actions: [
+          IconButton(
+            tooltip: 'Bildirishnomalar',
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => context.push('/notifications'),
+          ),
+        ],
+      ),
       body: IndexedStack(index: _index, children: _tabs),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

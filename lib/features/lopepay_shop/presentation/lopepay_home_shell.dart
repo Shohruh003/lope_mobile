@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_drawer.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../data/lopepay_repository.dart';
 
@@ -28,6 +31,17 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
+      appBar: AppBar(
+        title: const Text("Lope Pay", style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+        actions: [
+          IconButton(
+            tooltip: 'Bildirishnomalar',
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => context.push('/notifications'),
+          ),
+        ],
+      ),
       body: IndexedStack(index: _index, children: _tabs),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -195,7 +209,10 @@ class _LopepayCustomersTab extends ConsumerWidget {
                 itemBuilder: (context, i) {
                   final c = list[i];
                   final overdue = c.nextDue != null && c.nextDue!.isBefore(DateTime.now());
-                  return Container(
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => context.push('/lopepay/customers/${c.id}'),
+                    child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.surface,
@@ -243,6 +260,7 @@ class _LopepayCustomersTab extends ConsumerWidget {
                         },
                       ),
                     ]),
+                  ),
                   ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);
                 },
               ),
