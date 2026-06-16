@@ -15,10 +15,13 @@ class AppColors {
   static const Color surfaceElevated = Color(0xFF1C1C21);
   static const Color border = Color(0xFF27272A);
 
-  // Text
-  static const Color textPrimary = Color(0xFFF4F4F5);
-  static const Color textSecondary = Color(0xFFA1A1AA);
-  static const Color textMuted = Color(0xFF71717A);
+  // Text — tuned brighter so welcome / hero text reads with high contrast on
+  // dark surfaces. textBright is for hero copy (login, splash); textSecondary
+  // covers body / subtitles; textMuted is now visible (not buried like before).
+  static const Color textBright = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFFFAFAFA);
+  static const Color textSecondary = Color(0xFFD4D4D8);
+  static const Color textMuted = Color(0xFFA1A1AA);
 
   // Semantic
   static const Color success = Color(0xFF22C55E);

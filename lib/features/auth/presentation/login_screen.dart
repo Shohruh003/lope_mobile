@@ -118,18 +118,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             curve: Curves.easeOutBack,
                           ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 22),
                       const Text(
                         "Xush kelibsiz",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.7, height: 1.1),
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.7,
+                          height: 1.1,
+                          color: AppColors.textBright,
+                        ),
                       ).animate().fadeIn(duration: 500.ms, delay: 80.ms).slideY(begin: 0.2, end: 0),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       const Text(
                         "Lope Style hisobingizga kiring",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.5),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ).animate().fadeIn(duration: 500.ms, delay: 160.ms),
 
                       const SizedBox(height: 36),
@@ -143,16 +154,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(9),
                         ],
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                          color: AppColors.textBright,
+                        ),
                         decoration: const InputDecoration(
                           prefix: Padding(
                             padding: EdgeInsets.only(right: 6),
                             child: Text(
                               "+998",
-                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textBright,
+                              ),
                             ),
                           ),
                           hintText: "90 123 45 67",
+                          hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
                         ),
                       ).animate().fadeIn(duration: 500.ms, delay: 240.ms),
 
@@ -161,13 +182,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textBright),
                         decoration: InputDecoration(
                           hintText: "Parol",
+                          hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                              color: AppColors.textMuted,
+                              color: AppColors.textSecondary,
                             ),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
@@ -209,9 +231,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   height: 22,
                                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                 )
-                              : const Text("Kirish", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                              : const Text("Kirish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
                         ),
                       ).animate().fadeIn(duration: 500.ms, delay: 400.ms),
+
+                      const SizedBox(height: 14),
+                      Center(
+                        child: GestureDetector(
+                          onTap: () => context.push('/forgot-password'),
+                          child: const Text(
+                            "Parolingizni unutdingizmi?",
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ).animate().fadeIn(duration: 500.ms, delay: 440.ms),
 
                       const Spacer(),
 
@@ -222,7 +259,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text("Hisobingiz yo'qmi?",
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.w500)),
                             const SizedBox(width: 6),
                             GestureDetector(
                               onTap: () => context.push('/register-phone'),
@@ -230,8 +267,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 "Ro'yxatdan o'tish",
                                 style: TextStyle(
                                   color: AppColors.primary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                             ),

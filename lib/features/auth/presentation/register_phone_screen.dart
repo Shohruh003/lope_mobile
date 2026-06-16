@@ -80,12 +80,18 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
               const SizedBox(height: 16),
               const Text(
                 "Telefon raqamingiz",
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1.1),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                  color: AppColors.textBright,
+                ),
               ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               const Text(
                 "Sizga 4 raqamli tasdiqlash kodi yuboramiz",
-                style: TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.5),
+                style: TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5, fontWeight: FontWeight.w500),
               ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
               const SizedBox(height: 36),
               TextField(
@@ -96,16 +102,17 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(9),
                 ],
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: AppColors.textBright),
                 decoration: const InputDecoration(
                   prefix: Padding(
                     padding: EdgeInsets.only(right: 6),
                     child: Text(
                       "+998",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: AppColors.textBright),
                     ),
                   ),
                   hintText: "90 123 45 67",
+                  hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 17, fontWeight: FontWeight.w500),
                 ),
                 onSubmitted: (_) => _submit(),
               ).animate().fadeIn(duration: 400.ms, delay: 160.ms),
@@ -140,7 +147,7 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
                           height: 22,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text("Davom etish", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      : const Text("Davom etish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
                 ),
               ).animate().fadeIn(duration: 400.ms, delay: 240.ms),
             ],

@@ -116,19 +116,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             const Text(
               'Lope Style',
               style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
                 letterSpacing: -0.5,
-                color: AppColors.textPrimary,
+                color: AppColors.textBright,
               ),
             )
                 .animate()
                 .fadeIn(duration: 800.ms, delay: 200.ms)
                 .slideY(begin: 0.2, end: 0, duration: 800.ms, curve: Curves.easeOutCubic),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             const Text(
               "Sartaroshlik bron platformasi",
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 15, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
             ).animate().fadeIn(duration: 800.ms, delay: 400.ms),
           ],
         ),

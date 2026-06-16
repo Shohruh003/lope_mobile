@@ -125,12 +125,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               const SizedBox(height: 16),
               const Text(
                 "Kodni kiriting",
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1.1),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                  color: AppColors.textBright,
+                ),
               ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 "${widget.phone} raqamiga 4 raqamli kod yubordik",
-                style: const TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.5),
+                style: const TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5, fontWeight: FontWeight.w500),
               ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
 
               const SizedBox(height: 40),
@@ -155,7 +161,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           height: 22,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text("Tasdiqlash", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      : const Text("Tasdiqlash", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
                 ),
               ),
 
@@ -210,7 +216,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         textAlign: TextAlign.center,
         maxLength: 1,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textBright),
         decoration: const InputDecoration(
           counterText: '',
           border: InputBorder.none,

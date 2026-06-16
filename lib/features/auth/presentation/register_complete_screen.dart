@@ -84,12 +84,18 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
               const SizedBox(height: 16),
               const Text(
                 "Ozgina qoldi",
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1.1),
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                  color: AppColors.textBright,
+                ),
               ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               const Text(
                 "Ismingiz va parol — keyin yana kerakmas",
-                style: TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.5),
+                style: TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5, fontWeight: FontWeight.w500),
               ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
 
               const SizedBox(height: 36),
@@ -100,8 +106,11 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                 controller: _nameController,
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-                decoration: const InputDecoration(hintText: "Masalan: Shohruh"),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textBright),
+                decoration: const InputDecoration(
+                  hintText: "Masalan: Shohruh",
+                  hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
+                ),
               ).animate().fadeIn(duration: 400.ms, delay: 160.ms),
 
               const SizedBox(height: 18),
@@ -111,13 +120,14 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textBright),
                 decoration: InputDecoration(
                   hintText: "Kamida 4 belgi",
+                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      color: AppColors.textMuted,
+                      color: AppColors.textSecondary,
                     ),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
@@ -155,7 +165,7 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                           height: 22,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text("Ro'yxatdan o'tish", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      : const Text("Ro'yxatdan o'tish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
                 ),
               ).animate().fadeIn(duration: 400.ms, delay: 320.ms),
             ],
@@ -169,8 +179,8 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
   Widget _Label(String text) => Text(
         text,
         style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
           color: AppColors.textSecondary,
           letterSpacing: 0.2,
         ),
