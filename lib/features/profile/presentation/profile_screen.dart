@@ -76,6 +76,33 @@ class ProfileScreen extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
+            // Quick links — match the web's sidebar navigation
+            _SettingsGroup(children: [
+              _SettingsTile(
+                icon: Icons.edit_outlined,
+                label: "Profilni tahrirlash",
+                onTap: () => context.push(user?.role == 'barber' ? '/barber/profile' : '/profile-edit'),
+              ),
+              _SettingsTile(
+                icon: Icons.account_balance_wallet_outlined,
+                label: "Hisobim va to'lovlar",
+                onTap: () => context.push('/transactions'),
+              ),
+              _SettingsTile(
+                icon: Icons.notifications_outlined,
+                label: "Bildirishnomalar",
+                onTap: () => context.push('/notifications'),
+              ),
+              if (user?.role == 'user')
+                _SettingsTile(
+                  icon: Icons.favorite_outline,
+                  label: "Sevimlilar",
+                  onTap: () => context.push('/favorites'),
+                ),
+            ]).animate().fadeIn(duration: 400.ms, delay: 120.ms),
+
+            const SizedBox(height: 16),
+
             // Settings list
             _SettingsGroup(children: [
               _SettingsTile(

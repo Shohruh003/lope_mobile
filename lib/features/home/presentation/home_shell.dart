@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/colors.dart';
+import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../barbers/presentation/barbers_list_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
@@ -23,7 +24,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   static const _tabs = [
     BarbersListScreen(),
     MyBookingsScreen(),
-    _AiStylePlaceholder(),
+    AiStyleScreen(),
     ProfileScreen(),
   ];
 
@@ -117,44 +118,3 @@ class _TabItem {
   final String labelKey;
 }
 
-class _AiStylePlaceholder extends StatelessWidget {
-  const _AiStylePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 40),
-            ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-                  duration: 1500.ms,
-                  begin: const Offset(0.94, 0.94),
-                  end: const Offset(1.06, 1.06),
-                  curve: Curves.easeInOut,
-                ),
-            const SizedBox(height: 20),
-            const Text("AI Stil tez orada", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                "Sochingiz va soqolingiz uchun yangi stillarni AI orqali ko'rib chiqing.",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary, height: 1.5),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
