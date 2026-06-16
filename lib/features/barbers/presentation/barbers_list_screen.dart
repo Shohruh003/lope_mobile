@@ -23,6 +23,8 @@ class BarbersListScreen extends ConsumerStatefulWidget {
 class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
+  String _filter = 'all'; // 'all' | 'available' | 'top'
+  String _sort = 'rating'; // 'rating' | 'name'
 
   @override
   void dispose() {
@@ -74,6 +76,24 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                               : null,
                         ),
                       ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
+                      const SizedBox(height: 14),
+                      // Filter chip row
+                      SizedBox(
+                        height: 40,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _FilterChip(label: "Hammasi", on: _filter == 'all', onTap: () => setState(() => _filter = 'all')),
+                            _FilterChip(label: "Bo'sh", on: _filter == 'available', onTap: () => setState(() => _filter = 'available')),
+                            _FilterChip(label: "Top", on: _filter == 'top', onTap: () => setState(() => _filter = 'top')),
+                            const SizedBox(width: 6),
+                            const VerticalDivider(width: 16, indent: 8, endIndent: 8, color: AppColors.border),
+                            const SizedBox(width: 6),
+                            _FilterChip(label: "Reyting", on: _sort == 'rating', onTap: () => setState(() => _sort = 'rating')),
+                            _FilterChip(label: "Ism", on: _sort == 'name', onTap: () => setState(() => _sort = 'name')),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -82,13 +102,26 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 loading: () => const SliverToBoxAdapter(child: _LoadingList()),
                 error: (e, _) => SliverToBoxAdapter(child: _ErrorBlock(message: e.toString())),
                 data: (list) {
-                  final filtered = _query.isEmpty
+                  var filtered = _query.isEmpty
                       ? list
                       : list
                           .where((b) =>
                               b.name.toLowerCase().contains(_query) ||
                               b.location.toLowerCase().contains(_query))
                           .toList();
+                  // Filter chips
+                  if (_filter == 'available') {
+                    filtered = filtered.where((b) => b.isAvailable).toList();
+                  } else if (_filter == 'top') {
+                    filtered = filtered.where((b) => b.rating >= 4.5).toList();
+                  }
+                  // Sort
+                  filtered = [...filtered];
+                  if (_sort == 'rating') {
+                    filtered.sort((a, b) => b.rating.compareTo(a.rating));
+                  } else {
+                    filtered.sort((a, b) => a.name.compareTo(b.name));
+                  }
                   if (filtered.isEmpty) {
                     return const SliverToBoxAdapter(child: _EmptyState());
                   }
@@ -245,6 +278,25 @@ class _AvatarShimmer extends StatelessWidget {
       baseColor: AppColors.surfaceElevated,
       highlightColor: AppColors.border,
       child: Container(width: 64, height: 64, color: AppColors.surface),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({required this.label, required this.on, required this.onTap});
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: on,
+        onSelected: (_) => onTap(),
+        selectedColor: AppColors.primary.withValues(alpha: 0.25),
+      ),
     );
   }
 }
