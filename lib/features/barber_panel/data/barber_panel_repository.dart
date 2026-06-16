@@ -1,0 +1,87 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/api_client.dart';
+
+class BarberBooking {
+  BarberBooking({
+    required this.id,
+    required this.date,
+    required this.time,
+    required this.status,
+    required this.userName,
+    required this.totalPrice,
+    required this.totalDuration,
+    this.userPhone,
+    this.guestName,
+    this.guestPhone,
+  });
+
+  final String id;
+  final String date;
+  final String time;
+  final String status;
+  final String userName;
+  final int totalPrice;
+  final int totalDuration;
+  final String? userPhone;
+  final String? guestName;
+  final String? guestPhone;
+
+  factory BarberBooking.fromJson(Map<String, dynamic> json) => BarberBooking(
+        id: json['id'] as String,
+        date: json['date'] as String,
+        time: json['time'] as String,
+        status: (json['status'] ?? 'confirmed') as String,
+        userName: (json['userName'] ?? '') as String,
+        userPhone: json['userPhone'] as String?,
+        guestName: json['guestName'] as String?,
+        guestPhone: json['guestPhone'] as String?,
+        totalPrice: ((json['totalPrice'] ?? 0) as num).toInt(),
+        totalDuration: ((json['totalDuration'] ?? 0) as num).toInt(),
+      );
+}
+
+class BarberPanelRepository {
+  BarberPanelRepository(this._dio);
+  final Dio _dio;
+
+  /// Bookings for a specific barber on a specific date.
+  Future<List<BarberBooking>> byDay({required String barberId, required String date}) async {
+    final res = await _dio.get('/bookings/barber/$barberId', queryParameters: {'date': date});
+    final data = res.data;
+    final raw = (data is List)
+        ? data
+        : (data is Map<String, dynamic> && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    final list = raw.cast<Map<String, dynamic>>().map(BarberBooking.fromJson).toList();
+    list.sort((a, b) => a.time.compareTo(b.time));
+    return list;
+  }
+
+  /// All bookings for the barber, paginated. Backend already orders by
+  /// {date desc, time desc}.
+  Future<List<BarberBooking>> all({required String barberId, int page = 1, int limit = 20}) async {
+    final res = await _dio.get(
+      '/bookings/barber/$barberId',
+      queryParameters: {'page': page, 'limit': limit},
+    );
+    final data = res.data;
+    final raw = (data is List)
+        ? data
+        : (data is Map<String, dynamic> && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return raw.cast<Map<String, dynamic>>().map(BarberBooking.fromJson).toList();
+  }
+}
+
+final barberPanelRepositoryProvider = Provider<BarberPanelRepository>((ref) {
+  return BarberPanelRepository(ref.watch(dioProvider));
+});
+
+final barberDayBookingsProvider = FutureProvider.family<List<BarberBooking>,
+    ({String barberId, String date})>((ref, key) async {
+  return ref.watch(barberPanelRepositoryProvider).byDay(barberId: key.barberId, date: key.date);
+});
+
+final barberAllBookingsProvider = FutureProvider.family<List<BarberBooking>, String>((ref, barberId) async {
+  return ref.watch(barberPanelRepositoryProvider).all(barberId: barberId);
+});
