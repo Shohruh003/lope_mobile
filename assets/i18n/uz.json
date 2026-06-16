@@ -1192,5 +1192,207 @@
       "emptyTransactions": "Tranzaksiya yo'q",
       "currentBalance": "Joriy balans"
     }
+  },
+  "mobile": {
+    "common": {
+      "save": "Saqlash",
+      "saved": "Saqlandi",
+      "cancel": "Bekor",
+      "delete": "O'chirish",
+      "edit": "Tahrirlash",
+      "add": "Qo'shish",
+      "close": "Yopish",
+      "back": "Orqaga",
+      "retry": "Qayta urinish",
+      "loading": "Yuklanmoqda...",
+      "copy": "Nusxa",
+      "copied": "Nusxalandi",
+      "open": "Ochish",
+      "ok": "OK",
+      "search": "Qidirish",
+      "all": "Hammasi",
+      "error": "Xato",
+      "errorPrefix": "Xato: {{msg}}",
+      "sum": "so'm",
+      "min": "daq",
+      "minute": "daqiqa",
+      "next": "Keyingi",
+      "submit": "Jo'natish",
+      "confirm": "Tasdiqlash"
+    },
+    "auth": {
+      "phone": "Telefon",
+      "phoneLocked": "Telefon o'zgartirilmaydi",
+      "name": "Ism",
+      "password": "Parol",
+      "login": "Kirish",
+      "register": "Ro'yxatdan o'tish",
+      "logout": "Chiqish",
+      "logoutTitle": "Chiqishni tasdiqlang",
+      "logoutAsk": "Hisobingizdan chiqmoqchimisiz?",
+      "logoutCancel": "Bekor qilish",
+      "language": "Til",
+      "version": "Versiya"
+    },
+    "tabs": {
+      "discover": "Topish",
+      "bookings": "Bronlar",
+      "aiStyle": "AI Stil",
+      "profile": "Profil",
+      "schedule": "Jadval",
+      "stats": "Statistika",
+      "dashboard": "Boshqaruv",
+      "masters": "Mastera"
+    },
+    "profile": {
+      "title": "Profil",
+      "edit": "Profilni tahrirlash",
+      "transactions": "Hisobim va to'lovlar",
+      "notifications": "Bildirishnomalar",
+      "favorites": "Sevimlilar",
+      "selectLanguage": "Tilni tanlash"
+    },
+    "customer": {
+      "favorites": { "title": "Sevimlilar", "empty": "Sevimlilar ro'yxati bo'sh" },
+      "profileEdit": { "title": "Profil", "changeAvatar": "Avatarni o'zgartirish", "avatarUpdated": "Avatar yangilandi" },
+      "aiStyle": {
+        "title": "AI Stil",
+        "step1": "1. O'zingizning rasmingiz",
+        "step2": "2. Stil namunalari (1-4 ta)",
+        "step3": "3. Jins",
+        "male": "Erkak",
+        "female": "Ayol",
+        "addSelfie": "Selfie qo'shing",
+        "generate": "AI orqali yaratish",
+        "generating": "Generatsiya...",
+        "result": "Natija",
+        "balance": "Balans: {{amount}} so'm",
+        "freeRemaining": "Bugun {{n}} ta bepul",
+        "selfieMissing": "Avval o'zingizning rasmingizni yuklang",
+        "refMissing": "Kamida bitta stil namunasi yuklang",
+        "errorBalance": "Balansingiz yetarli emas. Hisobni to'ldiring.",
+        "errorInternet": "Internet bilan muammo",
+        "errorGeneric": "Generatsiya bajarilmadi"
+      },
+      "transactions": {
+        "title": "Hisobim",
+        "balanceCurrent": "Joriy balans",
+        "topUp": "To'ldirish",
+        "topUpSheet": "Balansni to'ldirish",
+        "topUpAmount": "Summa (so'm)",
+        "topUpGo": "To'lovga o'tish",
+        "history": "Tranzaktsiyalar",
+        "empty": "Hali tranzaktsiya yo'q",
+        "freeAiHint": "Bugun {{n}} ta bepul AI Stil qoldi",
+        "methodClick": "Click to'lov",
+        "methodPayme": "Payme to'lov",
+        "methodTelegram": "Telegram bonus",
+        "methodSms": "SMS xizmat",
+        "methodAi": "AI Stil",
+        "methodReferral": "Referal bonus",
+        "methodDefault": "Tranzaktsiya"
+      }
+    },
+    "barber": {
+      "home": { "schedule": "Jadval", "bookings": "Bronlar", "stats": "Statistika", "profile": "Profil" },
+      "schedule": { "title": "Jadval", "empty": "Bu kunda bron yo'q" },
+      "bookingsAll": { "title": "Barcha bronlar", "empty": "Hali bron yo'q", "client": "Mijoz" },
+      "stats": {
+        "title": "Statistika",
+        "week": "Bu hafta",
+        "month": "Bu oy",
+        "total": "Jami daromad",
+        "bookings": "{{n}} ta bron",
+        "historyCount": "{{n}} ta bron tarixi"
+      },
+      "profileEdit": {
+        "title": "Profilni tahrirlash",
+        "bio": "Bio",
+        "bioPlaceholder": "O'zingiz haqingizda",
+        "location": "Manzil",
+        "locationPlaceholder": "Shahar, tuman",
+        "saveBio": "Bio'ni saqlash",
+        "manage": "Boshqaruv",
+        "linkServices": "Xizmatlarim",
+        "linkHours": "Ish soatlari",
+        "linkGallery": "Portfolio",
+        "linkReminders": "Eslatma sozlamalari",
+        "linkSms": "SMS tarixi",
+        "linkPublic": "Ommaviy havola"
+      },
+      "services": {
+        "title": "Xizmatlarim",
+        "addBtn": "Yangi xizmat",
+        "empty": "Hali xizmat qo'shilmagan",
+        "emptyHint": "Pastdagi tugma orqali qo'shing",
+        "editTitle": "Xizmatni tahrirlash",
+        "newTitle": "Yangi xizmat",
+        "namePh": "Nomi (masalan: Soch olish)",
+        "pricePh": "Narxi (so'm)",
+        "durationPh": "Davomiyligi (daqiqa)",
+        "deleteAsk": "\"{{name}}\" o'chirilsinmi?",
+        "deleteTitle": "Xizmatni o'chirish?"
+      },
+      "hours": { "title": "Ish soatlari" },
+      "gallery": {
+        "title": "Portfolio",
+        "addBtn": "Qo'shish",
+        "empty": "Portfolio bo'sh",
+        "emptyHint": "Ishlaringizdan rasm yuklang",
+        "deleteTitle": "Rasmni o'chirish?",
+        "uploadError": "Yuklashda xato: {{msg}}"
+      },
+      "reminders": {
+        "title": "Eslatma sozlamalari",
+        "hint": "Mijozlarga SMS bilan eslatma jo'natiladi. Quyida vaqtni va davrni sozlang.",
+        "hoursLabel": "Bron oldidan necha soat",
+        "daysLabel": "Eslatma davri (kunlarda)",
+        "hoursSuffix": " soat",
+        "daysSuffix": " kun"
+      },
+      "sms": { "title": "SMS tarixi", "empty": "SMS yo'q" },
+      "publicLink": {
+        "title": "Ommaviy havola",
+        "hint": "Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing.",
+        "slugMissing": "Public slug hali sozlanmagan. Veb-versiyada faollashtiring.",
+        "yourLink": "Sizning havolangiz",
+        "notifyTitle": "Bron qabul qilinganda SMS",
+        "notifyHint": "Yangi bron tushganda telefoningizga SMS keladi",
+        "tgLabel": "Telegram bot username"
+      }
+    },
+    "shop": {
+      "home": { "dashboard": "Boshqaruv", "masters": "Mastera", "bookings": "Bronlar", "profile": "Profil" },
+      "dashboard": {
+        "salonLabel": "Salonim",
+        "weekTitle": "Bu hafta",
+        "statBookings": "Bronlar",
+        "statClients": "Mijozlar",
+        "statRevenue": "Daromad",
+        "statSms": "SMS",
+        "navManagement": "Boshqaruv",
+        "navMasters": "Mastera (Barberlar)",
+        "navBookings": "Salon bronlari",
+        "navTransactions": "Hisob va to'lovlar",
+        "navSms": "SMS tarixi"
+      },
+      "masters": {
+        "title": "Mastera",
+        "addBtn": "Qo'shish",
+        "empty": "Hali masterlar qo'shilmagan",
+        "newTitle": "Yangi master",
+        "editTitle": "Tahrirlash",
+        "namePh": "Ism",
+        "expPh": "Tajriba (masalan: 3 yil)",
+        "phonePh": "Telefon (ixtiyoriy)",
+        "experience": "Tajriba: {{value}}",
+        "deleteTitle": "Masterni o'chirish?",
+        "deleteAsk": "\"{{name}}\" salondan olib tashlansinmi?"
+      },
+      "bookings": { "title": "Salon bronlari", "empty": "Bron yo'q", "master": "Master: {{name}}" }
+    },
+    "notifications": { "title": "Bildirishnomalar", "empty": "Bildirishnomalar yo'q", "markAllRead": "Hammasini o'qish" },
+    "admin": { "title": "Admin panel mobile'da mavjud emas", "subtitle": "Veb-versiyadan foydalaning: app.lopestyle.uz" },
+    "status": { "confirmed": "Tasdiqlangan", "completed": "Yakunlangan", "cancelled": "Bekor qilingan" }
   }
 }

@@ -1199,5 +1199,207 @@
       "emptyTransactions": "Транзакций нет",
       "currentBalance": "Текущий баланс"
     }
+  },
+  "mobile": {
+    "common": {
+      "save": "Сохранить",
+      "saved": "Сохранено",
+      "cancel": "Отмена",
+      "delete": "Удалить",
+      "edit": "Изменить",
+      "add": "Добавить",
+      "close": "Закрыть",
+      "back": "Назад",
+      "retry": "Повторить",
+      "loading": "Загрузка...",
+      "copy": "Копировать",
+      "copied": "Скопировано",
+      "open": "Открыть",
+      "ok": "OK",
+      "search": "Поиск",
+      "all": "Все",
+      "error": "Ошибка",
+      "errorPrefix": "Ошибка: {{msg}}",
+      "sum": "сум",
+      "min": "мин",
+      "minute": "минута",
+      "next": "Далее",
+      "submit": "Отправить",
+      "confirm": "Подтвердить"
+    },
+    "auth": {
+      "phone": "Телефон",
+      "phoneLocked": "Телефон нельзя изменить",
+      "name": "Имя",
+      "password": "Пароль",
+      "login": "Войти",
+      "register": "Регистрация",
+      "logout": "Выйти",
+      "logoutTitle": "Подтвердите выход",
+      "logoutAsk": "Выйти из аккаунта?",
+      "logoutCancel": "Отмена",
+      "language": "Язык",
+      "version": "Версия"
+    },
+    "tabs": {
+      "discover": "Найти",
+      "bookings": "Записи",
+      "aiStyle": "AI Стиль",
+      "profile": "Профиль",
+      "schedule": "Расписание",
+      "stats": "Статистика",
+      "dashboard": "Панель",
+      "masters": "Мастера"
+    },
+    "profile": {
+      "title": "Профиль",
+      "edit": "Изменить профиль",
+      "transactions": "Счёт и платежи",
+      "notifications": "Уведомления",
+      "favorites": "Избранное",
+      "selectLanguage": "Выбрать язык"
+    },
+    "customer": {
+      "favorites": { "title": "Избранное", "empty": "Список избранного пуст" },
+      "profileEdit": { "title": "Профиль", "changeAvatar": "Изменить аватар", "avatarUpdated": "Аватар обновлён" },
+      "aiStyle": {
+        "title": "AI Стиль",
+        "step1": "1. Ваше фото",
+        "step2": "2. Образцы стилей (1-4)",
+        "step3": "3. Пол",
+        "male": "Мужской",
+        "female": "Женский",
+        "addSelfie": "Добавить селфи",
+        "generate": "Создать через AI",
+        "generating": "Генерация...",
+        "result": "Результат",
+        "balance": "Баланс: {{amount}} сум",
+        "freeRemaining": "Сегодня {{n}} бесплатных",
+        "selfieMissing": "Сначала загрузите свою фотографию",
+        "refMissing": "Загрузите хотя бы один образец стиля",
+        "errorBalance": "Недостаточно средств. Пополните баланс.",
+        "errorInternet": "Проблема с интернетом",
+        "errorGeneric": "Генерация не выполнена"
+      },
+      "transactions": {
+        "title": "Счёт",
+        "balanceCurrent": "Текущий баланс",
+        "topUp": "Пополнить",
+        "topUpSheet": "Пополнить баланс",
+        "topUpAmount": "Сумма (сум)",
+        "topUpGo": "Перейти к оплате",
+        "history": "Транзакции",
+        "empty": "Пока нет транзакций",
+        "freeAiHint": "Сегодня осталось {{n}} бесплатных AI Стилей",
+        "methodClick": "Оплата Click",
+        "methodPayme": "Оплата Payme",
+        "methodTelegram": "Бонус Telegram",
+        "methodSms": "SMS услуга",
+        "methodAi": "AI Стиль",
+        "methodReferral": "Реферальный бонус",
+        "methodDefault": "Транзакция"
+      }
+    },
+    "barber": {
+      "home": { "schedule": "Расписание", "bookings": "Записи", "stats": "Статистика", "profile": "Профиль" },
+      "schedule": { "title": "Расписание", "empty": "В этот день записей нет" },
+      "bookingsAll": { "title": "Все записи", "empty": "Пока нет записей", "client": "Клиент" },
+      "stats": {
+        "title": "Статистика",
+        "week": "Эта неделя",
+        "month": "Этот месяц",
+        "total": "Общий доход",
+        "bookings": "{{n}} записей",
+        "historyCount": "{{n}} записей в истории"
+      },
+      "profileEdit": {
+        "title": "Изменить профиль",
+        "bio": "О себе",
+        "bioPlaceholder": "Расскажите о себе",
+        "location": "Местоположение",
+        "locationPlaceholder": "Город, район",
+        "saveBio": "Сохранить",
+        "manage": "Управление",
+        "linkServices": "Мои услуги",
+        "linkHours": "Рабочие часы",
+        "linkGallery": "Портфолио",
+        "linkReminders": "Настройки напоминаний",
+        "linkSms": "История SMS",
+        "linkPublic": "Публичная ссылка"
+      },
+      "services": {
+        "title": "Мои услуги",
+        "addBtn": "Новая услуга",
+        "empty": "Услуги пока не добавлены",
+        "emptyHint": "Добавьте через кнопку ниже",
+        "editTitle": "Изменить услугу",
+        "newTitle": "Новая услуга",
+        "namePh": "Название (например: Стрижка)",
+        "pricePh": "Цена (сум)",
+        "durationPh": "Длительность (минут)",
+        "deleteAsk": "Удалить \"{{name}}\"?",
+        "deleteTitle": "Удалить услугу?"
+      },
+      "hours": { "title": "Рабочие часы" },
+      "gallery": {
+        "title": "Портфолио",
+        "addBtn": "Добавить",
+        "empty": "Портфолио пустое",
+        "emptyHint": "Загрузите фото своих работ",
+        "deleteTitle": "Удалить фото?",
+        "uploadError": "Ошибка загрузки: {{msg}}"
+      },
+      "reminders": {
+        "title": "Настройки напоминаний",
+        "hint": "Клиентам будет отправлено напоминание по SMS. Ниже настройте время и период.",
+        "hoursLabel": "За сколько часов до записи",
+        "daysLabel": "Период напоминаний (в днях)",
+        "hoursSuffix": " час",
+        "daysSuffix": " дн"
+      },
+      "sms": { "title": "История SMS", "empty": "Нет SMS" },
+      "publicLink": {
+        "title": "Публичная ссылка",
+        "hint": "Публичная ссылка на запись для клиентов. Делитесь в Telegram, SMS или соцсетях.",
+        "slugMissing": "Public slug ещё не настроен. Активируйте в веб-версии.",
+        "yourLink": "Ваша ссылка",
+        "notifyTitle": "SMS при новой записи",
+        "notifyHint": "При новой записи вам придёт SMS на телефон",
+        "tgLabel": "Telegram bot username"
+      }
+    },
+    "shop": {
+      "home": { "dashboard": "Панель", "masters": "Мастера", "bookings": "Записи", "profile": "Профиль" },
+      "dashboard": {
+        "salonLabel": "Мой салон",
+        "weekTitle": "Эта неделя",
+        "statBookings": "Записи",
+        "statClients": "Клиенты",
+        "statRevenue": "Доход",
+        "statSms": "SMS",
+        "navManagement": "Управление",
+        "navMasters": "Мастера (Барберы)",
+        "navBookings": "Записи салона",
+        "navTransactions": "Счёт и платежи",
+        "navSms": "История SMS"
+      },
+      "masters": {
+        "title": "Мастера",
+        "addBtn": "Добавить",
+        "empty": "Мастера пока не добавлены",
+        "newTitle": "Новый мастер",
+        "editTitle": "Изменить",
+        "namePh": "Имя",
+        "expPh": "Опыт (например: 3 года)",
+        "phonePh": "Телефон (необязательно)",
+        "experience": "Опыт: {{value}}",
+        "deleteTitle": "Удалить мастера?",
+        "deleteAsk": "Удалить \"{{name}}\" из салона?"
+      },
+      "bookings": { "title": "Записи салона", "empty": "Нет записей", "master": "Мастер: {{name}}" }
+    },
+    "notifications": { "title": "Уведомления", "empty": "Уведомлений нет", "markAllRead": "Прочитать все" },
+    "admin": { "title": "Админ панель недоступна на мобильном", "subtitle": "Используйте веб-версию: app.lopestyle.uz" },
+    "status": { "confirmed": "Подтверждено", "completed": "Завершено", "cancelled": "Отменено" }
   }
 }

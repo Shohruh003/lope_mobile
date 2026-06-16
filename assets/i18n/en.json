@@ -1191,5 +1191,207 @@
       "emptyTransactions": "No transactions",
       "currentBalance": "Current balance"
     }
+  },
+  "mobile": {
+    "common": {
+      "save": "Save",
+      "saved": "Saved",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "close": "Close",
+      "back": "Back",
+      "retry": "Retry",
+      "loading": "Loading...",
+      "copy": "Copy",
+      "copied": "Copied",
+      "open": "Open",
+      "ok": "OK",
+      "search": "Search",
+      "all": "All",
+      "error": "Error",
+      "errorPrefix": "Error: {{msg}}",
+      "sum": "soum",
+      "min": "min",
+      "minute": "minute",
+      "next": "Next",
+      "submit": "Submit",
+      "confirm": "Confirm"
+    },
+    "auth": {
+      "phone": "Phone",
+      "phoneLocked": "Phone cannot be changed",
+      "name": "Name",
+      "password": "Password",
+      "login": "Sign in",
+      "register": "Sign up",
+      "logout": "Sign out",
+      "logoutTitle": "Confirm sign out",
+      "logoutAsk": "Sign out of your account?",
+      "logoutCancel": "Cancel",
+      "language": "Language",
+      "version": "Version"
+    },
+    "tabs": {
+      "discover": "Discover",
+      "bookings": "Bookings",
+      "aiStyle": "AI Style",
+      "profile": "Profile",
+      "schedule": "Schedule",
+      "stats": "Stats",
+      "dashboard": "Dashboard",
+      "masters": "Masters"
+    },
+    "profile": {
+      "title": "Profile",
+      "edit": "Edit profile",
+      "transactions": "Wallet & payments",
+      "notifications": "Notifications",
+      "favorites": "Favorites",
+      "selectLanguage": "Choose language"
+    },
+    "customer": {
+      "favorites": { "title": "Favorites", "empty": "Favorites list is empty" },
+      "profileEdit": { "title": "Profile", "changeAvatar": "Change avatar", "avatarUpdated": "Avatar updated" },
+      "aiStyle": {
+        "title": "AI Style",
+        "step1": "1. Your photo",
+        "step2": "2. Style references (1-4)",
+        "step3": "3. Gender",
+        "male": "Male",
+        "female": "Female",
+        "addSelfie": "Add a selfie",
+        "generate": "Generate with AI",
+        "generating": "Generating...",
+        "result": "Result",
+        "balance": "Balance: {{amount}} soum",
+        "freeRemaining": "{{n}} free left today",
+        "selfieMissing": "First upload your own photo",
+        "refMissing": "Upload at least one reference",
+        "errorBalance": "Insufficient balance. Top up your account.",
+        "errorInternet": "Internet issue",
+        "errorGeneric": "Generation failed"
+      },
+      "transactions": {
+        "title": "Wallet",
+        "balanceCurrent": "Current balance",
+        "topUp": "Top up",
+        "topUpSheet": "Top up balance",
+        "topUpAmount": "Amount (soum)",
+        "topUpGo": "Continue to payment",
+        "history": "Transactions",
+        "empty": "No transactions yet",
+        "freeAiHint": "{{n}} free AI Style runs left today",
+        "methodClick": "Click payment",
+        "methodPayme": "Payme payment",
+        "methodTelegram": "Telegram bonus",
+        "methodSms": "SMS service",
+        "methodAi": "AI Style",
+        "methodReferral": "Referral bonus",
+        "methodDefault": "Transaction"
+      }
+    },
+    "barber": {
+      "home": { "schedule": "Schedule", "bookings": "Bookings", "stats": "Stats", "profile": "Profile" },
+      "schedule": { "title": "Schedule", "empty": "No bookings on this day" },
+      "bookingsAll": { "title": "All bookings", "empty": "No bookings yet", "client": "Client" },
+      "stats": {
+        "title": "Stats",
+        "week": "This week",
+        "month": "This month",
+        "total": "Total revenue",
+        "bookings": "{{n}} bookings",
+        "historyCount": "{{n}} bookings in history"
+      },
+      "profileEdit": {
+        "title": "Edit profile",
+        "bio": "Bio",
+        "bioPlaceholder": "About yourself",
+        "location": "Location",
+        "locationPlaceholder": "City, district",
+        "saveBio": "Save bio",
+        "manage": "Manage",
+        "linkServices": "My services",
+        "linkHours": "Working hours",
+        "linkGallery": "Portfolio",
+        "linkReminders": "Reminder settings",
+        "linkSms": "SMS history",
+        "linkPublic": "Public link"
+      },
+      "services": {
+        "title": "My services",
+        "addBtn": "New service",
+        "empty": "No services added yet",
+        "emptyHint": "Add via the button below",
+        "editTitle": "Edit service",
+        "newTitle": "New service",
+        "namePh": "Name (e.g. Haircut)",
+        "pricePh": "Price (soum)",
+        "durationPh": "Duration (minutes)",
+        "deleteAsk": "Delete \"{{name}}\"?",
+        "deleteTitle": "Delete service?"
+      },
+      "hours": { "title": "Working hours" },
+      "gallery": {
+        "title": "Portfolio",
+        "addBtn": "Add",
+        "empty": "Portfolio is empty",
+        "emptyHint": "Upload photos of your work",
+        "deleteTitle": "Delete photo?",
+        "uploadError": "Upload error: {{msg}}"
+      },
+      "reminders": {
+        "title": "Reminder settings",
+        "hint": "Customers will get SMS reminders. Configure timing and window below.",
+        "hoursLabel": "Hours before booking",
+        "daysLabel": "Reminder window (in days)",
+        "hoursSuffix": " h",
+        "daysSuffix": " d"
+      },
+      "sms": { "title": "SMS history", "empty": "No SMS" },
+      "publicLink": {
+        "title": "Public link",
+        "hint": "Public booking link for customers. Share via Telegram, SMS or socials.",
+        "slugMissing": "Public slug not configured. Activate in the web version.",
+        "yourLink": "Your link",
+        "notifyTitle": "SMS on new booking",
+        "notifyHint": "You'll get an SMS when a new booking arrives",
+        "tgLabel": "Telegram bot username"
+      }
+    },
+    "shop": {
+      "home": { "dashboard": "Dashboard", "masters": "Masters", "bookings": "Bookings", "profile": "Profile" },
+      "dashboard": {
+        "salonLabel": "My salon",
+        "weekTitle": "This week",
+        "statBookings": "Bookings",
+        "statClients": "Clients",
+        "statRevenue": "Revenue",
+        "statSms": "SMS",
+        "navManagement": "Management",
+        "navMasters": "Masters (Barbers)",
+        "navBookings": "Salon bookings",
+        "navTransactions": "Wallet & payments",
+        "navSms": "SMS history"
+      },
+      "masters": {
+        "title": "Masters",
+        "addBtn": "Add",
+        "empty": "No masters added yet",
+        "newTitle": "New master",
+        "editTitle": "Edit",
+        "namePh": "Name",
+        "expPh": "Experience (e.g. 3 years)",
+        "phonePh": "Phone (optional)",
+        "experience": "Experience: {{value}}",
+        "deleteTitle": "Remove master?",
+        "deleteAsk": "Remove \"{{name}}\" from the salon?"
+      },
+      "bookings": { "title": "Salon bookings", "empty": "No bookings", "master": "Master: {{name}}" }
+    },
+    "notifications": { "title": "Notifications", "empty": "No notifications", "markAllRead": "Mark all read" },
+    "admin": { "title": "Admin panel is not available on mobile", "subtitle": "Use the web version: app.lopestyle.uz" },
+    "status": { "confirmed": "Confirmed", "completed": "Completed", "cancelled": "Cancelled" }
   }
 }
