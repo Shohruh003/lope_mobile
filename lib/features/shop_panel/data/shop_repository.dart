@@ -199,6 +199,11 @@ class ShopTxnEntry {
 }
 
 extension ShopRepoExtras on ShopRepository {
+  /// Update the salon's own profile (name, address, working hours, etc.).
+  Future<void> updateMe(Map<String, dynamic> patch) async {
+    await _dio.patch('/barbershop/me', data: patch);
+  }
+
   Future<List<ShopClient>> clients({int page = 1, int limit = 50, String? search}) async {
     final res = await _dio.get('/barbershop/clients', queryParameters: {
       'page': page, 'limit': limit,

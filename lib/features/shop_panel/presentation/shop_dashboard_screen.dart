@@ -87,6 +87,7 @@ class ShopDashboardScreen extends ConsumerWidget {
               _NavTile(icon: Icons.people_outline, label: "Mijozlar", onTap: () => context.push('/shop/clients')),
               _NavTile(icon: Icons.account_balance_wallet_outlined, label: tr(ref, 'mobile.shop.dashboard.navTransactions', "Hisob va to'lovlar"), onTap: () => context.push('/shop/transactions')),
               _NavTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.shop.dashboard.navSms', "SMS tarixi"), onTap: () => context.push('/shop/sms')),
+              _NavTile(icon: Icons.storefront_outlined, label: "Salon profili", onTap: () => context.push('/shop/profile')),
             ],
           ),
         ),
