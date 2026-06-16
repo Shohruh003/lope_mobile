@@ -10,6 +10,7 @@ import '../features/auth/presentation/otp_screen.dart';
 import '../features/auth/presentation/register_complete_screen.dart';
 import '../features/auth/presentation/register_phone_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
+import '../features/barber_panel/presentation/barber_clients_screen.dart';
 import '../features/barber_panel/presentation/barber_gallery_screen.dart';
 import '../features/barber_panel/presentation/barber_home_shell.dart';
 import '../features/barber_panel/presentation/barber_profile_edit_screen.dart';
@@ -18,6 +19,7 @@ import '../features/barber_panel/presentation/barber_reminder_settings_screen.da
 import '../features/barber_panel/presentation/barber_services_screen.dart';
 import '../features/barber_panel/presentation/barber_sms_history_screen.dart';
 import '../features/barber_panel/presentation/barber_working_hours_screen.dart';
+import '../features/public_booking/presentation/public_booking_screen.dart';
 import '../features/barbers/presentation/barber_detail_screen.dart';
 import '../features/barbers/presentation/barbershop_detail_screen.dart';
 import '../features/bookings/presentation/booking_screen.dart';
@@ -30,6 +32,7 @@ import '../features/profile/presentation/settings_screen.dart';
 import '../features/reviews/presentation/reviews_screen.dart';
 import '../features/shop_panel/presentation/shop_clients_screen.dart';
 import '../features/shop_panel/presentation/shop_home_shell.dart';
+import '../features/shop_panel/presentation/shop_profile_screen.dart';
 import '../features/shop_panel/presentation/shop_sms_screen.dart';
 import '../features/shop_panel/presentation/shop_transactions_screen.dart';
 import '../shared/theme/colors.dart';
@@ -120,11 +123,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/barber/reminders', builder: (context, state) => const BarberReminderSettingsScreen()),
       GoRoute(path: '/barber/sms', builder: (context, state) => const BarberSmsHistoryScreen()),
       GoRoute(path: '/barber/public-link', builder: (context, state) => const BarberPublicLinkScreen()),
+      GoRoute(path: '/barber/clients', builder: (context, state) => const BarberClientsScreen()),
 
       // Shop feature paths
       GoRoute(path: '/shop/clients', builder: (context, state) => const ShopClientsScreen()),
       GoRoute(path: '/shop/sms', builder: (context, state) => const ShopSmsScreen()),
       GoRoute(path: '/shop/transactions', builder: (context, state) => const ShopTransactionsScreen()),
+      GoRoute(path: '/shop/profile', builder: (context, state) => const ShopProfileScreen()),
+
+      // Public booking — shareable link, no auth required.
+      GoRoute(
+        path: '/b/:slug',
+        builder: (context, state) => PublicBookingScreen(slug: state.pathParameters['slug']!),
+      ),
 
       // Admin role isn't a panel — direct it to a friendly stub.
       GoRoute(

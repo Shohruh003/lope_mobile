@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'api_client.dart';
@@ -23,12 +24,9 @@ class PushService {
   String? _lastToken;
   StreamSubscription<String>? _refreshSub;
 
-  Future<void> initIfPossible() async {
+  Future<void> initIfPossible({GoRouter? router}) async {
     if (kIsWeb) return;
     try {
-      // Ensure Firebase has been initialised. If google-services.json is not
-      // present the call will throw — swallow and stay silent in that case so
-      // the app still runs without FCM (e.g. local dev without firebase).
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       }
@@ -40,8 +38,6 @@ class PushService {
     try {
       final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
       if (settings.authorizationStatus == AuthorizationStatus.denied) return;
-      // On Android 13+ FCM still works without POST_NOTIFICATIONS but the
-      // tray icon won't appear. Ask only on Android.
       if (defaultTargetPlatform == TargetPlatform.android) {
         await Permission.notification.request();
       }
@@ -51,9 +47,44 @@ class PushService {
 
       _refreshSub?.cancel();
       _refreshSub = messaging.onTokenRefresh.listen(_registerToken);
+
+      // Deep-link handling. Two entry points:
+      //  - app opened from a notification (terminated/background → tap)
+      //  - app in foreground when a notification arrives (we can't navigate
+      //    silently — only react to actions). Foreground messages are surfaced
+      //    by FCM into the system tray on Android automatically, so we just
+      //    listen for the explicit "user opened it" event.
+      if (router != null) {
+        final initial = await messaging.getInitialMessage();
+        if (initial != null) _route(router, initial);
+        FirebaseMessaging.onMessageOpenedApp.listen((m) => _route(router, m));
+      }
     } catch (_) {
       // Best-effort. Push not working should never block the rest of the app.
     }
+  }
+
+  /// Read `route`, `bookingId`, or `barberId` from the push payload and
+  /// navigate. Anything unfamiliar — silently ignored so a stray payload
+  /// can't crash the app.
+  void _route(GoRouter router, RemoteMessage m) {
+    final data = m.data;
+    final explicit = data['route']?.toString();
+    if (explicit != null && explicit.startsWith('/')) {
+      router.push(explicit);
+      return;
+    }
+    final bookingId = data['bookingId']?.toString();
+    final barberId = data['barberId']?.toString();
+    if (bookingId != null) {
+      router.push('/notifications'); // detail screen will land users on the bookings list
+      return;
+    }
+    if (barberId != null) {
+      router.push('/barber/$barberId');
+      return;
+    }
+    router.push('/notifications');
   }
 
   Future<void> _registerToken(String token) async {

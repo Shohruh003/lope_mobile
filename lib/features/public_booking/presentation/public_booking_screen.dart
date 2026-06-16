@@ -1,0 +1,331 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/api_client.dart';
+import '../../../shared/theme/colors.dart';
+
+/// Public, no-auth booking page reached via a shared link like
+/// `app.lopestyle.uz/b/:slug`. The slug resolves to a barber server-side; the
+/// customer picks a service + date + time and supplies their phone (verified
+/// via SMS OTP). Mirrors the web's PublicBarberBookingPage.
+class PublicBookingScreen extends ConsumerStatefulWidget {
+  const PublicBookingScreen({super.key, required this.slug});
+  final String slug;
+
+  @override
+  ConsumerState<PublicBookingScreen> createState() => _PublicBookingScreenState();
+}
+
+class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
+  final _phoneCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
+  final _selected = <String>{};
+  DateTime _date = DateTime.now();
+  String? _time;
+  bool _busy = false;
+  String? _error;
+  bool _success = false;
+
+  @override
+  void dispose() {
+    _phoneCtrl.dispose();
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<List<String>> _loadSlots(String barberId) async {
+    final dio = ref.read(dioProvider);
+    final d = '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
+    try {
+      final res = await dio.get('/barbers/$barberId/schedule/$d');
+      final data = res.data;
+      if (data is Map && data['available'] is List) {
+        return (data['available'] as List).map((e) => e.toString()).toList();
+      }
+      if (data is List) return data.map((e) => e.toString()).toList();
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _submit(String barberId) async {
+    if (_selected.isEmpty || _time == null) {
+      setState(() => _error = "Xizmat va vaqt tanlang");
+      return;
+    }
+    final phone = _phoneCtrl.text.replaceAll(RegExp(r'\D'), '');
+    if (phone.length != 9) {
+      setState(() => _error = "Telefon raqami noto'g'ri");
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final d = '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
+      await ref.read(dioProvider).post('/bookings/public', data: {
+        'slug': widget.slug,
+        'serviceIds': _selected.toList(),
+        'date': d,
+        'time': _time,
+        'guestName': _nameCtrl.text.trim(),
+        'guestPhone': '+998$phone',
+      });
+      setState(() => _success = true);
+    } on DioException catch (e) {
+      String msg = "Xato — qaytadan urinib ko'ring";
+      if (e.response?.statusCode == 409) msg = "Bu vaqt allaqachon band";
+      if (e.response?.statusCode == 404) msg = "Bu havola eski yoki noto'g'ri";
+      setState(() => _error = msg);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final async = ref.watch(_publicBarberProvider(widget.slug));
+    return Scaffold(
+      appBar: AppBar(title: const Text("Yozilish")),
+      body: async.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.link_off, size: 56, color: AppColors.textMuted),
+                SizedBox(height: 12),
+                Text("Bu havola eski yoki noto'g'ri",
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+              ],
+            ),
+          ),
+        ),
+        data: (barber) {
+          if (_success) return _SuccessView(name: (barber['name'] ?? '').toString());
+          final services = (barber['services'] as List? ?? []).cast<Map<String, dynamic>>();
+          final barberId = barber['id'].toString();
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            children: [
+              // Barber hero
+              Row(children: [
+                ClipOval(
+                  child: ((barber['avatar'] ?? '') as String).isNotEmpty
+                      ? CachedNetworkImage(imageUrl: barber['avatar'].toString(), width: 64, height: 64, fit: BoxFit.cover)
+                      : Container(width: 64, height: 64, color: AppColors.surface, child: const Icon(Icons.person, color: AppColors.textMuted)),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text((barber['name'] ?? '').toString(),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textBright)),
+                      const SizedBox(height: 4),
+                      Text((barber['locationUz'] ?? barber['location'] ?? '').toString(),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ]),
+
+              const SizedBox(height: 24),
+              const Text("Xizmatlar", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const SizedBox(height: 8),
+              if (services.isEmpty)
+                const Text("Bu sartaroshda xizmat sozlanmagan",
+                    style: TextStyle(color: AppColors.textMuted))
+              else
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: services.map((s) {
+                    final id = s['id'] as String;
+                    final name = (s['nameUz'] ?? s['name'] ?? '').toString();
+                    final price = ((s['price'] ?? 0) as num).toInt();
+                    final on = _selected.contains(id);
+                    return FilterChip(
+                      label: Text("$name — ${_fmt(price)} so'm"),
+                      selected: on,
+                      onSelected: (v) => setState(() {
+                        if (v) {
+                          _selected.add(id);
+                        } else {
+                          _selected.remove(id);
+                        }
+                      }),
+                    );
+                  }).toList(),
+                ),
+
+              const SizedBox(height: 22),
+              const Text("Sana", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 70,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 14,
+                  separatorBuilder: (context, i) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) {
+                    final d = DateTime.now().add(Duration(days: i));
+                    final on = d.day == _date.day && d.month == _date.month && d.year == _date.year;
+                    return GestureDetector(
+                      onTap: () => setState(() {
+                        _date = DateTime(d.year, d.month, d.day);
+                        _time = null;
+                      }),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 56,
+                        decoration: BoxDecoration(
+                          color: on ? AppColors.primary : AppColors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: on ? AppColors.primary : AppColors.border),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("${d.day}",
+                                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18,
+                                    color: on ? Colors.white : AppColors.textPrimary)),
+                            Text(_monthShort(d.month),
+                                style: TextStyle(fontSize: 11,
+                                    color: on ? Colors.white70 : AppColors.textMuted)),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 18),
+              const Text("Vaqt", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const SizedBox(height: 8),
+              FutureBuilder<List<String>>(
+                key: ValueKey(_date.toIso8601String()),
+                future: _loadSlots(barberId),
+                builder: (context, snap) {
+                  if (!snap.hasData) {
+                    return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Center(child: CircularProgressIndicator()));
+                  }
+                  final slots = snap.data!;
+                  if (slots.isEmpty) {
+                    return const Text("Bu kunda bo'sh vaqt yo'q",
+                        style: TextStyle(color: AppColors.textMuted));
+                  }
+                  return Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children: slots.map((t) => ChoiceChip(
+                          label: Text(t),
+                          selected: _time == t,
+                          onSelected: (_) => setState(() => _time = t),
+                        )).toList(),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 22),
+              const Text("Ma'lumotlaringiz", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const SizedBox(height: 8),
+              TextField(controller: _nameCtrl, decoration: const InputDecoration(hintText: "Ismingiz")),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(9)],
+                decoration: const InputDecoration(
+                  prefix: Padding(padding: EdgeInsets.only(right: 6), child: Text("+998", style: TextStyle(fontWeight: FontWeight.w700))),
+                  hintText: "90 123 45 67",
+                ),
+              ),
+
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+              ],
+
+              const SizedBox(height: 22),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _busy ? null : () => _submit(barberId),
+                  child: _busy
+                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text("Yozilish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  String _monthShort(int m) {
+    const names = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'];
+    return m >= 1 && m <= 12 ? names[m - 1] : '';
+  }
+
+  String _fmt(int n) {
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      final ri = s.length - i;
+      buf.write(s[i]);
+      if (ri > 1 && ri % 3 == 1) buf.write(' ');
+    }
+    return buf.toString();
+  }
+}
+
+class _SuccessView extends StatelessWidget {
+  const _SuccessView({required this.name});
+  final String name;
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 90, height: 90,
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, size: 56, color: AppColors.success),
+            ).animate().scale(duration: 500.ms, begin: const Offset(0.4, 0.4), end: const Offset(1, 1), curve: Curves.easeOutBack),
+            const SizedBox(height: 20),
+            const Text("Yozildingiz!",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+            const SizedBox(height: 8),
+            Text("$name sizni kutadi. Tasdiqlash SMS keladi.",
+                style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
+                textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Loads barber profile by public slug — needs no auth.
+final _publicBarberProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, slug) async {
+  final dio = ref.watch(dioProvider);
+  final res = await dio.get('/public/barbers/$slug');
+  return Map<String, dynamic>.from(res.data as Map);
+});
