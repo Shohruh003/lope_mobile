@@ -10,6 +10,7 @@ class AppConfig {
 
   /// Storage keys
   static const String tokenKey = 'auth_token';
+  static const String refreshTokenKey = 'auth_refresh_token';
   static const String userKey = 'auth_user';
 
   /// Supported locales — same set as the web (Lotin, Kirill, Russian, English).

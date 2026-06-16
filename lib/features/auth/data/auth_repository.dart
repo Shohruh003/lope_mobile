@@ -29,6 +29,9 @@ class AuthRepository {
     final token = data['token'] as String;
     final user = data['user'] as Map<String, dynamic>;
     await _storage.writeToken(token);
+    if (data['refreshToken'] is String) {
+      await _storage.writeRefreshToken(data['refreshToken'] as String);
+    }
     await _storage.writeUser(jsonEncode(user));
     return AppUser.fromJson(user);
   }
@@ -71,6 +74,9 @@ class AuthRepository {
     final token = data['token'] as String;
     final user = data['user'] as Map<String, dynamic>;
     await _storage.writeToken(token);
+    if (data['refreshToken'] is String) {
+      await _storage.writeRefreshToken(data['refreshToken'] as String);
+    }
     await _storage.writeUser(jsonEncode(user));
     return AppUser.fromJson(user);
   }

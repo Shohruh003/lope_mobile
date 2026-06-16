@@ -13,6 +13,11 @@ class StorageService {
   Future<void> writeToken(String token) => _storage.write(key: AppConfig.tokenKey, value: token);
   Future<void> clearToken() => _storage.delete(key: AppConfig.tokenKey);
 
+  Future<String?> readRefreshToken() => _storage.read(key: AppConfig.refreshTokenKey);
+  Future<void> writeRefreshToken(String token) =>
+      _storage.write(key: AppConfig.refreshTokenKey, value: token);
+  Future<void> clearRefreshToken() => _storage.delete(key: AppConfig.refreshTokenKey);
+
   Future<String?> readUser() => _storage.read(key: AppConfig.userKey);
   Future<void> writeUser(String userJson) => _storage.write(key: AppConfig.userKey, value: userJson);
   Future<void> clearUser() => _storage.delete(key: AppConfig.userKey);
