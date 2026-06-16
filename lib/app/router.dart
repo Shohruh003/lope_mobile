@@ -13,12 +13,17 @@ import '../features/auth/presentation/splash_screen.dart';
 import '../features/barber_panel/presentation/barber_clients_screen.dart';
 import '../features/barber_panel/presentation/barber_gallery_screen.dart';
 import '../features/barber_panel/presentation/barber_home_shell.dart';
+import '../features/barber_panel/presentation/barber_location_screen.dart';
 import '../features/barber_panel/presentation/barber_profile_edit_screen.dart';
 import '../features/barber_panel/presentation/barber_public_link_screen.dart';
 import '../features/barber_panel/presentation/barber_reminder_settings_screen.dart';
 import '../features/barber_panel/presentation/barber_services_screen.dart';
 import '../features/barber_panel/presentation/barber_sms_history_screen.dart';
 import '../features/barber_panel/presentation/barber_working_hours_screen.dart';
+import '../features/lopepay/presentation/payment_callback_screen.dart';
+import '../features/lopepay_shop/presentation/lopepay_home_shell.dart';
+import '../features/map/presentation/map_screen.dart';
+import '../features/promo/presentation/promo_code_screen.dart';
 import '../features/public_booking/presentation/public_booking_screen.dart';
 import '../features/barbers/presentation/barber_detail_screen.dart';
 import '../features/barbers/presentation/barbershop_detail_screen.dart';
@@ -54,10 +59,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Unauthenticated → public-only.
       if (auth.user == null && !isPublic) return '/login';
 
-      // Role gating for the three panel roots.
+      // Role gating for the panel roots.
       final role = auth.user?.role;
       if (loc.startsWith('/barber-app') && role != 'barber') return _homeFor(role);
-      if (loc.startsWith('/shop') && role != 'barbershop' && role != 'shop') return _homeFor(role);
+      if (loc.startsWith('/shop') && role != 'barbershop') return _homeFor(role);
+      if (loc.startsWith('/lopepay') && role != 'shop') return _homeFor(role);
       if (loc.startsWith('/home') && role != null && role != 'user') return _homeFor(role);
 
       return null;
@@ -86,6 +92,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/home', builder: (context, state) => const HomeShell()),
       GoRoute(path: '/barber-app', builder: (context, state) => const BarberHomeShell()),
       GoRoute(path: '/shop', builder: (context, state) => const ShopHomeShell()),
+      GoRoute(path: '/lopepay', builder: (context, state) => const LopepayHomeShell()),
 
       // Customer feature paths
       GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
@@ -93,6 +100,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/ai-style', builder: (context, state) => const AiStyleScreen()),
       GoRoute(path: '/transactions', builder: (context, state) => const TransactionsScreen()),
       GoRoute(path: '/profile-edit', builder: (context, state) => const ProfileEditScreen()),
+      GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
+      GoRoute(path: '/promo', builder: (context, state) => const PromoCodeScreen()),
+      GoRoute(
+        path: '/payment-callback',
+        builder: (context, state) => PaymentCallbackScreen(
+          status: state.uri.queryParameters['status'] ?? 'unknown',
+        ),
+      ),
       GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
       GoRoute(
         path: '/barbershop/:id',
@@ -124,6 +139,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/barber/sms', builder: (context, state) => const BarberSmsHistoryScreen()),
       GoRoute(path: '/barber/public-link', builder: (context, state) => const BarberPublicLinkScreen()),
       GoRoute(path: '/barber/clients', builder: (context, state) => const BarberClientsScreen()),
+      GoRoute(path: '/barber/location', builder: (context, state) => const BarberLocationScreen()),
 
       // Shop feature paths
       GoRoute(path: '/shop/clients', builder: (context, state) => const ShopClientsScreen()),
@@ -187,8 +203,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 String _homeFor(String? role) {
   switch (role) {
     case 'barber': return '/barber-app';
-    case 'barbershop':
-    case 'shop': return '/shop';
+    case 'barbershop': return '/shop';
+    case 'shop': return '/lopepay';
     case 'admin': return '/admin-blocked';
     case null: return '/login';
     default: return '/home';
