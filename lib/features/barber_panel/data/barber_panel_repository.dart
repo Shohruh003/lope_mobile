@@ -85,3 +85,41 @@ final barberDayBookingsProvider = FutureProvider.family<List<BarberBooking>,
 final barberAllBookingsProvider = FutureProvider.family<List<BarberBooking>, String>((ref, barberId) async {
   return ref.watch(barberPanelRepositoryProvider).all(barberId: barberId);
 });
+
+/// Booking actions a barber can take on their own bookings. These are POSTed
+/// to existing NestJS endpoints; the web uses the same routes.
+extension BarberBookingActions on BarberPanelRepository {
+  Future<void> markComplete(String bookingId) async {
+    await _dio.patch('/bookings/$bookingId/complete');
+  }
+
+  Future<void> cancel(String bookingId, {String? reason}) async {
+    await _dio.patch('/bookings/$bookingId/cancel',
+        data: reason == null ? {} : {'reason': reason});
+  }
+
+  /// Manual booking created by the barber on behalf of a guest who walked in
+  /// or called by phone. Backend route: POST /bookings/manual.
+  Future<void> createManual({
+    required String barberId,
+    required String date,
+    required String time,
+    required List<String> serviceIds,
+    String? guestName,
+    String? guestPhone,
+    String? notes,
+  }) async {
+    await _dio.post('/bookings/manual', data: {
+      'barberId': barberId,
+      'date': date,
+      'time': time,
+      'serviceIds': serviceIds,
+      // ignore: use_null_aware_elements
+      if (guestName != null && guestName.isNotEmpty) 'guestName': guestName,
+      // ignore: use_null_aware_elements
+      if (guestPhone != null && guestPhone.isNotEmpty) 'guestPhone': guestPhone,
+      // ignore: use_null_aware_elements
+      if (notes != null && notes.isNotEmpty) 'notes': notes,
+    });
+  }
+}

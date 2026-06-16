@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../data/barber_panel_repository.dart' show BarberBooking, barberDayBookingsProvider;
+import '../data/barber_panel_repository.dart'
+    show BarberBooking, BarberBookingActions, barberDayBookingsProvider, barberAllBookingsProvider, barberPanelRepositoryProvider;
+import '../data/barber_profile_repository.dart';
 
 /// Today's schedule view for a barber. Shows the date strip at the top + a
 /// list of today's bookings sorted by time.
@@ -52,6 +54,12 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     );
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        onPressed: () => _openManualBookingSheet(context, ref, barberId, dateStr),
+        icon: const Icon(Icons.add),
+        label: const Text("Qo'lda bron"),
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
@@ -172,10 +180,13 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                         final b = e.value;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: _BookingTile(booking: b)
-                              .animate()
-                              .fadeIn(duration: 300.ms, delay: (i * 40).ms)
-                              .slideY(begin: 0.1, end: 0),
+                          child: GestureDetector(
+                            onTap: () => _openActionSheet(context, ref, b, barberId, dateStr),
+                            child: _BookingTile(booking: b)
+                                .animate()
+                                .fadeIn(duration: 300.ms, delay: (i * 40).ms)
+                                .slideY(begin: 0.1, end: 0),
+                          ),
                         );
                       }).toList(),
                     ),
@@ -187,6 +198,197 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
         ),
       ),
     );
+  }
+
+  // ---- Action sheet on an existing booking: cancel / mark complete ----
+  Future<void> _openActionSheet(BuildContext context, WidgetRef ref,
+      BarberBooking b, String barberId, String dateStr) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Text(
+                "${b.time}  •  ${(b.guestName?.isNotEmpty == true ? b.guestName! : (b.userName.isNotEmpty ? b.userName : 'Mijoz'))}",
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+              ),
+            ),
+            const Divider(height: 1, color: AppColors.border),
+            if (b.status != 'completed')
+              ListTile(
+                leading: const Icon(Icons.check_circle_outline, color: AppColors.success),
+                title: const Text("Yakunlangan deb belgilash"),
+                onTap: () => Navigator.of(sheetCtx).pop('complete'),
+              ),
+            if (b.status != 'cancelled' && b.status != 'completed')
+              ListTile(
+                leading: const Icon(Icons.cancel_outlined, color: AppColors.danger),
+                title: const Text("Bekor qilish"),
+                onTap: () => Navigator.of(sheetCtx).pop('cancel'),
+              ),
+            ListTile(
+              leading: const Icon(Icons.close, color: AppColors.textMuted),
+              title: const Text("Yopish"),
+              onTap: () => Navigator.of(sheetCtx).pop(null),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (picked == null) return;
+    final repo = ref.read(barberPanelRepositoryProvider);
+    try {
+      if (picked == 'complete') {
+        await repo.markComplete(b.id);
+      } else if (picked == 'cancel') {
+        if (!context.mounted) return;
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (dCtx) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Text("Bronni bekor qilasizmi?"),
+            content: const Text("Bekor qilingan bronni qaytarib bo'lmaydi."),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Yo'q")),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                onPressed: () => Navigator.of(dCtx).pop(true),
+                child: const Text("Bekor qilish"),
+              ),
+            ],
+          ),
+        );
+        if (ok != true) return;
+        await repo.cancel(b.id);
+      }
+      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
+      ref.invalidate(barberAllBookingsProvider(barberId));
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      }
+    }
+  }
+
+  // ---- Manual booking: barber adds a walk-in client ----
+  Future<void> _openManualBookingSheet(BuildContext context, WidgetRef ref,
+      String barberId, String dateStr) async {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final timeCtrl = TextEditingController(text: '09:00');
+    final notesCtrl = TextEditingController();
+    final services = await ref.read(barberServicesProvider(barberId).future);
+    if (!context.mounted) return;
+    final selected = <String>{};
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 18,
+            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Qo'lda bron qo'shish",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 14),
+                TextField(controller: nameCtrl, decoration: const InputDecoration(hintText: "Mijoz ismi")),
+                const SizedBox(height: 10),
+                TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(hintText: "Telefon (ixtiyoriy)")),
+                const SizedBox(height: 10),
+                TextField(controller: timeCtrl, decoration: const InputDecoration(hintText: "Soat (HH:MM)")),
+                const SizedBox(height: 10),
+                TextField(controller: notesCtrl, decoration: const InputDecoration(hintText: "Izoh (ixtiyoriy)")),
+                const SizedBox(height: 14),
+                if (services.isEmpty)
+                  const Text("Avval xizmatlar qo'shing — yo'q",
+                      style: TextStyle(color: AppColors.danger, fontSize: 13))
+                else ...[
+                  const Text("Xizmatlar",
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textSecondary)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children: services.map((s) {
+                      final id = s['id'] as String;
+                      final name = (s['nameUz'] ?? s['name'] ?? '').toString();
+                      final on = selected.contains(id);
+                      return FilterChip(
+                        label: Text(name),
+                        selected: on,
+                        onSelected: (v) => setSheet(() {
+                          if (v) {
+                            selected.add(id);
+                          } else {
+                            selected.remove(id);
+                          }
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: services.isEmpty || selected.isEmpty
+                        ? null
+                        : () => Navigator.of(sheetCtx).pop(true),
+                    child: const Text("Saqlash"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (saved != true) return;
+    try {
+      await ref.read(barberPanelRepositoryProvider).createManual(
+            barberId: barberId,
+            date: dateStr,
+            time: timeCtrl.text.trim(),
+            serviceIds: selected.toList(),
+            guestName: nameCtrl.text.trim(),
+            guestPhone: phoneCtrl.text.trim(),
+            notes: notesCtrl.text.trim(),
+          );
+      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
+      ref.invalidate(barberAllBookingsProvider(barberId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Bron qo'shildi")));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      }
+    }
   }
 }
 
