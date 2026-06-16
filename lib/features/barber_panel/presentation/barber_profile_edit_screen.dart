@@ -7,6 +7,7 @@ import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../data/barber_panel_repository.dart' show BarberBookingActions, barberPanelRepositoryProvider;
 import '../data/barber_profile_repository.dart';
 
 /// Hub for barber-self profile edits. Top section shows the avatar tile +
@@ -136,6 +137,35 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                   ],
                 ),
               ),
+              const SizedBox(height: 14),
+
+              // Availability toggle — "Bugun ish yo'q" switch
+              SwitchListTile(
+                tileColor: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppColors.border)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                value: b['isAvailable'] != false,
+                activeThumbColor: AppColors.primary,
+                onChanged: (_) async {
+                  try {
+                    await ref.read(barberPanelRepositoryProvider).toggleAvailability(user.id);
+                    ref.invalidate(barberProfileProvider(user.id));
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+                    }
+                  }
+                },
+                title: const Text("Mijozlar qabul qilaman", style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  b['isAvailable'] != false
+                      ? "Yangi bronlar tushishi mumkin"
+                      : "Bron qabul qilmayapsiz — profil yashirin",
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                ),
+              ),
               const SizedBox(height: 18),
 
               Text(tr(ref, 'mobile.barber.profileEdit.bio', "Bio"),
@@ -170,6 +200,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                   style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
 
+              _LinkTile(icon: Icons.people_outline, label: "Mijozlarim", onTap: () => context.push('/barber/clients')),
               _LinkTile(icon: Icons.content_cut, label: tr(ref, 'mobile.barber.profileEdit.linkServices', "Xizmatlarim"), onTap: () => context.push('/barber/services')),
               _LinkTile(icon: Icons.schedule, label: tr(ref, 'mobile.barber.profileEdit.linkHours', "Ish soatlari"), onTap: () => context.push('/barber/hours')),
               _LinkTile(icon: Icons.photo_library_outlined, label: tr(ref, 'mobile.barber.profileEdit.linkGallery', "Portfolio"), onTap: () => context.push('/barber/gallery')),

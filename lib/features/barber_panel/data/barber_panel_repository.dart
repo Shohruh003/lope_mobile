@@ -98,6 +98,26 @@ extension BarberBookingActions on BarberPanelRepository {
         data: reason == null ? {} : {'reason': reason});
   }
 
+  /// Move the booking to a different date/time. Backend revalidates the slot
+  /// against the barber's schedule, so a 409 means "slot taken".
+  Future<void> reschedule(String bookingId, {required String date, required String time}) async {
+    await _dio.patch('/bookings/$bookingId/reschedule', data: {'date': date, 'time': time});
+  }
+
+  /// Append N minutes to the booking's duration when the cut runs over.
+  Future<void> extendDuration(String bookingId, int extraMinutes) async {
+    await _dio.patch('/bookings/$bookingId/extend-duration', data: {'extraMinutes': extraMinutes});
+  }
+
+  /// Toggle the barber's accepting-bookings flag. The web has the same
+  /// endpoint behind the "I'm off today" switch.
+  Future<bool> toggleAvailability(String barberId) async {
+    final res = await _dio.patch('/barbers/$barberId/toggle-availability');
+    final data = res.data;
+    if (data is Map && data['isAvailable'] is bool) return data['isAvailable'] as bool;
+    return true;
+  }
+
   /// Manual booking created by the barber on behalf of a guest who walked in
   /// or called by phone. Backend route: POST /bookings/manual.
   Future<void> createManual({

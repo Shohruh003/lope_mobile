@@ -235,12 +235,23 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                 title: const Text("Yakunlangan deb belgilash"),
                 onTap: () => Navigator.of(sheetCtx).pop('complete'),
               ),
-            if (b.status != 'cancelled' && b.status != 'completed')
+            if (b.status != 'cancelled' && b.status != 'completed') ...[
+              ListTile(
+                leading: const Icon(Icons.schedule, color: AppColors.primary),
+                title: const Text("Vaqtni o'zgartirish"),
+                onTap: () => Navigator.of(sheetCtx).pop('reschedule'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.timelapse, color: AppColors.warning),
+                title: const Text("Vaqtni uzaytirish"),
+                onTap: () => Navigator.of(sheetCtx).pop('extend'),
+              ),
               ListTile(
                 leading: const Icon(Icons.cancel_outlined, color: AppColors.danger),
                 title: const Text("Bekor qilish"),
                 onTap: () => Navigator.of(sheetCtx).pop('cancel'),
               ),
+            ],
             ListTile(
               leading: const Icon(Icons.close, color: AppColors.textMuted),
               title: const Text("Yopish"),
@@ -256,6 +267,14 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     try {
       if (picked == 'complete') {
         await repo.markComplete(b.id);
+      } else if (picked == 'reschedule') {
+        if (!context.mounted) return;
+        await _openRescheduleSheet(context, ref, b, barberId, dateStr);
+        return;
+      } else if (picked == 'extend') {
+        if (!context.mounted) return;
+        await _openExtendSheet(context, ref, b, barberId, dateStr);
+        return;
       } else if (picked == 'cancel') {
         if (!context.mounted) return;
         final ok = await showDialog<bool>(
@@ -279,6 +298,122 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       }
       ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
       ref.invalidate(barberAllBookingsProvider(barberId));
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      }
+    }
+  }
+
+  Future<void> _openRescheduleSheet(BuildContext context, WidgetRef ref,
+      BarberBooking b, String barberId, String oldDateStr) async {
+    final dateCtrl = TextEditingController(text: b.date);
+    final timeCtrl = TextEditingController(text: b.time);
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20, right: 20, top: 18,
+          bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Vaqtni o'zgartirish",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 14),
+            TextField(
+                controller: dateCtrl,
+                decoration: const InputDecoration(hintText: "Sana (YYYY-MM-DD)")),
+            const SizedBox(height: 10),
+            TextField(
+                controller: timeCtrl,
+                decoration: const InputDecoration(hintText: "Soat (HH:MM)")),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(sheetCtx).pop(true),
+                child: const Text("Saqlash"),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (saved != true) return;
+    try {
+      await ref.read(barberPanelRepositoryProvider).reschedule(
+            b.id,
+            date: dateCtrl.text.trim(),
+            time: timeCtrl.text.trim(),
+          );
+      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: oldDateStr)));
+      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateCtrl.text.trim())));
+      ref.invalidate(barberAllBookingsProvider(barberId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("O'zgartirildi")));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        final s = e.toString();
+        final msg = s.contains('409') ? "Bu vaqt allaqachon band" : "Xato: $e";
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    }
+  }
+
+  Future<void> _openExtendSheet(BuildContext context, WidgetRef ref,
+      BarberBooking b, String barberId, String dateStr) async {
+    int minutes = 15;
+    final saved = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Vaqtni uzaytirish",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8, runSpacing: 8,
+                children: [10, 15, 20, 30, 45, 60].map((m) => ChoiceChip(
+                  label: Text("+$m daq"),
+                  selected: minutes == m,
+                  onSelected: (_) => setSheet(() => minutes = m),
+                )).toList(),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(sheetCtx).pop(minutes),
+                  child: const Text("Saqlash"),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (saved == null) return;
+    try {
+      await ref.read(barberPanelRepositoryProvider).extendDuration(b.id, saved);
+      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
+      ref.invalidate(barberAllBookingsProvider(barberId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vaqt uzaytirildi")));
+      }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
