@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants.dart';
 import '../../../shared/theme/colors.dart';
+import '../../reviews/data/reviews_repository.dart';
 import '../data/barber_repository.dart';
 import '../domain/barber.dart';
 
@@ -150,6 +151,20 @@ class _Content extends ConsumerWidget {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: _ServiceRow(service: s),
                         )),
+
+                  const SizedBox(height: 28),
+                  Row(children: [
+                    const Expanded(
+                      child: Text("Sharhlar",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/reviews/${barber.id}'),
+                      child: const Text("Hammasini ko'rish"),
+                    ),
+                  ]),
+                  const SizedBox(height: 4),
+                  _ReviewsPreview(barberId: barber.id),
                 ]),
               ),
             ),
@@ -183,6 +198,62 @@ class _Content extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Inline preview of the top 3 reviews on the barber detail screen, with a
+/// "Hammasini ko'rish" link to the dedicated reviews route.
+class _ReviewsPreview extends ConsumerWidget {
+  const _ReviewsPreview({required this.barberId});
+  final String barberId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(barberReviewsProvider(barberId));
+    return async.when(
+      loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))),
+      error: (e, _) => Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text("Yuklab bo'lmadi", style: const TextStyle(color: AppColors.textMuted, fontSize: 13))),
+      data: (list) {
+        if (list.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text("Hali sharhlar yo'q",
+                style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          );
+        }
+        final top = list.take(3).toList();
+        return Column(
+          children: top.map((r) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Expanded(child: Text(r.userName.isEmpty ? 'Mijoz' : r.userName,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
+                      Row(children: List.generate(5, (idx) => Icon(
+                            idx < r.rating ? Icons.star : Icons.star_border,
+                            color: AppColors.warning, size: 12,
+                          ))),
+                    ]),
+                    if (r.comment.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(r.comment,
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4)),
+                    ],
+                  ],
+                ),
+              )).toList(),
+        );
+      },
     );
   }
 }

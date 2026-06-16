@@ -94,11 +94,28 @@ class ProfileScreen extends ConsumerWidget {
                 label: tr(ref, 'mobile.profile.notifications', "Bildirishnomalar"),
                 onTap: () => context.push('/notifications'),
               ),
-              if (user?.role == 'user')
+              if (user?.role == 'user') ...[
                 _SettingsTile(
                   icon: Icons.favorite_outline,
                   label: tr(ref, 'mobile.profile.favorites', "Sevimlilar"),
                   onTap: () => context.push('/favorites'),
+                ),
+                _SettingsTile(
+                  icon: Icons.map_outlined,
+                  label: "Xarita",
+                  onTap: () => context.push('/map'),
+                ),
+                _SettingsTile(
+                  icon: Icons.local_offer_outlined,
+                  label: "Promo kod",
+                  onTap: () => context.push('/promo'),
+                ),
+              ],
+              if (user?.role == 'barber')
+                _SettingsTile(
+                  icon: Icons.location_on_outlined,
+                  label: "Manzilim",
+                  onTap: () => context.push('/barber/location'),
                 ),
             ]).animate().fadeIn(duration: 400.ms, delay: 120.ms),
 
