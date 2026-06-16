@@ -62,6 +62,16 @@ dev_dependencies:
   custom_lint: ^0.7.0
   riverpod_lint: ^2.6.3
 
+# Pin record_linux to a version that implements the same platform-interface
+# methods the rest of `record` expects. Without this, the old transitive
+# 0.7.2 misses startStream / hasPermission's `request:` named arg and the
+# build fails — even though we only target Android.
+dependency_overrides:
+  record_linux: ^2.1.0
+  record_platform_interface: ^2.1.0
+  record_windows: ^2.1.0
+  record_web: ^2.1.0
+
 flutter:
   uses-material-design: true
   generate: true                         # enables flutter_localizations gen-l10n
