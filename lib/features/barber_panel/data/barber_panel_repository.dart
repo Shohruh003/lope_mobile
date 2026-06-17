@@ -143,7 +143,10 @@ extension BarberBookingActions on BarberPanelRepository {
     });
   }
 
-  /// Auto-generate slots between dates based on working hours.
+  /// Auto-generate slots for a date range. The backend has no bulk-generate
+  /// endpoint — the web computes slots client-side and PUTs `/schedule` one
+  /// date at a time. We do the same so the server stores actual slot arrays
+  /// (which the schedule view reads back).
   Future<void> generateSchedule({
     required String barberId,
     required String dateFrom,
@@ -154,17 +157,62 @@ extension BarberBookingActions on BarberPanelRepository {
     String? lunchStart,
     String? lunchEnd,
   }) async {
-    await _dio.post('/barbers/$barberId/schedule/generate', data: {
-      'dateFrom': dateFrom,
-      'dateTo': dateTo,
-      'dayStart': dayStart,
-      'dayEnd': dayEnd,
-      'slotMinutes': slotMinutes,
-      // ignore: use_null_aware_elements
-      if (lunchStart != null) 'lunchStart': lunchStart,
-      // ignore: use_null_aware_elements
-      if (lunchEnd != null) 'lunchEnd': lunchEnd,
-    });
+    final slots = _buildSlots(
+      dayStart: dayStart,
+      dayEnd: dayEnd,
+      slotMinutes: slotMinutes,
+      lunchStart: lunchStart,
+      lunchEnd: lunchEnd,
+    );
+    if (slots.isEmpty) {
+      throw Exception('Slot oralig\'i noto\'g\'ri');
+    }
+
+    // Iterate each date inclusive of dateFrom..dateTo
+    final from = DateTime.parse(dateFrom);
+    final to = DateTime.parse(dateTo);
+    var cur = DateTime(from.year, from.month, from.day);
+    final end = DateTime(to.year, to.month, to.day);
+
+    while (!cur.isAfter(end)) {
+      final dateStr =
+          '${cur.year}-${cur.month.toString().padLeft(2, '0')}-${cur.day.toString().padLeft(2, '0')}';
+      await _dio.put('/schedule', data: {
+        'barberId': barberId,
+        'date': dateStr,
+        'slots': slots,
+        'force': true,
+      });
+      cur = cur.add(const Duration(days: 1));
+    }
+  }
+
+  /// Pure-Dart slot builder used by generateSchedule. Returns HH:MM strings
+  /// from `dayStart` up to but NOT including `dayEnd`, skipping any time
+  /// that falls inside the lunch window (when provided).
+  List<String> _buildSlots({
+    required String dayStart,
+    required String dayEnd,
+    required int slotMinutes,
+    String? lunchStart,
+    String? lunchEnd,
+  }) {
+    int parse(String hhmm) {
+      final p = hhmm.split(':');
+      return int.parse(p[0]) * 60 + int.parse(p[1]);
+    }
+
+    final start = parse(dayStart);
+    final end = parse(dayEnd);
+    final lunchA = (lunchStart != null) ? parse(lunchStart) : -1;
+    final lunchB = (lunchEnd != null) ? parse(lunchEnd) : -1;
+    final out = <String>[];
+    for (var m = start; m + slotMinutes <= end; m += slotMinutes) {
+      // Skip slots whose start falls inside the lunch window.
+      if (lunchA >= 0 && lunchB > lunchA && m >= lunchA && m < lunchB) continue;
+      out.add('${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}');
+    }
+    return out;
   }
 
   /// Voice booking — multipart audio blob to the parser endpoint.

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/theme/colors.dart';
+import '../../ai_style/presentation/ai_style_screen.dart';
 import 'barber_schedule_screen.dart';
 import 'barber_bookings_screen.dart';
 import 'barber_stats_screen.dart';
@@ -23,7 +24,7 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
   static const _tabs = [
     BarberScheduleScreen(),
     BarberBookingsScreen(),
-    _AiStyleProxy(),
+    AiStyleScreen(),
     BarberStatsScreen(),
     BarberSettingsScreen(),
   ];
@@ -45,18 +46,6 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
       ]),
       bottomNavigationBar: _BottomBar(items: _items, index: _index, onSelect: (i) => setState(() => _index = i)),
     );
-  }
-}
-
-class _AiStyleProxy extends StatelessWidget {
-  const _AiStyleProxy();
-  @override
-  Widget build(BuildContext context) {
-    // Lazy push into the customer AI Style screen — it's shared.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) context.push('/ai-style');
-    });
-    return const SizedBox.shrink();
   }
 }
 

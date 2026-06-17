@@ -1,164 +1,396 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart';
 
-/// Full bookings history for the signed-in barber, newest first.
-class BarberBookingsScreen extends ConsumerWidget {
+/// Mirrors `BarberClientsScreen.tsx` exactly:
+///   - Date filter row: chevronLeft + date input + chevronRight + "Today" pill
+///   - Search bar
+///   - Status tabs: 3 pills (Confirmed/Completed/Cancelled) each showing the
+///     count, active tab gets a colored background (blue/green/red)
+///   - "X ta bron" counter
+///   - List of booking cards
+class BarberBookingsScreen extends ConsumerStatefulWidget {
   const BarberBookingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final barberId = ref.watch(authControllerProvider).user?.id;
-    if (barberId == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    final async = ref.watch(barberAllBookingsProvider(barberId));
+  ConsumerState<BarberBookingsScreen> createState() => _BarberBookingsScreenState();
+}
+
+class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
+  late DateTime _selectedDate;
+  String _activeTab = 'confirmed'; // 'confirmed' | 'completed' | 'cancelled'
+  String _search = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = DateTime.now();
+  }
+
+  String _toDateStr(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  bool get _isToday {
+    final now = DateTime.now();
+    return _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) setState(() => _selectedDate = picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(authControllerProvider).user;
+    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+    final async = ref.watch(barberDayBookingsProvider(
+        (barberId: user.id, date: _toDateStr(_selectedDate))));
 
     return Scaffold(
       body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async => ref.refresh(barberAllBookingsProvider(barberId).future),
-          child: CustomScrollView(
-            slivers: [
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
-                  child: Text("Barcha bronlar",
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-                ),
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          children: [
+            // ===== Date filter row =====
+            Row(children: [
+              _IconBtn(
+                icon: Icons.chevron_left,
+                onTap: () => setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1))),
               ),
-              async.when(
-                loading: () => const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (e, _) => SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
-                ),
-                data: (list) {
-                  if (list.isEmpty) {
-                    return const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Text("Hali bron yo'q",
-                              style: TextStyle(color: AppColors.textMuted, fontSize: 15)),
-                        ),
-                      ),
-                    );
-                  }
-                  return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                    sliver: SliverList.separated(
-                      itemCount: list.length,
-                      separatorBuilder: (context, i) => const SizedBox(height: 10),
-                      itemBuilder: (context, i) => _BookingCard(b: list[i])
-                          .animate()
-                          .fadeIn(duration: 300.ms, delay: (i * 40).ms)
-                          .slideY(begin: 0.1, end: 0),
+              const SizedBox(width: 8),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: _pickDate,
+                  child: Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.border),
                     ),
-                  );
-                },
+                    child: Row(children: [
+                      const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
+                      const SizedBox(width: 8),
+                      Text(
+                        _toDateStr(_selectedDate),
+                        style: const TextStyle(
+                            fontSize: 13, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                      ),
+                    ]),
+                  ),
+                ),
               ),
-            ],
+              const SizedBox(width: 8),
+              _IconBtn(
+                icon: Icons.chevron_right,
+                onTap: () => setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1))),
+              ),
+              if (!_isToday) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () => setState(() => _selectedDate = DateTime.now()),
+                  child: Container(
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      "Bugun",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ]),
+
+            const SizedBox(height: 12),
+
+            // ===== Search =====
+            SizedBox(
+              height: 44,
+              child: TextField(
+                onChanged: (v) => setState(() => _search = v.trim().toLowerCase()),
+                style: const TextStyle(
+                    fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search, color: AppColors.textMuted, size: 16),
+                  prefixIconConstraints: BoxConstraints(minWidth: 36),
+                  hintText: "Mijoz nomi yoki telefon",
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ===== Status tabs =====
+            async.when(
+              loading: () => _tabsRow(0, 0, 0),
+              error: (_, _) => _tabsRow(0, 0, 0),
+              data: (list) {
+                final c = list.where((b) => b.status == 'confirmed').length;
+                final co = list.where((b) => b.status == 'completed').length;
+                final ca = list.where((b) => b.status == 'cancelled').length;
+                return _tabsRow(c, co, ca);
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // ===== List =====
+            async.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+              ),
+              data: (list) {
+                final filtered = list.where((b) {
+                  if (b.status != _activeTab) return false;
+                  if (_search.isEmpty) return true;
+                  final name = (b.guestName?.isNotEmpty == true ? b.guestName! : b.userName).toLowerCase();
+                  final phone = (b.guestPhone ?? b.userPhone ?? '').toLowerCase();
+                  return name.contains(_search) || phone.contains(_search);
+                }).toList();
+
+                if (filtered.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Column(children: const [
+                      Icon(Icons.people_outline, size: 48, color: AppColors.textMuted),
+                      SizedBox(height: 12),
+                      Text("Bron yo'q",
+                          style: TextStyle(
+                              color: AppColors.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
+                    ]),
+                  );
+                }
+
+                return Column(children: [
+                  // Count
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(children: [
+                      const Icon(Icons.people_outline, size: 14, color: AppColors.textMuted),
+                      const SizedBox(width: 6),
+                      Text("${filtered.length} ta bron",
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                    ]),
+                  ),
+                  ...filtered.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final b = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _BookingTile(b: b).animate().fadeIn(duration: 200.ms, delay: (i * 25).ms),
+                    );
+                  }),
+                ]);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tabsRow(int confirmed, int completed, int cancelled) {
+    return Row(children: [
+      _StatusTab(
+        label: "Tasdiqlangan",
+        count: confirmed,
+        on: _activeTab == 'confirmed',
+        onColor: const Color(0xFF3B82F6), // blue-500
+        onTap: () => setState(() => _activeTab = 'confirmed'),
+      ),
+      const SizedBox(width: 8),
+      _StatusTab(
+        label: "Yakunlangan",
+        count: completed,
+        on: _activeTab == 'completed',
+        onColor: const Color(0xFF22C55E), // green-500
+        onTap: () => setState(() => _activeTab = 'completed'),
+      ),
+      const SizedBox(width: 8),
+      _StatusTab(
+        label: "Bekor",
+        count: cancelled,
+        on: _activeTab == 'cancelled',
+        onColor: const Color(0xFFEF4444), // red-500
+        onTap: () => setState(() => _activeTab = 'cancelled'),
+      ),
+    ]);
+  }
+}
+
+class _IconBtn extends StatelessWidget {
+  const _IconBtn({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        width: 40, height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Icon(icon, color: AppColors.textMuted, size: 16),
+      ),
+    );
+  }
+}
+
+class _StatusTab extends StatelessWidget {
+  const _StatusTab({
+    required this.label,
+    required this.count,
+    required this.on,
+    required this.onColor,
+    required this.onTap,
+  });
+  final String label;
+  final int count;
+  final bool on;
+  final Color onColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: on ? onColor.withValues(alpha: 0.1) : Colors.transparent,
+            border: Border.all(color: on ? onColor : AppColors.border),
           ),
+          child: Column(children: [
+            Text(label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  color: on ? onColor : AppColors.textMuted,
+                )),
+            const SizedBox(height: 4),
+            Text("$count",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: on ? onColor : AppColors.textBright,
+                )),
+          ]),
         ),
       ),
     );
   }
 }
 
-class _BookingCard extends StatelessWidget {
-  const _BookingCard({required this.b});
+class _BookingTile extends StatelessWidget {
+  const _BookingTile({required this.b});
   final BarberBooking b;
-
-  Color get _color {
-    switch (b.status) {
-      case 'completed':
-        return AppColors.success;
-      case 'cancelled':
-        return AppColors.danger;
-      default:
-        return AppColors.primary;
-    }
-  }
-
-  String get _statusText {
-    switch (b.status) {
-      case 'completed':
-        return 'Yakunlangan';
-      case 'cancelled':
-        return 'Bekor qilingan';
-      default:
-        return 'Tasdiqlangan';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final name = b.guestName?.isNotEmpty == true
         ? b.guestName!
-        : (b.userName.isNotEmpty ? b.userName : 'Mijoz');
+        : (b.userName.isNotEmpty ? b.userName : "Mijoz");
     final phone = b.guestPhone ?? b.userPhone ?? '';
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(name,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: _color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(_statusText,
-                    style: TextStyle(color: _color, fontSize: 11, fontWeight: FontWeight.w700)),
-              ),
-            ],
+      child: Row(children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
           ),
-          if (phone.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(phone, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-          ],
-          const SizedBox(height: 8),
-          Row(
+          alignment: Alignment.center,
+          child: Text(
+            (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+            style: const TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
-              const SizedBox(width: 6),
-              Text(b.date, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              const SizedBox(width: 16),
-              const Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
-              const SizedBox(width: 6),
-              Text(b.time, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              const Spacer(),
-              if (b.totalPrice > 0)
-                Text(
-                  "${_fmt(b.totalPrice)} so'm",
+              Text(name,
                   style: const TextStyle(
-                      color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 13),
+                      fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright)),
+              if (phone.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(phone,
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 ),
+              const SizedBox(height: 4),
+              Row(children: [
+                const Icon(Icons.access_time, size: 12, color: AppColors.textMuted),
+                const SizedBox(width: 4),
+                Text(b.time,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                if (b.totalDuration > 0) ...[
+                  const SizedBox(width: 6),
+                  Text("(${b.totalDuration} daq)",
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                ],
+              ]),
             ],
           ),
-        ],
-      ),
+        ),
+        if (b.totalPrice > 0)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, right: 6),
+            child: Text("${_fmt(b.totalPrice)} so'm",
+                style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700)),
+          ),
+        if (phone.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 18),
+            onPressed: () async {
+              final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
+              final uri = Uri(scheme: 'tel', path: clean);
+              if (await canLaunchUrl(uri)) await launchUrl(uri);
+            },
+          ),
+      ]),
     );
   }
 
@@ -166,9 +398,9 @@ class _BookingCard extends StatelessWidget {
     final s = n.toString();
     final buf = StringBuffer();
     for (var i = 0; i < s.length; i++) {
-      final reverseIndex = s.length - i;
+      final ri = s.length - i;
       buf.write(s[i]);
-      if (reverseIndex > 1 && reverseIndex % 3 == 1) buf.write(' ');
+      if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
   }
