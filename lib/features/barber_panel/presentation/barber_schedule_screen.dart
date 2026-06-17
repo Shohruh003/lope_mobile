@@ -1,19 +1,22 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../shared/theme/colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../data/barber_panel_repository.dart'
-    show BarberBooking, BarberBookingActions, barberDayBookingsProvider, barberAllBookingsProvider, barberPanelRepositoryProvider;
-import '../data/barber_profile_repository.dart';
+import '../data/barber_panel_repository.dart';
 
-/// Today's schedule view for a barber. Shows the date strip at the top + a
-/// list of today's bookings sorted by time.
+/// Mirrors the web `BarberScheduleScreen.tsx` 1:1:
+///   1. Voice booking card at the top (hold-to-record mic button)
+///   2. Horizontal 30-day date scroller — selected pill = primary bg, days
+///      with slots = normal border, empty days = opacity 40%
+///   3. Day header "12-yanvar, dushanba"
+///   4. Either empty state with "Jadval yaratish" CTA OR a 3-column slot
+///      grid with status-tinted buttons (green=available, blue=booked,
+///      red=blocked) — lock icon top-right on blocked
 class BarberScheduleScreen extends ConsumerStatefulWidget {
   const BarberScheduleScreen({super.key});
 
@@ -23,856 +26,506 @@ class BarberScheduleScreen extends ConsumerStatefulWidget {
 
 class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
   late DateTime _selectedDate;
-  late final List<DateTime> _days;
+
+  // Voice recording state
+  final _recorder = AudioRecorder();
+  bool _isRecording = false;
+  bool _voiceLoading = false;
+
+  static const _months = [
+    'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+    'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
+  ];
+  static const _weekDays = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+  static const _weekDaysLong = [
+    'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'
+  ];
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedDate = DateTime(now.year, now.month, now.day);
-    // Strip: 7 days back + today + 14 days forward — common barber view.
-    _days = List.generate(22, (i) {
-      final base = DateTime(now.year, now.month, now.day);
-      return base.add(Duration(days: i - 7));
-    });
+    _selectedDate = DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    _recorder.dispose();
+    super.dispose();
   }
 
   String _dateStr(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  static const _weekDays = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
-  static const _months = [
-    'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
-    'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final barberId = ref.watch(authControllerProvider).user?.id;
-    if (barberId == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    final dateStr = _dateStr(_selectedDate);
-    final async = ref.watch(
-      barberDayBookingsProvider((barberId: barberId, date: dateStr)),
-    );
-
-    return Scaffold(
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'voiceFab',
-            backgroundColor: AppColors.warning,
-            onPressed: () => _openVoiceBookingSheet(context, ref, barberId, dateStr),
-            child: const Icon(Icons.mic),
-          ),
-          const SizedBox(height: 10),
-          FloatingActionButton.small(
-            heroTag: 'genFab',
-            backgroundColor: AppColors.primaryDark,
-            onPressed: () => context.push('/barber/schedule-generator'),
-            child: const Icon(Icons.auto_awesome_motion),
-          ),
-          const SizedBox(height: 10),
-          FloatingActionButton.extended(
-            heroTag: 'manualFab',
-            backgroundColor: AppColors.primary,
-            onPressed: () => _openManualBookingSheet(context, ref, barberId, dateStr),
-            icon: const Icon(Icons.add),
-            label: const Text("Qo'lda bron"),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async => ref.refresh(
-            barberDayBookingsProvider((barberId: barberId, date: dateStr)).future,
-          ),
-          child: ListView(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Jadval",
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-                    ).animate().fadeIn(duration: 400.ms),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${_selectedDate.day}-${_months[_selectedDate.month - 1]} ${_selectedDate.year}",
-                      style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
-                    ).animate().fadeIn(duration: 400.ms, delay: 60.ms),
-                  ],
-                ),
-              ),
-
-              // Date strip
-              SizedBox(
-                height: 88,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _days.length,
-                  separatorBuilder: (context, i) => const SizedBox(width: 8),
-                  itemBuilder: (context, i) {
-                    final d = _days[i];
-                    final on = d.day == _selectedDate.day &&
-                        d.month == _selectedDate.month &&
-                        d.year == _selectedDate.year;
-                    final isToday = d.day == DateTime.now().day &&
-                        d.month == DateTime.now().month &&
-                        d.year == DateTime.now().year;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedDate = d),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 64,
-                        decoration: BoxDecoration(
-                          color: on ? AppColors.primary : AppColors.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: on ? AppColors.primary : (isToday ? AppColors.primary : AppColors.border),
-                            width: isToday && !on ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _weekDays[d.weekday - 1],
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: on ? Colors.white70 : AppColors.textMuted,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "${d.day}",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: on ? Colors.white : AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Today's bookings
-              async.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (e, _) => Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text("Xato: $e",
-                      style: const TextStyle(color: AppColors.textMuted)),
-                ),
-                data: (list) {
-                  if (list.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Icon(Icons.event_available, size: 48, color: AppColors.textMuted),
-                            SizedBox(height: 12),
-                            Text("Bu kunda bron yo'q",
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    child: Column(
-                      children: list.asMap().entries.map((e) {
-                        final i = e.key;
-                        final b = e.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: GestureDetector(
-                            onTap: () => _openActionSheet(context, ref, b, barberId, dateStr),
-                            child: _BookingTile(booking: b)
-                                .animate()
-                                .fadeIn(duration: 300.ms, delay: (i * 40).ms)
-                                .slideY(begin: 0.1, end: 0),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  String _slotStatus(String time, List<String> booked, List<String> blocked) {
+    if (blocked.contains(time)) return 'blocked';
+    if (booked.contains(time)) return 'booked';
+    return 'available';
   }
 
-  // ---- Action sheet on an existing booking: cancel / mark complete ----
-  Future<void> _openActionSheet(BuildContext context, WidgetRef ref,
-      BarberBooking b, String barberId, String dateStr) async {
+  Future<void> _toggleRecording(String barberId) async {
+    if (_isRecording) {
+      final path = await _recorder.stop();
+      setState(() {
+        _isRecording = false;
+        _voiceLoading = true;
+      });
+      if (path != null) {
+        try {
+          await ref.read(barberPanelRepositoryProvider).parseVoiceBooking(
+                barberId: barberId,
+                audioPath: path,
+              );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Ovoz qabul qilindi")));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+          }
+        }
+      }
+      setState(() => _voiceLoading = false);
+      _refreshDay(barberId);
+    } else {
+      if (!await _recorder.hasPermission()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Mikrofon ruxsati berilmadi")));
+        }
+        return;
+      }
+      final dir = await getTemporaryDirectory();
+      final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
+      setState(() => _isRecording = true);
+    }
+  }
+
+  void _refreshDay(String barberId) {
+    final key = (barberId: barberId, date: _dateStr(_selectedDate));
+    ref.invalidate(scheduleSlotsProvider(key));
+    ref.invalidate(bookedSlotsProvider(key));
+    ref.invalidate(blockedSlotsProvider(key));
+  }
+
+  Future<void> _openSlotAction(String barberId, String time, String status) async {
     final picked = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (sheetCtx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 36, height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Text(
-                "${b.time}  •  ${(b.guestName?.isNotEmpty == true ? b.guestName! : (b.userName.isNotEmpty ? b.userName : 'Mijoz'))}",
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-              ),
-            ),
-            const Divider(height: 1, color: AppColors.border),
-            if (b.status != 'completed')
-              ListTile(
-                leading: const Icon(Icons.check_circle_outline, color: AppColors.success),
-                title: const Text("Yakunlangan deb belgilash"),
-                onTap: () => Navigator.of(sheetCtx).pop('complete'),
-              ),
-            if (b.status != 'cancelled' && b.status != 'completed') ...[
-              ListTile(
-                leading: const Icon(Icons.schedule, color: AppColors.primary),
-                title: const Text("Vaqtni o'zgartirish"),
-                onTap: () => Navigator.of(sheetCtx).pop('reschedule'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.timelapse, color: AppColors.warning),
-                title: const Text("Vaqtni uzaytirish"),
-                onTap: () => Navigator.of(sheetCtx).pop('extend'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.cancel_outlined, color: AppColors.danger),
-                title: const Text("Bekor qilish"),
-                onTap: () => Navigator.of(sheetCtx).pop('cancel'),
-              ),
-            ],
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 12),
+          Container(width: 36, height: 4,
+              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            child: Text(time,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textBright)),
+          ),
+          const Divider(height: 1, color: AppColors.border),
+          if (status != 'blocked')
             ListTile(
-              leading: const Icon(Icons.close, color: AppColors.textMuted),
-              title: const Text("Yopish"),
-              onTap: () => Navigator.of(sheetCtx).pop(null),
+              leading: const Icon(Icons.lock_outline, color: AppColors.danger),
+              title: const Text("Slotni bloklash"),
+              onTap: () => Navigator.of(sheetCtx).pop('block'),
             ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-    if (picked == null) return;
-    final repo = ref.read(barberPanelRepositoryProvider);
-    try {
-      if (picked == 'complete') {
-        await repo.markComplete(b.id);
-      } else if (picked == 'reschedule') {
-        if (!context.mounted) return;
-        await _openRescheduleSheet(context, ref, b, barberId, dateStr);
-        return;
-      } else if (picked == 'extend') {
-        if (!context.mounted) return;
-        await _openExtendSheet(context, ref, b, barberId, dateStr);
-        return;
-      } else if (picked == 'cancel') {
-        if (!context.mounted) return;
-        final ok = await showDialog<bool>(
-          context: context,
-          builder: (dCtx) => AlertDialog(
-            backgroundColor: AppColors.surface,
-            title: const Text("Bronni bekor qilasizmi?"),
-            content: const Text("Bekor qilingan bronni qaytarib bo'lmaydi."),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Yo'q")),
-              TextButton(
-                style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-                onPressed: () => Navigator.of(dCtx).pop(true),
-                child: const Text("Bekor qilish"),
-              ),
-            ],
-          ),
-        );
-        if (ok != true) return;
-        await repo.cancel(b.id);
-      }
-      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
-      ref.invalidate(barberAllBookingsProvider(barberId));
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
-      }
-    }
-  }
-
-  Future<void> _openRescheduleSheet(BuildContext context, WidgetRef ref,
-      BarberBooking b, String barberId, String oldDateStr) async {
-    // Use native pickers — text-input was a UX bug (allowed any string).
-    DateTime selectedDate = DateTime.tryParse(b.date) ?? DateTime.now();
-    final timeParts = b.time.split(':');
-    TimeOfDay selectedTime = TimeOfDay(
-      hour: int.tryParse(timeParts.isNotEmpty ? timeParts[0] : '9') ?? 9,
-      minute: int.tryParse(timeParts.length > 1 ? timeParts[1] : '0') ?? 0,
-    );
-
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => StatefulBuilder(
-        builder: (sheetCtx, setSheet) => Padding(
-          padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Vaqtni o'zgartirish",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 14),
-              _PickerRow(
-                icon: Icons.calendar_today,
-                label: "Sana",
-                value: "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}",
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: sheetCtx,
-                    initialDate: selectedDate,
-                    firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                    lastDate: DateTime.now().add(const Duration(days: 90)),
-                  );
-                  if (picked != null) setSheet(() => selectedDate = picked);
-                },
-              ),
-              const SizedBox(height: 10),
-              _PickerRow(
-                icon: Icons.access_time,
-                label: "Soat",
-                value: "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}",
-                onTap: () async {
-                  final picked = await showTimePicker(context: sheetCtx, initialTime: selectedTime);
-                  if (picked != null) setSheet(() => selectedTime = picked);
-                },
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(sheetCtx).pop(true),
-                  child: const Text("Saqlash"),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (saved != true) return;
-    final dateStr = "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
-    final timeStr = "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
-
-    try {
-      await ref.read(barberPanelRepositoryProvider).reschedule(
-            b.id,
-            date: dateStr,
-            time: timeStr,
-          );
-      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: oldDateStr)));
-      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
-      ref.invalidate(barberAllBookingsProvider(barberId));
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("O'zgartirildi")));
-      }
-    } catch (e) {
-      if (context.mounted) {
-        final s = e.toString();
-        final msg = s.contains('409') ? "Bu vaqt allaqachon band" : "Xato: $e";
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-      }
-    }
-  }
-
-  Future<void> _openExtendSheet(BuildContext context, WidgetRef ref,
-      BarberBooking b, String barberId, String dateStr) async {
-    int minutes = 15;
-    final saved = await showModalBottomSheet<int>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => StatefulBuilder(
-        builder: (sheetCtx, setSheet) => Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Vaqtni uzaytirish",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8, runSpacing: 8,
-                children: [10, 15, 20, 30, 45, 60].map((m) => ChoiceChip(
-                  label: Text("+$m daq"),
-                  selected: minutes == m,
-                  onSelected: (_) => setSheet(() => minutes = m),
-                )).toList(),
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(sheetCtx).pop(minutes),
-                  child: const Text("Saqlash"),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (saved == null) return;
-    try {
-      await ref.read(barberPanelRepositoryProvider).extendDuration(b.id, saved);
-      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
-      ref.invalidate(barberAllBookingsProvider(barberId));
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Vaqt uzaytirildi")));
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
-      }
-    }
-  }
-
-  // ---- Voice booking: hold mic to record, release to send ----
-  Future<void> _openVoiceBookingSheet(BuildContext context, WidgetRef ref,
-      String barberId, String dateStr) async {
-    final recorder = AudioRecorder();
-    bool recording = false;
-    bool processing = false;
-    Map<String, dynamic>? parsed;
-    String? error;
-    String? filePath;
-
-    // Permission check upfront. Skip with friendly message if denied.
-    if (!await recorder.hasPermission()) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Mikrofon ruxsati berilmadi")));
-      }
-      return;
-    }
-    if (!context.mounted) return;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => StatefulBuilder(
-        builder: (sheetCtx, setSheet) => Padding(
-          padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Ovoz bilan bron",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              const Text(
-                "Mikrofonni bosing va aytib bering: ism, telefon, soat",
-                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 22),
-              GestureDetector(
-                onTapDown: (_) async {
-                  if (recording || processing) return;
-                  try {
-                    final dir = await getTemporaryDirectory();
-                    final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-                    await recorder.start(
-                      const RecordConfig(encoder: AudioEncoder.aacLc),
-                      path: path,
-                    );
-                    filePath = path;
-                    setSheet(() {
-                      recording = true;
-                      error = null;
-                    });
-                  } catch (e) {
-                    setSheet(() => error = "Yozib bo'lmadi: $e");
-                  }
-                },
-                onTapUp: (_) async {
-                  if (!recording) return;
-                  final path = await recorder.stop();
-                  filePath = path ?? filePath;
-                  setSheet(() {
-                    recording = false;
-                    processing = true;
-                  });
-                  if (filePath == null) {
-                    setSheet(() {
-                      processing = false;
-                      error = "Yozma topilmadi";
-                    });
-                    return;
-                  }
-                  try {
-                    final res = await ref.read(barberPanelRepositoryProvider)
-                        .parseVoiceBooking(barberId: barberId, audioPath: filePath!);
-                    setSheet(() {
-                      parsed = res;
-                      processing = false;
-                    });
-                  } catch (e) {
-                    setSheet(() {
-                      processing = false;
-                      error = "Tahlil bo'lmadi: $e";
-                    });
-                  }
-                },
-                child: Container(
-                  width: 110, height: 110,
-                  decoration: BoxDecoration(
-                    color: recording ? AppColors.danger : AppColors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: (recording ? AppColors.danger : AppColors.primary).withValues(alpha: 0.4),
-                        blurRadius: 24,
-                        spreadRadius: recording ? 6 : 0,
-                      ),
-                    ],
-                  ),
-                  child: Icon(recording ? Icons.stop : Icons.mic, color: Colors.white, size: 56),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                recording
-                    ? "Yozilmoqda... qo'lni qo'yib yuborganda yuboriladi"
-                    : (processing ? "Tahlil qilinmoqda..." : "Bosib turing"),
-                style: const TextStyle(color: AppColors.textSecondary),
-              ),
-              if (error != null) ...[
-                const SizedBox(height: 10),
-                Text(error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
-              ],
-              if (parsed != null) ...[
-                const SizedBox(height: 18),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Tahlil natijasi", style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 4),
-                      Text(parsed.toString(),
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(sheetCtx).pop(),
-                    child: const Text("Yopish"),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 18),
-            ],
-          ),
-        ),
-      ),
-    );
-    await recorder.dispose();
-    ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
-  }
-
-  // ---- Manual booking: barber adds a walk-in client ----
-  Future<void> _openManualBookingSheet(BuildContext context, WidgetRef ref,
-      String barberId, String dateStr) async {
-    final nameCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-    TimeOfDay selectedTime = const TimeOfDay(hour: 9, minute: 0);
-    final notesCtrl = TextEditingController();
-    final services = await ref.read(barberServicesProvider(barberId).future);
-    if (!context.mounted) return;
-    final selected = <String>{};
-
-    final saved = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => StatefulBuilder(
-        builder: (sheetCtx, setSheet) => Padding(
-          padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Qo'lda bron qo'shish",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 14),
-                TextField(controller: nameCtrl, decoration: const InputDecoration(hintText: "Mijoz ismi")),
-                const SizedBox(height: 10),
-                TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(hintText: "Telefon (ixtiyoriy)")),
-                const SizedBox(height: 10),
-                _PickerRow(
-                  icon: Icons.access_time,
-                  label: "Soat",
-                  value: "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}",
-                  onTap: () async {
-                    final picked = await showTimePicker(context: sheetCtx, initialTime: selectedTime);
-                    if (picked != null) setSheet(() => selectedTime = picked);
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextField(controller: notesCtrl, decoration: const InputDecoration(hintText: "Izoh (ixtiyoriy)")),
-                const SizedBox(height: 14),
-                if (services.isEmpty)
-                  const Text("Avval xizmatlar qo'shing — yo'q",
-                      style: TextStyle(color: AppColors.danger, fontSize: 13))
-                else ...[
-                  const Text("Xizmatlar",
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textSecondary)),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: services.map((s) {
-                      final id = s['id'] as String;
-                      final name = (s['nameUz'] ?? s['name'] ?? '').toString();
-                      final on = selected.contains(id);
-                      return FilterChip(
-                        label: Text(name),
-                        selected: on,
-                        onSelected: (v) => setSheet(() {
-                          if (v) {
-                            selected.add(id);
-                          } else {
-                            selected.remove(id);
-                          }
-                        }),
-                      );
-                    }).toList(),
-                  ),
-                ],
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: services.isEmpty || selected.isEmpty
-                        ? null
-                        : () => Navigator.of(sheetCtx).pop(true),
-                    child: const Text("Saqlash"),
-                  ),
-                ),
-              ],
+          if (status == 'blocked')
+            ListTile(
+              leading: const Icon(Icons.lock_open, color: AppColors.success),
+              title: const Text("Blokni olib tashlash"),
+              onTap: () => Navigator.of(sheetCtx).pop('unblock'),
             ),
+          ListTile(
+            leading: const Icon(Icons.delete_outline, color: AppColors.danger),
+            title: const Text("Slotni o'chirish"),
+            onTap: () => Navigator.of(sheetCtx).pop('delete'),
           ),
-        ),
-      ),
-    );
-    if (saved != true) return;
-    final timeStr = "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}";
-    try {
-      await ref.read(barberPanelRepositoryProvider).createManual(
-            barberId: barberId,
-            date: dateStr,
-            time: timeStr,
-            serviceIds: selected.toList(),
-            guestName: nameCtrl.text.trim(),
-            guestPhone: phoneCtrl.text.trim(),
-            notes: notesCtrl.text.trim(),
-          );
-      ref.invalidate(barberDayBookingsProvider((barberId: barberId, date: dateStr)));
-      ref.invalidate(barberAllBookingsProvider(barberId));
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Bron qo'shildi")));
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
-      }
-    }
-  }
-}
-
-/// Tappable row that opens a native date/time picker. Used inside the
-/// reschedule + manual booking sheets so the barber can never type garbage
-/// into the time field.
-class _PickerRow extends StatelessWidget {
-  const _PickerRow({required this.icon, required this.label, required this.value, required this.onTap});
-  final IconData icon;
-  final String label;
-  final String value;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(children: [
-          Icon(icon, color: AppColors.primary, size: 20),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textBright)),
-          const SizedBox(width: 6),
-          const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
+          ListTile(
+            leading: const Icon(Icons.close, color: AppColors.textMuted),
+            title: const Text("Yopish"),
+            onTap: () => Navigator.of(sheetCtx).pop(null),
+          ),
+          const SizedBox(height: 8),
         ]),
       ),
     );
+    if (picked == null) return;
+    try {
+      final dateStr = _dateStr(_selectedDate);
+      final repo = ref.read(barberPanelRepositoryProvider);
+      if (picked == 'block' || picked == 'unblock') {
+        await repo.toggleSlotBlock(barberId, dateStr, time);
+      } else if (picked == 'delete') {
+        final current = await repo.getDaySchedule(barberId, dateStr);
+        final updated = current.where((t) => t != time).toList();
+        await repo.saveDaySchedule(barberId: barberId, date: dateStr, slots: updated);
+      }
+      _refreshDay(barberId);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+    }
   }
-}
 
-class _BookingTile extends StatelessWidget {
-  const _BookingTile({required this.booking});
-  final BarberBooking booking;
-
-  Color get _statusColor {
-    switch (booking.status) {
-      case 'completed':
-        return AppColors.success;
-      case 'cancelled':
-        return AppColors.danger;
-      default:
-        return AppColors.primary;
+  Future<void> _openAddSchedule(String barberId) async {
+    // Pick: generator or single slot
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 12),
+          Container(width: 36, height: 4,
+              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 12),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text("Jadval qo'shish",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+          ),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: const Icon(Icons.auto_awesome_motion, color: AppColors.primary),
+            title: const Text("Avtomatik (vaqt oralig'i)"),
+            subtitle: const Text("Boshlanish va tugash vaqtidan slotlar generatsiya"),
+            onTap: () => Navigator.of(sheetCtx).pop('generator'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.add, color: AppColors.primary),
+            title: const Text("Bitta slot qo'shish"),
+            subtitle: const Text("Aniq bir HH:MM vaqtni qo'shish"),
+            onTap: () => Navigator.of(sheetCtx).pop('single'),
+          ),
+          const SizedBox(height: 12),
+        ]),
+      ),
+    );
+    if (choice == 'single') {
+      if (!mounted) return;
+      final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
+      if (picked == null) return;
+      final time = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      try {
+        final dateStr = _dateStr(_selectedDate);
+        final current = await ref.read(barberPanelRepositoryProvider).getDaySchedule(barberId, dateStr);
+        if (current.contains(time)) return;
+        final updated = [...current, time]..sort();
+        await ref.read(barberPanelRepositoryProvider)
+            .saveDaySchedule(barberId: barberId, date: dateStr, slots: updated);
+        _refreshDay(barberId);
+      } catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      }
+    } else if (choice == 'generator') {
+      if (mounted) context.push('/barber/schedule-generator');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final name = booking.guestName?.isNotEmpty == true
-        ? booking.guestName!
-        : (booking.userName.isNotEmpty ? booking.userName : 'Mijoz');
-    final phone = booking.guestPhone ?? booking.userPhone ?? '';
+    final user = ref.watch(authControllerProvider).user;
+    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final barberId = user.id;
+    final dateStr = _dateStr(_selectedDate);
+    final key = (barberId: barberId, date: dateStr);
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
+    final slotsAsync = ref.watch(scheduleSlotsProvider(key));
+    final bookedAsync = ref.watch(bookedSlotsProvider(key));
+    final blockedAsync = ref.watch(blockedSlotsProvider(key));
+
+    final selectedWeekday = _weekDaysLong[_selectedDate.weekday - 1];
+    final dateHeader = "${_selectedDate.day}-${_months[_selectedDate.month - 1].toLowerCase()}, ${selectedWeekday.toLowerCase()}";
+
+    return Scaffold(
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          Container(
-            width: 56,
-            height: 64,
-            decoration: BoxDecoration(
-              color: _statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  booking.time,
-                  style: TextStyle(
-                      color: _statusColor, fontSize: 15, fontWeight: FontWeight.w800),
+          // ===== Voice booking card =====
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: _voiceLoading ? null : () => _toggleRecording(barberId),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: _isRecording
+                    ? AppColors.danger.withValues(alpha: 0.1)
+                    : AppColors.primary.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isRecording
+                      ? AppColors.danger.withValues(alpha: 0.4)
+                      : AppColors.primary.withValues(alpha: 0.2),
                 ),
-                if (booking.totalDuration > 0)
-                  Text(
-                    "${booking.totalDuration} daq",
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 10),
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isRecording
+                            ? "Yozilmoqda..."
+                            : (_voiceLoading ? "Tahlil qilinmoqda..." : "Ovoz bilan bron"),
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _isRecording
+                            ? "To'xtatish uchun yana bosing"
+                            : "Mikrofonni bosib, ismni, vaqtni ayting",
+                        style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                      ),
+                    ],
                   ),
-              ],
+                ),
+                Container(
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    color: _isRecording ? AppColors.danger : AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: _voiceLoading
+                      ? const Center(
+                          child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                        )
+                      : Icon(_isRecording ? Icons.mic_off : Icons.mic, color: Colors.white, size: 22),
+                ),
+              ]),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                    overflow: TextOverflow.ellipsis),
-                if (phone.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(phone,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                ],
-                if (booking.totalPrice > 0) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    "${_fmt(booking.totalPrice)} so'm",
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
+
+          const SizedBox(height: 14),
+
+          // ===== Date scroller (30 days) =====
+          SizedBox(
+            height: 76,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 30,
+              itemBuilder: (context, i) {
+                final d = DateTime.now().add(Duration(days: i));
+                final dateOnly = DateTime(d.year, d.month, d.day);
+                final selectedOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+                final isSelected = dateOnly.isAtSameMomentAs(selectedOnly);
+                final isToday = i == 0;
+
+                return Padding(
+                  padding: EdgeInsets.only(right: 8, left: i == 0 ? 0 : 0),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => setState(() => _selectedDate = dateOnly),
+                    child: Container(
+                      width: 64,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.primary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : (isToday ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _weekDays[d.weekday - 1].toUpperCase(),
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isSelected ? Colors.white70 : AppColors.textMuted),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            d.day.toString(),
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: isSelected ? Colors.white : AppColors.textBright),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _months[d.month - 1].substring(0, 3).toLowerCase(),
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: isSelected ? Colors.white70 : AppColors.textMuted),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ],
-              ],
+                );
+              },
             ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // ===== Day header =====
+          Text(dateHeader,
+              style: const TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textBright)),
+          const SizedBox(height: 10),
+
+          // ===== Slot grid OR empty state =====
+          slotsAsync.when(
+            loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator())),
+            error: (e, _) => Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+            ),
+            data: (slots) {
+              if (slots.isEmpty) {
+                // Empty state — dashed box + button
+                return _EmptyState(onAdd: () => _openAddSchedule(barberId));
+              }
+
+              final booked = bookedAsync.maybeWhen(data: (v) => v, orElse: () => <String>[]);
+              final blocked = blockedAsync.maybeWhen(data: (v) => v, orElse: () => <String>[]);
+
+              return Column(children: [
+                // Legend + Add button
+                Row(children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 10,
+                      children: const [
+                        _LegendDot(color: Color(0xFF22C55E), label: "Bo'sh"),
+                        _LegendDot(color: Color(0xFF3B82F6), label: "Band"),
+                        _LegendDot(color: Color(0xFFEF4444), label: "Bloklangan"),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => _openAddSchedule(barberId),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: const [
+                        Icon(Icons.add, size: 14, color: AppColors.primary),
+                        SizedBox(width: 2),
+                        Text("Qo'shish",
+                            style: TextStyle(
+                                color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
+                      ]),
+                    ),
+                  ),
+                ]),
+
+                const SizedBox(height: 10),
+
+                // 3-column slot grid
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 1.8,
+                  ),
+                  itemCount: slots.length,
+                  itemBuilder: (context, i) {
+                    final time = slots[i];
+                    final status = _slotStatus(time, booked, blocked);
+                    final color = status == 'booked'
+                        ? const Color(0xFF3B82F6)
+                        : status == 'blocked'
+                            ? const Color(0xFFEF4444)
+                            : const Color(0xFF22C55E);
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => _openSlotAction(barberId, time, status),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: color.withValues(alpha: 0.5)),
+                        ),
+                        child: Stack(children: [
+                          Center(
+                            child: Text(time,
+                                style: TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+                          ),
+                          if (status == 'blocked')
+                            Positioned(
+                              top: 2, right: 4,
+                              child: Icon(Icons.lock, size: 11, color: color.withValues(alpha: 0.7)),
+                            ),
+                          if (status == 'booked')
+                            Positioned(
+                              top: 2, right: 4,
+                              child: Text("BAND",
+                                  style: TextStyle(
+                                      fontSize: 8, fontWeight: FontWeight.w800, color: color)),
+                            ),
+                        ]),
+                      ),
+                    ).animate().fadeIn(duration: 150.ms, delay: (i * 15).ms);
+                  },
+                ),
+              ]);
+            },
           ),
         ],
       ),
     );
   }
+}
 
-  String _fmt(int n) {
-    final s = n.toString();
-    final buf = StringBuffer();
-    for (var i = 0; i < s.length; i++) {
-      final reverseIndex = s.length - i;
-      buf.write(s[i]);
-      if (reverseIndex > 1 && reverseIndex % 3 == 1) buf.write(' ');
-    }
-    return buf.toString();
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.onAdd});
+  final VoidCallback onAdd;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+      ),
+      child: Column(children: [
+        const Icon(Icons.access_time, color: AppColors.textMuted, size: 40),
+        const SizedBox(height: 8),
+        const Text("Jadval yo'q",
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textBright)),
+        const SizedBox(height: 4),
+        const Text("Ish vaqtingizni belgilang",
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add, size: 16),
+            label: const Text("Jadval qo'shish"),
+            onPressed: onAdd,
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  const _LegendDot({required this.color, required this.label});
+  final Color color;
+  final String label;
+  @override
+  Widget build(BuildContext context) {
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      const SizedBox(width: 4),
+      Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+    ]);
   }
 }

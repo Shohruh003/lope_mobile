@@ -226,4 +226,100 @@ extension BarberBookingActions on BarberPanelRepository {
     final res = await _dio.post('/barbers/$barberId/voice-booking', data: form);
     return Map<String, dynamic>.from(res.data as Map);
   }
+
+  /// Fetches the explicit slot list for a barber on a given day.
+  /// Web equivalent: `GET /schedule/:barberId/:date`. Returns the HH:MM list.
+  Future<List<String>> getDaySchedule(String barberId, String date) async {
+    try {
+      final res = await _dio.get('/schedule/$barberId/$date');
+      final data = res.data;
+      if (data is Map && data['slots'] is List) {
+        return (data['slots'] as List).map((e) => e.toString()).toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      // 404 means no schedule for that day — not an error, just empty.
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
+  }
+
+  /// Returns the HH:MM strings of slots that already have a booking.
+  /// Web: `GET /schedule/:barberId/:date/booked`.
+  Future<List<String>> getBookedSlots(String barberId, String date) async {
+    try {
+      final res = await _dio.get('/bookings/barber/$barberId/booked', queryParameters: {'date': date});
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+      return list.map((e) => e.toString()).toList();
+    } catch (_) {
+      // Fallback: derive from byDay() bookings.
+      try {
+        final list = await byDay(barberId: barberId, date: date);
+        return list.map((b) => b.time).toList();
+      } catch (_) {
+        return [];
+      }
+    }
+  }
+
+  /// Returns the blocked HH:MM list for the date. 404 means no blocked slots.
+  Future<List<String>> getBlockedSlots(String barberId, String date) async {
+    try {
+      final res = await _dio.get('/schedule/$barberId/$date/blocked');
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+      return list.map((e) {
+        if (e is Map) return (e['time'] ?? '').toString();
+        return e.toString();
+      }).where((s) => s.isNotEmpty).toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      return [];
+    }
+  }
+
+  /// Save the entire slot list for a day. Web uses `PUT /schedule`.
+  Future<void> saveDaySchedule({
+    required String barberId,
+    required String date,
+    required List<String> slots,
+  }) async {
+    await _dio.put('/schedule', data: {
+      'barberId': barberId,
+      'date': date,
+      'slots': slots,
+      'force': true,
+    });
+  }
+
+  /// Toggle blocked/unblocked status for a single slot.
+  Future<void> toggleSlotBlock(String barberId, String date, String time) async {
+    await _dio.post('/schedule/block-slot', data: {
+      'barberId': barberId,
+      'date': date,
+      'time': time,
+    });
+  }
 }
+
+/// FutureProviders for the schedule view to consume directly. Day schedule,
+/// booked times, and blocked times are all fetched against the same key.
+final scheduleSlotsProvider = FutureProvider.family<List<String>,
+    ({String barberId, String date})>((ref, key) async {
+  return ref.watch(barberPanelRepositoryProvider).getDaySchedule(key.barberId, key.date);
+});
+
+final bookedSlotsProvider = FutureProvider.family<List<String>,
+    ({String barberId, String date})>((ref, key) async {
+  return ref.watch(barberPanelRepositoryProvider).getBookedSlots(key.barberId, key.date);
+});
+
+final blockedSlotsProvider = FutureProvider.family<List<String>,
+    ({String barberId, String date})>((ref, key) async {
+  return ref.watch(barberPanelRepositoryProvider).getBlockedSlots(key.barberId, key.date);
+});
