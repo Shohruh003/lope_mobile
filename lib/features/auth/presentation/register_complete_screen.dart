@@ -4,37 +4,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/routes.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/shadcn.dart';
 import '../data/auth_repository.dart';
 import 'auth_controller.dart';
 
-/// Final registration step — name + password. The phone (already verified)
-/// arrives via query string from the OTP screen. Default role is 'user' (i.e.
-/// customer); barber/shop signup happens through a separate flow we'll add
-/// later once the customer path is rock solid.
 class RegisterCompleteScreen extends ConsumerStatefulWidget {
   const RegisterCompleteScreen({super.key, required this.phone});
   final String phone;
-
   @override
   ConsumerState<RegisterCompleteScreen> createState() => _RegisterCompleteScreenState();
 }
 
 class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen> {
-  final _nameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _nameCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   bool _loading = false;
-  bool _obscurePassword = true;
+  bool _obscure = true;
   String? _error;
 
   Future<void> _submit() async {
-    final name = _nameController.text.trim();
-    final password = _passwordController.text;
+    final name = _nameCtrl.text.trim();
+    final password = _passwordCtrl.text;
     if (name.length < 2) {
-      setState(() => _error = "Ismni kiriting (kamida 2 belgi)");
+      setState(() => _error = "Ismni kiriting");
       return;
     }
     if (password.length < 4) {
-      setState(() => _error = "Parol kamida 4 belgi bo'lishi kerak");
+      setState(() => _error = "Parol kamida 4 belgi");
       return;
     }
     setState(() {
@@ -53,11 +49,8 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
       routeToRoleHome(context, user);
     } on Object catch (e) {
       String msg = "Ro'yxatdan o'tishda xato";
-      if (e.toString().contains('SocketException') || e.toString().contains('connection')) {
-        msg = "Internetga ulanish yo'q";
-      } else if (e.toString().contains('409') || e.toString().contains('already')) {
-        msg = "Bu raqam allaqachon ro'yxatdan o'tgan";
-      }
+      if (e.toString().contains('SocketException')) msg = "Internetga ulanish yo'q";
+      if (e.toString().contains('409')) msg = "Bu raqam allaqachon ro'yxatdan o'tgan";
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -66,8 +59,8 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _passwordController.dispose();
+    _nameCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
@@ -76,113 +69,68 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
     return Scaffold(
       appBar: AppBar(leading: const BackButton()),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              const Text(
-                "Ozgina qoldi",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                  height: 1.1,
-                  color: AppColors.textBright,
-                ),
-              ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
-              const SizedBox(height: 12),
-              const Text(
-                "Ismingiz va parol — keyin yana kerakmas",
-                style: TextStyle(fontSize: 16, color: AppColors.textSecondary, height: 1.5, fontWeight: FontWeight.w500),
-              ).animate().fadeIn(duration: 400.ms, delay: 80.ms),
-
-              const SizedBox(height: 36),
-
-              _Label("Ismingiz"),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _nameController,
-                autofocus: true,
-                textCapitalization: TextCapitalization.words,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textBright),
-                decoration: const InputDecoration(
-                  hintText: "Masalan: Shohruh",
-                  hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-              ).animate().fadeIn(duration: 400.ms, delay: 160.ms),
-
-              const SizedBox(height: 18),
-
-              _Label("Parol"),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textBright),
-                decoration: InputDecoration(
-                  hintText: "Kamida 4 belgi",
-                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      color: AppColors.textSecondary,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: ShadCard(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Center(
+                    child: Column(children: const [
+                      ShadIconBubble(icon: Icons.person_outline),
+                      SizedBox(height: 12),
+                      ShadCardTitle("Ma'lumotlaringiz"),
+                      SizedBox(height: 4),
+                      ShadCardDescription("Ism va parol qoldi"),
+                    ]),
+                  ),
+                  const SizedBox(height: 22),
+                  ShadField(
+                    label: "Ismingiz",
+                    child: TextField(
+                      controller: _nameCtrl,
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.words,
+                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                      decoration: const InputDecoration(hintText: "Masalan: Shohruh"),
                     ),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                ),
-                onSubmitted: (_) => _submit(),
-              ).animate().fadeIn(duration: 400.ms, delay: 240.ms),
-
-              if (_error != null) ...[
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.danger.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
+                  const SizedBox(height: 14),
+                  ShadField(
+                    label: "Parol",
+                    error: _error,
+                    child: TextField(
+                      controller: _passwordCtrl,
+                      obscureText: _obscure,
+                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                      decoration: InputDecoration(
+                        hintText: "••••••",
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                              color: AppColors.textMuted, size: 18),
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                        ),
+                      ),
+                      onSubmitted: (_) => _submit(),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: AppColors.danger, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13))),
-                    ],
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _submit,
+                      child: _loading
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Text("Ro'yxatdan o'tish"),
+                    ),
                   ),
-                ).animate().shake(hz: 4, duration: 300.ms),
-              ],
-
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text("Ro'yxatdan o'tish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
-                ),
-              ).animate().fadeIn(duration: 400.ms, delay: 320.ms),
-            ],
+                ]),
+              ).animate().fadeIn(duration: 300.ms),
+            ),
           ),
         ),
       ),
     );
   }
-
-  // ignore: non_constant_identifier_names
-  Widget _Label(String text) => Text(
-        text,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textSecondary,
-          letterSpacing: 0.2,
-        ),
-      );
 }

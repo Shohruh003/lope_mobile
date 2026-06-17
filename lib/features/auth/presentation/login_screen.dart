@@ -9,8 +9,9 @@ import '../../../shared/theme/colors.dart';
 import '../data/auth_repository.dart';
 import 'auth_controller.dart';
 
-/// Returning-user login. Hero-centered layout, phone + password fields,
-/// post-login routes by role.
+/// Centered Card matching the web's Login.tsx layout. Compact, label-above-
+/// input pattern, primary button full width, forgot-password right-aligned,
+/// "No account? Register" CTA at the bottom + a Guest button.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -27,8 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   static const _validPrefixes = {
     '90', '91', '93', '94', '95', '97', '98', '99',
-    '33', '50', '55', '77', '88',
-    '80', '87', '92',
+    '33', '50', '55', '77', '88', '80', '87', '92',
   };
 
   bool _isValidPhone(String raw) {
@@ -37,35 +37,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    final raw = _phoneController.text;
-    final password = _passwordController.text;
-    if (!_isValidPhone(raw)) {
+    if (!_isValidPhone(_phoneController.text)) {
       setState(() => _error = "Telefon raqami noto'g'ri");
       return;
     }
-    if (password.length < 4) {
-      setState(() => _error = "Parol kamida 4 belgi bo'lishi kerak");
+    if (_passwordController.text.length < 4) {
+      setState(() => _error = "Parol kamida 4 belgi");
       return;
     }
-    final phone = '+998${raw.replaceAll(RegExp(r'\D'), '')}';
+    final phone = '+998${_phoneController.text.replaceAll(RegExp(r'\D'), '')}';
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final user = await ref.read(authRepositoryProvider).login(
-            phone: phone,
-            password: password,
-          );
+      final user = await ref
+          .read(authRepositoryProvider)
+          .login(phone: phone, password: _passwordController.text);
       await ref.read(authControllerProvider.notifier).signedIn(user);
       if (!mounted) return;
-      // Role-aware routing — barbers / shops never see the customer feed.
       routeToRoleHome(context, user);
     } on Object catch (e) {
       String msg = "Telefon yoki parol noto'g'ri";
-      if (e.toString().contains('SocketException') || e.toString().contains('connection')) {
-        msg = "Internetga ulanish yo'q";
-      }
+      if (e.toString().contains('SocketException')) msg = "Internetga ulanish yo'q";
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -83,206 +77,207 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Spacer(),
-
-                      // Hero brand block — centered
-                      Container(
-                        width: 88,
-                        height: 88,
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.35),
-                              blurRadius: 30,
-                              offset: const Offset(0, 12),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.content_cut, color: Colors.white, size: 44),
-                      ).animate().scale(
-                            duration: 500.ms,
-                            begin: const Offset(0.6, 0.6),
-                            end: const Offset(1, 1),
-                            curve: Curves.easeOutBack,
-                          ),
-
-                      const SizedBox(height: 22),
-                      const Text(
-                        "Xush kelibsiz",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.7,
-                          height: 1.1,
-                          color: AppColors.textBright,
-                        ),
-                      ).animate().fadeIn(duration: 500.ms, delay: 80.ms).slideY(begin: 0.2, end: 0),
-
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Lope Style hisobingizga kiring",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppColors.textSecondary,
-                          height: 1.5,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ).animate().fadeIn(duration: 500.ms, delay: 160.ms),
-
-                      const SizedBox(height: 36),
-
-                      // Phone field — full width but content centered
-                      TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        textAlign: TextAlign.left,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(9),
-                        ],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                          color: AppColors.textBright,
-                        ),
-                        decoration: const InputDecoration(
-                          prefix: Padding(
-                            padding: EdgeInsets.only(right: 6),
-                            child: Text(
-                              "+998",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textBright,
-                              ),
-                            ),
-                          ),
-                          hintText: "90 123 45 67",
-                          hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
-                      ).animate().fadeIn(duration: 500.ms, delay: 240.ms),
-
-                      const SizedBox(height: 14),
-
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textBright),
-                        decoration: InputDecoration(
-                          hintText: "Parol",
-                          hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                              color: AppColors.textSecondary,
-                            ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                          ),
-                        ),
-                        onSubmitted: (_) => _submit(),
-                      ).animate().fadeIn(duration: 500.ms, delay: 320.ms),
-
-                      if (_error != null) ...[
-                        const SizedBox(height: 14),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: _Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header: 48px circular icon bubble + title + description
+                    Column(
+                      children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          width: 48,
+                          height: 48,
                           decoration: BoxDecoration(
-                            color: AppColors.danger.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.error_outline, color: AppColors.danger, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
-                              ),
-                            ],
+                          child: const Icon(Icons.content_cut, color: AppColors.primary, size: 24),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "Xush kelibsiz",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                            color: AppColors.textBright,
                           ),
-                        ).animate().shake(hz: 4, duration: 300.ms),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Hisobingizga kiring",
+                          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                        ),
                       ],
+                    ).animate().fadeIn(duration: 300.ms),
 
-                      const SizedBox(height: 22),
+                    const SizedBox(height: 22),
 
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _loading ? null : _submit,
-                          style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(54)),
-                          child: _loading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Text("Kirish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
-                        ),
-                      ).animate().fadeIn(duration: 500.ms, delay: 400.ms),
+                    // Phone label + input
+                    const _Label("Telefon"),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(9),
+                      ],
+                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                      decoration: const InputDecoration(
+                        prefixText: '+998 ',
+                        prefixStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textMuted),
+                        hintText: '901234567',
+                      ),
+                    ),
 
-                      const SizedBox(height: 14),
-                      Center(
-                        child: GestureDetector(
-                          onTap: () => context.push('/forgot-password'),
-                          child: const Text(
-                            "Parolingizni unutdingizmi?",
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
+                    const SizedBox(height: 14),
+
+                    // Password
+                    const _Label("Parol"),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                      decoration: InputDecoration(
+                        hintText: "••••••",
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            color: AppColors.textMuted,
+                            size: 18,
                           ),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                         ),
-                      ).animate().fadeIn(duration: 500.ms, delay: 440.ms),
+                      ),
+                      onSubmitted: (_) => _submit(),
+                    ),
 
-                      const Spacer(),
+                    // Forgot link right
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () => context.push('/forgot-password'),
+                        child: const Text(
+                          "Parolingizni unutdingizmi?",
+                          style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
 
-                      // Bottom register link
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text("Hisobingiz yo'qmi?",
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.w500)),
-                            const SizedBox(width: 6),
-                            GestureDetector(
-                              onTap: () => context.push('/register-phone'),
-                              child: const Text(
-                                "Ro'yxatdan o'tish",
-                                style: TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 10),
+                      Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+                    ],
+
+                    const SizedBox(height: 14),
+
+                    // Primary submit
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _submit,
+                        child: _loading
+                            ? const SizedBox(
+                                width: 16, height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text("Kirish"),
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // No account? Register
+                    Center(
+                      child: Wrap(
+                        children: [
+                          const Text("Hisobingiz yo'qmi? ",
+                              style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                          GestureDetector(
+                            onTap: () => context.push('/register-phone'),
+                            child: const Text(
+                              "Ro'yxatdan o'tish",
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
-                        ),
-                      ).animate().fadeIn(duration: 500.ms, delay: 480.ms),
-                    ],
-                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+                    // OR divider
+                    Row(children: const [
+                      Expanded(child: Divider(color: AppColors.border)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text("YOKI",
+                            style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1)),
+                      ),
+                      Expanded(child: Divider(color: AppColors.border)),
+                    ]),
+                    const SizedBox(height: 14),
+
+                    // Guest button (outlined)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.push('/home'),
+                        icon: const Icon(Icons.person_outline, size: 16),
+                        label: const Text("Mehmon sifatida ko'rish"),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            );
-          },
+              ).animate().fadeIn(duration: 400.ms),
+            ),
+          ),
         ),
       ),
     );
   }
+}
+
+/// Card matching shadcn — same bg as scaffold, 1px border, 10px radius.
+class _Card extends StatelessWidget {
+  const _Card({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// `<Label>` from shadcn — small, medium-weight, muted-foreground.
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        style: const TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      );
 }
