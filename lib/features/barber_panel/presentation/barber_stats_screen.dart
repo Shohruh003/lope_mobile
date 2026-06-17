@@ -31,9 +31,12 @@ class BarberStatsScreen extends ConsumerWidget {
             children: [
               const Text(
                 "Statistika",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-              ).animate().fadeIn(duration: 400.ms),
-              const SizedBox(height: 16),
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textBright),
+              ),
+              const SizedBox(height: 14),
               async.when(
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 40),
@@ -67,9 +70,59 @@ class BarberStatsScreen extends ConsumerWidget {
                     }
                   }
 
+                  // Count today's bookings (matches web's todayCount)
+                  final todayStr =
+                      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                  final todayCount = list
+                      .where((b) => b.date == todayStr && b.status != 'cancelled')
+                      .length;
+                  final uniqueClients = list
+                      .where((b) => b.status != 'cancelled')
+                      .map((b) => b.userPhone ?? b.guestPhone ?? b.userName)
+                      .toSet()
+                      .length;
+
+                  // 4 stat tiles, 2x2 — matches web's statCards array exactly.
                   return Column(
                     children: [
-                      // Bar chart of last-7-days bookings by weekday.
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 1.45,
+                        children: [
+                          _StatTile(
+                            icon: Icons.event_available,
+                            label: "Bugungi bronlar",
+                            value: "$todayCount",
+                            color: const Color(0xFF3B82F6), // blue-500
+                          ),
+                          _StatTile(
+                            icon: Icons.trending_up,
+                            label: "Bu oy",
+                            value: "$monthCount",
+                            color: const Color(0xFF22C55E), // green-500
+                          ),
+                          _StatTile(
+                            icon: Icons.people_outline,
+                            label: "Jami mijozlar",
+                            value: "$uniqueClients",
+                            color: const Color(0xFFA855F7), // purple-500
+                          ),
+                          _StatTile(
+                            icon: Icons.attach_money,
+                            label: "Bu oy daromad",
+                            value: "${_fmt(monthRev)} so'm",
+                            color: const Color(0xFF10B981), // emerald-500
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // Weekly bar chart card
                       Container(
                         padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
                         decoration: BoxDecoration(
@@ -81,36 +134,42 @@ class BarberStatsScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text("Haftalik bronlar",
-                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: AppColors.textBright)),
                             const SizedBox(height: 8),
                             WeeklyBookingsBarChart(counts: byDow),
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 14),
 
-                      _StatCard(
-                        label: 'Bu hafta',
-                        primary: '$weekCount ta bron',
-                        secondary: "${_fmt(weekRev)} so'm",
-                        color: AppColors.primary,
-                        delay: 0,
-                      ),
-                      const SizedBox(height: 12),
-                      _StatCard(
-                        label: 'Bu oy',
-                        primary: '$monthCount ta bron',
-                        secondary: "${_fmt(monthRev)} so'm",
-                        color: AppColors.success,
-                        delay: 80,
-                      ),
-                      const SizedBox(height: 12),
-                      _StatCard(
-                        label: 'Jami daromad',
-                        primary: "${_fmt(totalRev)} so'm",
-                        secondary: '${list.length} ta bron tarixi',
-                        color: AppColors.warning,
-                        delay: 160,
+                      // Summary card
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Umumiy hisob",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: AppColors.textBright)),
+                            const SizedBox(height: 10),
+                            _SummaryRow(label: "Bu hafta", value: "$weekCount ta bron · ${_fmt(weekRev)} so'm"),
+                            const Divider(color: AppColors.border, height: 14),
+                            _SummaryRow(label: "Jami bronlar", value: "${list.length} ta"),
+                            const Divider(color: AppColors.border, height: 14),
+                            _SummaryRow(label: "Jami daromad", value: "${_fmt(totalRev)} so'm"),
+                          ],
+                        ),
                       ),
                     ],
                   );
@@ -135,60 +194,82 @@ class BarberStatsScreen extends ConsumerWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({
+class _StatTile extends StatelessWidget {
+  const _StatTile({
+    required this.icon,
     required this.label,
-    required this.primary,
-    required this.secondary,
+    required this.value,
     required this.color,
-    required this.delay,
   });
+  final IconData icon;
   final String label;
-  final String primary;
-  final String secondary;
+  final String value;
   final Color color;
-  final int delay;
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 32, height: 32,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.bar_chart, color: color),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(primary,
-                    style:
-                        const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-                const SizedBox(height: 2),
-                Text(secondary,
-                    style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w600)),
-              ],
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      letterSpacing: -0.3,
+                      color: AppColors.textBright)),
+              const SizedBox(height: 2),
+              Text(label,
+                  style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500)),
+            ],
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 300.ms, delay: delay.ms).slideY(begin: 0.1, end: 0);
+    ).animate().fadeIn(duration: 250.ms);
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.label, required this.value});
+  final String label;
+  final String value;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+        ),
+        Text(value,
+            style: const TextStyle(
+                color: AppColors.textBright,
+                fontSize: 13,
+                fontWeight: FontWeight.w600)),
+      ],
+    );
   }
 }
