@@ -10,9 +10,9 @@ import '../../../shared/theme/colors.dart';
 import '../data/barber_repository.dart';
 import '../domain/barber.dart';
 
-/// Customer-facing barber discovery screen — the main "feed" of the app.
-/// Search field at the top, then a vertical list of barber cards with
-/// avatar, name, rating, location and an "Bron qilish" button.
+/// Customer-facing barber discovery feed — mirrors the web's
+/// CustomerBarbersScreen exactly: sticky search + chip filters + sort chips +
+/// 2-column grid of compact cards (h-24 photo strip + h-11 avatar overlap).
 class BarbersListScreen extends ConsumerStatefulWidget {
   const BarbersListScreen({super.key});
 
@@ -23,8 +23,8 @@ class BarbersListScreen extends ConsumerStatefulWidget {
 class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
-  String _filter = 'all'; // 'all' | 'available' | 'top'
-  String _sort = 'rating'; // 'rating' | 'name'
+  String _filter = 'all'; // 'all' | 'favorites' | 'available'
+  String _sort = 'rating'; // 'rating' | 'experience'
 
   @override
   void dispose() {
@@ -42,109 +42,216 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(barbersListProvider);
     return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: () async => ref.refresh(barbersListProvider.future),
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Sartaroshlar",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
-                          color: AppColors.textBright,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _searchController,
-                        onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
-                        style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                        decoration: InputDecoration(
-                          hintText: "Qidirish...",
-                          prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 18),
-                          suffixIcon: _query.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.close, color: AppColors.textMuted, size: 18),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() => _query = '');
-                                  },
-                                )
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      // Filter chip row
-                      SizedBox(
-                        height: 40,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _FilterChip(label: "Hammasi", on: _filter == 'all', onTap: () => setState(() => _filter = 'all')),
-                            _FilterChip(label: "Bo'sh", on: _filter == 'available', onTap: () => setState(() => _filter = 'available')),
-                            _FilterChip(label: "Top", on: _filter == 'top', onTap: () => setState(() => _filter = 'top')),
-                            const SizedBox(width: 6),
-                            const VerticalDivider(width: 16, indent: 8, endIndent: 8, color: AppColors.border),
-                            const SizedBox(width: 6),
-                            _FilterChip(label: "Reyting", on: _sort == 'rating', onTap: () => setState(() => _sort = 'rating')),
-                            _FilterChip(label: "Ism", on: _sort == 'name', onTap: () => setState(() => _sort = 'name')),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              async.when(
-                loading: () => const SliverToBoxAdapter(child: _LoadingList()),
-                error: (e, _) => SliverToBoxAdapter(child: _ErrorBlock(message: e.toString())),
-                data: (list) {
-                  var filtered = _query.isEmpty
-                      ? list
-                      : list
-                          .where((b) =>
-                              b.name.toLowerCase().contains(_query) ||
-                              b.location.toLowerCase().contains(_query))
-                          .toList();
-                  // Filter chips
-                  if (_filter == 'available') {
-                    filtered = filtered.where((b) => b.isAvailable).toList();
-                  } else if (_filter == 'top') {
-                    filtered = filtered.where((b) => b.rating >= 4.5).toList();
-                  }
-                  // Sort
-                  filtered = [...filtered];
-                  if (_sort == 'rating') {
-                    filtered.sort((a, b) => b.rating.compareTo(a.rating));
-                  } else {
-                    filtered.sort((a, b) => a.name.compareTo(b.name));
-                  }
-                  if (filtered.isEmpty) {
-                    return const SliverToBoxAdapter(child: _EmptyState());
-                  }
-                  return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    sliver: SliverList.separated(
-                      itemCount: filtered.length,
-                      separatorBuilder: (context, i) => const SizedBox(height: 14),
-                      itemBuilder: (context, i) => _BarberCard(
-                        barber: filtered[i],
-                        avatarUrl: _avatarUrl(filtered[i].avatar),
-                      ).animate().fadeIn(duration: 300.ms, delay: (i * 40).ms),
-                    ),
-                  );
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async => ref.refresh(barbersListProvider.future),
+        child: CustomScrollView(
+          slivers: [
+            // Sticky search + filter chips
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _StickyFilterHeader(
+                searchController: _searchController,
+                query: _query,
+                filter: _filter,
+                sort: _sort,
+                onSearch: (v) => setState(() => _query = v.trim().toLowerCase()),
+                onClearSearch: () {
+                  _searchController.clear();
+                  setState(() => _query = '');
                 },
+                onFilter: (f) => setState(() => _filter = f),
+                onSort: (s) => setState(() => _sort = s),
+              ),
+            ),
+
+            async.when(
+              loading: () => const SliverToBoxAdapter(child: _LoadingGrid()),
+              error: (e, _) => SliverToBoxAdapter(child: _ErrorBlock(message: e.toString())),
+              data: (list) {
+                var filtered = _query.isEmpty
+                    ? list
+                    : list
+                        .where((b) =>
+                            b.name.toLowerCase().contains(_query) ||
+                            b.location.toLowerCase().contains(_query))
+                        .toList();
+                if (_filter == 'available') {
+                  filtered = filtered.where((b) => b.isAvailable).toList();
+                }
+                filtered = [...filtered];
+                if (_sort == 'rating') {
+                  filtered.sort((a, b) => b.rating.compareTo(a.rating));
+                } else {
+                  filtered.sort((a, b) => a.name.compareTo(b.name));
+                }
+                if (filtered.isEmpty) return const SliverToBoxAdapter(child: _EmptyState());
+                return SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                  sliver: SliverGrid.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.74,
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, i) => _BarberCard(
+                      barber: filtered[i],
+                      avatarUrl: _avatarUrl(filtered[i].avatar),
+                    ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
+  _StickyFilterHeader({
+    required this.searchController,
+    required this.query,
+    required this.filter,
+    required this.sort,
+    required this.onSearch,
+    required this.onClearSearch,
+    required this.onFilter,
+    required this.onSort,
+  });
+  final TextEditingController searchController;
+  final String query;
+  final String filter;
+  final String sort;
+  final ValueChanged<String> onSearch;
+  final VoidCallback onClearSearch;
+  final ValueChanged<String> onFilter;
+  final ValueChanged<String> onSort;
+
+  @override
+  double get maxExtent => 108;
+  @override
+  double get minExtent => 108;
+  @override
+  bool shouldRebuild(_StickyFilterHeader old) =>
+      query != old.query || filter != old.filter || sort != old.sort;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: AppColors.background,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Search bar — h-10 (40px) with pl-9 left icon
+        SizedBox(
+          height: 40,
+          child: TextField(
+            controller: searchController,
+            onChanged: onSearch,
+            style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+              prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 16),
+              prefixIconConstraints: const BoxConstraints(minWidth: 36),
+              hintText: "Qidirish...",
+              suffixIcon: query.isNotEmpty
+                  ? GestureDetector(
+                      onTap: onClearSearch,
+                      child: const Icon(Icons.close, color: AppColors.textMuted, size: 16),
+                    )
+                  : null,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Filter pills — rounded-full px-3 py-1.5 text-xs
+        SizedBox(
+          height: 30,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _Pill(
+                label: "Hammasi",
+                on: filter == 'all',
+                onTap: () => onFilter('all'),
+                onColor: AppColors.primary,
+              ),
+              _Pill(
+                label: "Bo'sh",
+                on: filter == 'available',
+                onTap: () => onFilter('available'),
+                onColor: AppColors.primary,
+              ),
+              const _Sep(),
+              _Pill(
+                label: "Reyting",
+                on: sort == 'rating',
+                onTap: () => onSort('rating'),
+                onColor: const Color(0xFF3B82F6),
+                tintBg: true,
+              ),
+              _Pill(
+                label: "Ism",
+                on: sort == 'name',
+                onTap: () => onSort('name'),
+                onColor: const Color(0xFF3B82F6),
+                tintBg: true,
               ),
             ],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({
+    required this.label,
+    required this.on,
+    required this.onTap,
+    required this.onColor,
+    this.tintBg = false,
+  });
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+  final Color onColor;
+  final bool tintBg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            color: on
+                ? (tintBg ? onColor.withValues(alpha: 0.1) : onColor)
+                : AppColors.background,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: on ? onColor : AppColors.border,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: on
+                    ? (tintBg ? onColor : Colors.white)
+                    : AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ),
@@ -152,6 +259,23 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   }
 }
 
+class _Sep extends StatelessWidget {
+  const _Sep();
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 1,
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        color: AppColors.border,
+      );
+}
+
+/// Compact 2-column grid card matching the web exactly:
+///   - h-24 (96px) photo strip with primary-tinted gradient + first gallery
+///     image at 60% opacity
+///   - Heart icon top-left in rounded bg-background/70 backdrop
+///   - Status badge top-right (10px font)
+///   - Body: avatar h-11 (44px) overlapping with -mt-6, title text-sm, then
+///     rating/location sub-line
 class _BarberCard extends StatelessWidget {
   const _BarberCard({required this.barber, required this.avatarUrl});
   final Barber barber;
@@ -159,7 +283,7 @@ class _BarberCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firstGalleryUrl = barber.gallery.isNotEmpty ? barber.gallery.first : '';
+    final firstGallery = barber.gallery.isNotEmpty ? barber.gallery.first : '';
 
     return Container(
       clipBehavior: Clip.antiAlias,
@@ -170,217 +294,132 @@ class _BarberCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () => context.push('/barber/${barber.id}'),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top photo strip — 128px tall, gallery image at 60% opacity, fallback gradient.
-            Stack(
-              children: [
-                Container(
-                  height: 128,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.2),
-                        AppColors.primary.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // Header strip h-24 (96px)
+          SizedBox(
+            height: 96,
+            child: Stack(children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.2),
+                      AppColors.primary.withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: firstGalleryUrl.isEmpty
-                      ? null
-                      : Opacity(
-                          opacity: 0.6,
-                          child: CachedNetworkImage(
-                            imageUrl: firstGalleryUrl,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
+                ),
+                child: firstGallery.isEmpty
+                    ? null
+                    : Opacity(
+                        opacity: 0.6,
+                        child: CachedNetworkImage(
+                          imageUrl: firstGallery,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
                         ),
-                ),
-                // Status badge top-right
-                Positioned(
-                  top: 10, right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: barber.isAvailable
-                          ? AppColors.success.withValues(alpha: 0.85)
-                          : AppColors.surfaceElevated.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      barber.isAvailable ? "Bo'sh" : "Band",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // Body
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Avatar overlapping the photo strip by -40px (-mt-10 in web)
-                  Transform.translate(
-                    offset: const Offset(0, -32),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.background, width: 4),
-                      ),
-                      child: ClipOval(
-                        child: avatarUrl.isEmpty
-                            ? _AvatarFallback(name: barber.name)
-                            : CachedNetworkImage(
-                                imageUrl: avatarUrl,
-                                width: 64,
-                                height: 64,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => const _AvatarShimmer(),
-                                errorWidget: (context, url, err) => _AvatarFallback(name: barber.name),
-                              ),
-                      ),
-                    ),
-                  ),
-                  // Pull subsequent content back up to compensate for the avatar offset.
-                  Transform.translate(
-                    offset: const Offset(0, -22),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Name + star/rating
-                        Row(children: [
-                          Expanded(
-                            child: Text(
-                              barber.name,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textBright,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Icon(Icons.star, color: Color(0xFFFBBF24), size: 16),
-                          const SizedBox(width: 4),
-                          Text(barber.rating.toStringAsFixed(1),
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                          const SizedBox(width: 4),
-                          Text("(${barber.reviewCount})",
-                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                        ]),
-
-                        const SizedBox(height: 6),
-                        if (barber.location.isNotEmpty)
-                          Row(children: [
-                            const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textMuted),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(barber.location,
-                                  style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
-                                  overflow: TextOverflow.ellipsis),
-                            ),
-                          ]),
-                        if (barber.experience != null) ...[
-                          const SizedBox(height: 4),
-                          Row(children: [
-                            const Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
-                            const SizedBox(width: 4),
-                            Text("${barber.experience} yil tajriba",
-                                style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
-                          ]),
-                        ],
-                        if (barber.bio.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            barber.bio,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.4),
-                          ),
-                        ],
-
-                        // Service tags
-                        if (barber.services.isNotEmpty) ...[
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 6, runSpacing: 6,
-                            children: [
-                              ...barber.services.take(3).map((s) => Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: AppColors.border),
-                                    ),
-                                    child: Text("${s.icon} ${s.name}",
-                                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
-                                  )),
-                              if (barber.services.length > 3)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: AppColors.border),
-                                  ),
-                                  child: Text("+${barber.services.length - 3}",
-                                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
-                                ),
-                            ],
-                          ),
-                        ],
-
-                        const SizedBox(height: 14),
-                        // 2-button row: Book + About
-                        Row(children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 36,
-                              child: ElevatedButton(
-                                onPressed: barber.isAvailable
-                                    ? () => context.push('/book/${barber.id}')
-                                    : null,
-                                style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                                ),
-                                child: Text(barber.isAvailable ? "Bron qilish" : "Band"),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            height: 36,
-                            child: OutlinedButton(
-                              onPressed: () => context.push('/barber/${barber.id}'),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                              ),
-                              child: const Text("Batafsil"),
-                            ),
-                          ),
-                        ]),
-                      ],
-                    ),
-                  ),
-                ],
               ),
+              // Heart top-left
+              Positioned(
+                top: 6, left: 6,
+                child: Container(
+                  width: 26, height: 26,
+                  decoration: BoxDecoration(
+                    color: AppColors.background.withValues(alpha: 0.7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.favorite_border, size: 14, color: AppColors.textPrimary),
+                ),
+              ),
+              // Status badge top-right
+              Positioned(
+                top: 6, right: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: barber.isAvailable
+                        ? AppColors.success.withValues(alpha: 0.85)
+                        : AppColors.surfaceElevated.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    barber.isAvailable ? "Bo'sh" : "Band",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+          ),
+
+          // Body — relative -mt-6 so avatar overlaps
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Transform.translate(
+                  offset: const Offset(0, -22),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.background,
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(3),
+                    child: ClipOval(
+                      child: avatarUrl.isEmpty
+                          ? _AvatarFallback(name: barber.name)
+                          : CachedNetworkImage(
+                              imageUrl: avatarUrl,
+                              width: 44, height: 44,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const _AvatarShimmer(),
+                              errorWidget: (context, url, err) => _AvatarFallback(name: barber.name),
+                            ),
+                    ),
+                  ),
+                ),
+                Transform.translate(
+                  offset: const Offset(0, -16),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(barber.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textBright)),
+                    const SizedBox(height: 4),
+                    // Rating row (web shows this for barbers)
+                    Row(children: [
+                      const Icon(Icons.star, size: 12, color: Color(0xFFFBBF24)),
+                      const SizedBox(width: 3),
+                      Text(barber.rating.toStringAsFixed(1),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                      const SizedBox(width: 3),
+                      Text("(${barber.reviewCount})",
+                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    ]),
+                    if (barber.location.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Row(children: [
+                        const Icon(Icons.location_on_outlined, size: 11, color: AppColors.textMuted),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(barber.location,
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                        ),
+                      ]),
+                    ],
+                  ]),
+                ),
+              ]),
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
@@ -389,78 +428,54 @@ class _BarberCard extends StatelessWidget {
 class _AvatarFallback extends StatelessWidget {
   const _AvatarFallback({required this.name});
   final String name;
-
   @override
   Widget build(BuildContext context) {
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
     return Container(
-      width: 64,
-      height: 64,
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceElevated,
-        shape: BoxShape.circle,
-      ),
+      width: 44, height: 44,
+      color: AppColors.surfaceElevated,
       alignment: Alignment.center,
       child: Text(initial,
-          style: const TextStyle(color: AppColors.textBright, fontSize: 22, fontWeight: FontWeight.w700)),
+          style: const TextStyle(color: AppColors.textBright, fontSize: 18, fontWeight: FontWeight.w700)),
     );
   }
 }
 
 class _AvatarShimmer extends StatelessWidget {
   const _AvatarShimmer();
-
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
       baseColor: AppColors.surfaceElevated,
       highlightColor: AppColors.border,
-      child: Container(width: 64, height: 64, color: AppColors.surface),
+      child: Container(width: 44, height: 44, color: AppColors.surfaceElevated),
     );
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.on, required this.onTap});
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
+class _LoadingGrid extends StatelessWidget {
+  const _LoadingGrid();
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: on,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primary.withValues(alpha: 0.25),
-      ),
-    );
-  }
-}
-
-class _LoadingList extends StatelessWidget {
-  const _LoadingList();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Column(
-        children: List.generate(
-          5,
-          (_) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Shimmer.fromColors(
-              baseColor: AppColors.surface,
-              highlightColor: AppColors.surfaceElevated,
-              child: Container(
-                height: 92,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 0.74,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, _) => Shimmer.fromColors(
+          baseColor: AppColors.surfaceElevated,
+          highlightColor: AppColors.border,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
         ),
@@ -472,22 +487,17 @@ class _LoadingList extends StatelessWidget {
 class _ErrorBlock extends StatelessWidget {
   const _ErrorBlock({required this.message});
   final String message;
-
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(40),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off, size: 48, color: AppColors.textMuted),
-          const SizedBox(height: 12),
-          const Text("Yuklab bo'lmadi", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          Text(
-            message.length > 120 ? message.substring(0, 120) : message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-          ),
+          const Icon(Icons.error_outline, color: AppColors.danger, size: 40),
+          const SizedBox(height: 8),
+          Text(message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textMuted)),
         ],
       ),
     );
@@ -496,18 +506,16 @@ class _ErrorBlock extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
-
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(40),
-      child: Column(
-        children: [
-          Icon(Icons.search_off, size: 48, color: AppColors.textMuted),
-          SizedBox(height: 12),
-          Text("Hech narsa topilmadi", style: TextStyle(fontSize: 15, color: AppColors.textSecondary)),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(48),
+      child: Column(children: const [
+        Icon(Icons.content_cut, size: 40, color: AppColors.textMuted),
+        SizedBox(height: 12),
+        Text("Sartarosh topilmadi",
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+      ]),
     );
   }
 }

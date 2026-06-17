@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:go_router/go_router.dart';
 
-import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/app_drawer.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../barbers/presentation/barbers_list_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 
-/// Bottom-nav shell for the customer flow. Four tabs: discover barbers, my
-/// bookings, AI style (placeholder for now), profile. Each tab keeps its
-/// own state across switches via IndexedStack.
+/// Customer shell — mirrors the web's CustomerLayout exactly:
+///   - Top header: Scissors+Logo (primary) on left, notification bell on right
+///   - Bottom tab bar: 4 tabs (Barbers, AI Style, Bookings, Profile), active
+///     tab gets a slightly bigger icon and bolder weight
+///   - NO drawer (the web doesn't have one for the customer role)
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
@@ -27,120 +25,140 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   static const _tabs = [
     BarbersListScreen(),
-    MyBookingsScreen(),
     AiStyleScreen(),
+    MyBookingsScreen(),
     ProfileScreen(),
   ];
 
   static const _items = [
-    _TabItem(icon: Icons.content_cut_outlined, activeIcon: Icons.content_cut, labelKey: 'tabs.discover'),
-    _TabItem(icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month, labelKey: 'tabs.bookings'),
-    _TabItem(icon: Icons.auto_awesome_outlined, activeIcon: Icons.auto_awesome, labelKey: 'tabs.aiStyle'),
-    _TabItem(icon: Icons.person_outline, activeIcon: Icons.person, labelKey: 'tabs.profile'),
+    _Item(icon: Icons.content_cut, label: 'Sartaroshlar'),
+    _Item(icon: Icons.auto_awesome, label: 'AI Stil'),
+    _Item(icon: Icons.calendar_today, label: 'Bronlar'),
+    _Item(icon: Icons.person_outline, label: 'Profil'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: const Text("Lope Style", style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-        actions: [
-          IconButton(
-            tooltip: 'Xarita',
-            icon: const Icon(Icons.map_outlined),
-            onPressed: () => context.push('/map'),
-          ),
-          IconButton(
-            tooltip: 'Bildirishnomalar',
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => context.push('/notifications'),
-          ),
+      body: Column(
+        children: [
+          const _CustomerHeader(),
+          Expanded(child: IndexedStack(index: _index, children: _tabs)),
         ],
       ),
-      body: IndexedStack(index: _index, children: _tabs),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_items.length, (i) {
-                final active = _index == i;
-                final item = _items[i];
-                return Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _index = i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeOutCubic,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            active ? item.activeIcon : item.icon,
-                            color: active ? AppColors.primary : AppColors.textMuted,
-                            size: 24,
-                          )
-                              .animate(target: active ? 1 : 0)
-                              .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 200.ms),
-                          const SizedBox(height: 4),
-                          Text(
-                            tr(ref, 'mobile.tabs.${_shortKey(item.labelKey)}', _labelFor(item.labelKey)),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                              color: active ? AppColors.primary : AppColors.textMuted,
-                            ),
-                          ),
-                        ],
+      bottomNavigationBar: _BottomTabBar(
+        items: _items,
+        index: _index,
+        onSelect: (i) => setState(() => _index = i),
+      ),
+    );
+  }
+}
+
+/// Header bar — `border-b bg-background/95 backdrop-blur` in web. Logo
+/// (Scissors + "Lope Style") on left, notification bell on right.
+class _CustomerHeader extends ConsumerWidget {
+  const _CustomerHeader();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        child: Row(children: [
+          InkWell(
+            onTap: () {},
+            child: Row(children: const [
+              Icon(Icons.content_cut, color: AppColors.primary, size: 24),
+              SizedBox(width: 6),
+              Text("Lope Style",
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3)),
+            ]),
+          ),
+          const Spacer(),
+          IconButton(
+            tooltip: 'Bildirishnomalar',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.notifications_outlined,
+                color: AppColors.textPrimary, size: 22),
+            onPressed: () => context.push('/notifications'),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Bottom tab bar — flat, no shadow. Active tab: primary color, icon 24px
+/// + label w600. Inactive: textMuted, icon 20px + label w500. Matches the
+/// web's `flex flex-col items-center justify-center` tabs.
+class _BottomTabBar extends StatelessWidget {
+  const _BottomTabBar({required this.items, required this.index, required this.onSelect});
+  final List<_Item> items;
+  final int index;
+  final ValueChanged<int> onSelect;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            children: List.generate(items.length, (i) {
+              final active = i == index;
+              final item = items[i];
+              return Expanded(
+                child: InkWell(
+                  onTap: () => onSelect(i),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 150),
+                        child: Icon(
+                          item.icon,
+                          color: active ? AppColors.primary : AppColors.textMuted,
+                          size: active ? 24 : 20,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.label,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                          color: active ? AppColors.primary : AppColors.textMuted,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              }),
-            ),
+                ),
+              );
+            }),
           ),
         ),
       ),
     );
   }
-
-  /// Inline uzbek fallback used until the locale provider hydrates and tr()
-  /// can resolve the proper translation. Once loaded, tr() looks up
-  /// `mobile.tabs.<key>` and overrides this.
-  String _labelFor(String key) {
-    switch (key) {
-      case 'tabs.discover':
-        return 'Topish';
-      case 'tabs.bookings':
-        return 'Bronlar';
-      case 'tabs.aiStyle':
-        return 'AI Stil';
-      case 'tabs.profile':
-        return 'Profil';
-    }
-    return '';
-  }
-
-  String _shortKey(String fullKey) {
-    // 'tabs.discover' -> 'discover'
-    final dot = fullKey.lastIndexOf('.');
-    return dot < 0 ? fullKey : fullKey.substring(dot + 1);
-  }
 }
 
-class _TabItem {
-  const _TabItem({required this.icon, required this.activeIcon, required this.labelKey});
+class _Item {
+  const _Item({required this.icon, required this.label});
   final IconData icon;
-  final IconData activeIcon;
-  final String labelKey;
+  final String label;
 }
-

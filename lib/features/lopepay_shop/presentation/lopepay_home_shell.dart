@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/app_drawer.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../data/lopepay_repository.dart';
 
@@ -31,27 +30,19 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: const Text("Lope Pay", style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-        actions: [
-          IconButton(
-            tooltip: 'Bildirishnomalar',
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => context.push('/notifications'),
-          ),
-        ],
-      ),
-      body: IndexedStack(index: _index, children: _tabs),
+      body: Column(children: [
+        _header(context),
+        Expanded(child: IndexedStack(index: _index, children: _tabs)),
+      ]),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+          color: AppColors.background,
+          border: Border(top: BorderSide(color: AppColors.border)),
         ),
         child: SafeArea(
           top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: SizedBox(
+            height: 64,
             child: Row(children: [
               _tab(0, Icons.dashboard_outlined, Icons.dashboard, "Boshqaruv"),
               _tab(1, Icons.people_outline, Icons.people, "Mijozlar"),
@@ -59,6 +50,33 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
             ]),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _header(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        child: Row(children: [
+          Row(children: const [
+            Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 24),
+            SizedBox(width: 6),
+            Text("Lope Pay",
+                style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+          ]),
+          const Spacer(),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 22),
+            onPressed: () => context.push('/notifications'),
+          ),
+        ]),
       ),
     );
   }
@@ -73,15 +91,16 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(active ? on : off, color: active ? AppColors.primary : AppColors.textMuted, size: 24)
-                  .animate(target: active ? 1 : 0)
-                  .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 200.ms),
-              const SizedBox(height: 4),
+              Icon(active ? on : off,
+                  color: active ? AppColors.primary : AppColors.textMuted,
+                  size: active ? 24 : 20),
+              const SizedBox(height: 2),
               Text(label,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 10,
+                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
                     color: active ? AppColors.primary : AppColors.textMuted,
                   )),
             ],

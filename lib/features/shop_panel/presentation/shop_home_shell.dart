@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:go_router/go_router.dart';
 
-import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/app_drawer.dart';
-import '../../profile/presentation/profile_screen.dart';
 import 'shop_barbers_screen.dart';
 import 'shop_bookings_screen.dart';
 import 'shop_dashboard_screen.dart';
+import 'shop_settings_screen.dart';
 
-/// 4-tab shell for the barbershop / shop role: dashboard, masters, bookings,
-/// profile. Each is a real screen now — no more "tez orada" placeholders.
 class ShopHomeShell extends ConsumerStatefulWidget {
   const ShopHomeShell({super.key});
-
   @override
   ConsumerState<ShopHomeShell> createState() => _ShopHomeShellState();
 }
@@ -28,81 +21,96 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
     ShopDashboardScreen(),
     ShopBarbersScreen(),
     ShopBookingsScreen(),
-    ProfileScreen(),
+    ShopSettingsScreen(),
   ];
-
-  late final List<_Item> _items;
-
-  @override
-  void initState() {
-    super.initState();
-    _items = const [
-      _Item(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, labelKey: 'mobile.shop.home.dashboard', fallback: 'Boshqaruv'),
-      _Item(icon: Icons.people_alt_outlined, activeIcon: Icons.people_alt, labelKey: 'mobile.shop.home.masters', fallback: 'Mastera'),
-      _Item(icon: Icons.event_note_outlined, activeIcon: Icons.event_note, labelKey: 'mobile.shop.home.bookings', fallback: 'Bronlar'),
-      _Item(icon: Icons.person_outline, activeIcon: Icons.person, labelKey: 'mobile.shop.home.profile', fallback: 'Profil'),
-    ];
-  }
+  static const _items = [
+    _Item(icon: Icons.dashboard_outlined, label: 'Boshqaruv'),
+    _Item(icon: Icons.people_alt_outlined, label: 'Mastera'),
+    _Item(icon: Icons.event_note_outlined, label: 'Bronlar'),
+    _Item(icon: Icons.person_outline, label: 'Profil'),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
-      appBar: AppBar(
-        title: const Text("Lope Style", style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-        actions: [
+      body: Column(children: [
+        const _Header(),
+        Expanded(child: IndexedStack(index: _index, children: _tabs)),
+      ]),
+      bottomNavigationBar: _BottomBar(items: _items, index: _index, onSelect: (i) => setState(() => _index = i)),
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        child: Row(children: [
+          Row(children: const [
+            Icon(Icons.storefront, color: AppColors.primary, size: 24),
+            SizedBox(width: 6),
+            Text("Lope Style",
+                style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+          ]),
+          const Spacer(),
           IconButton(
-            tooltip: 'Bildirishnomalar',
-            icon: const Icon(Icons.notifications_outlined),
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 22),
             onPressed: () => context.push('/notifications'),
           ),
-        ],
+        ]),
       ),
-      body: IndexedStack(index: _index, children: _tabs),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              children: List.generate(_items.length, (i) {
-                final active = _index == i;
-                final item = _items[i];
-                return Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _index = i),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            active ? item.activeIcon : item.icon,
-                            color: active ? AppColors.primary : AppColors.textMuted,
-                            size: 24,
-                          )
-                              .animate(target: active ? 1 : 0)
-                              .scale(begin: const Offset(1, 1), end: const Offset(1.15, 1.15), duration: 200.ms),
-                          const SizedBox(height: 4),
-                          Text(tr(ref, item.labelKey, item.fallback),
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                                color: active ? AppColors.primary : AppColors.textMuted,
-                              )),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
+    );
+  }
+}
+
+class _BottomBar extends StatelessWidget {
+  const _BottomBar({required this.items, required this.index, required this.onSelect});
+  final List<_Item> items;
+  final int index;
+  final ValueChanged<int> onSelect;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 64,
+          child: Row(children: List.generate(items.length, (i) {
+            final active = i == index;
+            final item = items[i];
+            return Expanded(
+              child: InkWell(
+                onTap: () => onSelect(i),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(item.icon, color: active ? AppColors.primary : AppColors.textMuted, size: active ? 24 : 20),
+                    const SizedBox(height: 2),
+                    Text(item.label,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                          color: active ? AppColors.primary : AppColors.textMuted,
+                        )),
+                  ],
+                ),
+              ),
+            );
+          })),
         ),
       ),
     );
@@ -110,9 +118,7 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
 }
 
 class _Item {
-  const _Item({required this.icon, required this.activeIcon, required this.labelKey, required this.fallback});
+  const _Item({required this.icon, required this.label});
   final IconData icon;
-  final IconData activeIcon;
-  final String labelKey;
-  final String fallback;
+  final String label;
 }
