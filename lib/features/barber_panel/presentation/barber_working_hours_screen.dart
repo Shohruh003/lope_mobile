@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
@@ -98,8 +98,8 @@ class _BarberWorkingHoursScreenState extends ConsumerState<BarberWorkingHoursScr
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(14),
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Row(

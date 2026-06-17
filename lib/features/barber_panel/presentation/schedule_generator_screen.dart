@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/theme/colors.dart';
@@ -211,8 +211,8 @@ class _Picker extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [

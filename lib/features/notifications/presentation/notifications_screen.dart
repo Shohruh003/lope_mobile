@@ -76,8 +76,8 @@ class NotificationsScreen extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: n.read ? AppColors.surface : AppColors.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(14),
+                      color: n.read ? AppColors.background : AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: n.read ? AppColors.border : AppColors.primary.withValues(alpha: 0.4)),
                     ),
                     child: Column(
@@ -86,14 +86,14 @@ class NotificationsScreen extends ConsumerWidget {
                         Row(children: [
                           if (!n.read) ...[
                             Container(
-                              width: 8, height: 8,
+                              width: 6, height: 6,
                               decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
                             ),
                             const SizedBox(width: 8),
                           ],
                           Expanded(
                             child: Text(n.title,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textBright)),
                           ),
                           Text(_df.format(n.createdAt.toLocal()),
                               style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
@@ -101,12 +101,12 @@ class NotificationsScreen extends ConsumerWidget {
                         if (n.body.isNotEmpty) ...[
                           const SizedBox(height: 6),
                           Text(n.body,
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5)),
                         ],
                       ],
                     ),
                   ),
-                ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms).slideY(begin: 0.1, end: 0);
+                ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms);
               },
             ),
           );

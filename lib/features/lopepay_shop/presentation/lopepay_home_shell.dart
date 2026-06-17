@@ -158,19 +158,34 @@ class _MetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: color, size: 22),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.3)),
-          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+          Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.3, color: AppColors.textBright)),
+              const SizedBox(height: 2),
+              Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w500)),
+            ],
+          ),
         ],
       ),
     );
@@ -213,10 +228,10 @@ class _LopepayCustomersTab extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(14),
                     onTap: () => context.push('/lopepay/customers/${c.id}'),
                     child: Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(14),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: overdue ? AppColors.danger.withValues(alpha: 0.4) : AppColors.border),
                     ),
                     child: Row(children: [

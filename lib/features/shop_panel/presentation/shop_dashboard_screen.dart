@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/stat_charts.dart';
+import '../../../shared/widgets/shadcn.dart';
 import '../data/shop_repository.dart';
 
 class ShopDashboardScreen extends ConsumerWidget {
@@ -25,39 +25,41 @@ class ShopDashboardScreen extends ConsumerWidget {
             ref.invalidate(shopStatsProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
+              // Salon header
               me.when(
                 loading: () => const SizedBox.shrink(),
                 error: (e, _) => const SizedBox.shrink(),
-                data: (m) => Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tr(ref, 'mobile.shop.dashboard.salonLabel', "Salonim"),
-                          style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 4),
-                      Text((m['name'] ?? '').toString(),
-                          style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
-                      if ((m['address'] ?? '').toString().isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text((m['address']).toString(),
-                            style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                      ],
-                    ],
-                  ),
+                data: (m) => ShadCard(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(children: [
+                    const ShadIconBubble(icon: Icons.storefront_outlined),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(tr(ref, 'mobile.shop.dashboard.salonLabel', "Salonim"),
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+                          const SizedBox(height: 2),
+                          Text((m['name'] ?? '').toString(),
+                              style: const TextStyle(color: AppColors.textBright, fontSize: 17, fontWeight: FontWeight.w700)),
+                          if ((m['address'] ?? '').toString().isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text((m['address']).toString(),
+                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ]),
                 ),
               ),
               const SizedBox(height: 18),
 
-              Text(tr(ref, 'mobile.shop.dashboard.weekTitle', "Bu hafta"),
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: -0.2)),
-              const SizedBox(height: 10),
+              ShadSectionLabel(tr(ref, 'mobile.shop.dashboard.weekTitle', "BU HAFTA")),
+              const SizedBox(height: 8),
               stats.when(
                 loading: () => const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
@@ -69,7 +71,7 @@ class ShopDashboardScreen extends ConsumerWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,
-                  childAspectRatio: 1.4,
+                  childAspectRatio: 1.5,
                   children: [
                     _StatTile(icon: Icons.event_available, label: tr(ref, 'mobile.shop.dashboard.statBookings', "Bronlar"), value: "${s.bookings}", color: AppColors.primary),
                     _StatTile(icon: Icons.people_outline, label: tr(ref, 'mobile.shop.dashboard.statClients', "Mijozlar"), value: "${s.clients}", color: AppColors.success),
@@ -80,51 +82,16 @@ class ShopDashboardScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: 22),
-              // Revenue trend (last 14 days proxy — server may not provide
-              // a series so we approximate from current booking counts).
-              Container(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Daromad trendi",
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    const SizedBox(height: 8),
-                    Consumer(builder: (context, ref, _) {
-                      final stats = ref.watch(shopStatsProvider);
-                      return stats.maybeWhen(
-                        data: (s) {
-                          // Synthetic 14-day curve based on the weekly revenue
-                          // until backend exposes a per-day series.
-                          final base = s.revenue == 0 ? 100.0 : s.revenue / 14.0;
-                          final pts = List<double>.generate(14, (i) {
-                            final wobble = 0.6 + ((i * 37) % 80) / 100.0;
-                            return base * wobble;
-                          });
-                          return RevenueLineChart(points: pts);
-                        },
-                        orElse: () => const SizedBox(height: 180),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-
-              Text(tr(ref, 'mobile.shop.dashboard.navManagement', "Boshqaruv"),
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-              const SizedBox(height: 10),
-              _NavTile(icon: Icons.people_alt_outlined, label: tr(ref, 'mobile.shop.dashboard.navMasters', "Mastera (Barberlar)"), onTap: () => context.push('/shop/barbers')),
-              _NavTile(icon: Icons.event_note_outlined, label: tr(ref, 'mobile.shop.dashboard.navBookings', "Salon bronlari"), onTap: () => context.push('/shop/bookings')),
-              _NavTile(icon: Icons.people_outline, label: "Mijozlar", onTap: () => context.push('/shop/clients')),
-              _NavTile(icon: Icons.account_balance_wallet_outlined, label: tr(ref, 'mobile.shop.dashboard.navTransactions', "Hisob va to'lovlar"), onTap: () => context.push('/shop/transactions')),
-              _NavTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.shop.dashboard.navSms', "SMS tarixi"), onTap: () => context.push('/shop/sms')),
-              _NavTile(icon: Icons.storefront_outlined, label: "Salon profili", onTap: () => context.push('/shop/profile')),
+              ShadSectionLabel(tr(ref, 'mobile.shop.dashboard.navManagement', "BOSHQARUV")),
+              const SizedBox(height: 8),
+              ShadTileGroup(children: [
+                ShadTile(icon: Icons.people_alt_outlined, label: tr(ref, 'mobile.shop.dashboard.navMasters', "Mastera (Barberlar)"), onTap: () => context.push('/shop/barbers')),
+                ShadTile(icon: Icons.event_note_outlined, label: tr(ref, 'mobile.shop.dashboard.navBookings', "Salon bronlari"), onTap: () => context.push('/shop/bookings')),
+                ShadTile(icon: Icons.people_outline, label: "Mijozlar", onTap: () => context.push('/shop/clients')),
+                ShadTile(icon: Icons.account_balance_wallet_outlined, label: tr(ref, 'mobile.shop.dashboard.navTransactions', "Hisob va to'lovlar"), onTap: () => context.push('/shop/transactions')),
+                ShadTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.shop.dashboard.navSms', "SMS tarixi"), onTap: () => context.push('/shop/sms')),
+                ShadTile(icon: Icons.storefront_outlined, label: "Salon profili", onTap: () => context.push('/shop/profile')),
+              ]),
             ],
           ),
         ),
@@ -153,53 +120,35 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: color, size: 22),
-          Text(value,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 22, letterSpacing: -0.5)),
-          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20, letterSpacing: -0.5, color: AppColors.textBright)),
+              const SizedBox(height: 2),
+              Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w500)),
+            ],
+          ),
         ],
       ),
     ).animate().fadeIn(duration: 250.ms);
-  }
-}
-
-class _NavTile extends StatelessWidget {
-  const _NavTile({required this.icon, required this.label, required this.onTap});
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
-            child: Row(children: [
-              Icon(icon, color: AppColors.primary),
-              const SizedBox(width: 14),
-              Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15))),
-              const Icon(Icons.chevron_right, color: AppColors.textMuted),
-            ]),
-          ),
-        ),
-      ),
-    );
   }
 }

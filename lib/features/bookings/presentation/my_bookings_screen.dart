@@ -21,10 +21,15 @@ class MyBookingsScreen extends ConsumerWidget {
             slivers: [
               const SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+                  padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
                   child: Text(
                     "Mening bronlarim",
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      color: AppColors.textBright,
+                    ),
                   ),
                 ),
               ),
@@ -45,14 +50,13 @@ class MyBookingsScreen extends ConsumerWidget {
                     );
                   }
                   return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                     sliver: SliverList.separated(
                       itemCount: list.length,
                       separatorBuilder: (context, i) => const SizedBox(height: 10),
                       itemBuilder: (context, i) => _BookingCard(b: list[i])
                           .animate()
-                          .fadeIn(duration: 300.ms, delay: (i * 40).ms)
-                          .slideY(begin: 0.1, end: 0),
+                          .fadeIn(duration: 300.ms, delay: (i * 40).ms),
                     ),
                   );
                 },
@@ -76,22 +80,21 @@ class _Empty extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 56, height: 56,
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(24),
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.event_busy_outlined, color: AppColors.textMuted, size: 40),
+            child: const Icon(Icons.event_busy_outlined, color: AppColors.primary, size: 28),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           const Text("Hali bron yo'q",
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 6),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+          const SizedBox(height: 4),
           const Text(
             "Sartaroshingizni tanlab, birinchi broningizni qiling",
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5),
           ),
         ],
       ),
@@ -130,8 +133,8 @@ class _BookingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -141,46 +144,46 @@ class _BookingCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(b.barberName,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: _statusColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(_statusText,
-                    style: TextStyle(color: _statusColor, fontSize: 11, fontWeight: FontWeight.w700)),
+                    style: TextStyle(color: _statusColor, fontSize: 11, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
+              const Icon(Icons.calendar_today_outlined, size: 13, color: AppColors.textMuted),
               const SizedBox(width: 6),
               Text(b.date,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              const SizedBox(width: 16),
-              const Icon(Icons.access_time, size: 14, color: AppColors.textMuted),
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              const SizedBox(width: 14),
+              const Icon(Icons.access_time, size: 13, color: AppColors.textMuted),
               const SizedBox(width: 6),
-              Text(b.time, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              Text(b.time, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
             ],
           ),
           if (b.services.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: b.services
                   .map((s) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceElevated,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Text("${s.icon} ${s.name}",
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
                       ))
                   .toList(),
             ),
@@ -190,7 +193,7 @@ class _BookingCard extends StatelessWidget {
             Text(
               "${_fmt(b.totalPrice)} so'm",
               style:
-                  const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 15),
+                  const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 14),
             ),
           ],
         ],

@@ -66,10 +66,10 @@ class TransactionsScreen extends ConsumerWidget {
                     final inflow = p.direction == 'in' || p.amount > 0;
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(14),
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
@@ -247,10 +247,10 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

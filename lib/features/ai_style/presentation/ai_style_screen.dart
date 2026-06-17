@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -99,8 +99,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
               data: (b) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: AppColors.border),
                 ),
                 child: Row(
@@ -137,8 +137,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
             child: Container(
               height: 160,
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.border),
               ),
               child: _selfie == null
@@ -191,8 +191,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                   child: Container(
                     width: 80, height: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: AppColors.border, style: BorderStyle.solid),
                     ),
                     child: const Icon(Icons.add, color: AppColors.primary),

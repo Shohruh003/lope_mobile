@@ -46,22 +46,21 @@ class FavoritesScreen extends ConsumerWidget {
               itemBuilder: (context, i) {
                 final b = list[i];
                 return InkWell(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(10),
                   onTap: () => context.push('/barber/${b.id}'),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Row(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                        ClipOval(
                           child: b.avatar.isNotEmpty
-                              ? CachedNetworkImage(imageUrl: b.avatar, width: 60, height: 60, fit: BoxFit.cover)
-                              : Container(width: 60, height: 60, color: AppColors.background, child: const Icon(Icons.person, color: AppColors.textMuted)),
+                              ? CachedNetworkImage(imageUrl: b.avatar, width: 48, height: 48, fit: BoxFit.cover)
+                              : Container(width: 48, height: 48, color: AppColors.surfaceElevated, child: const Icon(Icons.person, color: AppColors.textMuted)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(

@@ -120,6 +120,93 @@ class ShadField extends StatelessWidget {
   }
 }
 
+/// SECTION label — small caps tracked, muted-foreground. Sits above a
+/// `ShadTileGroup` to separate clusters of settings.
+class ShadSectionLabel extends StatelessWidget {
+  const ShadSectionLabel(this.text, {super.key});
+  final String text;
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(text,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+              letterSpacing: 1,
+            )),
+      );
+}
+
+/// Rounded group container — `Card` minus the padding — for stacking
+/// `ShadTile`s with internal dividers.
+class ShadTileGroup extends StatelessWidget {
+  const ShadTileGroup({super.key, required this.children});
+  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) {
+    final out = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      out.add(children[i]);
+      if (i < children.length - 1) {
+        out.add(const Divider(height: 1, indent: 48, color: AppColors.border));
+      }
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(children: out),
+    );
+  }
+}
+
+/// Settings tile — leading colored icon + label + optional trailing widget
+/// + chevron. Matches the web sidebar's link rows.
+class ShadTile extends StatelessWidget {
+  const ShadTile({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.onTap,
+    this.trailing,
+    this.destructive = false,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+  final bool destructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = destructive ? AppColors.danger : AppColors.textPrimary;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(children: [
+          Icon(icon, color: destructive ? AppColors.danger : AppColors.primary, size: 18),
+          const SizedBox(width: 14),
+          Expanded(
+              child: Text(label,
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: color))),
+          // ignore: use_null_aware_elements
+          if (trailing != null) trailing!,
+          if (onTap != null && !destructive)
+            const Padding(
+              padding: EdgeInsets.only(left: 6),
+              child: Icon(Icons.chevron_right, color: AppColors.textMuted, size: 16),
+            ),
+        ]),
+      ),
+    );
+  }
+}
+
 /// "OR" divider used between primary and secondary auth actions.
 class ShadOrDivider extends StatelessWidget {
   const ShadOrDivider({super.key, this.label = 'YOKI'});

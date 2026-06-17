@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -112,8 +112,8 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                         return Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(14),
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: AppColors.border),
                           ),
                           child: Row(children: [

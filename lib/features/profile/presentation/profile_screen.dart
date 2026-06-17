@@ -7,10 +7,11 @@ import '../../../core/constants.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
 
-/// Profile tab: avatar + name + phone header, then a list of settings rows
-/// (language, theme placeholder, app version, logout). Clean iOS-style cards.
+/// Profile tab — shadcn-style: user card + grouped settings tiles. No more
+/// massive gradient header.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -23,144 +24,130 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             Text(
               tr(ref, 'mobile.profile.title', "Profil"),
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-            ).animate().fadeIn(duration: 400.ms),
-            const SizedBox(height: 20),
-
-            // Header card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(20),
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+                color: AppColors.textBright,
               ),
-              child: Row(
-                children: [
+            ),
+            const SizedBox(height: 14),
+
+            // User card
+            ShadCard(
+              padding: const EdgeInsets.all(14),
+              child: Row(children: [
+                Container(
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    (user?.name.isNotEmpty == true ? user!.name[0] : '?').toUpperCase(),
+                    style: const TextStyle(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user?.name ?? '—',
+                          style: const TextStyle(
+                              color: AppColors.textBright,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Text(user?.phone ?? '',
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                if (user?.role != null && user!.role.isNotEmpty)
                   Container(
-                    width: 56,
-                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      (user?.name.isNotEmpty == true ? user!.name[0] : '?').toUpperCase(),
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800),
-                    ),
+                    child: Text(_roleLabel(user.role),
+                        style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(user?.name ?? '—',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 2),
-                        Text(user?.phone ?? '',
-                            style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.85), fontSize: 13)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(duration: 400.ms, delay: 80.ms).slideY(begin: 0.1, end: 0),
+              ]),
+            ).animate().fadeIn(duration: 300.ms),
 
-            const SizedBox(height: 20),
-
-            // Quick links — match the web's sidebar navigation
-            _SettingsGroup(children: [
-              _SettingsTile(
+            const SizedBox(height: 18),
+            _SectionLabel("AKKAUNT"),
+            const SizedBox(height: 8),
+            _TileGroup(children: [
+              _Tile(
                 icon: Icons.edit_outlined,
                 label: tr(ref, 'mobile.profile.edit', "Profilni tahrirlash"),
                 onTap: () => context.push(user?.role == 'barber' ? '/barber/profile' : '/profile-edit'),
               ),
-              _SettingsTile(
+              _Tile(
                 icon: Icons.account_balance_wallet_outlined,
                 label: tr(ref, 'mobile.profile.transactions', "Hisobim va to'lovlar"),
                 onTap: () => context.push('/transactions'),
               ),
-              _SettingsTile(
+              _Tile(
                 icon: Icons.notifications_outlined,
                 label: tr(ref, 'mobile.profile.notifications', "Bildirishnomalar"),
                 onTap: () => context.push('/notifications'),
               ),
-              if (user?.role == 'user') ...[
-                _SettingsTile(
+              if (user?.role == 'user')
+                _Tile(
                   icon: Icons.favorite_outline,
                   label: tr(ref, 'mobile.profile.favorites', "Sevimlilar"),
                   onTap: () => context.push('/favorites'),
                 ),
-                _SettingsTile(
-                  icon: Icons.map_outlined,
-                  label: "Xarita",
-                  onTap: () => context.push('/map'),
-                ),
-                _SettingsTile(
-                  icon: Icons.local_offer_outlined,
-                  label: "Promo kod",
-                  onTap: () => context.push('/promo'),
-                ),
-              ],
-              if (user?.role == 'barber')
-                _SettingsTile(
-                  icon: Icons.location_on_outlined,
-                  label: "Manzilim",
-                  onTap: () => context.push('/barber/location'),
-                ),
-            ]).animate().fadeIn(duration: 400.ms, delay: 120.ms),
+            ]),
 
-            const SizedBox(height: 16),
-
-            // Settings list
-            _SettingsGroup(children: [
-              _SettingsTile(
+            const SizedBox(height: 18),
+            _SectionLabel("SOZLAMALAR"),
+            const SizedBox(height: 8),
+            _TileGroup(children: [
+              _Tile(
                 icon: Icons.language_outlined,
                 label: tr(ref, 'mobile.auth.language', "Til"),
                 trailing: Text(_langLabel(currentLocale),
-                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13)),
                 onTap: () => _showLanguageSheet(context, ref, currentLocale),
               ),
-              _SettingsTile(
+              _Tile(
                 icon: Icons.info_outline,
                 label: tr(ref, 'mobile.auth.version', "Versiya"),
                 trailing: const Text("1.0.0",
                     style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                onTap: null,
               ),
-            ]).animate().fadeIn(duration: 400.ms, delay: 160.ms),
+            ]),
 
-            const SizedBox(height: 16),
-
-            _SettingsGroup(children: [
-              _SettingsTile(
+            const SizedBox(height: 18),
+            _TileGroup(children: [
+              _Tile(
                 icon: Icons.logout,
                 label: tr(ref, 'mobile.auth.logout', "Chiqish"),
-                isDestructive: true,
+                destructive: true,
                 onTap: () async {
                   final yes = await showDialog<bool>(
                     context: context,
                     builder: (_) => AlertDialog(
-                      backgroundColor: AppColors.surface,
+                      backgroundColor: AppColors.background,
                       title: Text(tr(ref, 'mobile.auth.logoutTitle', "Chiqishni tasdiqlang")),
                       content: Text(tr(ref, 'mobile.auth.logoutAsk', "Hisobingizdan chiqmoqchimisiz?")),
                       actions: [
+                        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(tr(ref, 'mobile.auth.logoutCancel', "Bekor"))),
                         TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text(tr(ref, 'mobile.auth.logoutCancel', "Bekor qilish"))),
-                        TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-                            child: Text(tr(ref, 'mobile.auth.logout', "Chiqish"))),
+                          style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(tr(ref, 'mobile.auth.logout', "Chiqish")),
+                        ),
                       ],
                     ),
                   );
@@ -170,23 +157,29 @@ class ProfileScreen extends ConsumerWidget {
                   }
                 },
               ),
-            ]).animate().fadeIn(duration: 400.ms, delay: 240.ms),
+            ]),
           ],
         ),
       ),
     );
   }
 
+  String _roleLabel(String role) {
+    switch (role) {
+      case 'barber': return 'BARBER';
+      case 'barbershop': return 'SALON';
+      case 'shop': return 'LOPE PAY';
+      case 'admin': return 'ADMIN';
+      default: return 'MIJOZ';
+    }
+  }
+
   String _langLabel(String code) {
     switch (code) {
-      case 'uz':
-        return "O'zbek";
-      case 'uz_cyr':
-        return "Ўзбек";
-      case 'ru':
-        return 'Русский';
-      case 'en':
-        return 'English';
+      case 'uz': return "O'zbek";
+      case 'uz_cyr': return "Ўзбек";
+      case 'ru': return 'Русский';
+      case 'en': return 'English';
     }
     return code;
   }
@@ -194,9 +187,9 @@ class ProfileScreen extends ConsumerWidget {
   void _showLanguageSheet(BuildContext context, WidgetRef ref, String current) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (_) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -205,32 +198,30 @@ class ProfileScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: Text(tr(ref, 'mobile.profile.selectLanguage', "Tilni tanlash"),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
               ),
               ...AppConfig.supportedLanguages.map((code) {
                 final on = code == current;
                 return InkWell(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   onTap: () async {
                     Navigator.pop(context);
                     await ref.read(localeProvider.notifier).setLocale(code);
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(_langLabel(code),
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                                  color: on ? AppColors.primary : AppColors.textPrimary)),
-                        ),
-                        if (on) const Icon(Icons.check_circle, color: AppColors.primary),
-                      ],
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                    child: Row(children: [
+                      Expanded(
+                        child: Text(_langLabel(code),
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                                color: on ? AppColors.primary : AppColors.textPrimary)),
+                      ),
+                      if (on) const Icon(Icons.check_circle, color: AppColors.primary, size: 18),
+                    ]),
                   ),
                 );
               }),
@@ -242,78 +233,69 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _SettingsGroup extends StatelessWidget {
-  const _SettingsGroup({required this.children});
-  final List<Widget> children;
+// ignore: non_constant_identifier_names
+Widget _SectionLabel(String text) => Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(text,
+          style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+              letterSpacing: 1)),
+    );
 
+class _TileGroup extends StatelessWidget {
+  const _TileGroup({required this.children});
+  final List<Widget> children;
   @override
   Widget build(BuildContext context) {
-    final separated = <Widget>[];
+    final out = <Widget>[];
     for (var i = 0; i < children.length; i++) {
-      separated.add(children[i]);
+      out.add(children[i]);
       if (i < children.length - 1) {
-        separated.add(const Divider(height: 1, indent: 56));
+        out.add(const Divider(height: 1, indent: 48, color: AppColors.border));
       }
     }
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(children: separated),
+      child: Column(children: out),
     );
   }
 }
 
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({
-    required this.icon,
-    required this.label,
-    this.trailing,
-    this.onTap,
-    this.isDestructive = false,
-  });
-
+class _Tile extends StatelessWidget {
+  const _Tile({required this.icon, required this.label, this.onTap, this.trailing, this.destructive = false});
   final IconData icon;
   final String label;
-  final Widget? trailing;
   final VoidCallback? onTap;
-  final bool isDestructive;
-
+  final Widget? trailing;
+  final bool destructive;
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? AppColors.danger : AppColors.textPrimary;
+    final color = destructive ? AppColors.danger : AppColors.textPrimary;
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: (isDestructive ? AppColors.danger : AppColors.primary).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(children: [
+          Icon(icon, color: destructive ? AppColors.danger : AppColors.primary, size: 18),
+          const SizedBox(width: 14),
+          Expanded(
               child: Text(label,
-                  style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600, color: color)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: color))),
+          // ignore: use_null_aware_elements
+          if (trailing != null) trailing!,
+          if (onTap != null && !destructive)
+            const Padding(
+              padding: EdgeInsets.only(left: 6),
+              child: Icon(Icons.chevron_right, color: AppColors.textMuted, size: 16),
             ),
-            ?trailing,
-            if (onTap != null && !isDestructive)
-              const Padding(
-                padding: EdgeInsets.only(left: 6),
-                child: Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
-              ),
-          ],
-        ),
+        ]),
       ),
     );
   }
