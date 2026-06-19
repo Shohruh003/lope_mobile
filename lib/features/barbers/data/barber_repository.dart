@@ -26,6 +26,37 @@ class BarberRepository {
     final res = await _dio.get('/barbers/$id');
     return Barber.fromJson(res.data as Map<String, dynamic>);
   }
+
+  /// Get the saved slot list for one day — mirrors web's
+  /// `fetchBarberDaySchedule`. Returns empty on 404.
+  Future<List<String>> scheduleSlots({required String barberId, required String date}) async {
+    try {
+      final res = await _dio.get('/schedule/$barberId/$date');
+      final data = res.data;
+      if (data is Map && data['slots'] is List) {
+        return (data['slots'] as List).map((e) => e.toString()).toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return [];
+      rethrow;
+    }
+  }
+
+  /// HH:MM strings already booked.
+  Future<List<String>> bookedTimes({required String barberId, required String date}) async {
+    try {
+      final res = await _dio.get('/bookings/barber/$barberId/booked',
+          queryParameters: {'date': date});
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+      return list.map((e) => e.toString()).toList();
+    } catch (_) {
+      return [];
+    }
+  }
 }
 
 final barberRepositoryProvider = Provider<BarberRepository>((ref) {
