@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/photo_lightbox.dart';
 import '../data/barber_profile_repository.dart';
 
 /// Portfolio uploader. Pulls current gallery from /barbers/:id, lets barber
@@ -114,12 +115,16 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      fit: BoxFit.cover,
-                      placeholder: (context, _) => Container(color: AppColors.surface),
-                      errorWidget: (context, _, _) =>
-                          Container(color: AppColors.surface, child: const Icon(Icons.broken_image, color: AppColors.textMuted)),
+                    child: GestureDetector(
+                      onTap: () => PhotoLightbox.show(
+                          context, gallery.cast<String>(), i),
+                      child: CachedNetworkImage(
+                        imageUrl: url,
+                        fit: BoxFit.cover,
+                        placeholder: (context, _) => Container(color: AppColors.surface),
+                        errorWidget: (context, _, _) =>
+                            Container(color: AppColors.surface, child: const Icon(Icons.broken_image, color: AppColors.textMuted)),
+                      ),
                     ),
                   ),
                   Positioned(

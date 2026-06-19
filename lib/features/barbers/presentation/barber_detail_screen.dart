@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/photo_lightbox.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../reviews/data/reviews_repository.dart';
 import '../data/barber_repository.dart';
@@ -112,6 +113,30 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.textBright)),
                             ),
+                            // VIP crown badge (only when active)
+                            if (b.isVip) ...[
+                              Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFFEF3C7), Color(0xFFFBBF24)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                                  Icon(Icons.workspace_premium,
+                                      size: 11, color: Color(0xFFA16207)),
+                                  SizedBox(width: 3),
+                                  Text("VIP",
+                                      style: TextStyle(
+                                          color: Color(0xFFA16207),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.5)),
+                                ]),
+                              ),
+                            ],
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
@@ -559,10 +584,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   }
 
   void _openLightbox(List<String> images, int start) {
-    Navigator.of(context).push(MaterialPageRoute(
-      fullscreenDialog: true,
-      builder: (_) => _Lightbox(images: images, start: start),
-    ));
+    PhotoLightbox.show(context, images, start);
   }
 
   // ===== Sharhlar (Reviews) =====
@@ -663,106 +685,3 @@ class _AvatarFallback extends StatelessWidget {
   }
 }
 
-/// Fullscreen image viewer with prev/next + close. Used for the gallery tab.
-class _Lightbox extends StatefulWidget {
-  const _Lightbox({required this.images, required this.start});
-  final List<String> images;
-  final int start;
-  @override
-  State<_Lightbox> createState() => _LightboxState();
-}
-
-class _LightboxState extends State<_Lightbox> {
-  late final PageController _ctrl;
-  late int _i;
-  @override
-  void initState() {
-    super.initState();
-    _i = widget.start;
-    _ctrl = PageController(initialPage: widget.start);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(children: [
-        PageView.builder(
-          controller: _ctrl,
-          itemCount: widget.images.length,
-          onPageChanged: (i) => setState(() => _i = i),
-          itemBuilder: (context, i) => InteractiveViewer(
-            child: Center(
-              child: CachedNetworkImage(
-                imageUrl: widget.images[i],
-                fit: BoxFit.contain,
-                placeholder: (context, _) =>
-                    const CircularProgressIndicator(),
-              ),
-            ),
-          ),
-        ),
-        // Close
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 4,
-          right: 8,
-          child: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white, size: 24),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        // Counter
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 12,
-          left: 0, right: 0,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(99),
-              ),
-              child: Text("${_i + 1} / ${widget.images.length}",
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-            ),
-          ),
-        ),
-        // Prev
-        if (_i > 0)
-          Positioned(
-            left: 4,
-            top: 0, bottom: 0,
-            child: Center(
-              child: IconButton(
-                icon: const Icon(Icons.chevron_left, color: Colors.white, size: 32),
-                onPressed: () => _ctrl.previousPage(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut),
-              ),
-            ),
-          ),
-        // Next
-        if (_i < widget.images.length - 1)
-          Positioned(
-            right: 4,
-            top: 0, bottom: 0,
-            child: Center(
-              child: IconButton(
-                icon: const Icon(Icons.chevron_right, color: Colors.white, size: 32),
-                onPressed: () => _ctrl.nextPage(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut),
-              ),
-            ),
-          ),
-      ]),
-    );
-  }
-}

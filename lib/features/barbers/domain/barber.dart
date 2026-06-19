@@ -23,6 +23,8 @@ class Barber {
     this.instagram,
     this.telegram,
     this.facebook,
+    this.vipUntil,
+    this.targetGender,
   });
 
   final String id;
@@ -45,6 +47,16 @@ class Barber {
   final String? instagram;
   final String? telegram;
   final String? facebook;
+  final DateTime? vipUntil;
+  final String? targetGender; // 'MALE_ONLY' | 'FEMALE_ONLY' | null
+
+  /// Convenience flag for the header crown — true while vipUntil is in the
+  /// future.
+  bool get isVip {
+    final until = vipUntil;
+    if (until == null) return false;
+    return until.isAfter(DateTime.now());
+  }
 
   factory Barber.fromJson(Map<String, dynamic> json) {
     return Barber(
@@ -74,6 +86,10 @@ class Barber {
       instagram: _readSocial(json, 'instagram'),
       telegram: _readSocial(json, 'telegram'),
       facebook: _readSocial(json, 'facebook'),
+      vipUntil: json['vipUntil'] != null
+          ? DateTime.tryParse(json['vipUntil'].toString())
+          : null,
+      targetGender: json['targetGender']?.toString(),
     );
   }
 

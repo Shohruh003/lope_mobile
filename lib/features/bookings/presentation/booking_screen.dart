@@ -50,6 +50,16 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authControllerProvider).user;
+
+    // Guest guard — mirrors web's `requireLogin` flow. Guests landing on the
+    // booking page see an explanatory dialog and a single CTA to sign in,
+    // instead of a broken form.
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showLoginRequired());
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final barberAsync = ref.watch(barberDetailProvider(widget.barberId));
 
     return Scaffold(
@@ -569,9 +579,76 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     ]);
   }
 
+  bool _loginPromptShown = false;
+  Future<void> _showLoginRequired() async {
+    if (_loginPromptShown || !mounted) return;
+    _loginPromptShown = true;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: const Text("Akkaunt kerak"),
+        content: const Text(
+            "Bron qilish uchun avval ro'yxatdan o'ting yoki tizimga kiring."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              if (mounted) context.pop();
+            },
+            child: const Text("Bekor"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              if (mounted) context.go('/login');
+            },
+            child: const Text("Kirish"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submit(Barber barber) async {
     final user = ref.read(authControllerProvider).user;
     if (user == null) return;
+
+    // ===== Gender restriction guard =====
+    // If the barber only accepts one gender, refuse the booking up-front so
+    // the user gets an immediate explanation instead of an opaque 403 from
+    // the backend.
+    final tg = barber.targetGender;
+    if (tg == 'MALE_ONLY' || tg == 'FEMALE_ONLY') {
+      // Mobile doesn't currently carry the user's gender in the local
+      // user object — fetch from settings or rely on the backend's reject.
+      // We still show a heads-up modal so the customer knows why.
+      final needFemale = tg == 'FEMALE_ONLY';
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (dCtx) => AlertDialog(
+          backgroundColor: AppColors.background,
+          title: Text(needFemale
+              ? "Faqat ayollar uchun"
+              : "Faqat erkaklar uchun"),
+          content: Text(needFemale
+              ? "Bu sartarosh faqat ayol mijozlarni qabul qiladi. Davom etishni xohlaysizmi?"
+              : "Bu sartarosh faqat erkak mijozlarni qabul qiladi. Davom etishni xohlaysizmi?"),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(dCtx).pop(false),
+                child: const Text("Bekor")),
+            TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(true),
+              child: const Text("Davom"),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+
     setState(() => _submitting = true);
     try {
       final picked = barber.services

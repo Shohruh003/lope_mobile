@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../shared/theme/colors.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
+import '../../lopepay/presentation/low_balance_modal.dart';
 import 'barber_schedule_screen.dart';
 import 'barber_bookings_screen.dart';
 import 'barber_stats_screen.dart';
@@ -20,6 +21,18 @@ class BarberHomeShell extends ConsumerStatefulWidget {
 
 class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
   int _index = 0;
+  bool _balanceCheckDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // One-shot low-balance check after first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (_balanceCheckDone || !mounted) return;
+      _balanceCheckDone = true;
+      await LowBalanceWatcher.maybeShow(context, ref);
+    });
+  }
 
   static const _tabs = [
     BarberScheduleScreen(),

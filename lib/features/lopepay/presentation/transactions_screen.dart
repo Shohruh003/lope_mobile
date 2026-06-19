@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/balance_repository.dart';
+import 'top_up_modal.dart';
 
 /// Combined balance card + payment history list. Used by both customer and
 /// barber roles; only the entry point differs.
@@ -148,89 +148,7 @@ class _BalanceCard extends ConsumerStatefulWidget {
 
 class _BalanceCardState extends ConsumerState<_BalanceCard> {
   Future<void> _openTopUpSheet() async {
-    final amountCtrl = TextEditingController(text: '50000');
-    String gateway = 'click';
-    bool busy = false;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => StatefulBuilder(
-        builder: (sheetCtx, setSheet) => Padding(
-          padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Balansni to'ldirish", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 14),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(hintText: "Summa (so'm)"),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Text("Click"),
-                      selected: gateway == 'click',
-                      onSelected: (_) => setSheet(() => gateway = 'click'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Text("Payme"),
-                      selected: gateway == 'payme',
-                      onSelected: (_) => setSheet(() => gateway = 'payme'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: busy ? null : () async {
-                    final amt = int.tryParse(amountCtrl.text.trim()) ?? 0;
-                    if (amt < 1000) return;
-                    setSheet(() => busy = true);
-                    try {
-                      final url = await ref.read(balanceRepositoryProvider)
-                          .initiateTopUp(userId: widget.userId, amount: amt, gateway: gateway);
-                      if (url.isNotEmpty) {
-                        final uri = Uri.tryParse(url);
-                        if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
-                          }
-                        }
-                      }
-                      if (sheetCtx.mounted) Navigator.of(sheetCtx).pop();
-                    } catch (e) {
-                      if (sheetCtx.mounted) {
-                        ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(content: Text("Xato: $e")));
-                      }
-                    } finally {
-                      setSheet(() => busy = false);
-                    }
-                  },
-                  child: busy
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("To'lovga o'tish"),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    await TopUpModal.show(context);
   }
 
   String _fmt(int n) {

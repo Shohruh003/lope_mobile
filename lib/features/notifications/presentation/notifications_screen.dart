@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notifications_repository.dart';
 
+/// Mirrors web `BarberNotificationsScreen` / `CustomerNotificationsScreen`:
+///   - Date grouping (Bugun / Kecha / explicit DD-month) sticky-headered
+///   - Type-aware colour + icon: new_booking / booking_cancelled /
+///     manual_booking / reminder
+///   - Pull-to-refresh and explicit Mark-all-read with a stamped unread count
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
-
-  static final _df = DateFormat('dd.MM.yyyy HH:mm', 'ru_RU');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,20 +25,47 @@ class NotificationsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(tr(ref, 'mobile.notifications.title', "Bildirishnomalar")),
         actions: [
-          TextButton(
-            onPressed: () async {
-              try {
-                await ref.read(notificationsRepositoryProvider).markAllRead();
-                ref.invalidate(notificationsProvider(user.role));
-              } catch (_) {}
+          async.maybeWhen(
+            data: (list) {
+              final unread = list.where((n) => !n.read).length;
+              if (unread == 0) return const SizedBox.shrink();
+              return Row(children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    unread.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.done_all, color: AppColors.primary),
+                  tooltip: tr(ref, 'mobile.notifications.markAllRead', "Hammasini o'qish"),
+                  onPressed: () async {
+                    try {
+                      await ref.read(notificationsRepositoryProvider).markAllRead();
+                      ref.invalidate(notificationsProvider(user.role));
+                    } catch (_) {}
+                  },
+                ),
+              ]);
             },
-            child: Text(tr(ref, 'mobile.notifications.markAllRead', "Hammasini o'qish")),
+            orElse: () => const SizedBox.shrink(),
           ),
         ],
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(
+          child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+        ),
         data: (list) {
           if (list.isEmpty) {
             return Center(
@@ -45,73 +74,226 @@ class NotificationsScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.notifications_off_outlined, size: 56, color: AppColors.textMuted),
-                    const SizedBox(height: 12),
-                    Text(tr(ref, 'mobile.notifications.empty', "Bildirishnomalar yo'q"),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    Container(
+                      width: 80, height: 80,
+                      decoration: BoxDecoration(
+                        color: AppColors.textMuted.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.notifications_off_outlined,
+                          size: 40, color: AppColors.textMuted),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      tr(ref, 'mobile.notifications.empty', "Bildirishnomalar yo'q"),
+                      style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                    ),
                   ],
                 ),
               ),
             );
           }
+
+          // ----- Group by date label -----
+          final groups = _groupByDate(list);
+
           return RefreshIndicator(
             color: AppColors.primary,
             onRefresh: () async => ref.refresh(notificationsProvider(user.role).future),
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              itemCount: list.length,
-              separatorBuilder: (context, i) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final n = list[i];
-                return InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: n.read
-                      ? null
-                      : () async {
-                          try {
-                            await ref.read(notificationsRepositoryProvider).markRead(n.id);
-                            ref.invalidate(notificationsProvider(user.role));
-                          } catch (_) {}
-                        },
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: n.read ? AppColors.background : AppColors.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: n.read ? AppColors.border : AppColors.primary.withValues(alpha: 0.4)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(children: [
-                          if (!n.read) ...[
-                            Container(
-                              width: 6, height: 6,
-                              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Expanded(
-                            child: Text(n.title,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textBright)),
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              itemCount: groups.length,
+              itemBuilder: (context, gi) {
+                final group = groups[gi];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 6),
+                        child: Text(
+                          group.label.toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10.5,
+                            letterSpacing: 1.1,
                           ),
-                          Text(_df.format(n.createdAt.toLocal()),
-                              style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
-                        ]),
-                        if (n.body.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(n.body,
-                              style: const TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5)),
-                        ],
-                      ],
-                    ),
+                        ),
+                      ),
+                      ...List.generate(group.items.length, (i) {
+                        final n = group.items[i];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _NotifTile(
+                            n: n,
+                            onTap: () async {
+                              if (n.read) return;
+                              try {
+                                await ref
+                                    .read(notificationsRepositoryProvider)
+                                    .markRead(n.id);
+                                ref.invalidate(notificationsProvider(user.role));
+                              } catch (_) {}
+                            },
+                          ),
+                        ).animate().fadeIn(duration: 200.ms, delay: (i * 25).ms);
+                      }),
+                    ],
                   ),
-                ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms);
+                );
               },
             ),
           );
         },
       ),
     );
+  }
+}
+
+class _Group {
+  _Group(this.label, this.items);
+  final String label;
+  final List<AppNotification> items;
+}
+
+List<_Group> _groupByDate(List<AppNotification> list) {
+  final today = DateTime.now();
+  final t0 = DateTime(today.year, today.month, today.day);
+  final y0 = t0.subtract(const Duration(days: 1));
+  final months = ["yanvar","fevral","mart","aprel","may","iyun",
+                  "iyul","avgust","sentabr","oktabr","noyabr","dekabr"];
+
+  final byLabel = <String, List<AppNotification>>{};
+  final order = <String>[];
+
+  for (final n in list) {
+    final d = n.createdAt.toLocal();
+    final d0 = DateTime(d.year, d.month, d.day);
+    final String label;
+    if (d0 == t0) {
+      label = 'Bugun';
+    } else if (d0 == y0) {
+      label = 'Kecha';
+    } else {
+      label = '${d.day}-${months[d.month - 1]}';
+    }
+    final bucket = byLabel.putIfAbsent(label, () {
+      order.add(label);
+      return <AppNotification>[];
+    });
+    bucket.add(n);
+  }
+
+  return order.map((k) => _Group(k, byLabel[k]!)).toList();
+}
+
+class _TypeStyle {
+  const _TypeStyle(this.icon, this.color);
+  final IconData icon;
+  final Color color;
+}
+
+const _typeStyles = <String, _TypeStyle>{
+  'new_booking':        _TypeStyle(Icons.event_available,  Color(0xFF3B82F6)), // blue
+  'booking_cancelled':  _TypeStyle(Icons.event_busy,       Color(0xFFEF4444)), // red
+  'manual_booking':     _TypeStyle(Icons.phone_in_talk,    Color(0xFF10B981)), // green
+  'reminder':           _TypeStyle(Icons.access_time,      Color(0xFFF59E0B)), // orange
+};
+
+class _NotifTile extends StatelessWidget {
+  const _NotifTile({required this.n, required this.onTap});
+  final AppNotification n;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _typeStyles[n.type ?? ''] ?? _typeStyles['new_booking']!;
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: n.read
+              ? AppColors.background
+              : style.color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border(left: BorderSide(color: style.color, width: 3)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: style.color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(style.icon, color: style.color, size: 17),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          n.title,
+                          style: TextStyle(
+                            fontWeight: n.read ? FontWeight.w600 : FontWeight.w700,
+                            fontSize: 13.5,
+                            color: n.read ? AppColors.textSecondary : AppColors.textBright,
+                            height: 1.25,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _hhmm(n.createdAt),
+                        style: const TextStyle(
+                            color: AppColors.textMuted, fontSize: 10.5),
+                      ),
+                    ],
+                  ),
+                  if (n.body.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      n.body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 12,
+                          height: 1.4),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _hhmm(DateTime t) {
+    final lt = t.toLocal();
+    final hh = lt.hour.toString().padLeft(2, '0');
+    final mm = lt.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
   }
 }
