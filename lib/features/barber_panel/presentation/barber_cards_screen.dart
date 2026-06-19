@@ -54,7 +54,11 @@ class BarberCardsScreen extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
                   child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
-              data: (list) => ListView(
+              data: (list) => RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async => ref.refresh(_cardsProvider.future),
+                child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 children: [
                   const Text(
@@ -110,6 +114,7 @@ class BarberCardsScreen extends ConsumerWidget {
                       );
                     }),
                 ],
+                ),
               ),
             ),
           ),

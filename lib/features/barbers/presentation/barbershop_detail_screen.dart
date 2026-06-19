@@ -29,7 +29,11 @@ class BarbershopDetailScreen extends ConsumerWidget {
           final name = (shop['name'] ?? '').toString();
           final address = (shop['address'] ?? shop['location'] ?? '').toString();
 
-          return CustomScrollView(
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async => ref.refresh(_shopByIdProvider(shopId).future),
+            child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverAppBar(
                 expandedHeight: 220,
@@ -138,6 +142,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
                   ),
                 ),
             ],
+          ),
           );
         },
       ),

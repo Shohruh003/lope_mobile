@@ -48,9 +48,21 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
     return Scaffold(
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async {
+            ref.invalidate(shopBarbersProvider);
+            ref.invalidate(shopBookingsFilteredProvider);
+            await ref.read(shopBookingsFilteredProvider((
+              date: _dateStr(_date),
+              barberId: _barberId == 'all' ? null : _barberId,
+              status: _status == 'all' ? null : _status,
+            )).future);
+          },
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
             // ===== Title =====
             const Text("Salon bronlari",
                 style: TextStyle(
@@ -173,6 +185,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
               },
             ),
           ],
+          ),
         ),
       ),
     );
