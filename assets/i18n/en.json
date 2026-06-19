@@ -263,7 +263,15 @@
     "changePassword": "Change password (optional)",
     "oldPassword": "Old password",
     "newPassword": "New password",
-    "emojiPlaceholder": "Add emoji"
+    "emojiPlaceholder": "Add emoji",
+    "faq": "FAQ — frequently asked questions",
+    "privacy": "Privacy policy",
+    "logoutConfirm": "You will be signed out and returned to the login page.",
+    "section": {
+      "account": "Account",
+      "app": "App",
+      "help": "Help"
+    }
   },
   "auth": {
     "loginTitle": "Welcome Back",

@@ -263,7 +263,15 @@
     "changePassword": "Паролни ўзгартириш (ихтиёрий)",
     "oldPassword": "Эски парол",
     "newPassword": "Янги парол",
-    "emojiPlaceholder": "Эможи қўйинг"
+    "emojiPlaceholder": "Эможи қўйинг",
+    "faq": "FAQ — Тез-тез бериладиган саволлар",
+    "privacy": "Махфийлик сиёсати",
+    "logoutConfirm": "Тизимдан чиқиб, логин саҳифасига қайтасиз.",
+    "section": {
+      "account": "Аккаунт",
+      "app": "Илова",
+      "help": "Ёрдам"
+    }
   },
   "auth": {
     "loginTitle": "Хуш келибсиз",

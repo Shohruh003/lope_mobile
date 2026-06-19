@@ -263,7 +263,15 @@
     "changePassword": "Parolni o'zgartirish (ixtiyoriy)",
     "oldPassword": "Eski parol",
     "newPassword": "Yangi parol",
-    "emojiPlaceholder": "Emoji qo'ying"
+    "emojiPlaceholder": "Emoji qo'ying",
+    "faq": "FAQ — Tez-tez beriladigan savollar",
+    "privacy": "Maxfiylik siyosati",
+    "logoutConfirm": "Tizimdan chiqib, login sahifasiga qaytasiz.",
+    "section": {
+      "account": "Akkaunt",
+      "app": "Ilova",
+      "help": "Yordam"
+    }
   },
   "auth": {
     "loginTitle": "Xush kelibsiz",

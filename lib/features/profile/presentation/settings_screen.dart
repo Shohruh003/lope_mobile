@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/l10n.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -17,42 +18,44 @@ class SettingsScreen extends ConsumerWidget {
     final localeAsync = ref.watch(localeProvider);
     final currentLocale = localeAsync.asData?.value.locale ?? 'uz';
     return Scaffold(
-      appBar: AppBar(title: const Text("Sozlamalar")),
+      appBar: AppBar(title: Text(tr(ref, 'barberApp.settings', 'Sozlamalar'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          const ShadSectionLabel("AKKAUNT"),
+          ShadSectionLabel(
+              tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           const SizedBox(height: 8),
           ShadTileGroup(children: [
             ShadTile(
               icon: Icons.edit_outlined,
-              label: "Profilni tahrirlash",
+              label: tr(ref, 'profile.editProfile', "Profilni tahrirlash"),
               onTap: () => context.push(user?.role == 'barber' ? '/barber/profile' : '/profile-edit'),
             ),
             ShadTile(
               icon: Icons.account_balance_wallet_outlined,
-              label: "Hisobim",
+              label: tr(ref, 'myTransactions.title', "Hisobim"),
               onTap: () => context.push('/transactions'),
             ),
             ShadTile(
               icon: Icons.notifications_outlined,
-              label: "Bildirishnomalar",
+              label: tr(ref, 'barberApp.notifications', "Bildirishnomalar"),
               onTap: () => context.push('/notifications'),
             ),
             ShadTile(
               icon: Icons.card_giftcard_outlined,
-              label: "Promo kod",
+              label: tr(ref, 'promoCode.title', "Promo kod"),
               onTap: () => context.push('/promo'),
             ),
           ]),
 
           const SizedBox(height: 18),
-          const ShadSectionLabel("ILOVA"),
+          ShadSectionLabel(
+              tr(ref, 'profile.section.app', 'Ilova').toUpperCase()),
           const SizedBox(height: 8),
           ShadTileGroup(children: [
             ShadTile(
               icon: Icons.language_outlined,
-              label: "Til",
+              label: tr(ref, 'barberApp.language', "Til"),
               trailing: Text(_localeLabel(currentLocale),
                   style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
               onTap: () => _pickLanguage(context, ref, currentLocale),
@@ -60,22 +63,23 @@ class SettingsScreen extends ConsumerWidget {
           ]),
 
           const SizedBox(height: 18),
-          const ShadSectionLabel("YORDAM"),
+          ShadSectionLabel(
+              tr(ref, 'profile.section.help', 'Yordam').toUpperCase()),
           const SizedBox(height: 8),
           ShadTileGroup(children: [
             ShadTile(
               icon: Icons.help_outline,
-              label: "FAQ — Tez-tez beriladigan savollar",
+              label: tr(ref, 'profile.faq', "FAQ — Tez-tez beriladigan savollar"),
               onTap: () => _openUrl('https://lopestyle.uz/faq'),
             ),
             ShadTile(
               icon: Icons.support_agent_outlined,
-              label: "Qo'llab-quvvatlash",
+              label: tr(ref, 'barberApp.support', "Qo'llab-quvvatlash"),
               onTap: () => _openUrl('https://t.me/lopestyle_support'),
             ),
             ShadTile(
               icon: Icons.policy_outlined,
-              label: "Maxfiylik siyosati",
+              label: tr(ref, 'profile.privacy', "Maxfiylik siyosati"),
               onTap: () => _openUrl('https://lopestyle.uz/privacy'),
             ),
           ]),
@@ -84,12 +88,12 @@ class SettingsScreen extends ConsumerWidget {
           ShadTileGroup(children: [
             ShadTile(
               icon: Icons.logout_outlined,
-              label: "Chiqish",
+              label: tr(ref, 'barberApp.logout', "Chiqish"),
               onTap: () => _confirmLogout(context, ref),
             ),
             ShadTile(
               icon: Icons.delete_outline,
-              label: "Hisobni o'chirish",
+              label: tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish"),
               destructive: true,
               onTap: () => _confirmDelete(context, ref),
             ),
@@ -127,12 +131,12 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text("Tilni tanlang",
-                    style: TextStyle(
+                child: Text(tr(ref, 'barberApp.language', 'Til'),
+                    style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textBright)),
@@ -162,15 +166,16 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: const Text("Chiqish?"),
-        content: const Text("Tizimdan chiqib, login sahifasiga qaytasiz."),
+        title: Text('${tr(ref, 'barberApp.logout', 'Chiqish')}?'),
+        content: Text(tr(ref, 'profile.logoutConfirm',
+            "Tizimdan chiqib, login sahifasiga qaytasiz.")),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(dCtx).pop(false),
-              child: const Text("Bekor")),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("Chiqish"),
+            child: Text(tr(ref, 'barberApp.logout', "Chiqish")),
           ),
         ],
       ),
@@ -193,15 +198,17 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: const Text("Hisobni o'chirish?"),
-        content: const Text(
-            "Hisobingiz va barcha ma'lumotlaringiz o'chiriladi. Bu jarayonni bekor qilib bo'lmaydi."),
+        title: Text('${tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish")}?'),
+        content: Text(tr(ref, 'barberApp.deleteAccountConfirm',
+            "Hisobingiz va barcha ma'lumotlaringiz o'chiriladi. Bu jarayonni bekor qilib bo'lmaydi.")),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Bekor")),
+          TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("O'chirish"),
+            child: Text(tr(ref, 'common.delete', "O'chirish")),
           ),
         ],
       ),
