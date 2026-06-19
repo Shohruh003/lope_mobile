@@ -1,45 +1,65 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/image_picker_service.dart';
-import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../data/barber_panel_repository.dart' show BarberBookingActions, barberPanelRepositoryProvider;
+import '../data/barber_panel_repository.dart'
+    show BarberBookingActions, barberPanelRepositoryProvider;
 import '../data/barber_profile_repository.dart';
 
-/// Hub for barber-self profile edits. Top section shows the avatar tile +
-/// bio/location editor, lower section is a list of links to the deeper
-/// editors (services, working hours, gallery, reminders, public link).
+/// Mirrors `BarberProfileEditScreen.tsx` 1:1.
+///
+/// Structure:
+///   - Sticky header (back + "Profilim" title)
+///   - 4-tab pill switcher: Bio / Ish soatlari / Xizmatlar / Galereya
+///   - Each tab opens the dedicated screen (services / hours / gallery) or
+///     renders inline (bio).
 class BarberProfileEditScreen extends ConsumerStatefulWidget {
   const BarberProfileEditScreen({super.key});
-
   @override
   ConsumerState<BarberProfileEditScreen> createState() => _BarberProfileEditScreenState();
 }
 
 class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScreen> {
-  final _bioController = TextEditingController();
-  final _locationController = TextEditingController();
+  int _tab = 0;
+  final _nameCtrl = TextEditingController();
+  final _bioCtrl = TextEditingController();
+  final _locationCtrl = TextEditingController();
   String? _seedKey;
   bool _saving = false;
   bool _uploadingAvatar = false;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _bioCtrl.dispose();
+    _locationCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _saveBio(String barberId) async {
     setState(() => _saving = true);
     try {
       await ref.read(barberProfileRepositoryProvider).updateBarber(barberId, {
-        'bioUz': _bioController.text.trim(),
-        'bio': _bioController.text.trim(),
-        'locationUz': _locationController.text.trim(),
-        'location': _locationController.text.trim(),
+        'name': _nameCtrl.text.trim(),
+        'bioUz': _bioCtrl.text.trim(),
+        'bio': _bioCtrl.text.trim(),
+        'locationUz': _locationCtrl.text.trim(),
+        'location': _locationCtrl.text.trim(),
       });
       ref.invalidate(barberProfileProvider(barberId));
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
+      }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -51,21 +71,14 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
     setState(() => _uploadingAvatar = true);
     try {
       await ref.read(barberProfileRepositoryProvider).uploadAvatar(userId, file);
-      // Refresh both the profile fetch and the auth-cached user.
       ref.invalidate(barberProfileProvider(userId));
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Avatar yangilandi")));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Avatarni yuklashda xato: $e")));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      }
     } finally {
       if (mounted) setState(() => _uploadingAvatar = false);
     }
-  }
-
-  @override
-  void dispose() {
-    _bioController.dispose();
-    _locationController.dispose();
-    super.dispose();
   }
 
   @override
@@ -77,175 +90,303 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
     final async = ref.watch(barberProfileProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.profileEdit.title', "Profilni tahrirlash"))),
-      body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
-        data: (b) {
-          // One-time seed on data load (use id to detect first load only).
-          if (_seedKey != b['id']) {
-            _seedKey = b['id']?.toString();
-            _bioController.text = (b['bioUz'] ?? b['bio'] ?? '').toString();
-            _locationController.text = (b['locationUz'] ?? b['location'] ?? '').toString();
-          }
-          final avatarUrl = (b['avatar'] ?? '').toString();
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            children: [
-              // Avatar section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
+      body: SafeArea(
+        top: false,
+        child: Column(children: [
+          // ===== Sticky header =====
+          Container(
+            padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+            decoration: const BoxDecoration(
+              color: AppColors.background,
+              border: Border(bottom: BorderSide(color: AppColors.border)),
+            ),
+            child: Row(children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 22),
+                onPressed: () => context.pop(),
+              ),
+              const SizedBox(width: 4),
+              const Text("Profilim",
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textBright)),
+            ]),
+          ),
+
+          Expanded(
+            child: async.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                  child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+              data: (b) {
+                if (_seedKey != b['id']) {
+                  _seedKey = b['id']?.toString();
+                  _nameCtrl.text = (b['name'] ?? user.name).toString();
+                  _bioCtrl.text = (b['bioUz'] ?? b['bio'] ?? '').toString();
+                  _locationCtrl.text = (b['locationUz'] ?? b['location'] ?? '').toString();
+                }
+                final avatarUrl = (b['avatar'] ?? '').toString();
+
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                   children: [
-                    Stack(
-                      children: [
+                    // ===== Avatar + name header =====
+                    Center(
+                      child: Stack(children: [
                         ClipOval(
                           child: avatarUrl.isNotEmpty
-                              ? CachedNetworkImage(imageUrl: avatarUrl, width: 64, height: 64, fit: BoxFit.cover)
-                              : Container(width: 64, height: 64, color: AppColors.background, child: const Icon(Icons.person, color: AppColors.textMuted)),
+                              ? CachedNetworkImage(
+                                  imageUrl: avatarUrl,
+                                  width: 96, height: 96,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (context, url, err) => _Fallback(name: user.name),
+                                )
+                              : _Fallback(name: user.name),
                         ),
-                        if (_uploadingAvatar)
-                          const Positioned.fill(
-                            child: ColoredBox(
-                              color: Colors.black45,
-                              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))),
+                        Positioned(
+                          bottom: 0, right: 0,
+                          child: InkWell(
+                            onTap: () => _pickAvatar(user.id),
+                            borderRadius: BorderRadius.circular(999),
+                            child: Container(
+                              width: 32, height: 32,
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: _uploadingAvatar
+                                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                             ),
                           ),
-                      ],
+                        ),
+                      ]),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text((b['name'] ?? user.name).toString(),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 4),
-                          Text(user.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                        ],
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Text((b['name'] ?? user.name).toString(),
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textBright)),
+                    ),
+                    Center(
+                      child: Text(user.phone,
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ===== Availability switch =====
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: SwitchListTile(
+                        value: b['isAvailable'] != false,
+                        activeThumbColor: AppColors.primary,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        onChanged: (_) async {
+                          try {
+                            await ref.read(barberPanelRepositoryProvider).toggleAvailability(user.id);
+                            ref.invalidate(barberProfileProvider(user.id));
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+                            }
+                          }
+                        },
+                        title: const Text("Mijozlar qabul qilaman",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: AppColors.textBright)),
+                        subtitle: Text(
+                          b['isAvailable'] != false
+                              ? "Yangi bronlar tushishi mumkin"
+                              : "Bron qabul qilmayapsiz — profil yashirin",
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                        ),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () => _pickAvatar(user.id),
-                      child: Text(tr(ref, 'mobile.common.edit', "O'zgartirish")),
+
+                    const SizedBox(height: 16),
+
+                    // ===== 4-tab pill switcher =====
+                    Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceElevated,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(children: List.generate(4, (i) {
+                        final labels = ["Bio", "Soatlar", "Xizmatlar", "Galereya"];
+                        final on = i == _tab;
+                        return Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => setState(() => _tab = i),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: on ? AppColors.background : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: on ? Border.all(color: AppColors.border) : null,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  labels[i],
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                                    color: on ? AppColors.textBright : AppColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      })),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // ===== Tab content =====
+                    if (_tab == 0) _bioTab(user.id),
+                    if (_tab == 1) _navTile(
+                      icon: Icons.schedule,
+                      title: "Ish soatlari",
+                      subtitle: "Har kun uchun ish vaqtini sozlash",
+                      onTap: () => context.push('/barber/hours'),
+                    ),
+                    if (_tab == 2) _navTile(
+                      icon: Icons.content_cut,
+                      title: "Xizmatlar",
+                      subtitle: "Narx va davomiyligi bilan xizmat ro'yxati",
+                      onTap: () => context.push('/barber/services'),
+                    ),
+                    if (_tab == 3) _navTile(
+                      icon: Icons.photo_library_outlined,
+                      title: "Galereya",
+                      subtitle: "Ishlaringizdan rasmlar yuklash",
+                      onTap: () => context.push('/barber/gallery'),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Availability toggle — "Bugun ish yo'q" switch
-              SwitchListTile(
-                tileColor: AppColors.surface,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: const BorderSide(color: AppColors.border)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                value: b['isAvailable'] != false,
-                activeThumbColor: AppColors.primary,
-                onChanged: (_) async {
-                  try {
-                    await ref.read(barberPanelRepositoryProvider).toggleAvailability(user.id);
-                    ref.invalidate(barberProfileProvider(user.id));
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
-                    }
-                  }
-                },
-                title: const Text("Mijozlar qabul qilaman", style: TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text(
-                  b['isAvailable'] != false
-                      ? "Yangi bronlar tushishi mumkin"
-                      : "Bron qabul qilmayapsiz — profil yashirin",
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              Text(tr(ref, 'mobile.barber.profileEdit.bio', "Bio"),
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 6),
-              TextField(
-                  controller: _bioController,
-                  maxLines: 4,
-                  decoration: InputDecoration(hintText: tr(ref, 'mobile.barber.profileEdit.bioPlaceholder', "O'zingiz haqingizda"))),
-
-              const SizedBox(height: 14),
-              Text(tr(ref, 'mobile.barber.profileEdit.location', "Manzil"),
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 6),
-              TextField(
-                  controller: _locationController,
-                  decoration: InputDecoration(hintText: tr(ref, 'mobile.barber.profileEdit.locationPlaceholder', "Shahar, tuman"))),
-
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : () => _saveBio(user.id),
-                  child: _saving
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text(tr(ref, 'mobile.barber.profileEdit.saveBio', "Bio'ni saqlash")),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-              Text(tr(ref, 'mobile.barber.profileEdit.manage', "Boshqaruv"),
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-
-              _LinkTile(icon: Icons.people_outline, label: "Mijozlarim", onTap: () => context.push('/barber/clients')),
-              _LinkTile(icon: Icons.content_cut, label: tr(ref, 'mobile.barber.profileEdit.linkServices', "Xizmatlarim"), onTap: () => context.push('/barber/services')),
-              _LinkTile(icon: Icons.schedule, label: tr(ref, 'mobile.barber.profileEdit.linkHours', "Ish soatlari"), onTap: () => context.push('/barber/hours')),
-              _LinkTile(icon: Icons.photo_library_outlined, label: tr(ref, 'mobile.barber.profileEdit.linkGallery', "Portfolio"), onTap: () => context.push('/barber/gallery')),
-              _LinkTile(icon: Icons.notifications_active_outlined, label: tr(ref, 'mobile.barber.profileEdit.linkReminders', "Eslatma sozlamalari"), onTap: () => context.push('/barber/reminders')),
-              _LinkTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.barber.profileEdit.linkSms', "SMS tarixi"), onTap: () => context.push('/barber/sms')),
-              _LinkTile(icon: Icons.share, label: tr(ref, 'mobile.barber.profileEdit.linkPublic', "Ommaviy havola"), onTap: () => context.push('/barber/public-link')),
-            ],
-          );
-        },
+                );
+              },
+            ),
+          ),
+        ]),
       ),
     );
   }
-}
 
-class _LinkTile extends StatelessWidget {
-  const _LinkTile({required this.icon, required this.label, required this.onTap});
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+  Widget _bioTab(String userId) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const ShadLabel("Ism"),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _nameCtrl,
+        textCapitalization: TextCapitalization.words,
+        style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+      ),
+      const SizedBox(height: 14),
+
+      const ShadLabel("Bio"),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _bioCtrl,
+        maxLines: 4,
+        style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+        decoration: const InputDecoration(hintText: "O'zingiz haqingizda qisqacha"),
+      ),
+      const SizedBox(height: 14),
+
+      const ShadLabel("Manzil matni"),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _locationCtrl,
+        style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+        decoration: const InputDecoration(hintText: "Toshkent, Yunusobod"),
+      ),
+      const SizedBox(height: 14),
+
+      SizedBox(
+        width: double.infinity,
+        height: 44,
+        child: ElevatedButton(
+          onPressed: _saving ? null : () => _saveBio(userId),
+          child: _saving
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text("Bio'ni saqlash"),
+        ),
+      ),
+    ]).animate().fadeIn(duration: 200.ms);
+  }
+
+  Widget _navTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: ShadCard(
+        padding: const EdgeInsets.all(16),
+        child: Row(children: [
+          Container(
+            width: 44, height: 44,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
+            child: Icon(icon, color: AppColors.primary, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: AppColors.primary, size: 22),
-                const SizedBox(width: 14),
-                Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15))),
-                const Icon(Icons.chevron_right, color: AppColors.textMuted),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textBright)),
+                const SizedBox(height: 2),
+                Text(subtitle,
+                    style: const TextStyle(
+                        color: AppColors.textMuted, fontSize: 12)),
               ],
             ),
           ),
-        ),
+          const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
+        ]),
+      ),
+    ).animate().fadeIn(duration: 200.ms);
+  }
+}
+
+class _Fallback extends StatelessWidget {
+  const _Fallback({required this.name});
+  final String name;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 96, height: 96,
+      color: AppColors.primary.withValues(alpha: 0.1),
+      alignment: Alignment.center,
+      child: Text(
+        (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+        style: const TextStyle(
+            color: AppColors.primary, fontSize: 36, fontWeight: FontWeight.w700),
       ),
     );
   }
