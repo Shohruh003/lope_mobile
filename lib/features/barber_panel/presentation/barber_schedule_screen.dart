@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
@@ -212,12 +213,28 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("$time uchun mijoz qo'shish",
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textBright)),
-                const SizedBox(height: 14),
+                Row(children: [
+                  Expanded(
+                    child: Text("$time uchun mijoz qo'shish",
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textBright)),
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      final picked = await _pickContact();
+                      if (picked == null) return;
+                      setSheet(() {
+                        if (picked.name.isNotEmpty) nameCtrl.text = picked.name;
+                        if (picked.phone.isNotEmpty) phoneCtrl.text = picked.phone;
+                      });
+                    },
+                    icon: const Icon(Icons.perm_contact_calendar_outlined, size: 16),
+                    label: const Text("Kontakt"),
+                  ),
+                ]),
+                const SizedBox(height: 8),
                 TextField(
                   controller: nameCtrl,
                   decoration: const InputDecoration(hintText: "Mijoz ismi"),
@@ -606,6 +623,45 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       ),
     );
   }
+
+  /// Open the OS contact picker and return the first chosen contact's
+  /// (name, phone) tuple. Returns `null` on cancel or denied permission.
+  /// Phone is normalised to digits-only with optional leading "+".
+  Future<_PickedContact?> _pickContact() async {
+    // The picker itself is permissionless on both platforms, BUT to read the
+    // chosen contact's phone numbers on Android we need READ_CONTACTS.
+    final status = await FlutterContacts.permissions.request(PermissionType.read);
+    final hasPerm = status == PermissionStatus.granted ||
+        status == PermissionStatus.limited;
+    if (!hasPerm) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Kontaktlarga ruxsat berilmadi")));
+      }
+      return null;
+    }
+    try {
+      final c = await FlutterContacts.native
+          .showPicker(properties: {ContactProperty.name, ContactProperty.phone});
+      if (c == null) return null;
+      final name = (c.displayName ?? '').trim();
+      final phone = (c.phones.isNotEmpty ? c.phones.first.number : '')
+          .replaceAll(RegExp(r'[^\d+]'), '');
+      return _PickedContact(name: name, phone: phone);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Kontaktni o'qib bo'lmadi: $e")));
+      }
+      return null;
+    }
+  }
+}
+
+class _PickedContact {
+  const _PickedContact({required this.name, required this.phone});
+  final String name;
+  final String phone;
 }
 
 class _EmptyState extends StatelessWidget {

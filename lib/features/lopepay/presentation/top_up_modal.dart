@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -61,11 +62,11 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
   Future<void> _pay() async {
     final amount = int.tryParse(_amountCtrl.text.trim());
     if (amount == null || amount < _minTopUp) {
-      setState(() => _error = "Eng kam summa ${_fmt(_minTopUp)} so'm");
+      setState(() => _error = tr(ref, 'topUp.minAmount', "Minimal summa 1 000 so'm"));
       return;
     }
     if (amount > _maxTopUp) {
-      setState(() => _error = "Eng yuqori summa ${_fmt(_maxTopUp)} so'm");
+      setState(() => _error = tr(ref, 'topUp.maxAmount', "Maksimal summa 1 000 000 so'm"));
       return;
     }
     final user = ref.read(authControllerProvider).user;
@@ -81,7 +82,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
             gateway: _method,
           );
       if (url.isEmpty) {
-        throw Exception('To\'lov URL kelmadi');
+        throw Exception(tr(ref, 'topUp.payError', "To'lov tizimi bilan bog'lanishda xatolik"));
       }
       final uri = Uri.tryParse(url);
       if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
@@ -91,7 +92,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      setState(() => _error = "To'lovga o'tib bo'lmadi: $e");
+      setState(() => _error = '${tr(ref, 'topUp.payError', "To'lov tizimi bilan bog'lanishda xatolik")}: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -141,8 +142,8 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
                   child: const Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 18),
                 ),
                 const SizedBox(width: 8),
-                const Text("Hisobni to'ldirish",
-                    style: TextStyle(
+                Text(tr(ref, 'topUp.title', "Balansni to'ldirish"),
+                    style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textBright)),
@@ -165,15 +166,15 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
 
   Widget _methodStep() {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Center(
-        child: Text("To'lov usulini tanlang",
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+      Center(
+        child: Text(tr(ref, 'topUp.selectMethod', "To'lov usulini tanlang"),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
       ),
       const SizedBox(height: 14),
       _MethodBtn(
         bgColor: const Color(0xFF3B82F6),
         icon: Icons.send,
-        title: "Telegram bot orqali",
+        title: tr(ref, 'topUp.viaTelegram', "Telegram bot orqali"),
         subtitle: "@lope_style_bot",
         onTap: _openTelegram,
       ),
@@ -181,8 +182,8 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       _MethodBtn(
         bgColor: AppColors.primary,
         icon: Icons.open_in_new,
-        title: "Click orqali",
-        subtitle: "Onlayn karta to'lovi",
+        title: tr(ref, 'topUp.viaClick', "Click orqali"),
+        subtitle: tr(ref, 'topUp.clickDesc', "Online to'lov — darhol balansingizga tushadi"),
         onTap: () => setState(() {
           _method = 'click';
           _step = 'amount';
@@ -192,8 +193,8 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       _MethodBtn(
         bgColor: const Color(0xFF2563EB),
         icon: Icons.open_in_new,
-        title: "Payme orqali",
-        subtitle: "Onlayn karta to'lovi",
+        title: tr(ref, 'topUp.viaPayme', "Payme orqali"),
+        subtitle: tr(ref, 'topUp.paymeDesc', "Online to'lov — darhol balansingizga tushadi"),
         onTap: () => setState(() {
           _method = 'payme';
           _step = 'amount';
@@ -209,7 +210,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
         alignment: Alignment.centerLeft,
         child: TextButton.icon(
           icon: const Icon(Icons.arrow_back, size: 14),
-          label: const Text("Orqaga"),
+          label: Text(tr(ref, 'topUp.back', "← Orqaga").replaceAll('← ', '')),
           onPressed: () => setState(() {
             _step = 'method';
             _amountCtrl.clear();
@@ -255,7 +256,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       const SizedBox(height: 14),
 
       // Amount input
-      const ShadLabel("Summa"),
+      ShadLabel(tr(ref, 'topUp.enterAmount', "Summa kiriting")),
       const SizedBox(height: 6),
       TextField(
         controller: _amountCtrl,
@@ -282,17 +283,17 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
           icon: _loading
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.open_in_new, size: 16),
-          label: Text(_loading
-              ? "Yo'naltirilmoqda..."
-              : (_method == 'payme' ? "Payme'ga o'tish" : "Click'ga o'tish")),
+          label: Text(_method == 'payme'
+              ? tr(ref, 'topUp.payBtnPayme', "Payme orqali to'lash")
+              : tr(ref, 'topUp.payBtn', "Click orqali to'lash")),
           onPressed: _loading ? null : _pay,
         ),
       ),
       const SizedBox(height: 8),
       Text(
         _method == 'payme'
-            ? "Payme sahifasiga yo'naltirilasiz"
-            : "Click sahifasiga yo'naltirilasiz",
+            ? tr(ref, 'topUp.redirectNotePayme', "Payme to'lov sahifasiga o'tasiz")
+            : tr(ref, 'topUp.redirectNote', "Click to'lov sahifasiga o'tasiz"),
         textAlign: TextAlign.center,
         style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
       ),

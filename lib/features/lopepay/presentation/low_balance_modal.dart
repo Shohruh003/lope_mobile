@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/balance_repository.dart';
@@ -49,14 +50,14 @@ class LowBalanceWatcher {
   }
 }
 
-class _LowBalanceDialog extends StatefulWidget {
+class _LowBalanceDialog extends ConsumerStatefulWidget {
   const _LowBalanceDialog({required this.balance});
   final int balance;
   @override
-  State<_LowBalanceDialog> createState() => _LowBalanceDialogState();
+  ConsumerState<_LowBalanceDialog> createState() => _LowBalanceDialogState();
 }
 
-class _LowBalanceDialogState extends State<_LowBalanceDialog> {
+class _LowBalanceDialogState extends ConsumerState<_LowBalanceDialog> {
   bool _dontShowYear = false;
 
   Future<void> _dismiss() async {
@@ -99,14 +100,14 @@ class _LowBalanceDialogState extends State<_LowBalanceDialog> {
                   color: AppColors.warning, size: 28),
             ),
             const SizedBox(height: 14),
-            const Text("Balansingiz kam",
-                style: TextStyle(
+            Text(tr(ref, 'topUp.lowBalanceTitle', "Hisobingizni to'ldiring"),
+                style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textBright)),
             const SizedBox(height: 6),
             Text(
-              "Hozirgi balans: ${_fmt(widget.balance)} so'm.\nSMS va AI Stil uchun kamida 5 000 so'm bo'lishi tavsiya etiladi.",
+              "${tr(ref, 'topUp.currentBalance', 'Joriy balans')}: ${_fmt(widget.balance)} so'm.\n${tr(ref, 'topUp.lowBalanceHint', "Balans yetarli bo'lmasa mijozlarga SMS eslatmalar yuborilmaydi.")}",
               textAlign: TextAlign.center,
               style: const TextStyle(
                   color: AppColors.textMuted, fontSize: 12, height: 1.5),
@@ -121,10 +122,10 @@ class _LowBalanceDialogState extends State<_LowBalanceDialog> {
                 activeColor: AppColors.primary,
                 visualDensity: VisualDensity.compact,
               ),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  "Endi 1 yil ko'rsatma",
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  tr(ref, 'topUp.dontShowAgain', "Endi 1 yil ko'rsatma"),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
               ),
             ]),
@@ -135,7 +136,8 @@ class _LowBalanceDialogState extends State<_LowBalanceDialog> {
               height: 42,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.account_balance_wallet, size: 16),
-                label: const Text("Hisobni to'ldirish"),
+                label: Text(tr(ref, 'topUp.topUpBtn', "Hisob to'ldirish")
+                    .replaceAll('💳 ', '')),
                 onPressed: _topUp,
               ),
             ),
@@ -145,9 +147,7 @@ class _LowBalanceDialogState extends State<_LowBalanceDialog> {
               height: 42,
               child: TextButton(
                 onPressed: _dismiss,
-                child: Text(_dontShowYear
-                    ? "1 yil ko'rsatma"
-                    : "7 kun ko'rsatma"),
+                child: Text(tr(ref, 'topUp.later', "Keyinroq")),
               ),
             ),
           ],
