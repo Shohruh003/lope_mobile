@@ -17,6 +17,12 @@ class Barber {
     this.publicSlug,
     this.services = const [],
     this.gallery = const [],
+    this.workingHours,
+    this.lat,
+    this.lng,
+    this.instagram,
+    this.telegram,
+    this.facebook,
   });
 
   final String id;
@@ -33,6 +39,12 @@ class Barber {
   final String? publicSlug;
   final List<BarberService> services;
   final List<String> gallery;
+  final Map<String, dynamic>? workingHours;
+  final double? lat;
+  final double? lng;
+  final String? instagram;
+  final String? telegram;
+  final String? facebook;
 
   factory Barber.fromJson(Map<String, dynamic> json) {
     return Barber(
@@ -54,7 +66,26 @@ class Barber {
               .toList() ??
           [],
       gallery: (json['gallery'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      workingHours: json['workingHours'] is Map
+          ? Map<String, dynamic>.from(json['workingHours'] as Map)
+          : null,
+      lat: (json['latitude'] as num?)?.toDouble() ?? (json['lat'] as num?)?.toDouble(),
+      lng: (json['longitude'] as num?)?.toDouble() ?? (json['lng'] as num?)?.toDouble(),
+      instagram: _readSocial(json, 'instagram'),
+      telegram: _readSocial(json, 'telegram'),
+      facebook: _readSocial(json, 'facebook'),
     );
+  }
+
+  /// `socialLinks` may be present as either a nested map or flat fields.
+  static String? _readSocial(Map<String, dynamic> json, String key) {
+    final flat = json[key];
+    if (flat is String && flat.isNotEmpty) return flat;
+    final nested = json['socialLinks'];
+    if (nested is Map && nested[key] is String && (nested[key] as String).isNotEmpty) {
+      return nested[key] as String;
+    }
+    return null;
   }
 }
 
