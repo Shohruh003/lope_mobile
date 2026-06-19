@@ -8,6 +8,13 @@ import '../../../shared/widgets/shadcn.dart';
 import '../data/auth_repository.dart';
 import 'auth_controller.dart';
 
+/// Final registration step — mirrors the web's `Register.tsx` form fields:
+///   - Name input
+///   - Gender toggle (👨 Erkak / 👩 Ayol)
+///   - Password input with visibility toggle
+///   - Promo code input (optional)
+///   - Role select: Mijoz / Sartarosh / Salon ega (radio cards)
+///   - "Ro'yxatdan o'tish" button
 class RegisterCompleteScreen extends ConsumerStatefulWidget {
   const RegisterCompleteScreen({super.key, required this.phone});
   final String phone;
@@ -18,9 +25,20 @@ class RegisterCompleteScreen extends ConsumerStatefulWidget {
 class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen> {
   final _nameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _promoCtrl = TextEditingController();
+  String _role = 'user';
+  String? _gender; // 'MALE' | 'FEMALE'
   bool _loading = false;
   bool _obscure = true;
   String? _error;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _passwordCtrl.dispose();
+    _promoCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _submit() async {
     final name = _nameCtrl.text.trim();
@@ -42,7 +60,9 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
             name: name,
             phone: widget.phone,
             password: password,
-            role: 'user',
+            role: _role,
+            gender: _gender,
+            promoCode: _promoCtrl.text.trim().isEmpty ? null : _promoCtrl.text.trim(),
           );
       await ref.read(authControllerProvider.notifier).signedIn(user);
       if (!mounted) return;
@@ -55,13 +75,6 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _passwordCtrl.dispose();
-    super.dispose();
   }
 
   @override
@@ -82,10 +95,12 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                       SizedBox(height: 12),
                       ShadCardTitle("Ma'lumotlaringiz"),
                       SizedBox(height: 4),
-                      ShadCardDescription("Ism va parol qoldi"),
+                      ShadCardDescription("Hisobni yakunlash uchun ma'lumotlaringizni kiriting"),
                     ]),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 18),
+
+                  // ===== Name =====
                   ShadField(
                     label: "Ismingiz",
                     child: TextField(
@@ -97,9 +112,20 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                     ),
                   ),
                   const SizedBox(height: 14),
+
+                  // ===== Gender =====
+                  const ShadLabel("Jins"),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    Expanded(child: _genderBtn('MALE', "👨 Erkak")),
+                    const SizedBox(width: 8),
+                    Expanded(child: _genderBtn('FEMALE', "👩 Ayol")),
+                  ]),
+                  const SizedBox(height: 14),
+
+                  // ===== Password =====
                   ShadField(
                     label: "Parol",
-                    error: _error,
                     child: TextField(
                       controller: _passwordCtrl,
                       obscureText: _obscure,
@@ -112,12 +138,40 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
-                      onSubmitted: (_) => _submit(),
                     ),
                   ),
+                  const SizedBox(height: 14),
+
+                  // ===== Promo code (optional) =====
+                  ShadField(
+                    label: "Promo kod (ixtiyoriy)",
+                    child: TextField(
+                      controller: _promoCtrl,
+                      textCapitalization: TextCapitalization.characters,
+                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                      decoration: const InputDecoration(hintText: "Agar bor bo'lsa"),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // ===== Role select =====
+                  const ShadLabel("Hisob turi"),
+                  const SizedBox(height: 6),
+                  _roleBtn('user', Icons.person, "Mijoz", "Sartarosh xizmatlari bron qilish"),
+                  const SizedBox(height: 6),
+                  _roleBtn('barber', Icons.content_cut, "Sartarosh", "Mijoz qabul qiluvchi sartarosh"),
+                  const SizedBox(height: 6),
+                  _roleBtn('barbershop', Icons.storefront, "Salon", "Sartaroshxonani boshqarish"),
+
+                  if (_error != null) ...[
+                    const SizedBox(height: 14),
+                    Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
+                  ],
+
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
+                    height: 44,
                     child: ElevatedButton(
                       onPressed: _loading ? null : _submit,
                       child: _loading
@@ -130,6 +184,81 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _genderBtn(String key, String label) {
+    final on = _gender == key;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () => setState(() {
+        _gender = on ? null : key;
+      }),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: on ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: on ? AppColors.primary : AppColors.border, width: 2),
+        ),
+        alignment: Alignment.center,
+        child: Text(label,
+            style: TextStyle(
+                color: on ? Colors.white : AppColors.textMuted,
+                fontSize: 13,
+                fontWeight: on ? FontWeight.w700 : FontWeight.w500)),
+      ),
+    );
+  }
+
+  Widget _roleBtn(String value, IconData icon, String title, String subtitle) {
+    final on = _role == value;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () => setState(() => _role = value),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: on ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: on ? AppColors.primary : AppColors.border, width: on ? 2 : 1),
+        ),
+        child: Row(children: [
+          Container(
+            width: 32, height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 16),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: on ? FontWeight.w700 : FontWeight.w600,
+                        color: on ? AppColors.primary : AppColors.textBright)),
+                const SizedBox(height: 2),
+                Text(subtitle,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+              ],
+            ),
+          ),
+          Container(
+            width: 18, height: 18,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: on ? AppColors.primary : Colors.transparent,
+              border: Border.all(color: on ? AppColors.primary : AppColors.border, width: 1.5),
+            ),
+            child: on ? const Icon(Icons.check, color: Colors.white, size: 12) : null,
+          ),
+        ]),
       ),
     );
   }

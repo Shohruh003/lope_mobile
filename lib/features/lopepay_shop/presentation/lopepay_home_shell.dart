@@ -117,20 +117,31 @@ class _LopepayDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(lopepayDashboardProvider);
+    final dueTodayAsync = ref.watch(lopepayDueTodayProvider);
+    final overdueAsync = ref.watch(lopepayOverdueProvider);
+
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: RefreshIndicator(
           color: AppColors.primary,
-          onRefresh: () async => ref.refresh(lopepayDashboardProvider.future),
+          onRefresh: () async {
+            ref.invalidate(lopepayDashboardProvider);
+            ref.invalidate(lopepayDueTodayProvider);
+            ref.invalidate(lopepayOverdueProvider);
+          },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
+              // ===== Title =====
               const Text("Lope Pay",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: AppColors.textBright)),
-              const SizedBox(height: 4),
-              const Text("Qarz va rassrochka boshqaruvi",
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
-              const SizedBox(height: 20),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+              const SizedBox(height: 2),
+              const Text("Rassrochka boshqaruvi",
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              const SizedBox(height: 14),
+
+              // ===== 4 stat tiles =====
               async.when(
                 loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator())),
                 error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
@@ -138,9 +149,9 @@ class _LopepayDashboard extends ConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 1.3,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 1.45,
                   children: [
                     _MetricTile(label: "Bugun tushishi kerak", value: "${_fmt(d.dueToday)} so'm", color: AppColors.warning, icon: Icons.event_available),
                     _MetricTile(label: "Muddati o'tgan", value: "${_fmt(d.overdue)} so'm", color: AppColors.danger, icon: Icons.warning_amber_rounded),
@@ -148,6 +159,56 @@ class _LopepayDashboard extends ConsumerWidget {
                     _MetricTile(label: "Faol mijozlar", value: "${d.activeCustomers}", color: AppColors.success, icon: Icons.people_outline),
                   ],
                 ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // ===== Due today list =====
+              const _SectionHeader(icon: Icons.event_available, label: "Bugun to'lov kuni", iconColor: AppColors.warning),
+              const SizedBox(height: 8),
+              dueTodayAsync.when(
+                loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+                error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                data: (list) {
+                  if (list.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Center(
+                        child: Text("Bugun to'lov kerak emas",
+                            style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: list.take(5).map((inst) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _InstallmentRow(item: inst, isOverdue: false),
+                    )).toList(),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 18),
+
+              // ===== Overdue list =====
+              overdueAsync.maybeWhen(
+                data: (list) {
+                  if (list.isEmpty) return const SizedBox.shrink();
+                  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    const _SectionHeader(icon: Icons.warning_amber, label: "Muddati o'tgan", iconColor: AppColors.danger),
+                    const SizedBox(height: 8),
+                    ...list.take(5).map((inst) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _InstallmentRow(item: inst, isOverdue: true),
+                    )),
+                  ]);
+                },
+                orElse: () => const SizedBox.shrink(),
               ),
             ],
           ),
@@ -206,6 +267,112 @@ class _MetricTile extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Section header inside the dashboard — used for "Bugun to'lov kuni" and
+/// "Muddati o'tgan" groups. Matches the web's `h2` rows with the colored
+/// leading icon.
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.label, required this.iconColor});
+  final IconData icon;
+  final String label;
+  final Color iconColor;
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Icon(icon, color: iconColor, size: 18),
+      const SizedBox(width: 6),
+      Text(label,
+          style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: iconColor == AppColors.danger ? AppColors.danger : AppColors.textBright)),
+    ]);
+  }
+}
+
+/// Installment row card — name + phone + due-date + amount badge.
+/// Used in both "Due today" and "Overdue" sections.
+class _InstallmentRow extends ConsumerWidget {
+  const _InstallmentRow({required this.item, required this.isOverdue});
+  final Map<String, dynamic> item;
+  final bool isOverdue;
+
+  static String _fmt(int n) {
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      final ri = s.length - i;
+      buf.write(s[i]);
+      if (ri > 1 && ri % 3 == 1) buf.write(' ');
+    }
+    return buf.toString();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cust = (item['customer'] is Map)
+        ? item['customer'] as Map<String, dynamic>
+        : <String, dynamic>{};
+    final name = (cust['name'] ?? item['customerName'] ?? '').toString();
+    final phone = (cust['phone'] ?? item['customerPhone'] ?? '').toString();
+    final monthly = ((item['monthlyAmount'] ?? item['amount'] ?? item['nextAmount'] ?? 0) as num).toInt();
+    final customerId = (cust['id'] ?? item['customerId'] ?? '').toString();
+    final color = isOverdue ? AppColors.danger : AppColors.warning;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: customerId.isEmpty ? null : () => context.push('/lopepay/customers/$customerId'),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: isOverdue ? color.withValues(alpha: 0.4) : AppColors.border),
+        ),
+        child: Row(children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+              style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name.isEmpty ? "Mijoz" : name,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textBright)),
+                if (phone.isNotEmpty)
+                  Text(phone,
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text("${_fmt(monthly)} so'm",
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color)),
+              if (isOverdue)
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Text("o'tib ketgan",
+                      style: TextStyle(fontSize: 10, color: AppColors.danger, fontWeight: FontWeight.w600)),
+                ),
+            ],
+          ),
+        ]),
       ),
     );
   }

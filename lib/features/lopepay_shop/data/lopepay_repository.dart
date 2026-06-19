@@ -108,6 +108,37 @@ class LopepayRepository {
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
     return list.cast<Map<String, dynamic>>();
   }
+
+  /// Installments due today — used by the dashboard's "Bugun" section.
+  /// Web: `dueTodayInstallmentsAPI()`.
+  Future<List<Map<String, dynamic>>> dueTodayInstallments() async {
+    try {
+      final res = await _dio.get('/lopepay/installments/due-today');
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+      return list.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Active overdue installments — used by the dashboard's "Muddati o'tgan"
+  /// section. Web: `listInstallmentsAPI({status: 'overdue', limit: 5})`.
+  Future<List<Map<String, dynamic>>> overdueInstallments({int limit = 5}) async {
+    try {
+      final res = await _dio.get('/lopepay/installments',
+          queryParameters: {'status': 'overdue', 'limit': limit, 'isActive': true});
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+      return list.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
 }
 
 final lopepaySmsProvider = FutureProvider<List<Map<String, dynamic>>>(
@@ -126,3 +157,9 @@ final lopepayCustomersProvider = FutureProvider<List<LopepayCustomer>>(
 
 final lopepayProductsProvider = FutureProvider<List<LopepayProduct>>(
     (ref) => ref.watch(lopepayRepositoryProvider).products());
+
+final lopepayDueTodayProvider = FutureProvider<List<Map<String, dynamic>>>(
+    (ref) => ref.watch(lopepayRepositoryProvider).dueTodayInstallments());
+
+final lopepayOverdueProvider = FutureProvider<List<Map<String, dynamic>>>(
+    (ref) => ref.watch(lopepayRepositoryProvider).overdueInstallments());
