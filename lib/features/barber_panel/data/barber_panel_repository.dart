@@ -215,6 +215,17 @@ extension BarberBookingActions on BarberPanelRepository {
     return out;
   }
 
+  /// Convenience helper for the schedule screen's "Mijoz qo'shish" sheet:
+  /// fetches the barber's service catalogue so the sheet can render chips.
+  Future<List<Map<String, dynamic>>> servicesForBarber(String barberId) async {
+    final res = await _dio.get('/barbers/$barberId/services');
+    final data = res.data;
+    final list = (data is List)
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return list.cast<Map<String, dynamic>>();
+  }
+
   /// Voice booking — multipart audio blob to the parser endpoint.
   Future<Map<String, dynamic>> parseVoiceBooking({
     required String barberId,

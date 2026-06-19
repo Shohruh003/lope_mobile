@@ -127,6 +127,15 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textBright)),
           ),
           const Divider(height: 1, color: AppColors.border),
+          if (status == 'available')
+            ListTile(
+              leading: const Icon(Icons.person_add_alt_1, color: AppColors.primary),
+              title: const Text("Mijoz qo'shish",
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text("Manual bron yaratish",
+                  style: TextStyle(fontSize: 12)),
+              onTap: () => Navigator.of(sheetCtx).pop('book'),
+            ),
           if (status != 'blocked')
             ListTile(
               leading: const Icon(Icons.lock_outline, color: AppColors.danger),
@@ -157,6 +166,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     try {
       final dateStr = _dateStr(_selectedDate);
       final repo = ref.read(barberPanelRepositoryProvider);
+      if (picked == 'book') {
+        if (!mounted) return;
+        await _openManualBookingDialog(barberId, dateStr, time);
+        return;
+      }
       if (picked == 'block' || picked == 'unblock') {
         await repo.toggleSlotBlock(barberId, dateStr, time);
       } else if (picked == 'delete') {
@@ -167,6 +181,117 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       _refreshDay(barberId);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+    }
+  }
+
+  /// Manual booking dialog — barber types client name + phone, selects
+  /// services from their list, and submits POST /bookings/manual with the
+  /// pre-filled time.
+  Future<void> _openManualBookingDialog(String barberId, String dateStr, String time) async {
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final services =
+        await ref.read(barberPanelRepositoryProvider).servicesForBarber(barberId);
+    if (!mounted) return;
+    final selected = <String>{};
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 18,
+            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("$time uchun mijoz qo'shish",
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textBright)),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(hintText: "Mijoz ismi"),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(hintText: "Telefon (ixtiyoriy)"),
+                ),
+                const SizedBox(height: 12),
+                if (services.isEmpty)
+                  const Text("Xizmatlar belgilanmagan",
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 12))
+                else ...[
+                  const Text("Xizmat",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                          fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6, runSpacing: 6,
+                    children: services.map((s) {
+                      final id = s['id'] as String;
+                      final name = (s['nameUz'] ?? s['name'] ?? '').toString();
+                      final on = selected.contains(id);
+                      return FilterChip(
+                        label: Text(name),
+                        selected: on,
+                        onSelected: (v) => setSheet(() {
+                          if (v) {
+                            selected.add(id);
+                          } else {
+                            selected.remove(id);
+                          }
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(sheetCtx).pop(true),
+                    child: const Text("Saqlash"),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (saved != true) return;
+    try {
+      await ref.read(barberPanelRepositoryProvider).createManual(
+            barberId: barberId,
+            date: dateStr,
+            time: time,
+            serviceIds: selected.toList(),
+            guestName: nameCtrl.text.trim(),
+            guestPhone: phoneCtrl.text.trim(),
+          );
+      _refreshDay(barberId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Mijoz qo'shildi")));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      }
     }
   }
 
@@ -304,7 +429,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
 
           // ===== Date scroller (30 days) =====
           SizedBox(
-            height: 76,
+            height: 96,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: 30,
@@ -316,13 +441,13 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                 final isToday = i == 0;
 
                 return Padding(
-                  padding: EdgeInsets.only(right: 8, left: i == 0 ? 0 : 0),
+                  padding: const EdgeInsets.only(right: 8),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () => setState(() => _selectedDate = dateOnly),
                     child: Container(
                       width: 64,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
@@ -333,6 +458,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                         ),
                       ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
@@ -342,7 +468,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                                 fontWeight: FontWeight.w600,
                                 color: isSelected ? Colors.white70 : AppColors.textMuted),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             d.day.toString(),
                             style: TextStyle(

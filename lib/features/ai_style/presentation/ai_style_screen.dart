@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -6,17 +6,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/image_picker_service.dart';
-import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/data/balance_repository.dart';
 import '../data/ai_style_repository.dart';
 
-/// AI-driven hair / beard / makeup styler. The flow:
-///   1. Pick a selfie
-///   2. Pick 1–4 reference style images
-///   3. Call /ai-style/generate (FormData)
-///   4. Show the composite + balance impact
+/// Mirrors `CustomerAIStyleScreen.tsx` 1:1:
+///   - Balance pill at the top
+///   - Style options horizontal row (cards 72px wide, multi-select; under each
+///     selected card a reference-image upload tile appears)
+///   - Big photo area: empty → dashed Camera card; with photo → preview + X
+///   - Generate button (full-width primary at bottom)
+///   - After generation: 2-col split (Original | Result) + Download/Try Again
 class AiStyleScreen extends ConsumerStatefulWidget {
   const AiStyleScreen({super.key});
 
@@ -25,61 +26,83 @@ class AiStyleScreen extends ConsumerStatefulWidget {
 }
 
 class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
-  File? _selfie;
-  final List<File> _refs = [];
+  // Web's MALE_STYLE_KEYS / FEMALE_STYLE_KEYS
+  static const _maleOptions = [
+    _StyleOpt('hair', 'Soch', '💇‍♂️'),
+    _StyleOpt('beard', 'Soqol', '🧔'),
+  ];
+  static const _femaleOptions = [
+    _StyleOpt('hair', 'Soch', '💇‍♀️'),
+    _StyleOpt('hair_color', 'Soch rangi', '🎨'),
+    _StyleOpt('eyebrows', 'Qoshlar', '✏️'),
+    _StyleOpt('lips', 'Labbo', '💋'),
+    _StyleOpt('eyelashes', 'Kiprik', '👁️'),
+  ];
+
   String _gender = 'male';
+  final Set<String> _selectedStyles = {'hair'};
+  File? _selfie;
+  final Map<String, File> _refImages = {};
   bool _busy = false;
   String? _resultUrl;
-  String? _errorText;
+  String? _error;
+
+  List<_StyleOpt> get _options =>
+      _gender == 'female' ? _femaleOptions : _maleOptions;
 
   Future<void> _pickSelfie() async {
     final f = await ImagePickerService.instance.pickFromSheet(context);
     if (f != null) setState(() => _selfie = f);
   }
 
-  Future<void> _addReference() async {
-    if (_refs.length >= 4) return;
+  Future<void> _pickRef(String key) async {
     final f = await ImagePickerService.instance.pickFromSheet(context, allowCamera: false);
-    if (f != null) setState(() => _refs.add(f));
+    if (f != null) setState(() => _refImages[key] = f);
   }
 
   Future<void> _generate() async {
     if (_selfie == null) {
-      setState(() => _errorText = tr(ref, 'mobile.customer.aiStyle.selfieMissing', "Avval o'zingizning rasmingizni yuklang"));
+      setState(() => _error = "Avval o'zingizning rasmingizni yuklang");
       return;
     }
-    if (_refs.isEmpty) {
-      setState(() => _errorText = tr(ref, 'mobile.customer.aiStyle.refMissing', "Kamida bitta stil namunasi yuklang"));
+    if (_selectedStyles.isEmpty) {
+      setState(() => _error = "Kamida bitta stil tanlang");
       return;
     }
     setState(() {
       _busy = true;
-      _errorText = null;
+      _error = null;
       _resultUrl = null;
     });
     try {
       final r = await ref.read(aiStyleRepositoryProvider).generate(
             selfie: _selfie!,
             gender: _gender,
-            references: _refs,
+            references: _refImages.values.toList(),
           );
       setState(() => _resultUrl = r.imageUrl);
-      // refresh balance card so deduction is visible
       final user = ref.read(authControllerProvider).user;
       if (user != null) ref.invalidate(myBalanceProvider(user.id));
     } on Object catch (e) {
-      String msg = tr(ref, 'mobile.customer.aiStyle.errorGeneric', "Generatsiya bajarilmadi");
+      String msg = "Generatsiya bajarilmadi";
       final s = e.toString();
       if (s.contains('402') || s.contains('balance')) {
-        msg = tr(ref, 'mobile.customer.aiStyle.errorBalance', "Balansingiz yetarli emas. Hisobni to'ldiring.");
+        msg = "Balansingiz yetarli emas. Hisobni to'ldiring.";
       }
-      if (s.contains('SocketException')) {
-        msg = tr(ref, 'mobile.customer.aiStyle.errorInternet', "Internet bilan muammo");
-      }
-      setState(() => _errorText = msg);
+      if (s.contains('SocketException')) msg = "Internet bilan muammo";
+      setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  void _reset() {
+    setState(() {
+      _selfie = null;
+      _resultUrl = null;
+      _refImages.clear();
+      _error = null;
+    });
   }
 
   @override
@@ -88,212 +111,532 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
     final balance = user == null ? null : ref.watch(myBalanceProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.customer.aiStyle.title', "AI Stil"))),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
-          if (balance != null)
-            balance.when(
-              loading: () => const SizedBox.shrink(),
-              error: (e, _) => const SizedBox.shrink(),
-              data: (b) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                        tr(ref, 'mobile.customer.aiStyle.balance', "Balans: {{amount}} so'm",
-                            {'amount': _fmt(b.amount)}),
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                    const Spacer(),
-                    if (b.aiFreeRemaining != null && b.aiFreeRemaining! > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          children: [
+            // ===== Title + free-quota line =====
+            const Text("AI Stil",
+                style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textBright)),
+            const SizedBox(height: 4),
+            balance == null
+                ? const SizedBox.shrink()
+                : balance.when(
+                    loading: () => const SizedBox(height: 14),
+                    error: (e, _) => const SizedBox.shrink(),
+                    data: (b) => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.auto_awesome,
+                            size: 12, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          b.aiFreeRemaining != null && b.aiFreeRemaining! > 0
+                              ? "Bugun ${b.aiFreeRemaining} ta bepul · 1000 so'm"
+                              : "1000 so'm har generatsiya",
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textMuted),
                         ),
-                        child: Text(
-                            tr(ref, 'mobile.customer.aiStyle.freeRemaining', "Bugun {{n}} ta bepul",
-                                {'n': '${b.aiFreeRemaining}'}),
-                            style: const TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w700)),
-                      ),
-                  ],
+                      ],
+                    ),
+                  ),
+
+            const SizedBox(height: 14),
+
+            // ===== Gender pill toggle (since mobile doesn't have profile gender) =====
+            Row(children: [
+              Expanded(
+                child: _GenderChip(
+                  label: "👨 Erkak",
+                  on: _gender == 'male',
+                  onTap: () => setState(() {
+                    _gender = 'male';
+                    _selectedStyles
+                      ..clear()
+                      ..add('hair');
+                  }),
                 ),
               ),
-            ),
-
-          const SizedBox(height: 16),
-
-          _SectionTitle(tr(ref, 'mobile.customer.aiStyle.step1', "1. O'zingizning rasmingiz")),
-          GestureDetector(
-            onTap: _pickSelfie,
-            child: Container(
-              height: 160,
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _GenderChip(
+                  label: "👩 Ayol",
+                  on: _gender == 'female',
+                  onTap: () => setState(() {
+                    _gender = 'female';
+                    _selectedStyles
+                      ..clear()
+                      ..add('hair');
+                  }),
+                ),
               ),
-              child: _selfie == null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.add_a_photo_outlined, color: AppColors.textMuted, size: 32),
-                          const SizedBox(height: 8),
-                          Text(tr(ref, 'mobile.customer.aiStyle.addSelfie', "Selfie qo'shing"),
-                              style: const TextStyle(color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    )
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.file(_selfie!, fit: BoxFit.cover, width: double.infinity),
-                    ),
-            ),
-          ),
+            ]),
 
-          const SizedBox(height: 18),
-          _SectionTitle(tr(ref, 'mobile.customer.aiStyle.step2', "2. Stil namunalari (1-4 ta)")),
-          Wrap(
-            spacing: 8, runSpacing: 8,
-            children: [
-              ..._refs.asMap().entries.map((e) => Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(e.value, width: 80, height: 80, fit: BoxFit.cover),
-                      ),
-                      Positioned(
-                        top: 2, right: 2,
-                        child: InkWell(
-                          onTap: () => setState(() => _refs.removeAt(e.key)),
+            const SizedBox(height: 16),
+
+            // ===== Style options row (only when no result yet) =====
+            if (_resultUrl == null) ...[
+              const Text("Qaysi qismni o'zgartirmoqchisiz?",
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textMuted)),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 144,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _options.length,
+                  separatorBuilder: (context, i) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) {
+                    final opt = _options[i];
+                    final on = _selectedStyles.contains(opt.key);
+                    final ref = _refImages[opt.key];
+                    return SizedBox(
+                      width: 76,
+                      child: Column(children: [
+                        // Style card
+                        InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () => setState(() {
+                            if (on) {
+                              _selectedStyles.remove(opt.key);
+                            } else {
+                              _selectedStyles.add(opt.key);
+                            }
+                          }),
                           child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
-                            child: const Icon(Icons.close, color: Colors.white, size: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: on
+                                  ? AppColors.primary.withValues(alpha: 0.1)
+                                  : AppColors.background,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: on ? AppColors.primary : AppColors.border,
+                                width: 2,
+                              ),
+                            ),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(opt.icon,
+                                        style:
+                                            const TextStyle(fontSize: 24)),
+                                    const SizedBox(height: 6),
+                                    Text(opt.label,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            color: on
+                                                ? AppColors.primary
+                                                : AppColors.textBright)),
+                                  ],
+                                ),
+                                if (on)
+                                  Positioned(
+                                    top: -6, right: -6,
+                                    child: Container(
+                                      width: 16, height: 16,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.primary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.check,
+                                          size: 10, color: Colors.white),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  )),
-              if (_refs.length < 4)
-                InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: _addReference,
-                  child: Container(
-                    width: 80, height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.border, style: BorderStyle.solid),
-                    ),
-                    child: const Icon(Icons.add, color: AppColors.primary),
+                        const SizedBox(height: 4),
+                        // Reference image tile under the selected card
+                        if (on) ...[
+                          if (ref != null)
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    ref,
+                                    width: 72,
+                                    height: 56,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: -4, right: -4,
+                                  child: InkWell(
+                                    onTap: () =>
+                                        setState(() => _refImages.remove(opt.key)),
+                                    child: Container(
+                                      width: 16, height: 16,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.danger,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.close,
+                                          size: 10, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => _pickRef(opt.key),
+                              child: Container(
+                                width: 72, height: 28,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.primary.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_photo_alternate_outlined,
+                                        size: 10,
+                                        color: AppColors.textMuted),
+                                    SizedBox(width: 2),
+                                    Text("Namuna",
+                                        style: TextStyle(
+                                            fontSize: 9,
+                                            color: AppColors.textMuted)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ]),
+                    );
+                  },
+                ),
+              ),
+              if (_selectedStyles.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 4),
+                  child: Center(
+                    child: Text("Kamida bitta stilni tanlang",
+                        style: TextStyle(
+                            color: AppColors.danger, fontSize: 11)),
                   ),
                 ),
+              const SizedBox(height: 14),
             ],
-          ),
 
-          const SizedBox(height: 18),
-          _SectionTitle(tr(ref, 'mobile.customer.aiStyle.step3', "3. Jins")),
-          Row(
-            children: [
-              Expanded(
-                child: ChoiceChip(
-                  selectedColor: AppColors.primary.withValues(alpha: 0.25),
-                  label: Text(tr(ref, 'mobile.customer.aiStyle.male', "Erkak")),
-                  selected: _gender == 'male',
-                  onSelected: (_) => setState(() => _gender = 'male'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ChoiceChip(
-                  selectedColor: AppColors.primary.withValues(alpha: 0.25),
-                  label: Text(tr(ref, 'mobile.customer.aiStyle.female', "Ayol")),
-                  selected: _gender == 'female',
-                  onSelected: (_) => setState(() => _gender = 'female'),
-                ),
-              ),
-            ],
-          ),
-
-          if (_errorText != null) ...[
-            const SizedBox(height: 14),
+            // ===== Main photo area =====
             Container(
-              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.danger.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
               ),
-              child: Row(children: [
-                const Icon(Icons.error_outline, color: AppColors.danger, size: 18),
-                const SizedBox(width: 8),
-                Expanded(child: Text(_errorText!, style: const TextStyle(color: AppColors.danger, fontSize: 13))),
-              ]),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: _busy
+                    ? _LoadingView()
+                    : (_resultUrl != null && _resultUrl!.isNotEmpty)
+                        ? _ResultView(
+                            original: _selfie,
+                            resultUrl: _resultUrl!,
+                            onReset: _reset,
+                          )
+                        : (_selfie != null
+                            ? _PreviewView(
+                                file: _selfie!,
+                                onRemove: _reset,
+                                onGenerate: _generate,
+                              )
+                            : _EmptyView(onTap: _pickSelfie)),
+              ),
             ),
-          ],
 
-          const SizedBox(height: 22),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: _busy
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Icon(Icons.auto_awesome),
-              label: Text(_busy
-                  ? tr(ref, 'mobile.customer.aiStyle.generating', "Generatsiya...")
-                  : tr(ref, 'mobile.customer.aiStyle.generate', "AI orqali yaratish")),
-              onPressed: _busy ? null : _generate,
-            ),
-          ),
-
-          if (_resultUrl != null && _resultUrl!.isNotEmpty) ...[
-            const SizedBox(height: 26),
-            _SectionTitle(tr(ref, 'mobile.customer.aiStyle.result', "Natija")),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: CachedNetworkImage(
-                imageUrl: _resultUrl!,
-                fit: BoxFit.cover,
-                placeholder: (context, _) => Container(
-                  height: 200, color: AppColors.surface,
-                  child: const Center(child: CircularProgressIndicator()),
+            if (_error != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                child: Row(children: [
+                  const Icon(Icons.error_outline,
+                      color: AppColors.danger, size: 16),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(_error!,
+                        style: const TextStyle(
+                            color: AppColors.danger, fontSize: 12)),
+                  ),
+                ]),
               ),
-            ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95)),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
+}
 
-  String _fmt(int n) {
-    final s = n.toString();
-    final buf = StringBuffer();
-    for (var i = 0; i < s.length; i++) {
-      final ri = s.length - i;
-      buf.write(s[i]);
-      if (ri > 1 && ri % 3 == 1) buf.write(' ');
-    }
-    return buf.toString();
+class _StyleOpt {
+  const _StyleOpt(this.key, this.label, this.icon);
+  final String key;
+  final String label;
+  final String icon;
+}
+
+class _GenderChip extends StatelessWidget {
+  const _GenderChip({required this.label, required this.on, required this.onTap});
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: on ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: on ? AppColors.primary : AppColors.border),
+        ),
+        alignment: Alignment.center,
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                color: on ? AppColors.primary : AppColors.textPrimary)),
+      ),
+    );
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-  final String text;
+class _EmptyView extends StatelessWidget {
+  const _EmptyView({required this.onTap});
+  final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Text(text,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: -0.2)),
-      );
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 360,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            width: 2,
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 64, height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.camera_alt,
+                  color: AppColors.primary, size: 32),
+            ),
+            const SizedBox(height: 16),
+            const Text("Rasmingizni yuklang",
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textBright)),
+            const SizedBox(height: 4),
+            const Text("Yuzni aniq ko'rsatuvchi selfie tanlang",
+                style: TextStyle(
+                    color: AppColors.textMuted, fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewView extends StatelessWidget {
+  const _PreviewView({
+    required this.file,
+    required this.onRemove,
+    required this.onGenerate,
+  });
+  final File file;
+  final VoidCallback onRemove;
+  final VoidCallback onGenerate;
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Stack(children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.file(file, fit: BoxFit.cover, width: double.infinity, height: 380),
+        ),
+        Positioned(
+          top: 8, right: 8,
+          child: InkWell(
+            onTap: onRemove,
+            child: Container(
+              width: 30, height: 30,
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 16),
+            ),
+          ),
+        ),
+      ]),
+      const SizedBox(height: 12),
+      SizedBox(
+        width: double.infinity,
+        height: 48,
+        child: ElevatedButton.icon(
+          icon: const Icon(Icons.auto_awesome, size: 18),
+          label: const Text("Yaratish",
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          onPressed: onGenerate,
+        ),
+      ),
+    ]);
+  }
+}
+
+class _LoadingView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 380,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 80, height: 80,
+                child: CircularProgressIndicator(
+                    strokeWidth: 4,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary.withValues(alpha: 0.4))),
+              ),
+              const Icon(Icons.auto_awesome,
+                  size: 32, color: AppColors.primary),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text("Sizning yangi stil tayyorlanmoqda...",
+              style:
+                  TextStyle(color: AppColors.textMuted, fontSize: 13)),
+        ],
+      ),
+    ).animate(onPlay: (c) => c.repeat()).fade(begin: 0.7, end: 1, duration: 1200.ms);
+  }
+}
+
+class _ResultView extends StatelessWidget {
+  const _ResultView({
+    required this.original,
+    required this.resultUrl,
+    required this.onReset,
+  });
+  final File? original;
+  final String resultUrl;
+  final VoidCallback onReset;
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Row(children: [
+        // Original
+        Expanded(
+          child: Column(children: [
+            const Text("Asl",
+                style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            AspectRatio(
+              aspectRatio: 3 / 4,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: original != null
+                    ? Image.file(original!, fit: BoxFit.cover)
+                    : Container(color: AppColors.surfaceElevated),
+              ),
+            ),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        // Result
+        Expanded(
+          child: Column(children: [
+            const Text("Natija",
+                style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            AspectRatio(
+              aspectRatio: 3 / 4,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl: resultUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, _) => Container(
+                      color: AppColors.surfaceElevated,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator()),
+                ),
+              ),
+            ),
+          ]),
+        ),
+      ]),
+      const SizedBox(height: 12),
+      Row(children: [
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.download, size: 16),
+              label: const Text("Yuklab olish"),
+              onPressed: () {},
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text("Qaytadan"),
+              onPressed: onReset,
+            ),
+          ),
+        ),
+      ]),
+    ]);
+  }
 }
