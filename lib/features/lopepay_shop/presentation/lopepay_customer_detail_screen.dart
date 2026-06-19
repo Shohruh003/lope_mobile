@@ -48,7 +48,11 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           final payments = (data['payments'] as List? ?? []).cast<Map<String, dynamic>>();
           final installments = (data['installments'] as List? ?? []).cast<Map<String, dynamic>>();
 
-          return ListView(
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async => ref.refresh(_lopepayCustomerProvider(customerId).future),
+            child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
             children: [
               Container(
@@ -133,6 +137,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                   );
                 }),
             ],
+            ),
           );
         },
       ),

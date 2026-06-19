@@ -27,7 +27,11 @@ class ShopClientDetailScreen extends ConsumerWidget {
           final name = (data['name'] ?? '').toString();
           final phone = (data['phone'] ?? '').toString();
           final history = (data['bookings'] as List? ?? []).cast<Map<String, dynamic>>();
-          return ListView(
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async => ref.refresh(_clientDetailProvider(clientKey).future),
+            child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
             children: [
               Center(
@@ -119,6 +123,7 @@ class ShopClientDetailScreen extends ConsumerWidget {
                       ]),
                     )),
             ],
+            ),
           );
         },
       ),
