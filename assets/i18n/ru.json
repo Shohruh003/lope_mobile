@@ -1462,7 +1462,14 @@
         "linkGallery": "Портфолио",
         "linkReminders": "Настройки напоминаний",
         "linkSms": "История SMS",
-        "linkPublic": "Публичная ссылка"
+        "linkPublic": "Публичная ссылка",
+        "acceptClients": "Принимаю клиентов",
+        "availableHint": "Новые записи возможны",
+        "unavailableHint": "Не принимаете — профиль скрыт",
+        "tabBio": "Био",
+        "tabHours": "Часы",
+        "tabServices": "Услуги",
+        "tabGallery": "Галерея"
       },
       "services": {
         "title": "Мои услуги",

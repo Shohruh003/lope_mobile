@@ -1455,7 +1455,14 @@
         "linkGallery": "Портфолио",
         "linkReminders": "Эслатма созламалари",
         "linkSms": "SMS тарихи",
-        "linkPublic": "Оммавий ҳавола"
+        "linkPublic": "Оммавий ҳавола",
+        "acceptClients": "Мижозлар қабул қиламан",
+        "availableHint": "Янги бронлар тушиши мумкин",
+        "unavailableHint": "Брон қабул қилмаяпсиз — профил яширин",
+        "tabBio": "Био",
+        "tabHours": "Соатлар",
+        "tabServices": "Хизматлар",
+        "tabGallery": "Галерея"
       },
       "services": {
         "title": "Хизматларим",

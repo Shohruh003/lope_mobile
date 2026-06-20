@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/image_picker_service.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -54,11 +55,11 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
       });
       ref.invalidate(barberProfileProvider(barberId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -74,7 +75,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
       ref.invalidate(barberProfileProvider(userId));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     } finally {
       if (mounted) setState(() => _uploadingAvatar = false);
@@ -106,8 +107,8 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                 onPressed: () => context.pop(),
               ),
               const SizedBox(width: 4),
-              const Text("Profilim",
-                  style: TextStyle(
+              Text(tr(ref, 'profile.barberProfile', "Profilim"),
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textBright)),
@@ -118,7 +119,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
-                  child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+                  child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
               data: (b) {
                 if (_seedKey != b['id']) {
                   _seedKey = b['id']?.toString();
@@ -197,19 +198,19 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                             ref.invalidate(barberProfileProvider(user.id));
                           } catch (e) {
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
                             }
                           }
                         },
-                        title: const Text("Mijozlar qabul qilaman",
-                            style: TextStyle(
+                        title: Text(tr(ref, 'mobile.barber.profileEdit.acceptClients', "Mijozlar qabul qilaman"),
+                            style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
                                 color: AppColors.textBright)),
                         subtitle: Text(
                           b['isAvailable'] != false
-                              ? "Yangi bronlar tushishi mumkin"
-                              : "Bron qabul qilmayapsiz — profil yashirin",
+                              ? tr(ref, 'mobile.barber.profileEdit.availableHint', "Yangi bronlar tushishi mumkin")
+                              : tr(ref, 'mobile.barber.profileEdit.unavailableHint', "Bron qabul qilmayapsiz — profil yashirin"),
                           style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                         ),
                       ),
@@ -226,7 +227,12 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                         border: Border.all(color: AppColors.border),
                       ),
                       child: Row(children: List.generate(4, (i) {
-                        final labels = ["Bio", "Soatlar", "Xizmatlar", "Galereya"];
+                        final labels = [
+                          tr(ref, 'mobile.barber.profileEdit.tabBio', "Bio"),
+                          tr(ref, 'mobile.barber.profileEdit.tabHours', "Soatlar"),
+                          tr(ref, 'mobile.barber.profileEdit.tabServices', "Xizmatlar"),
+                          tr(ref, 'mobile.barber.profileEdit.tabGallery', "Galereya"),
+                        ];
                         final on = i == _tab;
                         return Expanded(
                           child: InkWell(
@@ -289,7 +295,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
 
   Widget _bioTab(String userId) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const ShadLabel("Ism"),
+      ShadLabel(tr(ref, 'profile.name', "Ism")),
       const SizedBox(height: 6),
       TextField(
         controller: _nameCtrl,
@@ -298,22 +304,26 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
       ),
       const SizedBox(height: 14),
 
-      const ShadLabel("Bio"),
+      ShadLabel(tr(ref, 'mobile.barber.profileEdit.bio', "Bio")),
       const SizedBox(height: 6),
       TextField(
         controller: _bioCtrl,
         maxLines: 4,
         style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-        decoration: const InputDecoration(hintText: "O'zingiz haqingizda qisqacha"),
+        decoration: InputDecoration(
+            hintText: tr(ref, 'mobile.barber.profileEdit.bioPlaceholder',
+                "O'zingiz haqingizda qisqacha")),
       ),
       const SizedBox(height: 14),
 
-      const ShadLabel("Manzil matni"),
+      ShadLabel(tr(ref, 'mobile.barber.profileEdit.location', "Manzil matni")),
       const SizedBox(height: 6),
       TextField(
         controller: _locationCtrl,
         style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-        decoration: const InputDecoration(hintText: "Toshkent, Yunusobod"),
+        decoration: InputDecoration(
+            hintText: tr(ref, 'mobile.barber.profileEdit.locationPlaceholder',
+                "Toshkent, Yunusobod")),
       ),
       const SizedBox(height: 14),
 
@@ -324,7 +334,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
           onPressed: _saving ? null : () => _saveBio(userId),
           child: _saving
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text("Bio'ni saqlash"),
+              : Text(tr(ref, 'mobile.barber.profileEdit.saveBio', "Bio'ni saqlash")),
         ),
       ),
     ]).animate().fadeIn(duration: 200.ms);

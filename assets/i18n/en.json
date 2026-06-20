@@ -1454,7 +1454,14 @@
         "linkGallery": "Portfolio",
         "linkReminders": "Reminder settings",
         "linkSms": "SMS history",
-        "linkPublic": "Public link"
+        "linkPublic": "Public link",
+        "acceptClients": "I accept clients",
+        "availableHint": "New bookings can come in",
+        "unavailableHint": "Not accepting — profile hidden",
+        "tabBio": "Bio",
+        "tabHours": "Hours",
+        "tabServices": "Services",
+        "tabGallery": "Gallery"
       },
       "services": {
         "title": "My services",

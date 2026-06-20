@@ -1446,8 +1446,8 @@
         "title": "Profilni tahrirlash",
         "bio": "Bio",
         "bioPlaceholder": "O'zingiz haqingizda",
-        "location": "Manzil",
-        "locationPlaceholder": "Shahar, tuman",
+        "location": "Manzil matni",
+        "locationPlaceholder": "Toshkent, Yunusobod",
         "saveBio": "Bio'ni saqlash",
         "manage": "Boshqaruv",
         "linkServices": "Xizmatlarim",
@@ -1455,7 +1455,14 @@
         "linkGallery": "Portfolio",
         "linkReminders": "Eslatma sozlamalari",
         "linkSms": "SMS tarixi",
-        "linkPublic": "Ommaviy havola"
+        "linkPublic": "Ommaviy havola",
+        "acceptClients": "Mijozlar qabul qilaman",
+        "availableHint": "Yangi bronlar tushishi mumkin",
+        "unavailableHint": "Bron qabul qilmayapsiz — profil yashirin",
+        "tabBio": "Bio",
+        "tabHours": "Soatlar",
+        "tabServices": "Xizmatlar",
+        "tabGallery": "Galereya"
       },
       "services": {
         "title": "Xizmatlarim",
