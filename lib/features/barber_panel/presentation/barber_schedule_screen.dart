@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart';
@@ -78,11 +79,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
               );
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Ovoz qabul qilindi")));
+                SnackBar(content: Text(tr(ref, 'mobile.barber.schedule.voiceReceived', "Ovoz qabul qilindi"))));
           }
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
           }
         }
       }
@@ -92,7 +93,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       if (!await _recorder.hasPermission()) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Mikrofon ruxsati berilmadi")));
+              SnackBar(content: Text(tr(ref, 'mobile.barber.schedule.micDenied', "Mikrofon ruxsati berilmadi"))));
         }
         return;
       }
@@ -131,32 +132,32 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
           if (status == 'available')
             ListTile(
               leading: const Icon(Icons.person_add_alt_1, color: AppColors.primary),
-              title: const Text("Mijoz qo'shish",
-                  style: TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: const Text("Manual bron yaratish",
-                  style: TextStyle(fontSize: 12)),
+              title: Text(tr(ref, 'mobile.barber.schedule.addClient', "Mijoz qo'shish"),
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(tr(ref, 'mobile.barber.schedule.manualBooking', "Manual bron yaratish"),
+                  style: const TextStyle(fontSize: 12)),
               onTap: () => Navigator.of(sheetCtx).pop('book'),
             ),
           if (status != 'blocked')
             ListTile(
               leading: const Icon(Icons.lock_outline, color: AppColors.danger),
-              title: const Text("Slotni bloklash"),
+              title: Text(tr(ref, 'mobile.barber.schedule.blockSlot', "Slotni bloklash")),
               onTap: () => Navigator.of(sheetCtx).pop('block'),
             ),
           if (status == 'blocked')
             ListTile(
               leading: const Icon(Icons.lock_open, color: AppColors.success),
-              title: const Text("Blokni olib tashlash"),
+              title: Text(tr(ref, 'mobile.barber.schedule.unblockSlot', "Blokni olib tashlash")),
               onTap: () => Navigator.of(sheetCtx).pop('unblock'),
             ),
           ListTile(
             leading: const Icon(Icons.delete_outline, color: AppColors.danger),
-            title: const Text("Slotni o'chirish"),
+            title: Text(tr(ref, 'mobile.barber.schedule.deleteSlot', "Slotni o'chirish")),
             onTap: () => Navigator.of(sheetCtx).pop('delete'),
           ),
           ListTile(
             leading: const Icon(Icons.close, color: AppColors.textMuted),
-            title: const Text("Yopish"),
+            title: Text(tr(ref, 'common.close', "Yopish")),
             onTap: () => Navigator.of(sheetCtx).pop(null),
           ),
           const SizedBox(height: 8),
@@ -181,7 +182,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       }
       _refreshDay(barberId);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 
@@ -215,7 +216,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
               children: [
                 Row(children: [
                   Expanded(
-                    child: Text("$time uchun mijoz qo'shish",
+                    child: Text(
+                        tr(ref, 'mobile.barber.schedule.addClientForTime',
+                            "{{time}} uchun mijoz qo'shish",
+                            {'time': time}),
                         style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -231,27 +235,29 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                       });
                     },
                     icon: const Icon(Icons.perm_contact_calendar_outlined, size: 16),
-                    label: const Text("Kontakt"),
+                    label: Text(tr(ref, 'mobile.barber.schedule.contact', "Kontakt")),
                   ),
                 ]),
                 const SizedBox(height: 8),
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(hintText: "Mijoz ismi"),
+                  decoration: InputDecoration(
+                      hintText: tr(ref, 'mobile.barber.schedule.clientName', "Mijoz ismi")),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: phoneCtrl,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(hintText: "Telefon (ixtiyoriy)"),
+                  decoration: InputDecoration(
+                      hintText: tr(ref, 'mobile.barber.schedule.phoneOptional', "Telefon (ixtiyoriy)")),
                 ),
                 const SizedBox(height: 12),
                 if (services.isEmpty)
-                  const Text("Xizmatlar belgilanmagan",
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12))
+                  Text(tr(ref, 'mobile.barber.schedule.noServicesSet', "Xizmatlar belgilanmagan"),
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12))
                 else ...[
-                  const Text("Xizmat",
-                      style: TextStyle(
+                  Text(tr(ref, 'booking.service', "Xizmat"),
+                      style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
                           fontSize: 13)),
@@ -281,7 +287,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => Navigator.of(sheetCtx).pop(true),
-                    child: const Text("Saqlash"),
+                    child: Text(tr(ref, 'common.save', "Saqlash")),
                   ),
                 ),
               ],
@@ -303,11 +309,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       _refreshDay(barberId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Mijoz qo'shildi")));
+            SnackBar(content: Text(tr(ref, 'mobile.barber.schedule.clientAdded', "Mijoz qo'shildi"))));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
   }
@@ -325,22 +331,22 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
           Container(width: 36, height: 4,
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text("Jadval qo'shish",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(tr(ref, 'mobile.barber.schedule.addSchedule', "Jadval qo'shish"),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
           ),
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.auto_awesome_motion, color: AppColors.primary),
-            title: const Text("Avtomatik (vaqt oralig'i)"),
-            subtitle: const Text("Boshlanish va tugash vaqtidan slotlar generatsiya"),
+            title: Text(tr(ref, 'mobile.barber.schedule.autoInterval', "Avtomatik (vaqt oralig'i)")),
+            subtitle: Text(tr(ref, 'mobile.barber.schedule.autoIntervalHint', "Boshlanish va tugash vaqtidan slotlar generatsiya")),
             onTap: () => Navigator.of(sheetCtx).pop('generator'),
           ),
           ListTile(
             leading: const Icon(Icons.add, color: AppColors.primary),
-            title: const Text("Bitta slot qo'shish"),
-            subtitle: const Text("Aniq bir HH:MM vaqtni qo'shish"),
+            title: Text(tr(ref, 'mobile.barber.schedule.singleSlot', "Bitta slot qo'shish")),
+            subtitle: Text(tr(ref, 'mobile.barber.schedule.singleSlotHint', "Aniq bir HH:MM vaqtni qo'shish")),
             onTap: () => Navigator.of(sheetCtx).pop('single'),
           ),
           const SizedBox(height: 12),
@@ -361,7 +367,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
             .saveDaySchedule(barberId: barberId, date: dateStr, slots: updated);
         _refreshDay(barberId);
       } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     } else if (choice == 'generator') {
       if (mounted) context.push('/barber/schedule-generator');
@@ -524,7 +530,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                 child: Center(child: CircularProgressIndicator())),
             error: (e, _) => Padding(
               padding: const EdgeInsets.all(20),
-              child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+              child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
             ),
             data: (slots) {
               if (slots.isEmpty) {
@@ -541,10 +547,16 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                   Expanded(
                     child: Wrap(
                       spacing: 10,
-                      children: const [
-                        _LegendDot(color: Color(0xFF22C55E), label: "Bo'sh"),
-                        _LegendDot(color: Color(0xFF3B82F6), label: "Band"),
-                        _LegendDot(color: Color(0xFFEF4444), label: "Bloklangan"),
+                      children: [
+                        _LegendDot(
+                            color: const Color(0xFF22C55E),
+                            label: tr(ref, 'mobile.barber.schedule.legendFree', "Bo'sh")),
+                        _LegendDot(
+                            color: const Color(0xFF3B82F6),
+                            label: tr(ref, 'mobile.barber.schedule.legendBooked', "Band")),
+                        _LegendDot(
+                            color: const Color(0xFFEF4444),
+                            label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
                       ],
                     ),
                   ),
@@ -552,11 +564,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                     onTap: () => _openAddSchedule(barberId),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: const [
-                        Icon(Icons.add, size: 14, color: AppColors.primary),
-                        SizedBox(width: 2),
-                        Text("Qo'shish",
-                            style: TextStyle(
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.add, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 2),
+                        Text(tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
+                            style: const TextStyle(
                                 color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
                       ]),
                     ),
@@ -607,7 +619,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                           if (status == 'booked')
                             Positioned(
                               top: 2, right: 4,
-                              child: Text("BAND",
+                              child: Text(
+                                  tr(ref, 'mobile.barber.schedule.legendBooked', "Band").toUpperCase(),
                                   style: TextStyle(
                                       fontSize: 8, fontWeight: FontWeight.w800, color: color)),
                             ),
@@ -635,8 +648,9 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
         status == PermissionStatus.limited;
     if (!hasPerm) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Kontaktlarga ruxsat berilmadi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'mobile.barber.schedule.contactsDenied',
+                "Kontaktlarga ruxsat berilmadi"))));
       }
       return null;
     }
@@ -650,8 +664,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       return _PickedContact(name: name, phone: phone);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Kontaktni o'qib bo'lmadi: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'mobile.barber.schedule.contactReadError', "Kontaktni o'qib bo'lmadi")}: $e")));
       }
       return null;
     }
@@ -664,11 +678,11 @@ class _PickedContact {
   final String phone;
 }
 
-class _EmptyState extends StatelessWidget {
+class _EmptyState extends ConsumerWidget {
   const _EmptyState({required this.onAdd});
   final VoidCallback onAdd;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -679,17 +693,17 @@ class _EmptyState extends StatelessWidget {
       child: Column(children: [
         const Icon(Icons.access_time, color: AppColors.textMuted, size: 40),
         const SizedBox(height: 8),
-        const Text("Jadval yo'q",
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textBright)),
+        Text(tr(ref, 'mobile.barber.schedule.empty', "Jadval yo'q"),
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textBright)),
         const SizedBox(height: 4),
-        const Text("Ish vaqtingizni belgilang",
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+        Text(tr(ref, 'mobile.barber.schedule.emptyHint', "Ish vaqtingizni belgilang"),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             icon: const Icon(Icons.add, size: 16),
-            label: const Text("Jadval qo'shish"),
+            label: Text(tr(ref, 'mobile.barber.schedule.addSchedule', "Jadval qo'shish")),
             onPressed: onAdd,
           ),
         ),
