@@ -1124,7 +1124,8 @@
     "days07": "0-7 days",
     "days820": "8-20 days",
     "days2160": "21-60 days",
-    "days60plus": "60+ days"
+    "days60plus": "60+ days",
+    "bookingsShort": "visits"
   },
   "lopePay": {
     "admin": {

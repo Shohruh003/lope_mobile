@@ -1125,7 +1125,8 @@
     "days07": "0-7 кун",
     "days820": "8-20 кун",
     "days2160": "21-60 кун",
-    "days60plus": "60+ кун"
+    "days60plus": "60+ кун",
+    "bookingsShort": "брон"
   },
   "lopePay": {
     "admin": {

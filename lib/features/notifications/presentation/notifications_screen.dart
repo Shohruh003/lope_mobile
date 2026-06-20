@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -92,10 +93,11 @@ class NotificationsScreen extends ConsumerWidget {
                           fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz",
+                    Text(
+                      tr(ref, 'barberApp.noNotificationsHint',
+                          "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz"),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                     ),
                   ],
                 ),
@@ -104,7 +106,8 @@ class NotificationsScreen extends ConsumerWidget {
           }
 
           // ----- Group by date label -----
-          final groups = _groupByDate(list);
+          final locale = ref.watch(localeProvider).asData?.value.locale ?? 'uz';
+          final groups = _groupByDate(list, ref, locale);
 
           return RefreshIndicator(
             color: AppColors.primary,
@@ -167,12 +170,35 @@ class _Group {
   final List<AppNotification> items;
 }
 
-List<_Group> _groupByDate(List<AppNotification> list) {
+List<_Group> _groupByDate(
+    List<AppNotification> list, WidgetRef ref, String locale) {
   final today = DateTime.now();
   final t0 = DateTime(today.year, today.month, today.day);
   final y0 = t0.subtract(const Duration(days: 1));
-  final months = ["yanvar","fevral","mart","aprel","may","iyun",
-                  "iyul","avgust","sentabr","oktabr","noyabr","dekabr"];
+
+  // Locale-aware month names so the "DD month" header reads naturally in
+  // every supported language. Falls back to Uzbek if locale is unknown.
+  const monthsByLocale = <String, List<String>>{
+    'uz': [
+      "yanvar","fevral","mart","aprel","may","iyun",
+      "iyul","avgust","sentabr","oktabr","noyabr","dekabr"
+    ],
+    'uz_cyr': [
+      "январ","феврал","март","апрел","май","июн",
+      "июл","август","сентябр","октябр","ноябр","декабр"
+    ],
+    'ru': [
+      "января","февраля","марта","апреля","мая","июня",
+      "июля","августа","сентября","октября","ноября","декабря"
+    ],
+    'en': [
+      "Jan","Feb","Mar","Apr","May","Jun",
+      "Jul","Aug","Sep","Oct","Nov","Dec"
+    ],
+  };
+  final months = monthsByLocale[locale] ?? monthsByLocale['uz']!;
+  final todayLabel = tr(ref, 'barberApp.today', 'Bugun');
+  final yesterdayLabel = tr(ref, 'barberApp.yesterday', 'Kecha');
 
   final byLabel = <String, List<AppNotification>>{};
   final order = <String>[];
@@ -182,11 +208,13 @@ List<_Group> _groupByDate(List<AppNotification> list) {
     final d0 = DateTime(d.year, d.month, d.day);
     final String label;
     if (d0 == t0) {
-      label = 'Bugun';
+      label = todayLabel;
     } else if (d0 == y0) {
-      label = 'Kecha';
+      label = yesterdayLabel;
+    } else if (locale == 'en') {
+      label = '${months[d.month - 1]} ${d.day}';
     } else {
-      label = '${d.day}-${months[d.month - 1]}';
+      label = '${d.day} ${months[d.month - 1]}';
     }
     final bucket = byLabel.putIfAbsent(label, () {
       order.add(label);

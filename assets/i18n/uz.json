@@ -1125,7 +1125,8 @@
     "days07": "0-7 kun",
     "days820": "8-20 kun",
     "days2160": "21-60 kun",
-    "days60plus": "60+ kun"
+    "days60plus": "60+ kun",
+    "bookingsShort": "bron"
   },
   "lopePay": {
     "admin": {

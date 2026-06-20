@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_clients_repository.dart';
@@ -29,10 +30,10 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
     final async = ref.watch(barberClientsProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Mijozlarim")),
+      appBar: AppBar(title: Text(tr(ref, 'barberMyClients.title', "Mijozlarim"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           final now = DateTime.now();
           final filtered = list.where((c) {
@@ -64,9 +65,9 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                 child: TextField(
                   onChanged: (v) => setState(() => _query = v),
                   style: const TextStyle(color: AppColors.textBright),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search, color: AppColors.textMuted, size: 22),
-                    hintText: "Ism yoki telefon",
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 22),
+                    hintText: tr(ref, 'barberMyClients.searchPlaceholder', "Ism yoki telefon"),
                     isDense: true,
                   ),
                 ),
@@ -78,23 +79,23 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
-                    _Chip(label: "Hammasi", on: _bucket == 'all', onTap: () => setState(() => _bucket = 'all')),
-                    _Chip(label: "0-7 kun", on: _bucket == '0-7', onTap: () => setState(() => _bucket = '0-7')),
-                    _Chip(label: "8-20 kun", on: _bucket == '8-20', onTap: () => setState(() => _bucket = '8-20')),
-                    _Chip(label: "21-60 kun", on: _bucket == '21-60', onTap: () => setState(() => _bucket = '21-60')),
-                    _Chip(label: "60+ kun", on: _bucket == '60+', onTap: () => setState(() => _bucket = '60+')),
+                    _Chip(label: tr(ref, 'common.all', "Hammasi"), on: _bucket == 'all', onTap: () => setState(() => _bucket = 'all')),
+                    _Chip(label: tr(ref, 'barberMyClients.days07', "0-7 kun"), on: _bucket == '0-7', onTap: () => setState(() => _bucket = '0-7')),
+                    _Chip(label: tr(ref, 'barberMyClients.days820', "8-20 kun"), on: _bucket == '8-20', onTap: () => setState(() => _bucket = '8-20')),
+                    _Chip(label: tr(ref, 'barberMyClients.days2160', "21-60 kun"), on: _bucket == '21-60', onTap: () => setState(() => _bucket = '21-60')),
+                    _Chip(label: tr(ref, 'barberMyClients.days60plus', "60+ kun"), on: _bucket == '60+', onTap: () => setState(() => _bucket = '60+')),
                   ],
                 ),
               ),
               const SizedBox(height: 6),
 
               if (filtered.isEmpty)
-                const Expanded(
+                Expanded(
                   child: Center(
                     child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Text("Filterga mos mijoz topilmadi",
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
+                      padding: const EdgeInsets.all(32),
+                      child: Text(tr(ref, 'common.noResults', "Filterga mos mijoz topilmadi"),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
                     ),
                   ),
                 )
@@ -146,7 +147,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                                         color: AppColors.success.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
-                                      child: Text("${c.bookingsCount} bron",
+                                      child: Text("${c.bookingsCount} ${tr(ref, 'barberMyClients.bookingsShort', 'bron')}",
                                           style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w700, fontSize: 10)),
                                     ),
                                     if (c.lastVisit != null) ...[
@@ -156,7 +157,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                                     ],
                                     if (c.totalSpent > 0) ...[
                                       const SizedBox(width: 6),
-                                      Text("• ${_fmt(c.totalSpent)} so'm",
+                                      Text("• ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
                                           style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w700, fontSize: 10)),
                                     ],
                                   ]),

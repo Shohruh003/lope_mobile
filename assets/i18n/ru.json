@@ -1132,7 +1132,8 @@
     "days07": "0-7 дн.",
     "days820": "8-20 дн.",
     "days2160": "21-60 дн.",
-    "days60plus": "60+ дн."
+    "days60plus": "60+ дн.",
+    "bookingsShort": "брон."
   },
   "lopePay": {
     "admin": {
