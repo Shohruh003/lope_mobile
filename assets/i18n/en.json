@@ -201,6 +201,16 @@
     "aiRefund": "AI generation failed — refunded",
     "totalCount": "Total: {{count}}"
   },
+  "myBookings": {
+    "title": "Bookings",
+    "empty": "No bookings",
+    "emptyHint": "Pick a barber and book a slot",
+    "complete": "Complete",
+    "cancel": "Cancel",
+    "statusConfirmed": "Confirmed",
+    "statusCompleted": "Completed",
+    "statusCancelled": "Cancelled"
+  },
   "profile": {
     "title": "My Profile",
     "myBookings": "My Bookings",

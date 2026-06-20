@@ -201,6 +201,16 @@
     "aiRefund": "AI генерация хатолик — қайтарилди",
     "totalCount": "Жами: {{count}} та"
   },
+  "myBookings": {
+    "title": "Бронлар",
+    "empty": "Брон йўқ",
+    "emptyHint": "Сартарошингизни танлаб, брон қилинг",
+    "complete": "Якунлаш",
+    "cancel": "Бекор қилиш",
+    "statusConfirmed": "Тасдиқланган",
+    "statusCompleted": "Якунланган",
+    "statusCancelled": "Бекор қилинган"
+  },
   "profile": {
     "title": "Менинг профилим",
     "myBookings": "Буюртмаларим",

@@ -201,6 +201,16 @@
     "aiRefund": "AI generatsiya xatolik — qaytarildi",
     "totalCount": "Jami: {{count}} ta"
   },
+  "myBookings": {
+    "title": "Bronlar",
+    "empty": "Bron yo'q",
+    "emptyHint": "Sartaroshingizni tanlab, bron qiling",
+    "complete": "Yakunlash",
+    "cancel": "Bekor qilish",
+    "statusConfirmed": "Tasdiqlangan",
+    "statusCompleted": "Yakunlangan",
+    "statusCancelled": "Bekor qilingan"
+  },
   "profile": {
     "title": "Mening profilim",
     "myBookings": "Buyurtmalarim",

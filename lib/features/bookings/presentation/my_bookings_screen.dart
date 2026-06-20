@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/booking_repository.dart';
 import '../domain/booking.dart';
@@ -34,8 +35,8 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              const Text("Bronlar",
-                  style: TextStyle(
+              Text(tr(ref, 'myBookings.title', "Bronlar"),
+                  style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textBright)),
@@ -47,7 +48,7 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
                     child: Center(child: CircularProgressIndicator())),
                 error: (e, _) => Padding(
                   padding: const EdgeInsets.all(20),
-                  child: Text("Xato: $e",
+                  child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
                       style: const TextStyle(color: AppColors.textMuted)),
                 ),
                 data: (list) {
@@ -56,7 +57,11 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
                   final cancelled = list.where((b) => b.status == 'cancelled').toList();
 
                   final tabsCounts = [upcoming.length, past.length, cancelled.length];
-                  final tabsLabels = ["Kelayotgan", "O'tgan", "Bekor"];
+                  final tabsLabels = [
+                    tr(ref, 'profile.upcoming', "Kelayotgan"),
+                    tr(ref, 'profile.past', "O'tgan"),
+                    tr(ref, 'profile.cancelled', "Bekor"),
+                  ];
                   final visible = _tab == 0 ? upcoming : (_tab == 1 ? past : cancelled);
 
                   return Column(children: [
@@ -113,14 +118,15 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
                                 color: AppColors.primary, size: 28),
                           ),
                           const SizedBox(height: 12),
-                          const Text("Bron yo'q",
-                              style: TextStyle(
+                          Text(tr(ref, 'myBookings.empty', "Bron yo'q"),
+                              style: const TextStyle(
                                   color: AppColors.textBright,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
-                          const Text("Sartaroshingizni tanlab, bron qiling",
-                              style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          Text(tr(ref, 'myBookings.emptyHint',
+                              "Sartaroshingizni tanlab, bron qiling"),
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                         ]),
                       )
                     else
@@ -143,7 +149,7 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
   }
 }
 
-class _BookingCard extends StatelessWidget {
+class _BookingCard extends ConsumerWidget {
   const _BookingCard({required this.b});
   final Booking b;
 
@@ -158,19 +164,19 @@ class _BookingCard extends StatelessWidget {
     }
   }
 
-  String get _statusText {
+  String _statusText(WidgetRef ref) {
     switch (b.status) {
       case 'completed':
-        return 'Yakunlangan';
+        return tr(ref, 'myBookings.statusCompleted', 'Yakunlangan');
       case 'cancelled':
-        return 'Bekor qilingan';
+        return tr(ref, 'myBookings.statusCancelled', 'Bekor qilingan');
       default:
-        return 'Tasdiqlangan';
+        return tr(ref, 'myBookings.statusConfirmed', 'Tasdiqlangan');
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -213,7 +219,7 @@ class _BookingCard extends StatelessWidget {
                       color: _statusColor.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text(_statusText,
+                    child: Text(_statusText(ref),
                         style: TextStyle(
                             color: _statusColor,
                             fontSize: 10,
@@ -241,7 +247,7 @@ class _BookingCard extends StatelessWidget {
                       style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                   const Spacer(),
                   if (b.totalPrice > 0)
-                    Text("${_fmt(b.totalPrice)} so'm",
+                    Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
                         style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -254,8 +260,8 @@ class _BookingCard extends StatelessWidget {
                       height: 32,
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.check_circle_outline, size: 12),
-                        label: const Text("Yakunlash",
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                        label: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           shape: RoundedRectangleBorder(
@@ -269,8 +275,8 @@ class _BookingCard extends StatelessWidget {
                       height: 32,
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.close, size: 12, color: AppColors.danger),
-                        label: const Text("Bekor qilish",
-                            style: TextStyle(
+                        label: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
+                            style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.danger,
                                 fontWeight: FontWeight.w600)),

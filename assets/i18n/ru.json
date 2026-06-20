@@ -201,6 +201,16 @@
     "aiRefund": "Ошибка AI — возврат",
     "totalCount": "Всего: {{count}}"
   },
+  "myBookings": {
+    "title": "Записи",
+    "empty": "Нет записей",
+    "emptyHint": "Выберите барбера и забронируйте время",
+    "complete": "Завершить",
+    "cancel": "Отменить",
+    "statusConfirmed": "Подтверждена",
+    "statusCompleted": "Завершена",
+    "statusCancelled": "Отменена"
+  },
   "profile": {
     "title": "Мой профиль",
     "myBookings": "Мои записи",
