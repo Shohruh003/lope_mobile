@@ -182,7 +182,15 @@
     "genderRequired": "Please set your gender in your profile first",
     "noServicesTitle": "This barber hasn't listed services yet",
     "noServicesHint": "You'll agree the service and price with the barber on site. Duration: {{minutes}} minutes.",
-    "agreedOnSite": "Agreed with barber"
+    "agreedOnSite": "Agreed with barber",
+    "accountNeeded": "Account required",
+    "accountNeededHint": "To book a slot, please register or sign in first.",
+    "femaleOnlyTitle": "Female clients only",
+    "maleOnlyTitle": "Male clients only",
+    "femaleOnlyMsg": "This barber serves female clients only. Continue?",
+    "maleOnlyMsg": "This barber serves male clients only. Continue?",
+    "barberAwaits": "{{name}} is waiting for you",
+    "myBookings": "My bookings"
   },
   "myTransactions": {
     "title": "Transaction history",

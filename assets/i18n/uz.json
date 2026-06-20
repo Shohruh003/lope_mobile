@@ -182,7 +182,15 @@
     "genderRequired": "Avval profilingizda jinsni belgilang",
     "noServicesTitle": "Bu sartarosh xizmatlar ro'yxatini kiritmagan",
     "noServicesHint": "Tashrif paytida xizmat va narxni sartarosh bilan kelishasiz. Davomiyligi {{minutes}} daqiqa.",
-    "agreedOnSite": "Sartarosh bilan kelishasiz"
+    "agreedOnSite": "Sartarosh bilan kelishasiz",
+    "accountNeeded": "Akkaunt kerak",
+    "accountNeededHint": "Bron qilish uchun avval ro'yxatdan o'ting yoki tizimga kiring.",
+    "femaleOnlyTitle": "Faqat ayollar uchun",
+    "maleOnlyTitle": "Faqat erkaklar uchun",
+    "femaleOnlyMsg": "Bu sartarosh faqat ayol mijozlarni qabul qiladi. Davom etishni xohlaysizmi?",
+    "maleOnlyMsg": "Bu sartarosh faqat erkak mijozlarni qabul qiladi. Davom etishni xohlaysizmi?",
+    "barberAwaits": "{{name}} sizni kutadi",
+    "myBookings": "Mening bronlarim"
   },
   "myTransactions": {
     "title": "Tranzaksiya tarixi",

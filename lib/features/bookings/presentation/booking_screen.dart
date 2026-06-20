@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -88,8 +89,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 20),
                     onPressed: () => context.pop(),
                   ),
-                  const Text("Bron qilish",
-                      style: TextStyle(
+                  Text(tr(ref, 'booking.title', "Bron qilish"),
+                      style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                           color: AppColors.textBright)),
@@ -122,29 +123,29 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   Widget _stepServices(Barber barber) {
     final hasNoServices = barber.services.isEmpty;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Text("Xizmatlarni tanlang",
-          style: TextStyle(
+      Text(tr(ref, 'booking.selectService', "Xizmatlarni tanlang"),
+          style: const TextStyle(
               fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
       const SizedBox(height: 14),
 
       if (hasNoServices)
         ShadCard(
           padding: const EdgeInsets.all(14),
-          child: Row(children: const [
-            Icon(Icons.info_outline, color: AppColors.primary, size: 20),
-            SizedBox(width: 10),
+          child: Row(children: [
+            const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Xizmatlar belgilanmagan",
-                      style: TextStyle(
+                  Text(tr(ref, 'booking.noServicesTitle', "Xizmatlar belgilanmagan"),
+                      style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppColors.textBright,
                           fontSize: 13)),
-                  SizedBox(height: 2),
-                  Text("Narx va xizmat tashrif paytida kelishiladi",
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                  const SizedBox(height: 2),
+                  Text(tr(ref, 'booking.agreedOnSite', "Sartarosh bilan kelishasiz"),
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 ],
               ),
             ),
@@ -186,13 +187,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
                                 color: AppColors.textBright)),
-                        Text("${s.duration} daq",
+                        Text("${s.duration} ${tr(ref, 'booking.duration', 'daq')}",
                             style: const TextStyle(
                                 color: AppColors.textMuted, fontSize: 11)),
                       ],
                     ),
                   ),
-                  Text("${_fmt(s.price)} so'm",
+                  Text("${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                       style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
@@ -224,7 +225,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           onPressed: (!hasNoServices && _selectedServiceIds.isEmpty)
               ? null
               : () => setState(() => _step = 2),
-          child: const Text("Davom etish"),
+          child: Text(tr(ref, 'common.continue', "Davom etish")),
         ),
       ),
     ]);
@@ -242,11 +243,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       // Date pick
-      const Row(children: [
-        Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textBright),
-        SizedBox(width: 6),
-        Text("Sanani tanlang",
-            style: TextStyle(
+      Row(children: [
+        const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textBright),
+        const SizedBox(width: 6),
+        Text(tr(ref, 'booking.selectDate', "Sanani tanlang"),
+            style: const TextStyle(
                 fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
       ]),
       const SizedBox(height: 10),
@@ -317,11 +318,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
       // Time grid (only if date selected)
       if (_selectedDate != null) ...[
-        const Row(children: [
-          Icon(Icons.access_time, size: 18, color: AppColors.textBright),
-          SizedBox(width: 6),
-          Text("Vaqtni tanlang",
-              style: TextStyle(
+        Row(children: [
+          const Icon(Icons.access_time, size: 18, color: AppColors.textBright),
+          const SizedBox(width: 6),
+          Text(tr(ref, 'booking.selectTime', "Vaqtni tanlang"),
+              style: const TextStyle(
                   fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
         ]),
         const SizedBox(height: 10),
@@ -330,14 +331,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Center(child: CircularProgressIndicator())),
-              error: (e, _) => Text("Xato: $e",
+              error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
                   style: const TextStyle(color: AppColors.textMuted)),
               data: (slots) {
                 if (slots.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Text("Bu kunda bo'sh vaqt yo'q",
-                        style: TextStyle(color: AppColors.textMuted)),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(tr(ref, 'common.noSlots', "Bu kunda bo'sh vaqt yo'q"),
+                        style: const TextStyle(color: AppColors.textMuted)),
                   );
                 }
                 final booked = bookedAsync?.maybeWhen(
@@ -418,7 +419,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             height: 44,
             child: OutlinedButton(
               onPressed: () => setState(() => _step = 1),
-              child: const Text("Orqaga"),
+              child: Text(tr(ref, 'common.back', "Orqaga")),
             ),
           ),
         ),
@@ -429,7 +430,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             child: ElevatedButton(
               onPressed:
                   (_selectedDate == null || _selectedTime == null) ? null : () => setState(() => _step = 3),
-              child: const Text("Davom etish"),
+              child: Text(tr(ref, 'common.continue', "Davom etish")),
             ),
           ),
         ),
@@ -446,11 +447,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     final hasNoServices = barber.services.isEmpty;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Row(children: [
-        Icon(Icons.credit_card_outlined, size: 18, color: AppColors.textBright),
-        SizedBox(width: 6),
-        Text("Bronni tasdiqlash",
-            style: TextStyle(
+      Row(children: [
+        const Icon(Icons.credit_card_outlined, size: 18, color: AppColors.textBright),
+        const SizedBox(width: 6),
+        Text(tr(ref, 'booking.confirmBooking', "Bronni tasdiqlash"),
+            style: const TextStyle(
                 fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
       ]),
       const SizedBox(height: 14),
@@ -499,37 +500,43 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
           // Services
           if (hasNoServices)
-            const _SummaryRow(label: "Xizmat", value: "Joyida kelishiladi")
+            _SummaryRow(
+                label: tr(ref, 'booking.service', "Xizmat"),
+                value: tr(ref, 'booking.agreedOnSite', "Sartarosh bilan kelishasiz"))
           else
             ...selectedServices.map((s) => Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: _SummaryRow(
                     label: "${s.icon} ${s.name}",
-                    value: "${_fmt(s.price)} so'm",
+                    value: "${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                   ),
                 )),
           const Divider(color: AppColors.border, height: 18),
 
-          _SummaryRow(label: "Sana", value: _dateStr(_selectedDate!)),
+          _SummaryRow(
+              label: tr(ref, 'booking.date', "Sana"),
+              value: _dateStr(_selectedDate!)),
           const SizedBox(height: 6),
           _SummaryRow(
-            label: "Vaqt",
+            label: tr(ref, 'booking.time', "Vaqt"),
             value: hasNoServices
                 ? (_selectedTime ?? '')
-                : "${_selectedTime ?? ''} ($totalDuration daq)",
+                : "${_selectedTime ?? ''} ($totalDuration ${tr(ref, 'booking.duration', 'daq')})",
           ),
 
           const Divider(color: AppColors.border, height: 18),
 
           Row(children: [
-            const Text("Narx",
-                style: TextStyle(
+            Text(tr(ref, 'booking.price', "Narx"),
+                style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textBright)),
             const Spacer(),
             Text(
-              hasNoServices ? "Joyida kelishiladi" : "${_fmt(totalPrice)} so'm",
+              hasNoServices
+                  ? tr(ref, 'booking.agreedOnSite', "Sartarosh bilan kelishasiz")
+                  : "${_fmt(totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
               style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -542,11 +549,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       const SizedBox(height: 14),
 
       // Notes
-      const ShadLabel("Izoh"),
+      ShadLabel(tr(ref, 'booking.notes', "Izoh")),
       const SizedBox(height: 6),
       TextField(
         onChanged: (v) => _notes = v,
-        decoration: const InputDecoration(hintText: "Qo'shimcha ma'lumot (ixtiyoriy)"),
+        decoration: InputDecoration(
+            hintText: tr(ref, 'booking.notesPlaceholder',
+                "Qo'shimcha ma'lumot (ixtiyoriy)")),
       ),
 
       const SizedBox(height: 14),
@@ -556,7 +565,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             height: 44,
             child: OutlinedButton(
               onPressed: () => setState(() => _step = 2),
-              child: const Text("Orqaga"),
+              child: Text(tr(ref, 'common.back', "Orqaga")),
             ),
           ),
         ),
@@ -571,7 +580,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       width: 18, height: 18,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
-                  : const Text("Tasdiqlash"),
+                  : Text(tr(ref, 'common.confirm', "Tasdiqlash")),
             ),
           ),
         ),
@@ -588,23 +597,23 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       barrierDismissible: false,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: const Text("Akkaunt kerak"),
-        content: const Text(
-            "Bron qilish uchun avval ro'yxatdan o'ting yoki tizimga kiring."),
+        title: Text(tr(ref, 'booking.accountNeeded', "Akkaunt kerak")),
+        content: Text(tr(ref, 'booking.accountNeededHint',
+            "Bron qilish uchun avval ro'yxatdan o'ting yoki tizimga kiring.")),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(dCtx).pop();
               if (mounted) context.pop();
             },
-            child: const Text("Bekor"),
+            child: Text(tr(ref, 'common.cancel', "Bekor")),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(dCtx).pop();
               if (mounted) context.go('/login');
             },
-            child: const Text("Kirish"),
+            child: Text(tr(ref, 'auth.login', "Kirish")),
           ),
         ],
       ),
@@ -630,18 +639,20 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         builder: (dCtx) => AlertDialog(
           backgroundColor: AppColors.background,
           title: Text(needFemale
-              ? "Faqat ayollar uchun"
-              : "Faqat erkaklar uchun"),
+              ? tr(ref, 'booking.femaleOnlyTitle', "Faqat ayollar uchun")
+              : tr(ref, 'booking.maleOnlyTitle', "Faqat erkaklar uchun")),
           content: Text(needFemale
-              ? "Bu sartarosh faqat ayol mijozlarni qabul qiladi. Davom etishni xohlaysizmi?"
-              : "Bu sartarosh faqat erkak mijozlarni qabul qiladi. Davom etishni xohlaysizmi?"),
+              ? tr(ref, 'booking.femaleOnlyMsg',
+                  "Bu sartarosh faqat ayol mijozlarni qabul qiladi. Davom etishni xohlaysizmi?")
+              : tr(ref, 'booking.maleOnlyMsg',
+                  "Bu sartarosh faqat erkak mijozlarni qabul qiladi. Davom etishni xohlaysizmi?")),
           actions: [
             TextButton(
                 onPressed: () => Navigator.of(dCtx).pop(false),
-                child: const Text("Bekor")),
+                child: Text(tr(ref, 'common.cancel', "Bekor"))),
             TextButton(
               onPressed: () => Navigator.of(dCtx).pop(true),
-              child: const Text("Davom"),
+              child: Text(tr(ref, 'common.continue', "Davom")),
             ),
           ],
         ),
@@ -677,7 +688,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       if (mounted) setState(() => _confirmed = true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -751,11 +763,11 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-class _ConfirmedView extends StatelessWidget {
+class _ConfirmedView extends ConsumerWidget {
   const _ConfirmedView({required this.barber});
   final Barber barber;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
       child: Column(children: [
@@ -771,20 +783,21 @@ class _ConfirmedView extends StatelessWidget {
             duration: 400.ms,
             curve: Curves.easeOutBack),
         const SizedBox(height: 14),
-        const Text("Bron tasdiqlandi",
-            style: TextStyle(
+        Text(tr(ref, 'booking.bookingConfirmed', "Bron tasdiqlandi"),
+            style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textBright)),
         const SizedBox(height: 4),
-        Text("${barber.name} sizni kutadi",
+        Text(tr(ref, 'booking.barberAwaits', "{{name}} sizni kutadi",
+                {'name': barber.name}),
             style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
         const SizedBox(height: 22),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () => context.go('/home'),
-            child: const Text("Mening bronlarim"),
+            child: Text(tr(ref, 'booking.myBookings', "Mening bronlarim")),
           ),
         ),
       ]),
