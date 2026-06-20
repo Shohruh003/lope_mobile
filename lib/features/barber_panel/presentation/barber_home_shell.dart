@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../lopepay/presentation/low_balance_modal.dart';
@@ -42,22 +43,31 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
     BarberSettingsScreen(),
   ];
 
-  static const _items = [
-    _Item(icon: Icons.calendar_today, label: 'Jadval'),
-    _Item(icon: Icons.people_outline, label: 'Mijozlar'),
-    _Item(icon: Icons.auto_awesome, label: 'AI Stil'),
-    _Item(icon: Icons.bar_chart, label: 'Statistika'),
-    _Item(icon: Icons.person_outline, label: 'Profil'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final items = [
+      _Item(
+          icon: Icons.calendar_today,
+          label: tr(ref, 'mobile.barber.home.schedule', 'Jadval')),
+      _Item(
+          icon: Icons.people_outline,
+          label: tr(ref, 'shop.nav.clients', 'Mijozlar')),
+      _Item(
+          icon: Icons.auto_awesome,
+          label: tr(ref, 'mobile.tabs.aiStyle', 'AI Stil')),
+      _Item(
+          icon: Icons.bar_chart,
+          label: tr(ref, 'mobile.barber.home.stats', 'Statistika')),
+      _Item(
+          icon: Icons.person_outline,
+          label: tr(ref, 'mobile.tabs.profile', 'Profil')),
+    ];
     return Scaffold(
       body: Column(children: [
         const _Header(),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
       ]),
-      bottomNavigationBar: _BottomBar(items: _items, index: _index, onSelect: (i) => setState(() => _index = i)),
+      bottomNavigationBar: _BottomBar(items: items, index: _index, onSelect: (i) => setState(() => _index = i)),
     );
   }
 }

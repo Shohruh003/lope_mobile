@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import 'shop_barbers_screen.dart';
 import 'shop_bookings_screen.dart';
@@ -23,21 +24,28 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
     ShopBookingsScreen(),
     ShopSettingsScreen(),
   ];
-  static const _items = [
-    _Item(icon: Icons.dashboard_outlined, label: 'Boshqaruv'),
-    _Item(icon: Icons.people_alt_outlined, label: 'Mastera'),
-    _Item(icon: Icons.event_note_outlined, label: 'Bronlar'),
-    _Item(icon: Icons.person_outline, label: 'Profil'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final items = [
+      _Item(
+          icon: Icons.dashboard_outlined,
+          label: tr(ref, 'mobile.shop.home.dashboard', 'Boshqaruv')),
+      _Item(
+          icon: Icons.people_alt_outlined,
+          label: tr(ref, 'mobile.shop.home.masters', 'Mastera')),
+      _Item(
+          icon: Icons.event_note_outlined,
+          label: tr(ref, 'mobile.shop.home.bookings', 'Bronlar')),
+      _Item(
+          icon: Icons.person_outline,
+          label: tr(ref, 'mobile.tabs.profile', 'Profil')),
+    ];
     return Scaffold(
       body: Column(children: [
         const _Header(),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
       ]),
-      bottomNavigationBar: _BottomBar(items: _items, index: _index, onSelect: (i) => setState(() => _index = i)),
+      bottomNavigationBar: _BottomBar(items: items, index: _index, onSelect: (i) => setState(() => _index = i)),
     );
   }
 }

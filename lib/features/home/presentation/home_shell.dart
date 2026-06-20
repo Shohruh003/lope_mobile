@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
@@ -30,15 +31,22 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     ProfileScreen(),
   ];
 
-  static const _items = [
-    _Item(icon: Icons.content_cut, label: 'Sartaroshlar'),
-    _Item(icon: Icons.auto_awesome, label: 'AI Stil'),
-    _Item(icon: Icons.calendar_today, label: 'Bronlar'),
-    _Item(icon: Icons.person_outline, label: 'Profil'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final items = [
+      _Item(
+          icon: Icons.content_cut,
+          label: tr(ref, 'mobile.tabs.discover', 'Sartaroshlar')),
+      _Item(
+          icon: Icons.auto_awesome,
+          label: tr(ref, 'mobile.tabs.aiStyle', 'AI Stil')),
+      _Item(
+          icon: Icons.calendar_today,
+          label: tr(ref, 'mobile.tabs.bookings', 'Bronlar')),
+      _Item(
+          icon: Icons.person_outline,
+          label: tr(ref, 'mobile.tabs.profile', 'Profil')),
+    ];
     return Scaffold(
       body: Column(
         children: [
@@ -47,7 +55,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ],
       ),
       bottomNavigationBar: _BottomTabBar(
-        items: _items,
+        items: items,
         index: _index,
         onSelect: (i) => setState(() => _index = i),
       ),
@@ -87,7 +95,7 @@ class _CustomerHeader extends ConsumerWidget {
           ),
           const Spacer(),
           IconButton(
-            tooltip: 'Bildirishnomalar',
+            tooltip: tr(ref, 'barberApp.notifications', 'Bildirishnomalar'),
             visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.notifications_outlined,
                 color: AppColors.textPrimary, size: 22),
