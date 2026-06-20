@@ -1411,6 +1411,14 @@
       "bookings": {
         "searchPlaceholder": "Имя или телефон клиента"
       },
+      "account": {
+        "phoneReadOnly": "Телефон (не редактируется)",
+        "currentPassword": "Текущий пароль"
+      },
+      "location": {
+        "invalidLatLng": "Неверные Lat/Lng",
+        "copied": "Скопировано"
+      },
       "stats": {
         "title": "Статистика",
         "week": "Эта неделя",

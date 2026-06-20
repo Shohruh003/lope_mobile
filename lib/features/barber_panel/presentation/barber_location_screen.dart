@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -41,8 +42,8 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
     final lat = double.tryParse(_latCtrl.text.trim());
     final lng = double.tryParse(_lngCtrl.text.trim());
     if (lat == null || lng == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Lat/Lng noto'g'ri")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'mobile.barber.location.invalidLatLng', "Lat/Lng noto'g'ri"))));
       return;
     }
     setState(() => _saving = true);
@@ -59,12 +60,13 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
       ref.invalidate(barberProfileProvider(barberId));
       if (mounted) {
         setState(() => _editing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Saqlandi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'common.saved', "Saqlandi"))));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -86,8 +88,8 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
   Future<void> _copyAddress(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Nusxalandi")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'mobile.barber.location.copied', "Nusxalandi"))));
     }
   }
 
@@ -118,8 +120,8 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
               const SizedBox(width: 4),
               const Icon(Icons.location_on, color: AppColors.primary, size: 22),
               const SizedBox(width: 8),
-              const Text("Manzilim",
-                  style: TextStyle(
+              Text(tr(ref, 'barberApp.myLocation', "Manzilim"),
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textBright)),
@@ -130,7 +132,7 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
-                  child: Text("Xato: $e",
+                  child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
                       style: const TextStyle(color: AppColors.textMuted))),
               data: (b) {
                 if (!_seeded) {
@@ -222,7 +224,7 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
                               onPressed: _saving
                                   ? null
                                   : () => setState(() => _editing = false),
-                              child: const Text("Bekor"),
+                              child: Text(tr(ref, 'common.cancel', "Bekor")),
                             ),
                           ),
                         ),
@@ -237,7 +239,7 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
                                       width: 18, height: 18,
                                       child: CircularProgressIndicator(
                                           strokeWidth: 2, color: Colors.white))
-                                  : const Text("Saqlash"),
+                                  : Text(tr(ref, 'common.save', "Saqlash")),
                             ),
                           ),
                         ),
@@ -309,13 +311,13 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: AppColors.border),
                           ),
-                          child: const Column(
+                          child: Column(
                             children: [
-                              Icon(Icons.location_off,
+                              const Icon(Icons.location_off,
                                   size: 36, color: AppColors.textMuted),
-                              SizedBox(height: 8),
-                              Text("Manzil belgilanmagan",
-                                  style: TextStyle(
+                              const SizedBox(height: 8),
+                              Text(tr(ref, 'barbers.locationNotSet', "Manzil belgilanmagan"),
+                                  style: const TextStyle(
                                       color: AppColors.textMuted, fontSize: 13)),
                             ],
                           ),

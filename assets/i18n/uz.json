@@ -1404,6 +1404,14 @@
       "bookings": {
         "searchPlaceholder": "Mijoz nomi yoki telefon"
       },
+      "account": {
+        "phoneReadOnly": "Telefon (o'zgartirilmaydi)",
+        "currentPassword": "Joriy parol"
+      },
+      "location": {
+        "invalidLatLng": "Lat/Lng noto'g'ri",
+        "copied": "Nusxalandi"
+      },
       "stats": {
         "title": "Statistika",
         "week": "Bu hafta",

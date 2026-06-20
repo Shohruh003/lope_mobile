@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 
@@ -33,7 +34,7 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
   Future<void> _change() async {
     if (_newCtrl.text.length < 4) {
       setState(() {
-        _msg = "Yangi parol kamida 4 belgi bo'lishi kerak";
+        _msg = tr(ref, 'auth.shortPassword', "Parol kamida 4 belgi");
         _ok = false;
       });
       return;
@@ -48,14 +49,16 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
         'newPassword': _newCtrl.text,
       });
       setState(() {
-        _msg = "Parol yangilandi";
+        _msg = tr(ref, 'auth.passwordUpdated', "Parol yangilandi");
         _ok = true;
       });
       _currentCtrl.clear();
       _newCtrl.clear();
     } on DioException catch (e) {
-      String msg = "Xato — qaytadan urinib ko'ring";
-      if (e.response?.statusCode == 401) msg = "Joriy parol noto'g'ri";
+      String msg = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring");
+      if (e.response?.statusCode == 401) {
+        msg = tr(ref, 'backend.oldPasswordWrong', "Joriy parol noto'g'ri");
+      }
       setState(() {
         _msg = msg;
         _ok = false;
@@ -70,18 +73,18 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
     final user = ref.watch(authControllerProvider).user;
     if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(
-      appBar: AppBar(title: const Text("Akkaunt")),
+      appBar: AppBar(title: Text(tr(ref, 'barberApp.accountSettings', "Akkaunt sozlamalari"))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          _Label("Telefon (o'zgartirilmaydi)"),
+          _Label(tr(ref, 'mobile.barber.account.phoneReadOnly', "Telefon (o'zgartirilmaydi)")),
           const SizedBox(height: 6),
           TextField(
             controller: TextEditingController(text: user.phone),
             enabled: false,
           ),
           const SizedBox(height: 22),
-          _Label("Joriy parol"),
+          _Label(tr(ref, 'mobile.barber.account.currentPassword', "Joriy parol")),
           const SizedBox(height: 6),
           TextField(
             controller: _currentCtrl,
@@ -95,7 +98,7 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
             ),
           ),
           const SizedBox(height: 14),
-          _Label("Yangi parol"),
+          _Label(tr(ref, 'profile.newPassword', "Yangi parol")),
           const SizedBox(height: 6),
           TextField(
             controller: _newCtrl,
@@ -120,7 +123,7 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
               onPressed: _busy ? null : _change,
               child: _busy
                   ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text("Parolni yangilash"),
+                  : Text(tr(ref, 'auth.updatePassword', "Parolni yangilash")),
             ),
           ),
         ],

@@ -1403,6 +1403,14 @@
       "bookings": {
         "searchPlaceholder": "Client name or phone"
       },
+      "account": {
+        "phoneReadOnly": "Phone (read-only)",
+        "currentPassword": "Current password"
+      },
+      "location": {
+        "invalidLatLng": "Invalid lat/lng",
+        "copied": "Copied"
+      },
       "stats": {
         "title": "Stats",
         "week": "This week",

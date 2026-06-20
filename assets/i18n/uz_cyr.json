@@ -1404,6 +1404,14 @@
       "bookings": {
         "searchPlaceholder": "Мижоз номи ёки телефон"
       },
+      "account": {
+        "phoneReadOnly": "Телефон (ўзгартирилмайди)",
+        "currentPassword": "Жорий парол"
+      },
+      "location": {
+        "invalidLatLng": "Lat/Lng нотўғри",
+        "copied": "Нусхаланди"
+      },
       "stats": {
         "title": "Статистика",
         "week": "Бу ҳафта",
