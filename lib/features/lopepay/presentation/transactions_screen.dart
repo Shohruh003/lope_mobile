@@ -40,7 +40,7 @@ class TransactionsScreen extends ConsumerWidget {
                 height: 130, decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
                 child: const Center(child: CircularProgressIndicator()),
               ),
-              error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+              error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
               data: (b) => _BalanceCard(amount: b.amount, aiFree: b.aiFreeRemaining, userId: user.id),
             ),
             const SizedBox(height: 22),
@@ -50,7 +50,7 @@ class TransactionsScreen extends ConsumerWidget {
             history.when(
               loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator())),
-              error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+              error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
               data: (list) {
                 if (list.isEmpty) {
                   return Padding(
@@ -88,7 +88,7 @@ class TransactionsScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(p.description ?? _methodLabel(p.method),
+                                Text(p.description ?? _methodLabel(ref, p.method),
                                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                                 const SizedBox(height: 2),
                                 Text(_df.format(p.createdAt.toLocal()),
@@ -96,7 +96,7 @@ class TransactionsScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          Text("${inflow ? '+' : '−'}${_fmt(p.amount.abs())} so'm",
+                          Text("${inflow ? '+' : '−'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
                               style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   color: inflow ? AppColors.success : AppColors.danger)),
@@ -113,15 +113,15 @@ class TransactionsScreen extends ConsumerWidget {
     );
   }
 
-  String _methodLabel(String m) {
+  String _methodLabel(WidgetRef ref, String m) {
     switch (m) {
-      case 'click': return 'Click to\'lov';
-      case 'payme': return 'Payme to\'lov';
-      case 'telegram': return 'Telegram bonus';
-      case 'sms': return 'SMS xizmat';
-      case 'ai': return 'AI Stil';
-      case 'referral': return 'Referal bonus';
-      default: return 'Tranzaktsiya';
+      case 'click': return tr(ref, 'mobile.customer.transactions.methodClick', "Click to'lov");
+      case 'payme': return tr(ref, 'mobile.customer.transactions.methodPayme', "Payme to'lov");
+      case 'telegram': return tr(ref, 'mobile.customer.transactions.methodTelegram', 'Telegram bonus');
+      case 'sms': return tr(ref, 'mobile.customer.transactions.methodSms', 'SMS xizmat');
+      case 'ai': return tr(ref, 'mobile.customer.transactions.methodAi', 'AI Stil');
+      case 'referral': return tr(ref, 'mobile.customer.transactions.methodReferral', 'Referal bonus');
+      default: return tr(ref, 'mobile.customer.transactions.methodDefault', 'Tranzaktsiya');
     }
   }
 
@@ -176,7 +176,7 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
           Text(tr(ref, 'mobile.customer.transactions.balanceCurrent', "Joriy balans"),
               style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          Text("${_fmt(widget.amount)} so'm",
+          Text("${_fmt(widget.amount)} ${tr(ref, 'common.currency', "so'm")}",
               style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
           if (widget.aiFree != null) ...[
             const SizedBox(height: 8),

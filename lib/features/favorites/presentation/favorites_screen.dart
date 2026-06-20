@@ -18,7 +18,7 @@ class FavoritesScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(tr(ref, 'mobile.customer.favorites.title', "Sevimlilar"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (list) {
           if (list.isEmpty) {
             return Center(
