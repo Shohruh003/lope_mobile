@@ -1486,6 +1486,8 @@
         "hint": "Публичная ссылка на запись для клиентов. Делитесь в Telegram, SMS или соцсетях.",
         "slugMissing": "Public slug ещё не настроен. Активируйте в веб-версии.",
         "yourLink": "Ваша ссылка",
+        "copyShort": "Копия",
+        "open": "Открыть",
         "notifyTitle": "SMS при новой записи",
         "notifyHint": "При новой записи вам придёт SMS на телефон",
         "tgLabel": "Telegram bot username"

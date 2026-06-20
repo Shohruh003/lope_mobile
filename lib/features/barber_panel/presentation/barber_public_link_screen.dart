@@ -37,9 +37,9 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
         'telegramBotUsername': _tgController.text.trim(),
       });
       ref.invalidate(barberProfileProvider(barberId));
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -66,7 +66,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
       appBar: AppBar(title: Text(tr(ref, 'mobile.barber.publicLink.title', "Ommaviy havola"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (b) {
           if (!_seeded) {
             _seeded = true;
@@ -92,8 +92,10 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
                   ),
-                  child: const Text("Public slug hali sozlanmagan. Veb-versiyada faollashtiring.",
-                      style: TextStyle(color: AppColors.warning, fontSize: 13)),
+                  child: Text(
+                      tr(ref, 'mobile.barber.publicLink.slugMissing',
+                          "Public slug hali sozlanmagan. Veb-versiyada faollashtiring."),
+                      style: const TextStyle(color: AppColors.warning, fontSize: 13)),
                 )
               else
                 Container(
@@ -106,7 +108,8 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Sizning havolangiz", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                      Text(tr(ref, 'mobile.barber.publicLink.yourLink', "Sizning havolangiz"),
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                       const SizedBox(height: 8),
                       Text(link, style: const TextStyle(color: AppColors.primary, fontSize: 13)),
                       const SizedBox(height: 14),
@@ -114,11 +117,12 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                         Expanded(
                           child: OutlinedButton.icon(
                             icon: const Icon(Icons.copy, size: 18),
-                            label: const Text("Nusxa"),
+                            label: Text(tr(ref, 'mobile.barber.publicLink.copyShort', "Nusxa")),
                             onPressed: () async {
                               await Clipboard.setData(ClipboardData(text: link));
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nusxalandi")));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    content: Text(tr(ref, 'mobile.barber.location.copied', "Nusxalandi"))));
                               }
                             },
                           ),
@@ -127,7 +131,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                         Expanded(
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.open_in_new, size: 18),
-                            label: const Text("Ochish"),
+                            label: Text(tr(ref, 'mobile.barber.publicLink.open', "Ochish")),
                             onPressed: () => _openUrl(link),
                           ),
                         ),
@@ -144,14 +148,16 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                 value: _notifyBySms,
                 activeThumbColor: AppColors.primary,
                 onChanged: (v) => setState(() => _notifyBySms = v),
-                title: const Text("Bron qabul qilinganda SMS"),
-                subtitle: const Text("Yangi bron tushganda telefoningizga SMS keladi",
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                title: Text(tr(ref, 'mobile.barber.publicLink.notifyTitle', "Bron qabul qilinganda SMS")),
+                subtitle: Text(
+                    tr(ref, 'mobile.barber.publicLink.notifyHint',
+                        "Yangi bron tushganda telefoningizga SMS keladi"),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
               ),
 
               const SizedBox(height: 16),
-              const Text("Telegram bot username",
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              Text(tr(ref, 'mobile.barber.publicLink.tgLabel', "Telegram bot username"),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               TextField(
                 controller: _tgController,
@@ -165,7 +171,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                   onPressed: _saving ? null : () => _save(user.id),
                   child: _saving
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Saqlash"),
+                      : Text(tr(ref, 'common.save', "Saqlash")),
                 ),
               ),
             ],

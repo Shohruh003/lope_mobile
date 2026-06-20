@@ -31,10 +31,10 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
       });
       ref.invalidate(barberProfileProvider(barberId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -49,7 +49,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
       appBar: AppBar(title: Text(tr(ref, 'mobile.barber.reminders.title', "Eslatma sozlamalari"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (b) {
           if (!_seeded) {
             _seeded = true;
@@ -90,7 +90,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
                   onPressed: _saving ? null : () => _save(user.id),
                   child: _saving
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text(tr(ref, 'mobile.common.save', "Saqlash")),
+                      : Text(tr(ref, 'common.save', "Saqlash")),
                 ),
               ),
             ],

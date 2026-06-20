@@ -1478,6 +1478,8 @@
         "hint": "Public booking link for customers. Share via Telegram, SMS or socials.",
         "slugMissing": "Public slug not configured. Activate in the web version.",
         "yourLink": "Your link",
+        "copyShort": "Copy",
+        "open": "Open",
         "notifyTitle": "SMS on new booking",
         "notifyHint": "You'll get an SMS when a new booking arrives",
         "tgLabel": "Telegram bot username"

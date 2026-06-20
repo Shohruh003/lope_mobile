@@ -1479,6 +1479,8 @@
         "hint": "Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing.",
         "slugMissing": "Public slug hali sozlanmagan. Veb-versiyada faollashtiring.",
         "yourLink": "Sizning havolangiz",
+        "copyShort": "Nusxa",
+        "open": "Ochish",
         "notifyTitle": "Bron qabul qilinganda SMS",
         "notifyHint": "Yangi bron tushganda telefoningizga SMS keladi",
         "tgLabel": "Telegram bot username"
