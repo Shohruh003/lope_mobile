@@ -1412,6 +1412,20 @@
         "invalidLatLng": "Lat/Lng noto'g'ri",
         "copied": "Nusxalandi"
       },
+      "cards": {
+        "title": "Mening kartalarim",
+        "hint": "Pul olish uchun kartalaringizni boshqaring",
+        "addNew": "Yangi karta qo'shish",
+        "empty": "Hali karta qo'shilmagan",
+        "newCard": "Yangi karta",
+        "cardNumber": "Karta raqami",
+        "holderName": "Egasining ismi",
+        "expiry": "Amal qilish muddati",
+        "deleteTitle": "Kartani o'chirish?",
+        "deleteConfirm": "{{masked}} karta o'chiriladi",
+        "primary": "Asosiy",
+        "cardHolder": "KARTA EGASI"
+      },
       "stats": {
         "title": "Statistika",
         "week": "Bu hafta",

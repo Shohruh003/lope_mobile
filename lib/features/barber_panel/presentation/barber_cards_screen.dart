@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 
@@ -41,8 +42,8 @@ class BarberCardsScreen extends ConsumerWidget {
               const SizedBox(width: 4),
               const Icon(Icons.credit_card, color: AppColors.primary, size: 22),
               const SizedBox(width: 8),
-              const Text("Mening kartalarim",
-                  style: TextStyle(
+              Text(tr(ref, 'mobile.barber.cards.title', "Mening kartalarim"),
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textBright)),
@@ -53,7 +54,7 @@ class BarberCardsScreen extends ConsumerWidget {
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
-                  child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+                  child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
               data: (list) => RefreshIndicator(
                 color: AppColors.primary,
                 onRefresh: () async => ref.refresh(_cardsProvider.future),
@@ -61,9 +62,10 @@ class BarberCardsScreen extends ConsumerWidget {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 children: [
-                  const Text(
-                    "Pul olish uchun kartalaringizni boshqaring",
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                  Text(
+                    tr(ref, 'mobile.barber.cards.hint',
+                        "Pul olish uchun kartalaringizni boshqaring"),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
                   ),
                   const SizedBox(height: 14),
 
@@ -73,7 +75,7 @@ class BarberCardsScreen extends ConsumerWidget {
                     height: 44,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.add, size: 16),
-                      label: const Text("Yangi karta qo'shish"),
+                      label: Text(tr(ref, 'mobile.barber.cards.addNew', "Yangi karta qo'shish")),
                       onPressed: () => _openEditor(context, ref),
                     ),
                   ),
@@ -88,13 +90,13 @@ class BarberCardsScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Column(
+                      child: Column(
                         children: [
-                          Icon(Icons.credit_card_off,
+                          const Icon(Icons.credit_card_off,
                               size: 40, color: AppColors.textMuted),
-                          SizedBox(height: 8),
-                          Text("Hali karta qo'shilmagan",
-                              style: TextStyle(
+                          const SizedBox(height: 8),
+                          Text(tr(ref, 'mobile.barber.cards.empty', "Hali karta qo'shilmagan"),
+                              style: const TextStyle(
                                   color: AppColors.textMuted, fontSize: 13)),
                         ],
                       ),
@@ -137,14 +139,17 @@ class BarberCardsScreen extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: const Text("Kartani o'chirish?"),
-        content: Text("$masked karta o'chiriladi"),
+        title: Text(tr(ref, 'mobile.barber.cards.deleteTitle', "Kartani o'chirish?")),
+        content: Text(tr(ref, 'mobile.barber.cards.deleteConfirm',
+            "{{masked}} karta o'chiriladi", {'masked': masked})),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Bekor")),
+          TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("O'chirish"),
+            child: Text(tr(ref, 'common.delete', "O'chirish")),
           ),
         ],
       ),
@@ -155,7 +160,7 @@ class BarberCardsScreen extends ConsumerWidget {
       ref.invalidate(_cardsProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
   }
@@ -176,10 +181,13 @@ class BarberCardsScreen extends ConsumerWidget {
           bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(existing == null ? "Yangi karta" : "Tahrirlash",
+          Text(
+              existing == null
+                  ? tr(ref, 'mobile.barber.cards.newCard', "Yangi karta")
+                  : tr(ref, 'common.edit', "Tahrirlash"),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
           const SizedBox(height: 14),
-          const ShadLabel("Karta raqami"),
+          ShadLabel(tr(ref, 'mobile.barber.cards.cardNumber', "Karta raqami")),
           const SizedBox(height: 6),
           TextField(
             controller: number,
@@ -189,7 +197,7 @@ class BarberCardsScreen extends ConsumerWidget {
             decoration: const InputDecoration(hintText: "9860 0000 0000 0000"),
           ),
           const SizedBox(height: 10),
-          const ShadLabel("Egasining ismi"),
+          ShadLabel(tr(ref, 'mobile.barber.cards.holderName', "Egasining ismi")),
           const SizedBox(height: 6),
           TextField(
             controller: holder,
@@ -198,7 +206,7 @@ class BarberCardsScreen extends ConsumerWidget {
             decoration: const InputDecoration(hintText: "AZIMOV SHOHRUH"),
           ),
           const SizedBox(height: 10),
-          const ShadLabel("Amal qilish muddati"),
+          ShadLabel(tr(ref, 'mobile.barber.cards.expiry', "Amal qilish muddati")),
           const SizedBox(height: 6),
           TextField(
             controller: expiry,
@@ -213,7 +221,7 @@ class BarberCardsScreen extends ConsumerWidget {
             height: 44,
             child: ElevatedButton(
               onPressed: () => Navigator.of(sheetCtx).pop(true),
-              child: const Text("Saqlash"),
+              child: Text(tr(ref, 'common.save', "Saqlash")),
             ),
           ),
         ]),
@@ -234,7 +242,7 @@ class BarberCardsScreen extends ConsumerWidget {
       ref.invalidate(_cardsProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
   }
@@ -286,7 +294,7 @@ class BarberCardsScreen extends ConsumerWidget {
   );
 }
 
-class _CardItem extends StatelessWidget {
+class _CardItem extends ConsumerWidget {
   const _CardItem({
     required this.card,
     required this.onSetDefault,
@@ -299,7 +307,7 @@ class _CardItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final brand = _getBrand(card['cardNumber']?.toString() ?? '');
     final isDefault = card['isDefault'] == true;
     final holder = (card['holderName'] ?? '—').toString();
@@ -394,11 +402,11 @@ class _CardItem extends StatelessWidget {
                               color: const Color(0xFFFBBF24),
                               borderRadius: BorderRadius.circular(99),
                             ),
-                            child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(Icons.star, color: Color(0xFFA16207), size: 10),
-                              SizedBox(width: 3),
-                              Text("Asosiy",
-                                  style: TextStyle(
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              const Icon(Icons.star, color: Color(0xFFA16207), size: 10),
+                              const SizedBox(width: 3),
+                              Text(tr(ref, 'mobile.barber.cards.primary', "Asosiy"),
+                                  style: const TextStyle(
                                     color: Color(0xFFA16207),
                                     fontSize: 9,
                                     fontWeight: FontWeight.w800,
@@ -435,7 +443,8 @@ class _CardItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("KARTA EGASI",
+                    Text(
+                        tr(ref, 'mobile.barber.cards.cardHolder', "KARTA EGASI"),
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 9,

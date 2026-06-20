@@ -1411,6 +1411,20 @@
         "invalidLatLng": "Invalid lat/lng",
         "copied": "Copied"
       },
+      "cards": {
+        "title": "My cards",
+        "hint": "Manage your payout cards",
+        "addNew": "Add new card",
+        "empty": "No cards yet",
+        "newCard": "New card",
+        "cardNumber": "Card number",
+        "holderName": "Holder name",
+        "expiry": "Expiry date",
+        "deleteTitle": "Delete card?",
+        "deleteConfirm": "{{masked}} will be deleted",
+        "primary": "Primary",
+        "cardHolder": "CARD HOLDER"
+      },
       "stats": {
         "title": "Stats",
         "week": "This week",
