@@ -818,6 +818,8 @@
     "limitReached": "Daily limit reached",
     "balanceLow": "Insufficient balance",
     "currentBalance": "Current balance",
+    "todayFree": "{{count}} free today · 1000 sum",
+    "perGen": "1000 sum per generation",
     "freeDailyHint": "{{free}} free generations per day. From the {{next}}th onwards {{price}} sum each.",
     "dailyBadge": "{{free}} free daily · Next one {{price}} sum",
     "styleHair": "Hairstyle",

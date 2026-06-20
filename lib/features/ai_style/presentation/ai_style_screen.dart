@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/image_picker_service.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/data/balance_repository.dart';
@@ -117,8 +118,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             // ===== Title + free-quota line =====
-            const Text("AI Stil",
-                style: TextStyle(
+            Text(tr(ref, 'aiStyle.title', "AI Stil"),
+                style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textBright)),
@@ -136,8 +137,11 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                         const SizedBox(width: 4),
                         Text(
                           b.aiFreeRemaining != null && b.aiFreeRemaining! > 0
-                              ? "Bugun ${b.aiFreeRemaining} ta bepul · 1000 so'm"
-                              : "1000 so'm har generatsiya",
+                              ? tr(ref, 'aiStyle.todayFree',
+                                  "Bugun {{count}} ta bepul · 1000 so'm",
+                                  {'count': '${b.aiFreeRemaining}'})
+                              : tr(ref, 'aiStyle.perGen',
+                                  "1000 so'm har generatsiya"),
                           style: const TextStyle(
                               fontSize: 12, color: AppColors.textMuted),
                         ),
@@ -151,7 +155,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
             Row(children: [
               Expanded(
                 child: _GenderChip(
-                  label: "👨 Erkak",
+                  label: "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}",
                   on: _gender == 'male',
                   onTap: () => setState(() {
                     _gender = 'male';
@@ -164,7 +168,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _GenderChip(
-                  label: "👩 Ayol",
+                  label: "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}",
                   on: _gender == 'female',
                   onTap: () => setState(() {
                     _gender = 'female';
@@ -180,8 +184,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
 
             // ===== Style options row (only when no result yet) =====
             if (_resultUrl == null) ...[
-              const Text("Qaysi qismni o'zgartirmoqchisiz?",
-                  style: TextStyle(
+              Text(tr(ref, 'aiStyle.styleQuestion', "Qaysi qismni o'zgartirmoqchisiz?"),
+                  style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textMuted)),
@@ -195,7 +199,9 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                   itemBuilder: (context, i) {
                     final opt = _options[i];
                     final on = _selectedStyles.contains(opt.key);
-                    final ref = _refImages[opt.key];
+                    // Renamed from `ref` to `refImage` so it doesn't shadow the
+                    // ConsumerState's WidgetRef and break tr() calls inside.
+                    final refImage = _refImages[opt.key];
                     return SizedBox(
                       width: 76,
                       child: Column(children: [
@@ -262,14 +268,14 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                         const SizedBox(height: 4),
                         // Reference image tile under the selected card
                         if (on) ...[
-                          if (ref != null)
+                          if (refImage != null)
                             Stack(
                               clipBehavior: Clip.none,
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.file(
-                                    ref,
+                                    refImage,
                                     width: 72,
                                     height: 56,
                                     fit: BoxFit.cover,
@@ -305,15 +311,15 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                                     color: AppColors.primary.withValues(alpha: 0.4),
                                   ),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.add_photo_alternate_outlined,
+                                    const Icon(Icons.add_photo_alternate_outlined,
                                         size: 10,
                                         color: AppColors.textMuted),
-                                    SizedBox(width: 2),
-                                    Text("Namuna",
-                                        style: TextStyle(
+                                    const SizedBox(width: 2),
+                                    Text(tr(ref, 'aiStyle.reference', "Namuna"),
+                                        style: const TextStyle(
                                             fontSize: 9,
                                             color: AppColors.textMuted)),
                                   ],
@@ -327,11 +333,11 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                 ),
               ),
               if (_selectedStyles.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(top: 4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
                   child: Center(
-                    child: Text("Kamida bitta stilni tanlang",
-                        style: TextStyle(
+                    child: Text(tr(ref, 'aiStyle.selectAtLeastOne', "Kamida bitta stilni tanlang"),
+                        style: const TextStyle(
                             color: AppColors.danger, fontSize: 11)),
                   ),
                 ),
@@ -427,11 +433,11 @@ class _GenderChip extends StatelessWidget {
   }
 }
 
-class _EmptyView extends StatelessWidget {
+class _EmptyView extends ConsumerWidget {
   const _EmptyView({required this.onTap});
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -458,14 +464,14 @@ class _EmptyView extends StatelessWidget {
                   color: AppColors.primary, size: 32),
             ),
             const SizedBox(height: 16),
-            const Text("Rasmingizni yuklang",
-                style: TextStyle(
+            Text(tr(ref, 'aiStyle.uploadPhoto', "Rasmingizni yuklang"),
+                style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textBright)),
             const SizedBox(height: 4),
-            const Text("Yuzni aniq ko'rsatuvchi selfie tanlang",
-                style: TextStyle(
+            Text(tr(ref, 'aiStyle.uploadHint', "Yuzni aniq ko'rsatuvchi selfie tanlang"),
+                style: const TextStyle(
                     color: AppColors.textMuted, fontSize: 12)),
           ],
         ),
@@ -474,7 +480,7 @@ class _EmptyView extends StatelessWidget {
   }
 }
 
-class _PreviewView extends StatelessWidget {
+class _PreviewView extends ConsumerWidget {
   const _PreviewView({
     required this.file,
     required this.onRemove,
@@ -484,7 +490,7 @@ class _PreviewView extends StatelessWidget {
   final VoidCallback onRemove;
   final VoidCallback onGenerate;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(children: [
       Stack(children: [
         ClipRRect(
@@ -512,8 +518,8 @@ class _PreviewView extends StatelessWidget {
         height: 48,
         child: ElevatedButton.icon(
           icon: const Icon(Icons.auto_awesome, size: 18),
-          label: const Text("Yaratish",
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          label: Text(tr(ref, 'aiStyle.generate', "Yaratish"),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
           onPressed: onGenerate,
         ),
       ),
@@ -521,9 +527,9 @@ class _PreviewView extends StatelessWidget {
   }
 }
 
-class _LoadingView extends StatelessWidget {
+class _LoadingView extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       height: 380,
       child: Column(
@@ -544,16 +550,16 @@ class _LoadingView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          const Text("Sizning yangi stil tayyorlanmoqda...",
+          Text(tr(ref, 'aiStyle.generating', "Sizning yangi stil tayyorlanmoqda..."),
               style:
-                  TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                  const TextStyle(color: AppColors.textMuted, fontSize: 13)),
         ],
       ),
     ).animate(onPlay: (c) => c.repeat()).fade(begin: 0.7, end: 1, duration: 1200.ms);
   }
 }
 
-class _ResultView extends StatelessWidget {
+class _ResultView extends ConsumerWidget {
   const _ResultView({
     required this.original,
     required this.resultUrl,
@@ -563,14 +569,14 @@ class _ResultView extends StatelessWidget {
   final String resultUrl;
   final VoidCallback onReset;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(children: [
       Row(children: [
         // Original
         Expanded(
           child: Column(children: [
-            const Text("Asl",
-                style: TextStyle(
+            Text(tr(ref, 'aiStyle.original', "Asl"),
+                style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 11,
                     fontWeight: FontWeight.w600)),
@@ -590,8 +596,8 @@ class _ResultView extends StatelessWidget {
         // Result
         Expanded(
           child: Column(children: [
-            const Text("Natija",
-                style: TextStyle(
+            Text(tr(ref, 'aiStyle.result', "Natija"),
+                style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 11,
                     fontWeight: FontWeight.w600)),
@@ -620,7 +626,7 @@ class _ResultView extends StatelessWidget {
             height: 44,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.download, size: 16),
-              label: const Text("Yuklab olish"),
+              label: Text(tr(ref, 'aiStyle.download', "Yuklab olish")),
               onPressed: () {},
             ),
           ),
@@ -631,7 +637,7 @@ class _ResultView extends StatelessWidget {
             height: 44,
             child: OutlinedButton.icon(
               icon: const Icon(Icons.refresh, size: 16),
-              label: const Text("Qaytadan"),
+              label: Text(tr(ref, 'aiStyle.tryAgain', "Qaytadan")),
               onPressed: onReset,
             ),
           ),

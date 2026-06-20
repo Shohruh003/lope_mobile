@@ -819,6 +819,8 @@
     "limitReached": "Kunlik limit tugadi",
     "balanceLow": "Balans yetarli emas",
     "currentBalance": "Joriy balans",
+    "todayFree": "Bugun {{count}} ta bepul · 1000 so'm",
+    "perGen": "1000 so'm har generatsiya",
     "freeDailyHint": "Kuniga {{free}} ta generatsiya bepul. {{next}}-dan boshlab har biri uchun {{price}} so'm.",
     "dailyBadge": "Kunlik {{free}} ta bepul · Keyingisi {{price}} so'm",
     "styleHair": "Soch uslubi",
