@@ -68,10 +68,10 @@ class _BarberWorkingHoursScreenState extends ConsumerState<BarberWorkingHoursScr
       });
       ref.invalidate(barberProfileProvider(widget.barberId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -84,7 +84,7 @@ class _BarberWorkingHoursScreenState extends ConsumerState<BarberWorkingHoursScr
       appBar: AppBar(title: Text(tr(ref, 'mobile.barber.hours.title', "Ish soatlari"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (barber) {
           // One-time seed.
           if (_config.every((d) => d.start == '09:00' && d.end == '20:00')) {

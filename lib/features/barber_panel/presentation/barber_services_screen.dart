@@ -27,7 +27,7 @@ class BarberServicesScreen extends ConsumerWidget {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-            child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+            child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
             return Center(
@@ -87,7 +87,7 @@ class BarberServicesScreen extends ConsumerWidget {
                             Text(name,
                                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                             const SizedBox(height: 2),
-                            Text("${_fmt(price)} so'm  •  $dur daq",
+                            Text("${_fmt(price)} ${tr(ref, 'common.currency', "so'm")}  •  $dur ${tr(ref, 'booking.duration', 'daq')}",
                                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                           ],
                         ),
@@ -136,26 +136,37 @@ class BarberServicesScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(existing == null ? "Yangi xizmat" : "Xizmatni tahrirlash",
+            Text(
+                existing == null
+                    ? tr(ref, 'mobile.barber.services.newTitle', "Yangi xizmat")
+                    : tr(ref, 'mobile.barber.services.editTitle', "Xizmatni tahrirlash"),
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 14),
-            TextField(controller: name, decoration: const InputDecoration(hintText: "Nomi (masalan: Soch olish)")),
+            TextField(
+                controller: name,
+                decoration: InputDecoration(
+                    hintText: tr(ref, 'mobile.barber.services.namePh',
+                        "Nomi (masalan: Soch olish)"))),
             const SizedBox(height: 12),
             TextField(
                 controller: price,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(hintText: "Narxi (so'm)")),
+                decoration: InputDecoration(
+                    hintText: tr(ref, 'mobile.barber.services.pricePh',
+                        "Narxi (so'm)"))),
             const SizedBox(height: 12),
             TextField(
                 controller: dur,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(hintText: "Davomiyligi (daqiqa)")),
+                decoration: InputDecoration(
+                    hintText: tr(ref, 'mobile.barber.services.durationPh',
+                        "Davomiyligi (daqiqa)"))),
             const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () => Navigator.of(sheetCtx).pop(true),
-                child: const Text("Saqlash"),
+                child: Text(tr(ref, 'common.save', "Saqlash")),
               ),
             ),
           ],
@@ -179,7 +190,7 @@ class BarberServicesScreen extends ConsumerWidget {
       ref.invalidate(barberServicesProvider(barberId));
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
   }
@@ -190,14 +201,18 @@ class BarberServicesScreen extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text("Xizmatni o'chirish?"),
-        content: Text("\"${(svc['nameUz'] ?? svc['name'] ?? '').toString()}\" o'chirilsinmi?"),
+        title: Text(tr(ref, 'mobile.barber.services.deleteTitle', "Xizmatni o'chirish?")),
+        content: Text(tr(ref, 'mobile.barber.services.deleteAsk',
+            "\"{{name}}\" o'chirilsinmi?",
+            {'name': (svc['nameUz'] ?? svc['name'] ?? '').toString()})),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Bekor")),
+          TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("O'chirish"),
+            child: Text(tr(ref, 'common.delete', "O'chirish")),
           ),
         ],
       ),
@@ -208,7 +223,7 @@ class BarberServicesScreen extends ConsumerWidget {
       ref.invalidate(barberServicesProvider(barberId));
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
   }
