@@ -154,7 +154,11 @@
     "workingHours": "Иш вақти",
     "location": "Манзил",
     "noBarbers": "Сартарош топилмади",
-    "sortByName": "Исм"
+    "sortByName": "Исм",
+    "contact": "Алоқа",
+    "reviewsTab": "Шарҳлар",
+    "locationNotSet": "Манзил кўрсатилмаган",
+    "noReviews": "Шарҳлар йўқ"
   },
   "booking": {
     "title": "Ёзилиш",

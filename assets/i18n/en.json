@@ -154,7 +154,11 @@
     "workingHours": "Working Hours",
     "location": "Location",
     "noBarbers": "No barbers found",
-    "sortByName": "Name"
+    "sortByName": "Name",
+    "contact": "Contact",
+    "reviewsTab": "Reviews",
+    "locationNotSet": "Address not set",
+    "noReviews": "No reviews yet"
   },
   "booking": {
     "title": "Book Appointment",

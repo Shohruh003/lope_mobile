@@ -154,7 +154,11 @@
     "workingHours": "Ish vaqti",
     "location": "Manzil",
     "noBarbers": "Sartarosh topilmadi",
-    "sortByName": "Ism"
+    "sortByName": "Ism",
+    "contact": "Aloqa",
+    "reviewsTab": "Sharhlar",
+    "locationNotSet": "Manzil ko'rsatilmagan",
+    "noReviews": "Sharhlar yo'q"
   },
   "booking": {
     "title": "Yozilish",

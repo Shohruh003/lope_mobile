@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/photo_lightbox.dart';
 import '../../../shared/widgets/shadcn.dart';
@@ -48,7 +49,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) =>
-            Center(child: Text("Yuklab bo'lmadi: $e", style: const TextStyle(color: AppColors.textMuted))),
+            Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (b) => _content(b),
       ),
     );
@@ -147,7 +148,9 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                b.isAvailable ? "Bo'sh" : "Band",
+                                b.isAvailable
+                                    ? tr(ref, 'barbers.available', "Bo'sh")
+                                    : tr(ref, 'barbers.unavailable', "Band"),
                                 style: TextStyle(
                                   color: b.isAvailable ? AppColors.success : AppColors.textMuted,
                                   fontSize: 10,
@@ -162,7 +165,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                               const Icon(Icons.access_time,
                                   size: 12, color: AppColors.textMuted),
                               const SizedBox(width: 4),
-                              Text("${b.experience} yil tajriba",
+                              Text("${b.experience} ${tr(ref, 'barbers.experience', 'yil tajriba')}",
                                   style: const TextStyle(
                                       fontSize: 12, color: AppColors.textMuted)),
                             ]),
@@ -217,8 +220,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                   height: 44,
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.calendar_today, size: 16),
-                    label: const Text("Bron qilish",
-                        style: TextStyle(
+                    label: Text(tr(ref, 'barbers.bookAppointment', "Bron qilish"),
+                        style: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w700)),
                     onPressed: b.isAvailable
                         ? () => context.push('/book/${b.id}')
@@ -239,7 +242,12 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Row(children: List.generate(4, (i) {
-                    final labels = ["Aloqa", "Xizmatlar", "Galereya", "Sharhlar"];
+                    final labels = [
+                      tr(ref, 'barbers.contact', 'Aloqa'),
+                      tr(ref, 'barbers.services', 'Xizmatlar'),
+                      tr(ref, 'barbers.gallery', 'Galereya'),
+                      tr(ref, 'barbers.reviewsTab', 'Sharhlar'),
+                    ];
                     final on = i == _tab;
                     return Expanded(
                       child: InkWell(
@@ -296,11 +304,11 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       ShadCard(
         padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: const [
-            Icon(Icons.access_time, size: 16, color: AppColors.primary),
-            SizedBox(width: 6),
-            Text("Ish soatlari",
-                style: TextStyle(
+          Row(children: [
+            const Icon(Icons.access_time, size: 16, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Text(tr(ref, 'barbers.workingHours', "Ish soatlari"),
+                style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textBright)),
@@ -320,7 +328,9 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                 size: 16, color: AppColors.primary),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(b.location.isEmpty ? "Manzil ko'rsatilmagan" : b.location,
+              child: Text(b.location.isEmpty
+                      ? tr(ref, 'barbers.locationNotSet', "Manzil ko'rsatilmagan")
+                      : b.location,
                   style: const TextStyle(
                       fontSize: 13, color: AppColors.textBright)),
             ),
@@ -342,8 +352,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                   height: 36,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.navigation, size: 14),
-                    label: const Text("Yo'l",
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    label: Text(tr(ref, 'barberApp.route', "Yo'l"),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     onPressed: () => _openRoute(b),
                   ),
                 ),
@@ -354,8 +364,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                   height: 36,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.open_in_new, size: 14),
-                    label: const Text("Xaritada",
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    label: Text(tr(ref, 'barberApp.viewOnMap', "Xaritada"),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     onPressed: () => _openMap(b),
                   ),
                 ),
@@ -498,11 +508,11 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   // ===== Xizmatlar (Services) =====
   Widget _servicesTab(Barber b) {
     if (b.services.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
         child: Center(
-          child: Text("Xizmatlar ro'yxati bo'sh",
-              style: TextStyle(color: AppColors.textMuted)),
+          child: Text(tr(ref, 'profile.noServices', "Xizmatlar ro'yxati bo'sh"),
+              style: const TextStyle(color: AppColors.textMuted)),
         ),
       );
     }
@@ -525,13 +535,13 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                                   fontSize: 13,
                                   color: AppColors.textBright)),
                           const SizedBox(height: 2),
-                          Text("${s.duration} daq",
+                          Text("${s.duration} ${tr(ref, 'booking.duration', 'daq')}",
                               style: const TextStyle(
                                   color: AppColors.textMuted, fontSize: 11)),
                         ],
                       ),
                     ),
-                    Text("${_fmt(s.price)} so'm",
+                    Text("${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                         style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
@@ -546,11 +556,11 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   // ===== Galereya (Gallery) =====
   Widget _galleryTab(Barber b) {
     if (b.gallery.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
         child: Center(
-          child: Text("Portfolio bo'sh",
-              style: TextStyle(color: AppColors.textMuted)),
+          child: Text(tr(ref, 'profile.noGallery', "Portfolio bo'sh"),
+              style: const TextStyle(color: AppColors.textMuted)),
         ),
       );
     }
@@ -596,16 +606,16 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       ),
       error: (e, _) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Text("Xato: $e",
+        child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
             style: const TextStyle(color: AppColors.textMuted)),
       ),
       data: (list) {
         if (list.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
             child: Center(
-              child: Text("Sharhlar yo'q",
-                  style: TextStyle(color: AppColors.textMuted)),
+              child: Text(tr(ref, 'barbers.noReviews', "Sharhlar yo'q"),
+                  style: const TextStyle(color: AppColors.textMuted)),
             ),
           );
         }

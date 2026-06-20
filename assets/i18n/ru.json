@@ -154,7 +154,11 @@
     "workingHours": "Часы работы",
     "location": "Адрес",
     "noBarbers": "Барберы не найдены",
-    "sortByName": "Имя"
+    "sortByName": "Имя",
+    "contact": "Контакты",
+    "reviewsTab": "Отзывы",
+    "locationNotSet": "Адрес не указан",
+    "noReviews": "Отзывов нет"
   },
   "booking": {
     "title": "Запись",
