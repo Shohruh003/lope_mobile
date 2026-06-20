@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/image_picker_service.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -62,8 +63,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Future<void> _save(String userId) async {
     if (_newPassCtrl.text.isNotEmpty &&
         _newPassCtrl.text != _confirmPassCtrl.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Yangi parol mos kelmadi")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.validation.passwordMismatch',
+              "Yangi parol mos kelmadi"))));
       return;
     }
     setState(() => _saving = true);
@@ -92,19 +94,22 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       await dio.patch('/users/$userId', data: payload);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Profil yangilandi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'profile.profileUpdated', "Profil yangilandi"))));
         context.pop();
       }
     } on DioException catch (e) {
-      String msg = "Saqlanmadi";
-      if (e.response?.statusCode == 401) msg = "Eski parol noto'g'ri";
+      String msg = tr(ref, 'profile.saveFailed', "Saqlanmadi");
+      if (e.response?.statusCode == 401) {
+        msg = tr(ref, 'backend.oldPasswordWrong', "Eski parol noto'g'ri");
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -140,8 +145,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 onPressed: () => context.pop(),
               ),
               const SizedBox(width: 4),
-              const Text("Profilni tahrirlash",
-                  style: TextStyle(
+              Text(tr(ref, 'profile.editProfile', "Profilni tahrirlash"),
+                  style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textBright)),
@@ -202,7 +207,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 ShadCard(
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    const ShadLabel("Ism"),
+                    ShadLabel(tr(ref, 'profile.name', "Ism")),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _nameCtrl,
@@ -218,16 +223,20 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 ShadCard(
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    const Text("Jins",
-                        style: TextStyle(
+                    Text(tr(ref, 'auth.gender', "Jins"),
+                        style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textBright)),
                     const SizedBox(height: 10),
                     Row(children: [
-                      Expanded(child: _genderBtn('MALE', "👨 Erkak")),
+                      Expanded(
+                          child: _genderBtn('MALE',
+                              "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}")),
                       const SizedBox(width: 8),
-                      Expanded(child: _genderBtn('FEMALE', "👩 Ayol")),
+                      Expanded(
+                          child: _genderBtn('FEMALE',
+                              "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}")),
                     ]),
                   ]),
                 ),
@@ -238,18 +247,21 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 ShadCard(
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    const Text("Parolni o'zgartirish",
-                        style: TextStyle(
+                    Text(tr(ref, 'profile.changePassword', "Parolni o'zgartirish"),
+                        style: const TextStyle(
                             fontSize: 12, color: AppColors.textMuted)),
                     const SizedBox(height: 10),
 
-                    _passField("Eski parol", _oldPassCtrl, _hideOld,
+                    _passField(tr(ref, 'profile.oldPassword', "Eski parol"),
+                        _oldPassCtrl, _hideOld,
                         () => setState(() => _hideOld = !_hideOld)),
                     const SizedBox(height: 10),
-                    _passField("Yangi parol", _newPassCtrl, _hideNew,
+                    _passField(tr(ref, 'profile.newPassword', "Yangi parol"),
+                        _newPassCtrl, _hideNew,
                         () => setState(() => _hideNew = !_hideNew)),
                     const SizedBox(height: 10),
-                    _passField("Tasdiqlash", _confirmPassCtrl, _hideConfirm,
+                    _passField(tr(ref, 'auth.verify', "Tasdiqlash"),
+                        _confirmPassCtrl, _hideConfirm,
                         () => setState(() => _hideConfirm = !_hideConfirm)),
                   ]),
                 ),
@@ -264,7 +276,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                     onPressed: _saving ? null : () => _save(user.id),
                     child: _saving
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text("Saqlash"),
+                        : Text(tr(ref, 'common.save', "Saqlash")),
                   ),
                 ),
               ],

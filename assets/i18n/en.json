@@ -297,6 +297,7 @@
     "logoutConfirmMsg": "Are you sure you want to sign out?",
     "favorites": "Favorites",
     "versionLabel": "Version 1.0.0",
+    "saveFailed": "Couldn't save",
     "section": {
       "account": "Account",
       "app": "App",

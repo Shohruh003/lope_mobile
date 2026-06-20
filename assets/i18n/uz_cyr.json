@@ -297,6 +297,7 @@
     "logoutConfirmMsg": "Ҳисобингиздан чиқмоқчимисиз?",
     "favorites": "Севимлилар",
     "versionLabel": "Версия 1.0.0",
+    "saveFailed": "Сақланмади",
     "section": {
       "account": "Аккаунт",
       "app": "Илова",

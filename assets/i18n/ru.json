@@ -297,6 +297,7 @@
     "logoutConfirmMsg": "Вы действительно хотите выйти?",
     "favorites": "Избранное",
     "versionLabel": "Версия 1.0.0",
+    "saveFailed": "Не удалось сохранить",
     "section": {
       "account": "Аккаунт",
       "app": "Приложение",

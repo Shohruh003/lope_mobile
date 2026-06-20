@@ -297,6 +297,7 @@
     "logoutConfirmMsg": "Hisobingizdan chiqmoqchimisiz?",
     "favorites": "Sevimlilar",
     "versionLabel": "Versiya 1.0.0",
+    "saveFailed": "Saqlanmadi",
     "section": {
       "account": "Akkaunt",
       "app": "Ilova",
