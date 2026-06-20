@@ -289,6 +289,10 @@
     "faq": "FAQ — Tez-tez beriladigan savollar",
     "privacy": "Maxfiylik siyosati",
     "logoutConfirm": "Tizimdan chiqib, login sahifasiga qaytasiz.",
+    "logoutConfirmTitle": "Chiqishni tasdiqlang",
+    "logoutConfirmMsg": "Hisobingizdan chiqmoqchimisiz?",
+    "favorites": "Sevimlilar",
+    "versionLabel": "Versiya 1.0.0",
     "section": {
       "account": "Akkaunt",
       "app": "Ilova",

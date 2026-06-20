@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants.dart';
 import '../../../core/l10n.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -93,7 +94,7 @@ class ProfileScreen extends ConsumerWidget {
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             const Icon(Icons.account_balance_wallet, size: 16, color: AppColors.primary),
                             const SizedBox(width: 6),
-                            Text("${_fmt(b.amount)} so'm",
+                            Text("${_fmt(b.amount)} ${tr(ref, 'common.currency', "so'm")}",
                                 style: const TextStyle(
                                     color: AppColors.primary,
                                     fontSize: 13,
@@ -101,8 +102,8 @@ class ProfileScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             InkWell(
                               onTap: () => context.push('/transactions'),
-                              child: const Text("To'ldirish",
-                                  style: TextStyle(
+                              child: Text(tr(ref, 'topUp.fill', "To'ldirish"),
+                                  style: const TextStyle(
                                       color: Color(0xFF3B82F6),
                                       fontSize: 11,
                                       decoration: TextDecoration.underline,
@@ -123,11 +124,11 @@ class ProfileScreen extends ConsumerWidget {
             ShadCard(
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: const [
-                  Icon(Icons.language, color: AppColors.primary, size: 18),
-                  SizedBox(width: 8),
-                  Text("Til",
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright)),
+                Row(children: [
+                  const Icon(Icons.language, color: AppColors.primary, size: 18),
+                  const SizedBox(width: 8),
+                  Text(tr(ref, 'barberApp.language', "Til"),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright)),
                 ]),
                 const SizedBox(height: 12),
                 Row(children: [
@@ -148,7 +149,7 @@ class ProfileScreen extends ConsumerWidget {
             if (user != null)
               _LinkCard(
                 icon: Icons.card_giftcard,
-                label: "Promo kod",
+                label: tr(ref, 'promoCode.title', "Promo kod"),
                 onTap: () => context.push('/promo'),
               ),
             if (user != null) const SizedBox(height: 10),
@@ -157,7 +158,7 @@ class ProfileScreen extends ConsumerWidget {
             if (user != null)
               _LinkCard(
                 icon: Icons.receipt_long,
-                label: "Tranzaksiyalar tarixi",
+                label: tr(ref, 'myTransactions.title', "Tranzaksiyalar tarixi"),
                 onTap: () => context.push('/transactions'),
               ),
             if (user != null) const SizedBox(height: 10),
@@ -166,7 +167,7 @@ class ProfileScreen extends ConsumerWidget {
             if (user != null)
               _LinkCard(
                 icon: Icons.notifications_outlined,
-                label: "Bildirishnomalar",
+                label: tr(ref, 'barberApp.notifications', "Bildirishnomalar"),
                 onTap: () => context.push('/notifications'),
               ),
             if (user != null) const SizedBox(height: 10),
@@ -175,7 +176,7 @@ class ProfileScreen extends ConsumerWidget {
             if (user?.role == 'user')
               _LinkCard(
                 icon: Icons.favorite_outline,
-                label: "Sevimlilar",
+                label: tr(ref, 'profile.favorites', "Sevimlilar"),
                 onTap: () => context.push('/favorites'),
               ),
             if (user?.role == 'user') const SizedBox(height: 10),
@@ -183,7 +184,7 @@ class ProfileScreen extends ConsumerWidget {
             // ===== Support Card =====
             _LinkCard(
               icon: Icons.support_agent_outlined,
-              label: "Qo'llab-quvvatlash",
+              label: tr(ref, 'barberApp.support', "Qo'llab-quvvatlash"),
               onTap: () async {
                 final uri = Uri.parse('https://t.me/lopestyle_support');
                 if (await canLaunchUrl(uri)) {
@@ -199,8 +200,8 @@ class ProfileScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.logout, color: AppColors.danger, size: 16),
-                  label: const Text("Chiqish",
-                      style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w600)),
+                  label: Text(tr(ref, 'barberApp.logout', "Chiqish"),
+                      style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: AppColors.danger.withValues(alpha: 0.4)),
                   ),
@@ -209,14 +210,16 @@ class ProfileScreen extends ConsumerWidget {
                       context: context,
                       builder: (_) => AlertDialog(
                         backgroundColor: AppColors.background,
-                        title: const Text("Chiqishni tasdiqlang"),
-                        content: const Text("Hisobingizdan chiqmoqchimisiz?"),
+                        title: Text(tr(ref, 'profile.logoutConfirmTitle', "Chiqishni tasdiqlang")),
+                        content: Text(tr(ref, 'profile.logoutConfirmMsg', "Hisobingizdan chiqmoqchimisiz?")),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Bekor")),
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text(tr(ref, 'common.cancel', "Bekor"))),
                           TextButton(
                             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
                             onPressed: () => Navigator.pop(context, true),
-                            child: const Text("Chiqish"),
+                            child: Text(tr(ref, 'barberApp.logout', "Chiqish")),
                           ),
                         ],
                       ),
@@ -230,9 +233,9 @@ class ProfileScreen extends ConsumerWidget {
               ),
 
             const SizedBox(height: 12),
-            const Center(
-              child: Text("Versiya 1.0.0",
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+            Center(
+              child: Text(tr(ref, 'profile.versionLabel', "Versiya 1.0.0"),
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
             ),
           ],
         ),
