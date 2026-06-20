@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/barber_repository.dart';
 import '../domain/barber.dart';
@@ -55,6 +56,11 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 query: _query,
                 filter: _filter,
                 sort: _sort,
+                searchHint: '${tr(ref, 'common.search', 'Qidirish')}...',
+                allLabel: tr(ref, 'common.all', 'Hammasi'),
+                availableLabel: tr(ref, 'barbers.available', "Bo'sh"),
+                ratingLabel: tr(ref, 'barbers.rating', "Reyting"),
+                nameLabel: tr(ref, 'barbers.sortByName', "Ism"),
                 onSearch: (v) => setState(() => _query = v.trim().toLowerCase()),
                 onClearSearch: () {
                   _searchController.clear();
@@ -117,6 +123,11 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
     required this.query,
     required this.filter,
     required this.sort,
+    required this.searchHint,
+    required this.allLabel,
+    required this.availableLabel,
+    required this.ratingLabel,
+    required this.nameLabel,
     required this.onSearch,
     required this.onClearSearch,
     required this.onFilter,
@@ -126,6 +137,11 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
   final String query;
   final String filter;
   final String sort;
+  final String searchHint;
+  final String allLabel;
+  final String availableLabel;
+  final String ratingLabel;
+  final String nameLabel;
   final ValueChanged<String> onSearch;
   final VoidCallback onClearSearch;
   final ValueChanged<String> onFilter;
@@ -137,7 +153,11 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
   double get minExtent => 108;
   @override
   bool shouldRebuild(_StickyFilterHeader old) =>
-      query != old.query || filter != old.filter || sort != old.sort;
+      query != old.query ||
+      filter != old.filter ||
+      sort != old.sort ||
+      searchHint != old.searchHint ||
+      allLabel != old.allLabel;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -157,7 +177,7 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
               contentPadding: EdgeInsets.zero,
               prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 16),
               prefixIconConstraints: const BoxConstraints(minWidth: 36),
-              hintText: "Qidirish...",
+              hintText: searchHint,
               suffixIcon: query.isNotEmpty
                   ? GestureDetector(
                       onTap: onClearSearch,
@@ -175,27 +195,27 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
             scrollDirection: Axis.horizontal,
             children: [
               _Pill(
-                label: "Hammasi",
+                label: allLabel,
                 on: filter == 'all',
                 onTap: () => onFilter('all'),
                 onColor: AppColors.primary,
               ),
               _Pill(
-                label: "Bo'sh",
+                label: availableLabel,
                 on: filter == 'available',
                 onTap: () => onFilter('available'),
                 onColor: AppColors.primary,
               ),
               const _Sep(),
               _Pill(
-                label: "Reyting",
+                label: ratingLabel,
                 on: sort == 'rating',
                 onTap: () => onSort('rating'),
                 onColor: const Color(0xFF3B82F6),
                 tintBg: true,
               ),
               _Pill(
-                label: "Ism",
+                label: nameLabel,
                 on: sort == 'name',
                 onTap: () => onSort('name'),
                 onColor: const Color(0xFF3B82F6),
@@ -504,17 +524,17 @@ class _ErrorBlock extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
+class _EmptyState extends ConsumerWidget {
   const _EmptyState();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.all(48),
-      child: Column(children: const [
-        Icon(Icons.content_cut, size: 40, color: AppColors.textMuted),
-        SizedBox(height: 12),
-        Text("Sartarosh topilmadi",
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+      child: Column(children: [
+        const Icon(Icons.content_cut, size: 40, color: AppColors.textMuted),
+        const SizedBox(height: 12),
+        Text(tr(ref, 'barbers.noBarbers', "Sartarosh topilmadi"),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
       ]),
     );
   }

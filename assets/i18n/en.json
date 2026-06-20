@@ -153,7 +153,8 @@
     "about": "About",
     "workingHours": "Working Hours",
     "location": "Location",
-    "noBarbers": "No barbers found"
+    "noBarbers": "No barbers found",
+    "sortByName": "Name"
   },
   "booking": {
     "title": "Book Appointment",

@@ -153,7 +153,8 @@
     "about": "Haqida",
     "workingHours": "Ish vaqti",
     "location": "Manzil",
-    "noBarbers": "Sartarosh topilmadi"
+    "noBarbers": "Sartarosh topilmadi",
+    "sortByName": "Ism"
   },
   "booking": {
     "title": "Yozilish",

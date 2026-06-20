@@ -153,7 +153,8 @@
     "about": "О мастере",
     "workingHours": "Часы работы",
     "location": "Адрес",
-    "noBarbers": "Барберы не найдены"
+    "noBarbers": "Барберы не найдены",
+    "sortByName": "Имя"
   },
   "booking": {
     "title": "Запись",
