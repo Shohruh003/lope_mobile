@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
 
@@ -12,44 +13,67 @@ class BarberSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sozlamalar")),
+      appBar: AppBar(title: Text(tr(ref, 'barberApp.settings', "Sozlamalar"))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          const ShadSectionLabel("AKKAUNT"),
+          ShadSectionLabel(
+              tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           const SizedBox(height: 8),
           ShadTileGroup(children: [
-            ShadTile(icon: Icons.edit_outlined, label: "Profilni tahrirlash",
+            ShadTile(
+                icon: Icons.edit_outlined,
+                label: tr(ref, 'profile.editProfile', "Profilni tahrirlash"),
                 onTap: () => context.push('/barber/profile')),
-            ShadTile(icon: Icons.lock_outline, label: "Akkaunt sozlamalari",
+            ShadTile(
+                icon: Icons.lock_outline,
+                label: tr(ref, 'barberApp.accountSettings', "Akkaunt sozlamalari"),
                 onTap: () => context.push('/barber/account-edit')),
-            ShadTile(icon: Icons.notifications_active_outlined, label: "Eslatma sozlamalari",
+            ShadTile(
+                icon: Icons.notifications_active_outlined,
+                label: tr(ref, 'barberApp.reminderSettings', "Eslatma sozlamalari"),
                 onTap: () => context.push('/barber/reminders')),
           ]),
 
           const SizedBox(height: 18),
-          const ShadSectionLabel("BOSHQARUV"),
+          ShadSectionLabel(
+              tr(ref, 'barberApp.management', 'Boshqaruv').toUpperCase()),
           const SizedBox(height: 8),
           ShadTileGroup(children: [
-            ShadTile(icon: Icons.people_outline, label: "Mijozlarim",
+            ShadTile(
+                icon: Icons.people_outline,
+                label: tr(ref, 'barberMyClients.title', "Mijozlarim"),
                 onTap: () => context.push('/barber/my-clients')),
-            ShadTile(icon: Icons.credit_card_outlined, label: "To'lov kartalarim",
+            ShadTile(
+                icon: Icons.credit_card_outlined,
+                label: tr(ref, 'barberApp.cards', "To'lov kartalarim"),
                 onTap: () => context.push('/barber/cards')),
-            ShadTile(icon: Icons.local_offer_outlined, label: "Promo kodlar",
+            ShadTile(
+                icon: Icons.local_offer_outlined,
+                label: tr(ref, 'promoCode.title', "Promo kodlar"),
                 onTap: () => context.push('/barber/promo-code')),
-            ShadTile(icon: Icons.location_on_outlined, label: "Manzilim",
+            ShadTile(
+                icon: Icons.location_on_outlined,
+                label: tr(ref, 'barberApp.myLocation', "Manzilim"),
                 onTap: () => context.push('/barber/location')),
-            ShadTile(icon: Icons.share, label: "Ommaviy havola",
+            ShadTile(
+                icon: Icons.share,
+                label: tr(ref, 'barberApp.publicLink', "Ommaviy havola"),
                 onTap: () => context.push('/barber/public-link')),
           ]),
 
           const SizedBox(height: 18),
-          const ShadSectionLabel("YORDAM"),
+          ShadSectionLabel(
+              tr(ref, 'profile.section.help', 'Yordam').toUpperCase()),
           const SizedBox(height: 8),
           ShadTileGroup(children: [
-            ShadTile(icon: Icons.support_agent_outlined, label: "Qo'llab-quvvatlash",
+            ShadTile(
+                icon: Icons.support_agent_outlined,
+                label: tr(ref, 'barberApp.support', "Qo'llab-quvvatlash"),
                 onTap: () => _openUrl('https://t.me/lopestyle_support')),
-            ShadTile(icon: Icons.policy_outlined, label: "Maxfiylik siyosati",
+            ShadTile(
+                icon: Icons.policy_outlined,
+                label: tr(ref, 'profile.privacy', "Maxfiylik siyosati"),
                 onTap: () => _openUrl('https://lopestyle.uz/privacy')),
           ]),
 
@@ -57,7 +81,7 @@ class BarberSettingsScreen extends ConsumerWidget {
           ShadTileGroup(children: [
             ShadTile(
               icon: Icons.logout,
-              label: "Chiqish",
+              label: tr(ref, 'barberApp.logout', "Chiqish"),
               destructive: true,
               onTap: () async {
                 await ref.read(authControllerProvider.notifier).logout();
