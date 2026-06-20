@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../data/auth_repository.dart';
@@ -49,7 +50,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
   Future<void> _submit() async {
     if (_code.length != 4) {
-      setState(() => _error = "Kod 4 raqamli bo'lishi kerak");
+      setState(() =>
+          _error = tr(ref, 'auth.codeMustBe4', "Kod 4 raqamli bo'lishi kerak"));
       return;
     }
     setState(() {
@@ -64,7 +66,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       if (!mounted) return;
       context.push('/register-complete?phone=${Uri.encodeComponent(widget.phone)}&code=$_code');
     } on Object catch (_) {
-      setState(() => _error = "Kod noto'g'ri yoki muddati tugagan");
+      setState(() =>
+          _error = tr(ref, 'auth.codeWrongOrExpired', "Kod noto'g'ri yoki muddati tugagan"));
       for (final c in _controllers) {
         c.clear();
       }
@@ -80,11 +83,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       await ref.read(authRepositoryProvider).sendRegistrationCode(widget.phone);
       _startResendCountdown();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Yangi kod yuborildi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'auth.newCodeSent', "Yangi kod yuborildi"))));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Xato — qaytadan urinib ko'ring")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring"))));
       }
     }
   }
@@ -117,9 +122,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     child: Column(children: [
                       const ShadIconBubble(icon: Icons.mark_email_read_outlined),
                       const SizedBox(height: 12),
-                      const ShadCardTitle("Kodni kiriting"),
+                      ShadCardTitle(tr(ref, 'auth.enterCode', "Kodni kiriting")),
                       const SizedBox(height: 4),
-                      ShadCardDescription("${widget.phone} raqamiga yuborildi"),
+                      ShadCardDescription(tr(ref, 'auth.codeSentToPhone',
+                          "{{phone}} raqamiga yuborildi", {'phone': widget.phone})),
                     ]),
                   ),
                   const SizedBox(height: 22),
@@ -138,15 +144,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                       onPressed: _loading || _code.length != 4 ? null : _submit,
                       child: _loading
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Text("Tasdiqlash"),
+                          : Text(tr(ref, 'auth.verify', "Tasdiqlash")),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Center(
                     child: _resendIn > 0
-                        ? Text("Qayta yuborish: $_resendIn s",
+                        ? Text(
+                            "${tr(ref, 'auth.resendIn', 'Qayta yuborish')}: $_resendIn ${tr(ref, 'auth.secondsShort', 's')}",
                             style: const TextStyle(color: AppColors.textMuted, fontSize: 13))
-                        : TextButton(onPressed: _resend, child: const Text("Kodni qayta yuborish")),
+                        : TextButton(
+                            onPressed: _resend,
+                            child: Text(tr(ref, 'auth.resendCode', "Kodni qayta yuborish"))),
                   ),
                 ]),
               ).animate().fadeIn(duration: 300.ms),

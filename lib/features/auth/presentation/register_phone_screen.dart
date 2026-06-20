@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../data/auth_repository.dart';
@@ -31,7 +32,7 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
 
   Future<void> _submit() async {
     if (!_isValidPhone(_phoneController.text)) {
-      setState(() => _error = "Telefon raqami noto'g'ri");
+      setState(() => _error = tr(ref, 'common.validation.invalidPhone', "Telefon raqam noto'g'ri"));
       return;
     }
     final phone = '+998${_phoneController.text.replaceAll(RegExp(r'\D'), '')}';
@@ -44,9 +45,13 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
       if (!mounted) return;
       context.push('/register-otp?phone=${Uri.encodeComponent(phone)}');
     } on Object catch (e) {
-      String msg = "Xatolik — qaytadan urinib ko'ring";
-      if (e.toString().contains('SocketException')) msg = "Internetga ulanish yo'q";
-      if (e.toString().contains('409')) msg = "Bu raqam allaqachon ro'yxatdan o'tgan";
+      String msg = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring");
+      if (e.toString().contains('SocketException')) {
+        msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
+      }
+      if (e.toString().contains('409')) {
+        msg = tr(ref, 'auth.phoneAlreadyRegistered', "Bu raqam allaqachon ro'yxatdan o'tgan");
+      }
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -72,17 +77,18 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
               child: ShadCard(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Center(
-                    child: Column(children: const [
-                      ShadIconBubble(icon: Icons.phone_outlined),
-                      SizedBox(height: 12),
-                      ShadCardTitle("Telefon raqamingiz"),
-                      SizedBox(height: 4),
-                      ShadCardDescription("4 raqamli tasdiqlash kodi yuboramiz"),
+                    child: Column(children: [
+                      const ShadIconBubble(icon: Icons.phone_outlined),
+                      const SizedBox(height: 12),
+                      ShadCardTitle(tr(ref, 'auth.yourPhone', "Telefon raqamingiz")),
+                      const SizedBox(height: 4),
+                      ShadCardDescription(tr(ref, 'auth.weWillSendCode',
+                          "4 raqamli tasdiqlash kodi yuboramiz")),
                     ]),
                   ),
                   const SizedBox(height: 22),
                   ShadField(
-                    label: "Telefon",
+                    label: tr(ref, 'auth.phone', "Telefon"),
                     error: _error,
                     child: TextField(
                       controller: _phoneController,
@@ -110,7 +116,7 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
                           ? const SizedBox(
                               width: 16, height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Text("Davom etish"),
+                          : Text(tr(ref, 'common.continue', "Davom etish")),
                     ),
                   ),
                 ]),

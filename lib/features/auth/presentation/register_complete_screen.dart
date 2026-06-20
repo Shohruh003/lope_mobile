@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/routes.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../data/auth_repository.dart';
@@ -44,11 +45,11 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
     final name = _nameCtrl.text.trim();
     final password = _passwordCtrl.text;
     if (name.length < 2) {
-      setState(() => _error = "Ismni kiriting");
+      setState(() => _error = tr(ref, 'auth.enterName', "Ismni kiriting"));
       return;
     }
     if (password.length < 4) {
-      setState(() => _error = "Parol kamida 4 belgi");
+      setState(() => _error = tr(ref, 'auth.shortPassword', "Parol kamida 4 belgi"));
       return;
     }
     setState(() {
@@ -68,9 +69,13 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
       if (!mounted) return;
       routeToRoleHome(context, user);
     } on Object catch (e) {
-      String msg = "Ro'yxatdan o'tishda xato";
-      if (e.toString().contains('SocketException')) msg = "Internetga ulanish yo'q";
-      if (e.toString().contains('409')) msg = "Bu raqam allaqachon ro'yxatdan o'tgan";
+      String msg = tr(ref, 'auth.registrationError', "Ro'yxatdan o'tishda xato");
+      if (e.toString().contains('SocketException')) {
+        msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
+      }
+      if (e.toString().contains('409')) {
+        msg = tr(ref, 'auth.phoneAlreadyRegistered', "Bu raqam allaqachon ro'yxatdan o'tgan");
+      }
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -90,42 +95,46 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
               child: ShadCard(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Center(
-                    child: Column(children: const [
-                      ShadIconBubble(icon: Icons.person_outline),
-                      SizedBox(height: 12),
-                      ShadCardTitle("Ma'lumotlaringiz"),
-                      SizedBox(height: 4),
-                      ShadCardDescription("Hisobni yakunlash uchun ma'lumotlaringizni kiriting"),
+                    child: Column(children: [
+                      const ShadIconBubble(icon: Icons.person_outline),
+                      const SizedBox(height: 12),
+                      ShadCardTitle(tr(ref, 'auth.yourInfo', "Ma'lumotlaringiz")),
+                      const SizedBox(height: 4),
+                      ShadCardDescription(tr(ref, 'auth.yourInfoSub',
+                          "Hisobni yakunlash uchun ma'lumotlaringizni kiriting")),
                     ]),
                   ),
                   const SizedBox(height: 18),
 
                   // ===== Name =====
                   ShadField(
-                    label: "Ismingiz",
+                    label: tr(ref, 'auth.yourName', "Ismingiz"),
                     child: TextField(
                       controller: _nameCtrl,
                       autofocus: true,
                       textCapitalization: TextCapitalization.words,
                       style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      decoration: const InputDecoration(hintText: "Masalan: Shohruh"),
+                      decoration: InputDecoration(
+                          hintText: tr(ref, 'auth.namePlaceholder', "Masalan: Shohruh")),
                     ),
                   ),
                   const SizedBox(height: 14),
 
                   // ===== Gender =====
-                  const ShadLabel("Jins"),
+                  ShadLabel(tr(ref, 'auth.gender', "Jins")),
                   const SizedBox(height: 6),
                   Row(children: [
-                    Expanded(child: _genderBtn('MALE', "👨 Erkak")),
+                    Expanded(child: _genderBtn('MALE',
+                        "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}")),
                     const SizedBox(width: 8),
-                    Expanded(child: _genderBtn('FEMALE', "👩 Ayol")),
+                    Expanded(child: _genderBtn('FEMALE',
+                        "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}")),
                   ]),
                   const SizedBox(height: 14),
 
                   // ===== Password =====
                   ShadField(
-                    label: "Parol",
+                    label: tr(ref, 'auth.password', "Parol"),
                     child: TextField(
                       controller: _passwordCtrl,
                       obscureText: _obscure,
@@ -144,24 +153,31 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
 
                   // ===== Promo code (optional) =====
                   ShadField(
-                    label: "Promo kod (ixtiyoriy)",
+                    label: tr(ref, 'auth.promoCode', "Promo-kod (ixtiyoriy)"),
                     child: TextField(
                       controller: _promoCtrl,
                       textCapitalization: TextCapitalization.characters,
                       style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      decoration: const InputDecoration(hintText: "Agar bor bo'lsa"),
+                      decoration: InputDecoration(
+                          hintText: tr(ref, 'auth.promoIfAny', "Agar bor bo'lsa")),
                     ),
                   ),
                   const SizedBox(height: 14),
 
                   // ===== Role select =====
-                  const ShadLabel("Hisob turi"),
+                  ShadLabel(tr(ref, 'auth.accountType', "Hisob turi")),
                   const SizedBox(height: 6),
-                  _roleBtn('user', Icons.person, "Mijoz", "Sartarosh xizmatlari bron qilish"),
+                  _roleBtn('user', Icons.person,
+                      tr(ref, 'auth.roleCustomer', "Mijoz"),
+                      tr(ref, 'auth.roleCustomerDesc', "Sartarosh xizmatlari bron qilish")),
                   const SizedBox(height: 6),
-                  _roleBtn('barber', Icons.content_cut, "Sartarosh", "Mijoz qabul qiluvchi sartarosh"),
+                  _roleBtn('barber', Icons.content_cut,
+                      tr(ref, 'auth.roleBarber', "Sartarosh"),
+                      tr(ref, 'auth.roleBarberDesc', "Mijoz qabul qiluvchi sartarosh")),
                   const SizedBox(height: 6),
-                  _roleBtn('barbershop', Icons.storefront, "Salon", "Sartaroshxonani boshqarish"),
+                  _roleBtn('barbershop', Icons.storefront,
+                      tr(ref, 'auth.roleShop', "Salon"),
+                      tr(ref, 'auth.roleShopDesc', "Sartaroshxonani boshqarish")),
 
                   if (_error != null) ...[
                     const SizedBox(height: 14),
@@ -176,7 +192,7 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                       onPressed: _loading ? null : _submit,
                       child: _loading
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Text("Ro'yxatdan o'tish"),
+                          : Text(tr(ref, 'auth.register', "Ro'yxatdan o'tish")),
                     ),
                   ),
                 ]),
