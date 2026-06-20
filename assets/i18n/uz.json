@@ -65,6 +65,7 @@
     "noResults": "Hech narsa topilmadi",
     "error": "Xatolik yuz berdi",
     "errorOccurred": "Xatolik yuz berdi",
+    "noInternet": "Internetga ulanish yo'q",
     "reloadApp": "Ilovani qayta yuklang",
     "reload": "Qayta yuklash",
     "success": "Muvaffaqiyatli!",
@@ -326,7 +327,16 @@
     "genderFemale": "Ayol",
     "genderSelect": "Tanlang...",
     "genderRequired": "Iltimos, jinsingizni tanlang",
-    "loginError": "Telefon raqam yoki parol noto'g'ri"
+    "loginError": "Telefon raqam yoki parol noto'g'ri",
+    "shortPassword": "Parol kamida 4 belgi",
+    "guestView": "Mehmon sifatida ko'rish",
+    "forgotPasswordHint": "Telefon raqamingizga 4 raqamli tasdiqlash kodi yuboramiz",
+    "enterCode": "Kodni kiriting",
+    "codeSentTo4": "{{phone}} raqamiga 4 raqamli kod yubordik",
+    "newPasswordHint": "Kamida 4 belgili yangi parol qo'ying",
+    "updatePassword": "Parolni yangilash",
+    "passwordUpdated": "Parol yangilandi",
+    "updateError": "Yangilashda xato. Qaytadan urinib ko'ring"
   },
   "admin": {
     "title": "Admin paneli",

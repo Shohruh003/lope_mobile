@@ -65,6 +65,7 @@
     "noResults": "No results found",
     "error": "An error occurred",
     "errorOccurred": "Something went wrong",
+    "noInternet": "No internet connection",
     "reloadApp": "Please reload the app",
     "reload": "Reload",
     "success": "Success!",
@@ -326,7 +327,16 @@
     "genderFemale": "Female",
     "genderSelect": "Select...",
     "genderRequired": "Please select your gender",
-    "loginError": "Incorrect phone number or password"
+    "loginError": "Incorrect phone number or password",
+    "shortPassword": "Password must be at least 4 characters",
+    "guestView": "Browse as guest",
+    "forgotPasswordHint": "We'll send a 4-digit verification code to your phone",
+    "enterCode": "Enter the code",
+    "codeSentTo4": "We sent a 4-digit code to {{phone}}",
+    "newPasswordHint": "Use at least 4 characters for the new password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Password updated",
+    "updateError": "Failed to update. Please try again"
   },
   "admin": {
     "title": "Admin Dashboard",

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
 /// Three steps in a single screen: enter phone → enter OTP → enter new
@@ -85,10 +86,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         'newPassword': newPassword,
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Parol yangilandi")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'auth.passwordUpdated', "Parol yangilandi"))));
       context.go('/login');
     } catch (_) {
-      setState(() => _error = "Yangilashda xato. Qaytadan urinib ko'ring");
+      setState(() => _error =
+          tr(ref, 'auth.updateError', "Yangilashda xato. Qaytadan urinib ko'ring"));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -112,16 +115,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 }
 
-class _PhoneStep extends StatefulWidget {
+class _PhoneStep extends ConsumerStatefulWidget {
   const _PhoneStep({required this.busy, required this.error, required this.onSubmit});
   final bool busy;
   final String? error;
   final ValueChanged<String> onSubmit;
   @override
-  State<_PhoneStep> createState() => _PhoneStepState();
+  ConsumerState<_PhoneStep> createState() => _PhoneStepState();
 }
 
-class _PhoneStepState extends State<_PhoneStep> {
+class _PhoneStepState extends ConsumerState<_PhoneStep> {
   final _phoneCtrl = TextEditingController();
   @override
   void dispose() { _phoneCtrl.dispose(); super.dispose(); }
@@ -131,12 +134,12 @@ class _PhoneStepState extends State<_PhoneStep> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text("Parolingizni unutdingizmi?",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, height: 1.1, color: AppColors.textBright))
+        Text(tr(ref, 'auth.forgotPassword', "Parolni unutdingizmi?"),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, height: 1.1, color: AppColors.textBright))
             .animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
         const SizedBox(height: 12),
-        const Text("Telefon raqamingizga 4 raqamli tasdiqlash kodi yuboramiz",
-            style: TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.5)),
+        Text(tr(ref, 'auth.forgotPasswordHint', "Telefon raqamingizga 4 raqamli tasdiqlash kodi yuboramiz"),
+            style: const TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.5)),
         const SizedBox(height: 32),
         TextField(
           controller: _phoneCtrl,
@@ -163,7 +166,8 @@ class _PhoneStepState extends State<_PhoneStep> {
             onPressed: widget.busy ? null : () => widget.onSubmit('+998${_phoneCtrl.text.trim()}'),
             child: widget.busy
                 ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text("Kod yuborish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                : Text(tr(ref, 'auth.sendCode', "Kod yuborish"),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
           ),
         ),
       ],
@@ -171,17 +175,17 @@ class _PhoneStepState extends State<_PhoneStep> {
   }
 }
 
-class _OtpStep extends StatefulWidget {
+class _OtpStep extends ConsumerStatefulWidget {
   const _OtpStep({required this.phone, required this.busy, required this.error, required this.onSubmit});
   final String phone;
   final bool busy;
   final String? error;
   final ValueChanged<String> onSubmit;
   @override
-  State<_OtpStep> createState() => _OtpStepState();
+  ConsumerState<_OtpStep> createState() => _OtpStepState();
 }
 
-class _OtpStepState extends State<_OtpStep> {
+class _OtpStepState extends ConsumerState<_OtpStep> {
   final _ctrl = TextEditingController();
   @override
   void dispose() { _ctrl.dispose(); super.dispose(); }
@@ -191,10 +195,11 @@ class _OtpStepState extends State<_OtpStep> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text("Kodni kiriting",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+        Text(tr(ref, 'auth.enterCode', "Kodni kiriting"),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textBright)),
         const SizedBox(height: 12),
-        Text("${widget.phone} raqamiga 4 raqamli kod yubordik",
+        Text(tr(ref, 'auth.codeSentTo4', '{{phone}} raqamiga 4 raqamli kod yubordik',
+                {'phone': widget.phone}),
             style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
         const SizedBox(height: 32),
         TextField(
@@ -218,7 +223,8 @@ class _OtpStepState extends State<_OtpStep> {
             onPressed: widget.busy ? null : () => widget.onSubmit(_ctrl.text),
             child: widget.busy
                 ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text("Tasdiqlash", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                : Text(tr(ref, 'auth.verify', "Tasdiqlash"),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
           ),
         ),
       ],
@@ -226,16 +232,16 @@ class _OtpStepState extends State<_OtpStep> {
   }
 }
 
-class _PasswordStep extends StatefulWidget {
+class _PasswordStep extends ConsumerStatefulWidget {
   const _PasswordStep({required this.busy, required this.error, required this.onSubmit});
   final bool busy;
   final String? error;
   final ValueChanged<String> onSubmit;
   @override
-  State<_PasswordStep> createState() => _PasswordStepState();
+  ConsumerState<_PasswordStep> createState() => _PasswordStepState();
 }
 
-class _PasswordStepState extends State<_PasswordStep> {
+class _PasswordStepState extends ConsumerState<_PasswordStep> {
   final _ctrl = TextEditingController();
   bool _obscure = true;
   @override
@@ -246,11 +252,11 @@ class _PasswordStepState extends State<_PasswordStep> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        const Text("Yangi parol",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+        Text(tr(ref, 'auth.newPassword', "Yangi parol"),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textBright)),
         const SizedBox(height: 12),
-        const Text("Kamida 4 belgili yangi parol qo'ying",
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+        Text(tr(ref, 'auth.newPasswordHint', "Kamida 4 belgili yangi parol qo'ying"),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
         const SizedBox(height: 32),
         TextField(
           controller: _ctrl,
@@ -258,7 +264,7 @@ class _PasswordStepState extends State<_PasswordStep> {
           obscureText: _obscure,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textBright),
           decoration: InputDecoration(
-            hintText: "Yangi parol",
+            hintText: tr(ref, 'auth.newPassword', "Yangi parol"),
             suffixIcon: IconButton(
               icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                   color: AppColors.textSecondary),
@@ -277,7 +283,8 @@ class _PasswordStepState extends State<_PasswordStep> {
             onPressed: widget.busy ? null : () => widget.onSubmit(_ctrl.text),
             child: widget.busy
                 ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text("Parolni yangilash", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                : Text(tr(ref, 'auth.updatePassword', "Parolni yangilash"),
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
           ),
         ),
       ],

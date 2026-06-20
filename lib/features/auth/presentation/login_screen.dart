@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/auth_repository.dart';
 import 'auth_controller.dart';
@@ -38,11 +39,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_isValidPhone(_phoneController.text)) {
-      setState(() => _error = "Telefon raqami noto'g'ri");
+      setState(() => _error = tr(ref, 'common.validation.invalidPhone', "Telefon raqam noto'g'ri"));
       return;
     }
     if (_passwordController.text.length < 4) {
-      setState(() => _error = "Parol kamida 4 belgi");
+      setState(() => _error = tr(ref, 'auth.shortPassword', "Parol kamida 4 belgi"));
       return;
     }
     final phone = '+998${_phoneController.text.replaceAll(RegExp(r'\D'), '')}';
@@ -58,8 +59,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
       routeToRoleHome(context, user);
     } on Object catch (e) {
-      String msg = "Telefon yoki parol noto'g'ri";
-      if (e.toString().contains('SocketException')) msg = "Internetga ulanish yo'q";
+      String msg = tr(ref, 'auth.invalidCredentials', "Telefon yoki parol noto'g'ri");
+      if (e.toString().contains('SocketException')) {
+        msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
+      }
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -99,9 +102,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: const Icon(Icons.content_cut, color: AppColors.primary, size: 24),
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          "Xush kelibsiz",
-                          style: TextStyle(
+                        Text(
+                          tr(ref, 'auth.loginTitle', "Xush kelibsiz"),
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.3,
@@ -109,9 +112,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          "Hisobingizga kiring",
-                          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                        Text(
+                          tr(ref, 'auth.loginSub', "Hisobingizga kiring"),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
                         ),
                       ],
                     ).animate().fadeIn(duration: 300.ms),
@@ -119,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 22),
 
                     // Phone label + input
-                    const _Label("Telefon"),
+                    _Label(tr(ref, 'auth.phone', "Telefon")),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _phoneController,
@@ -139,7 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 14),
 
                     // Password
-                    const _Label("Parol"),
+                    _Label(tr(ref, 'auth.password', "Parol")),
                     const SizedBox(height: 6),
                     TextField(
                       controller: _passwordController,
@@ -165,9 +168,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: GestureDetector(
                         onTap: () => context.push('/forgot-password'),
-                        child: const Text(
-                          "Parolingizni unutdingizmi?",
-                          style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w500),
+                        child: Text(
+                          tr(ref, 'auth.forgotPassword', "Parolni unutdingizmi?"),
+                          style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ),
@@ -189,7 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 width: 16, height: 16,
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
-                            : const Text("Kirish"),
+                            : Text(tr(ref, 'auth.login', "Kirish")),
                       ),
                     ),
 
@@ -199,13 +202,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Center(
                       child: Wrap(
                         children: [
-                          const Text("Hisobingiz yo'qmi? ",
-                              style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                          Text("${tr(ref, 'auth.noAccount', "Hisobingiz yo'qmi?")} ",
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                           GestureDetector(
                             onTap: () => context.push('/register-phone'),
-                            child: const Text(
-                              "Ro'yxatdan o'tish",
-                              style: TextStyle(
+                            child: Text(
+                              tr(ref, 'auth.register', "Ro'yxatdan o'tish"),
+                              style: const TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -218,14 +221,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                     const SizedBox(height: 18),
                     // OR divider
-                    Row(children: const [
-                      Expanded(child: Divider(color: AppColors.border)),
+                    Row(children: [
+                      const Expanded(child: Divider(color: AppColors.border)),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text("YOKI",
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1)),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(tr(ref, 'common.or', 'yoki').toUpperCase(),
+                            style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1)),
                       ),
-                      Expanded(child: Divider(color: AppColors.border)),
+                      const Expanded(child: Divider(color: AppColors.border)),
                     ]),
                     const SizedBox(height: 14),
 
@@ -235,7 +238,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => context.push('/home'),
                         icon: const Icon(Icons.person_outline, size: 16),
-                        label: const Text("Mehmon sifatida ko'rish"),
+                        label: Text(tr(ref, 'auth.guestView', "Mehmon sifatida ko'rish")),
                       ),
                     ),
                   ],
