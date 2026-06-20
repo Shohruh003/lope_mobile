@@ -1400,6 +1400,9 @@
         "contactReadError": "Couldn't read the contact"
       },
       "bookingsAll": { "title": "All bookings", "empty": "No bookings yet", "client": "Client" },
+      "bookings": {
+        "searchPlaceholder": "Client name or phone"
+      },
       "stats": {
         "title": "Stats",
         "week": "This week",

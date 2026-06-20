@@ -1401,6 +1401,9 @@
         "contactReadError": "Контактни ўқиб бўлмади"
       },
       "bookingsAll": { "title": "Барча бронлар", "empty": "Ҳали брон йўқ", "client": "Мижоз" },
+      "bookings": {
+        "searchPlaceholder": "Мижоз номи ёки телефон"
+      },
       "stats": {
         "title": "Статистика",
         "week": "Бу ҳафта",

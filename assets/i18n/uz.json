@@ -1401,6 +1401,9 @@
         "contactReadError": "Kontaktni o'qib bo'lmadi"
       },
       "bookingsAll": { "title": "Barcha bronlar", "empty": "Hali bron yo'q", "client": "Mijoz" },
+      "bookings": {
+        "searchPlaceholder": "Mijoz nomi yoki telefon"
+      },
       "stats": {
         "title": "Statistika",
         "week": "Bu hafta",

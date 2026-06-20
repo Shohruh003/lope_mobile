@@ -1408,6 +1408,9 @@
         "contactReadError": "Не удалось прочитать контакт"
       },
       "bookingsAll": { "title": "Все записи", "empty": "Пока нет записей", "client": "Клиент" },
+      "bookings": {
+        "searchPlaceholder": "Имя или телефон клиента"
+      },
       "stats": {
         "title": "Статистика",
         "week": "Эта неделя",

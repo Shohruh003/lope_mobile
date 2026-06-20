@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart';
@@ -133,10 +134,10 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                 onChanged: (v) => setState(() => _search = v.trim().toLowerCase()),
                 style: const TextStyle(
                     fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search, color: AppColors.textMuted, size: 16),
-                  prefixIconConstraints: BoxConstraints(minWidth: 36),
-                  hintText: "Mijoz nomi yoki telefon",
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 16),
+                  prefixIconConstraints: const BoxConstraints(minWidth: 36),
+                  hintText: tr(ref, 'mobile.barber.bookings.searchPlaceholder', "Mijoz nomi yoki telefon"),
                 ),
               ),
             ),
@@ -165,7 +166,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
               ),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+                child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
               ),
               data: (list) {
                 final filtered = list.where((b) {
@@ -179,11 +180,11 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                 if (filtered.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Column(children: const [
-                      Icon(Icons.people_outline, size: 48, color: AppColors.textMuted),
-                      SizedBox(height: 12),
-                      Text("Bron yo'q",
-                          style: TextStyle(
+                    child: Column(children: [
+                      const Icon(Icons.people_outline, size: 48, color: AppColors.textMuted),
+                      const SizedBox(height: 12),
+                      Text(tr(ref, 'myBookings.empty', "Bron yo'q"),
+                          style: const TextStyle(
                               color: AppColors.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
                     ]),
                   );
@@ -196,7 +197,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                     child: Row(children: [
                       const Icon(Icons.people_outline, size: 14, color: AppColors.textMuted),
                       const SizedBox(width: 6),
-                      Text("${filtered.length} ta bron",
+                      Text("${filtered.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
                           style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                     ]),
                   ),
@@ -220,7 +221,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
   Widget _tabsRow(int confirmed, int completed, int cancelled) {
     return Row(children: [
       _StatusTab(
-        label: "Tasdiqlangan",
+        label: tr(ref, 'myBookings.statusConfirmed', "Tasdiqlangan"),
         count: confirmed,
         on: _activeTab == 'confirmed',
         onColor: const Color(0xFF3B82F6), // blue-500
@@ -228,7 +229,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
       ),
       const SizedBox(width: 8),
       _StatusTab(
-        label: "Yakunlangan",
+        label: tr(ref, 'myBookings.statusCompleted', "Yakunlangan"),
         count: completed,
         on: _activeTab == 'completed',
         onColor: const Color(0xFF22C55E), // green-500
@@ -236,7 +237,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
       ),
       const SizedBox(width: 8),
       _StatusTab(
-        label: "Bekor",
+        label: tr(ref, 'profile.cancelled', "Bekor"),
         count: cancelled,
         on: _activeTab == 'cancelled',
         onColor: const Color(0xFFEF4444), // red-500
@@ -315,15 +316,15 @@ class _StatusTab extends StatelessWidget {
   }
 }
 
-class _BookingTile extends StatelessWidget {
+class _BookingTile extends ConsumerWidget {
   const _BookingTile({required this.b});
   final BarberBooking b;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final name = b.guestName?.isNotEmpty == true
         ? b.guestName!
-        : (b.userName.isNotEmpty ? b.userName : "Mijoz");
+        : (b.userName.isNotEmpty ? b.userName : tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz"));
     final phone = b.guestPhone ?? b.userPhone ?? '';
 
     return Container(
@@ -368,7 +369,7 @@ class _BookingTile extends StatelessWidget {
                     style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 if (b.totalDuration > 0) ...[
                   const SizedBox(width: 6),
-                  Text("(${b.totalDuration} daq)",
+                  Text("(${b.totalDuration} ${tr(ref, 'booking.duration', 'daq')})",
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 ],
               ]),
@@ -378,7 +379,7 @@ class _BookingTile extends StatelessWidget {
         if (b.totalPrice > 0)
           Padding(
             padding: const EdgeInsets.only(left: 4, right: 6),
-            child: Text("${_fmt(b.totalPrice)} so'm",
+            child: Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
                 style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700)),
           ),
         if (phone.isNotEmpty)
