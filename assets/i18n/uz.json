@@ -1407,7 +1407,15 @@
         "month": "Bu oy",
         "total": "Jami daromad",
         "bookings": "{{n}} ta bron",
-        "historyCount": "{{n}} ta bron tarixi"
+        "historyCount": "{{n}} ta bron tarixi",
+        "todayBookings": "Bugungi bronlar",
+        "totalClients": "Jami mijozlar",
+        "monthRevenue": "Bu oy daromad",
+        "weeklyBookings": "Haftalik bronlar",
+        "summary": "Umumiy hisob",
+        "totalBookings": "Jami bronlar",
+        "bookingsShort": "ta bron",
+        "countSuffix": "ta"
       },
       "profileEdit": {
         "title": "Profilni tahrirlash",

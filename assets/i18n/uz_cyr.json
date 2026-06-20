@@ -1407,7 +1407,15 @@
         "month": "Бу ой",
         "total": "Жами даромад",
         "bookings": "{{n}} та брон",
-        "historyCount": "{{n}} та брон тарихи"
+        "historyCount": "{{n}} та брон тарихи",
+        "todayBookings": "Бугунги бронлар",
+        "totalClients": "Жами мижозлар",
+        "monthRevenue": "Бу ой даромад",
+        "weeklyBookings": "Ҳафталик бронлар",
+        "summary": "Умумий ҳисоб",
+        "totalBookings": "Жами бронлар",
+        "bookingsShort": "та брон",
+        "countSuffix": "та"
       },
       "profileEdit": {
         "title": "Профилни таҳрирлаш",

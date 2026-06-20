@@ -1406,7 +1406,15 @@
         "month": "This month",
         "total": "Total revenue",
         "bookings": "{{n}} bookings",
-        "historyCount": "{{n}} bookings in history"
+        "historyCount": "{{n}} bookings in history",
+        "todayBookings": "Today's bookings",
+        "totalClients": "Total clients",
+        "monthRevenue": "Month revenue",
+        "weeklyBookings": "Weekly bookings",
+        "summary": "Summary",
+        "totalBookings": "Total bookings",
+        "bookingsShort": "bookings",
+        "countSuffix": "pcs"
       },
       "profileEdit": {
         "title": "Edit profile",

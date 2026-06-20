@@ -2,6 +2,7 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/stat_charts.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -29,9 +30,9 @@ class BarberStatsScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [
-              const Text(
-                "Statistika",
-                style: TextStyle(
+              Text(
+                tr(ref, 'mobile.barber.stats.title', "Statistika"),
+                style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textBright),
@@ -42,7 +43,7 @@ class BarberStatsScreen extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: 40),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (e, _) => Text("Xato: $e",
+                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
                     style: const TextStyle(color: AppColors.textMuted)),
                 data: (list) {
                   final now = DateTime.now();
@@ -95,26 +96,26 @@ class BarberStatsScreen extends ConsumerWidget {
                         children: [
                           _StatTile(
                             icon: Icons.event_available,
-                            label: "Bugungi bronlar",
+                            label: tr(ref, 'mobile.barber.stats.todayBookings', "Bugungi bronlar"),
                             value: "$todayCount",
                             color: const Color(0xFF3B82F6), // blue-500
                           ),
                           _StatTile(
                             icon: Icons.trending_up,
-                            label: "Bu oy",
+                            label: tr(ref, 'mobile.barber.stats.month', "Bu oy"),
                             value: "$monthCount",
                             color: const Color(0xFF22C55E), // green-500
                           ),
                           _StatTile(
                             icon: Icons.people_outline,
-                            label: "Jami mijozlar",
+                            label: tr(ref, 'mobile.barber.stats.totalClients', "Jami mijozlar"),
                             value: "$uniqueClients",
                             color: const Color(0xFFA855F7), // purple-500
                           ),
                           _StatTile(
                             icon: Icons.attach_money,
-                            label: "Bu oy daromad",
-                            value: "${_fmt(monthRev)} so'm",
+                            label: tr(ref, 'mobile.barber.stats.monthRevenue', "Bu oy daromad"),
+                            value: "${_fmt(monthRev)} ${tr(ref, 'common.currency', "so'm")}",
                             color: const Color(0xFF10B981), // emerald-500
                           ),
                         ],
@@ -133,8 +134,8 @@ class BarberStatsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text("Haftalik bronlar",
-                                style: TextStyle(
+                            Text(tr(ref, 'mobile.barber.stats.weeklyBookings', "Haftalik bronlar"),
+                                style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 14,
                                     color: AppColors.textBright)),
@@ -157,17 +158,23 @@ class BarberStatsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text("Umumiy hisob",
-                                style: TextStyle(
+                            Text(tr(ref, 'mobile.barber.stats.summary', "Umumiy hisob"),
+                                style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 14,
                                     color: AppColors.textBright)),
                             const SizedBox(height: 10),
-                            _SummaryRow(label: "Bu hafta", value: "$weekCount ta bron · ${_fmt(weekRev)} so'm"),
+                            _SummaryRow(
+                                label: tr(ref, 'mobile.barber.stats.week', "Bu hafta"),
+                                value: "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} · ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}"),
                             const Divider(color: AppColors.border, height: 14),
-                            _SummaryRow(label: "Jami bronlar", value: "${list.length} ta"),
+                            _SummaryRow(
+                                label: tr(ref, 'mobile.barber.stats.totalBookings', "Jami bronlar"),
+                                value: "${list.length} ${tr(ref, 'mobile.barber.stats.countSuffix', 'ta')}"),
                             const Divider(color: AppColors.border, height: 14),
-                            _SummaryRow(label: "Jami daromad", value: "${_fmt(totalRev)} so'm"),
+                            _SummaryRow(
+                                label: tr(ref, 'mobile.barber.stats.total', "Jami daromad"),
+                                value: "${_fmt(totalRev)} ${tr(ref, 'common.currency', "so'm")}"),
                           ],
                         ),
                       ),
