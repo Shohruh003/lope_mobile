@@ -1634,7 +1634,8 @@
         "activeCustomers": "Faol mijozlar",
         "dueTodayTitle": "Bugun to'lov kuni",
         "noDueToday": "Bugun to'lov kerak emas",
-        "noCustomers": "Mijozlar yo'q"
+        "noCustomers": "Mijozlar yo'q",
+        "overdueShort": "o'tib ketgan"
       },
       "products": {
         "title": "Mahsulotlar",

@@ -78,7 +78,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Text(tr(ref, 'mobile.lopepay.customer.debt', "Qarz"),
                         style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    Text("${_fmt(debt)} so'm",
+                    Text("${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
                         style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
                   ],
                 ),
@@ -141,7 +141,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                 ...payments.map((p) {
                   final at = DateTime.tryParse(p['paidAt']?.toString() ?? '');
                   return _RowCard(
-                    title: "${_fmt(((p['amount'] ?? 0) as num).toInt())} so'm",
+                    title: "${_fmt(((p['amount'] ?? 0) as num).toInt())} ${tr(ref, 'common.currency', "so'm")}",
                     subtitle: at == null ? '' : _df.format(at.toLocal()),
                     badge: '+',
                     badgeColor: AppColors.success,

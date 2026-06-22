@@ -1641,7 +1641,8 @@
         "activeCustomers": "Активные клиенты",
         "dueTodayTitle": "Сегодня день платежа",
         "noDueToday": "Сегодня платежей нет",
-        "noCustomers": "Клиентов нет"
+        "noCustomers": "Клиентов нет",
+        "overdueShort": "просрочено"
       },
       "products": {
         "title": "Товары",

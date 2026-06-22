@@ -1634,7 +1634,8 @@
         "activeCustomers": "Фаол мижозлар",
         "dueTodayTitle": "Бугун тўлов куни",
         "noDueToday": "Бугун тўлов керак эмас",
-        "noCustomers": "Мижозлар йўқ"
+        "noCustomers": "Мижозлар йўқ",
+        "overdueShort": "ўтиб кетган"
       },
       "products": {
         "title": "Маҳсулотлар",

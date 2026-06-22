@@ -371,7 +371,7 @@ class _InstallmentRow extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name.isEmpty ? "Mijoz" : name,
+                Text(name.isEmpty ? tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz") : name,
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textBright)),
                 if (phone.isNotEmpty)
                   Text(phone,
@@ -382,13 +382,13 @@ class _InstallmentRow extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text("${_fmt(monthly)} so'm",
+              Text("${_fmt(monthly)} ${tr(ref, 'common.currency', "so'm")}",
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color)),
               if (isOverdue)
-                const Padding(
-                  padding: EdgeInsets.only(top: 2),
-                  child: Text("o'tib ketgan",
-                      style: TextStyle(fontSize: 10, color: AppColors.danger, fontWeight: FontWeight.w600)),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(tr(ref, 'mobile.lopepay.home.overdueShort', "o'tib ketgan"),
+                      style: const TextStyle(fontSize: 10, color: AppColors.danger, fontWeight: FontWeight.w600)),
                 ),
             ],
           ),
@@ -463,7 +463,7 @@ class _LopepayCustomersTab extends ConsumerWidget {
                               Text(c.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                             const SizedBox(height: 4),
                             Row(children: [
-                              Text("${_fmt(c.totalDebt)} so'm",
+                              Text("${_fmt(c.totalDebt)} ${tr(ref, 'common.currency', "so'm")}",
                                   style: TextStyle(color: overdue ? AppColors.danger : AppColors.warning, fontWeight: FontWeight.w800, fontSize: 13)),
                               if (c.nextDue != null) ...[
                                 const SizedBox(width: 8),
