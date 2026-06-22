@@ -1410,7 +1410,8 @@
       },
       "location": {
         "invalidLatLng": "Lat/Lng noto'g'ri",
-        "copied": "Nusxalandi"
+        "copied": "Nusxalandi",
+        "addressPlaceholder": "Toshkent, Yunusobod tumani, Amir Temur ko'chasi 7"
       },
       "settings": { "salon": "SALON" },
       "admins": {

@@ -160,7 +160,9 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
                         controller: _addressCtrl,
                         maxLines: 2,
                         style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                        decoration: const InputDecoration(hintText: "Toshkent, Yunusobod tumani, Amir Temur ko'chasi 7"),
+                        decoration: InputDecoration(
+                            hintText: tr(ref, 'mobile.barber.location.addressPlaceholder',
+                                "Toshkent, Yunusobod tumani, Amir Temur ko'chasi 7")),
                       ),
 
                       const SizedBox(height: 14),

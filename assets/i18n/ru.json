@@ -1417,7 +1417,8 @@
       },
       "location": {
         "invalidLatLng": "Неверные Lat/Lng",
-        "copied": "Скопировано"
+        "copied": "Скопировано",
+        "addressPlaceholder": "Ташкент, Юнусабадский район, улица Амира Темура 7"
       },
       "settings": { "salon": "САЛОН" },
       "admins": {

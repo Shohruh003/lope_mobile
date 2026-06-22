@@ -169,7 +169,8 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           TextField(
             controller: amount,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(hintText: "Summa (so'm)"),
+            decoration: InputDecoration(
+                hintText: tr(ref, 'mobile.customer.transactions.topUpAmount', "Summa (so'm)")),
           ),
           const SizedBox(height: 18),
           SizedBox(

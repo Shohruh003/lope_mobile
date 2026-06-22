@@ -1410,7 +1410,8 @@
       },
       "location": {
         "invalidLatLng": "Lat/Lng нотўғри",
-        "copied": "Нусхаланди"
+        "copied": "Нусхаланди",
+        "addressPlaceholder": "Тошкент, Юнусобод тумани, Амир Темур кўчаси 7"
       },
       "settings": { "salon": "САЛОН" },
       "admins": {
