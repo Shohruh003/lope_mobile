@@ -20,7 +20,7 @@ class ShopClientDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_clientDetailProvider(clientKey));
     return Scaffold(
-      appBar: AppBar(title: const Text("Mijoz")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
@@ -59,7 +59,7 @@ class ShopClientDetailScreen extends ConsumerWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.phone),
-                    label: const Text("Qo'ng'iroq"),
+                    label: Text(tr(ref, 'mobile.lopepay.customer.call', "Qo'ng'iroq")),
                     onPressed: phone.isEmpty
                         ? null
                         : () async {
@@ -86,14 +86,14 @@ class ShopClientDetailScreen extends ConsumerWidget {
               ]),
 
               const SizedBox(height: 26),
-              const Text("Tashriflar tarixi",
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(tr(ref, 'mobile.shop.client.visitsHistory', "Tashriflar tarixi"),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: 10),
               if (history.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text("Tashriflar yo'q",
-                      style: TextStyle(color: AppColors.textMuted)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(tr(ref, 'mobile.shop.client.noVisits', "Tashriflar yo'q"),
+                      style: const TextStyle(color: AppColors.textMuted)),
                 )
               else
                 ...history.map((h) => Container(

@@ -1574,7 +1574,12 @@
         "statusLabel": "Статус",
         "emptyForDay": "На эту дату записей нет"
       },
-      "clients": { "empty": "Список клиентов пуст" }
+      "clients": { "empty": "Список клиентов пуст" },
+      "client": {
+        "visitsHistory": "История посещений",
+        "noVisits": "Посещений нет"
+      },
+      "reminders": { "empty": "В очереди напоминаний нет" }
     },
     "notifications": { "title": "Уведомления", "empty": "Уведомлений нет", "markAllRead": "Прочитать все" },
     "reviews": {

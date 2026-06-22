@@ -16,16 +16,17 @@ class ShopTransactionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(shopTransactionsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Tranzaktsiyalar")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text("Tranzaktsiya yo'q", style: TextStyle(color: AppColors.textMuted)),
+                padding: const EdgeInsets.all(32),
+                child: Text(tr(ref, 'mobile.customer.transactions.empty', "Tranzaktsiya yo'q"),
+                    style: const TextStyle(color: AppColors.textMuted)),
               ),
             );
           }

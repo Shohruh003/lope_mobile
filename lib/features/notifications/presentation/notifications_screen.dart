@@ -65,7 +65,7 @@ class NotificationsScreen extends ConsumerWidget {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+          child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
         ),
         data: (list) {
           if (list.isEmpty) {

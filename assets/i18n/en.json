@@ -1566,7 +1566,12 @@
         "statusLabel": "Status",
         "emptyForDay": "No bookings on this date"
       },
-      "clients": { "empty": "Client list is empty" }
+      "clients": { "empty": "Client list is empty" },
+      "client": {
+        "visitsHistory": "Visit history",
+        "noVisits": "No visits"
+      },
+      "reminders": { "empty": "No pending reminders" }
     },
     "notifications": { "title": "Notifications", "empty": "No notifications", "markAllRead": "Mark all read" },
     "reviews": {

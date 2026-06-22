@@ -76,21 +76,21 @@ class BarbershopDetailScreen extends ConsumerWidget {
                         ]),
                       ],
                       const SizedBox(height: 22),
-                      const Text("Masterlar",
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.textBright)),
+                      Text(tr(ref, 'mobile.shop.home.masters', "Masterlar"),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.textBright)),
                       const SizedBox(height: 10),
                     ],
                   ),
                 ),
               ),
               if (barbers.isEmpty)
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(
-                    padding: EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(32),
                     child: Center(
-                      child: Text("Hali master ro'yxatga olinmagan",
-                          style: TextStyle(color: AppColors.textMuted)),
+                      child: Text(tr(ref, 'mobile.shop.masters.empty', "Hali master ro'yxatga olinmagan"),
+                          style: const TextStyle(color: AppColors.textMuted)),
                     ),
                   ),
                 )

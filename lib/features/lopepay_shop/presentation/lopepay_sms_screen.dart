@@ -21,10 +21,11 @@ class LopepaySmsScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text("SMS yo'q", style: TextStyle(color: AppColors.textMuted)),
+                padding: const EdgeInsets.all(32),
+                child: Text(tr(ref, 'mobile.barber.sms.empty', "SMS yo'q"),
+                    style: const TextStyle(color: AppColors.textMuted)),
               ),
             );
           }

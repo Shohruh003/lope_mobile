@@ -1567,7 +1567,12 @@
         "statusLabel": "Статус",
         "emptyForDay": "Бу санада бронлар йўқ"
       },
-      "clients": { "empty": "Мижозлар рўйхати бўш" }
+      "clients": { "empty": "Мижозлар рўйхати бўш" },
+      "client": {
+        "visitsHistory": "Ташрифлар тарихи",
+        "noVisits": "Ташрифлар йўқ"
+      },
+      "reminders": { "empty": "Навбатдаги эслатма йўқ" }
     },
     "notifications": { "title": "Билдиришномалар", "empty": "Билдиришномалар йўқ", "markAllRead": "Ҳаммасини ўқиш" },
     "reviews": {

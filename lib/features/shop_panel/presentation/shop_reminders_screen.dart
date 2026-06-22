@@ -17,16 +17,17 @@ class ShopRemindersScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_remindersProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Eslatmalar")),
+      appBar: AppBar(title: Text(tr(ref, 'barberApp.reminderSettings', "Eslatmalar"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text("Navbatdagi eslatma yo'q", style: TextStyle(color: AppColors.textMuted)),
+                padding: const EdgeInsets.all(32),
+                child: Text(tr(ref, 'mobile.shop.reminders.empty', "Navbatdagi eslatma yo'q"),
+                    style: const TextStyle(color: AppColors.textMuted)),
               ),
             );
           }

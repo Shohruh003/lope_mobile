@@ -70,7 +70,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           error: (e, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+              child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
             ),
           ),
           data: (barber) {
