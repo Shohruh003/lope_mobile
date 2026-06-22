@@ -288,8 +288,10 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
   }
 
   String _monthShort(int m) {
-    const names = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'];
-    return m >= 1 && m <= 12 ? names[m - 1] : '';
+    if (m < 1 || m > 12) return '';
+    const fallback = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
+    final months = trList(ref, 'mobile.dates.months', fallback);
+    return months[m - 1].substring(0, 3).toLowerCase();
   }
 
   String _fmt(int n) {
