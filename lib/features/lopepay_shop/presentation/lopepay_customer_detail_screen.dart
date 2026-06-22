@@ -119,8 +119,13 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                     style: const TextStyle(color: AppColors.textMuted))
               else
                 ...installments.map((i) => _RowCard(
-                      title: (i['productName'] ?? 'Mahsulot').toString(),
-                      subtitle: "Qoldi: ${_fmt(((i['remaining'] ?? 0) as num).toInt())} so'm",
+                      title: (i['productName'] ?? tr(ref, 'mobile.lopepay.products.newProduct', 'Mahsulot')).toString(),
+                      subtitle: tr(ref, 'mobile.lopepay.customer.remaining',
+                          "Qoldi: {{amount}} {{currency}}",
+                          {
+                            'amount': _fmt(((i['remaining'] ?? 0) as num).toInt()),
+                            'currency': tr(ref, 'common.currency', "so'm"),
+                          }),
                       badge: (i['status'] ?? '').toString(),
                       badgeColor: i['status'] == 'overdue' ? AppColors.danger : AppColors.success,
                     )),

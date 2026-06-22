@@ -1494,7 +1494,10 @@
         "tabBio": "Био",
         "tabHours": "Часы",
         "tabServices": "Услуги",
-        "tabGallery": "Галерея"
+        "tabGallery": "Галерея",
+        "hoursSub": "Настройте часы работы по дням",
+        "servicesSub": "Список услуг с ценой и длительностью",
+        "gallerySub": "Загружайте фотографии своих работ"
       },
       "services": {
         "title": "Мои услуги",
@@ -1636,7 +1639,8 @@
         "noActiveInstallments": "Нет активных рассрочек",
         "paymentsHistory": "История платежей",
         "noPayments": "Платежей пока нет",
-        "received": "Платёж принят"
+        "received": "Платёж принят",
+        "remaining": "Остаток: {{amount}} {{currency}}"
       }
     },
     "promo": {

@@ -87,10 +87,10 @@ class ShopDashboardScreen extends ConsumerWidget {
               ShadTileGroup(children: [
                 ShadTile(icon: Icons.people_alt_outlined, label: tr(ref, 'mobile.shop.dashboard.navMasters', "Mastera (Barberlar)"), onTap: () => context.push('/shop/barbers')),
                 ShadTile(icon: Icons.event_note_outlined, label: tr(ref, 'mobile.shop.dashboard.navBookings', "Salon bronlari"), onTap: () => context.push('/shop/bookings')),
-                ShadTile(icon: Icons.people_outline, label: "Mijozlar", onTap: () => context.push('/shop/clients')),
+                ShadTile(icon: Icons.people_outline, label: tr(ref, 'shop.nav.clients', "Mijozlar"), onTap: () => context.push('/shop/clients')),
                 ShadTile(icon: Icons.account_balance_wallet_outlined, label: tr(ref, 'mobile.shop.dashboard.navTransactions', "Hisob va to'lovlar"), onTap: () => context.push('/shop/transactions')),
                 ShadTile(icon: Icons.sms_outlined, label: tr(ref, 'mobile.shop.dashboard.navSms', "SMS tarixi"), onTap: () => context.push('/shop/sms')),
-                ShadTile(icon: Icons.storefront_outlined, label: "Salon profili", onTap: () => context.push('/shop/profile')),
+                ShadTile(icon: Icons.storefront_outlined, label: tr(ref, 'profile.barberProfile', "Salon profili"), onTap: () => context.push('/shop/profile')),
               ]),
             ],
           ),

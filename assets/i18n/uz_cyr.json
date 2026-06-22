@@ -1487,7 +1487,10 @@
         "tabBio": "Био",
         "tabHours": "Соатлар",
         "tabServices": "Хизматлар",
-        "tabGallery": "Галерея"
+        "tabGallery": "Галерея",
+        "hoursSub": "Ҳар кун учун иш вақтини созланг",
+        "servicesSub": "Нарх ва давомийлиги билан хизмат рўйхати",
+        "gallerySub": "Ишларингиздан расмлар юкланг"
       },
       "services": {
         "title": "Хизматларим",
@@ -1629,7 +1632,8 @@
         "noActiveInstallments": "Фаол рассрочка йўқ",
         "paymentsHistory": "Тўловлар тарихи",
         "noPayments": "Ҳали тўлов йўқ",
-        "received": "Қабул қилинди"
+        "received": "Қабул қилинди",
+        "remaining": "Қолди: {{amount}} {{currency}}"
       }
     },
     "promo": {

@@ -1487,7 +1487,10 @@
         "tabBio": "Bio",
         "tabHours": "Soatlar",
         "tabServices": "Xizmatlar",
-        "tabGallery": "Galereya"
+        "tabGallery": "Galereya",
+        "hoursSub": "Har kun uchun ish vaqtini sozlash",
+        "servicesSub": "Narx va davomiyligi bilan xizmat ro'yxati",
+        "gallerySub": "Ishlaringizdan rasmlar yuklash"
       },
       "services": {
         "title": "Xizmatlarim",
@@ -1629,7 +1632,8 @@
         "noActiveInstallments": "Faol rassrochka yo'q",
         "paymentsHistory": "To'lovlar tarixi",
         "noPayments": "Hali to'lov yo'q",
-        "received": "Qabul qilindi"
+        "received": "Qabul qilindi",
+        "remaining": "Qoldi: {{amount}} {{currency}}"
       }
     },
     "promo": {

@@ -1486,7 +1486,10 @@
         "tabBio": "Bio",
         "tabHours": "Hours",
         "tabServices": "Services",
-        "tabGallery": "Gallery"
+        "tabGallery": "Gallery",
+        "hoursSub": "Set your working hours for each day",
+        "servicesSub": "Service list with prices and durations",
+        "gallerySub": "Upload photos of your work"
       },
       "services": {
         "title": "My services",
@@ -1628,7 +1631,8 @@
         "noActiveInstallments": "No active installments",
         "paymentsHistory": "Payment history",
         "noPayments": "No payments yet",
-        "received": "Payment received"
+        "received": "Payment received",
+        "remaining": "Remaining: {{amount}} {{currency}}"
       }
     },
     "promo": {
