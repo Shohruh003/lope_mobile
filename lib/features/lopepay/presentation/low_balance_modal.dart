@@ -107,7 +107,7 @@ class _LowBalanceDialogState extends ConsumerState<_LowBalanceDialog> {
                     color: AppColors.textBright)),
             const SizedBox(height: 6),
             Text(
-              "${tr(ref, 'topUp.currentBalance', 'Joriy balans')}: ${_fmt(widget.balance)} so'm.\n${tr(ref, 'topUp.lowBalanceHint', "Balans yetarli bo'lmasa mijozlarga SMS eslatmalar yuborilmaydi.")}",
+              "${tr(ref, 'topUp.currentBalance', 'Joriy balans')}: ${_fmt(widget.balance)} ${tr(ref, 'common.currency', "so'm")}.\n${tr(ref, 'topUp.lowBalanceHint', "Balans yetarli bo'lmasa mijozlarga SMS eslatmalar yuborilmaydi.")}",
               textAlign: TextAlign.center,
               style: const TextStyle(
                   color: AppColors.textMuted, fontSize: 12, height: 1.5),

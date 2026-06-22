@@ -296,13 +296,13 @@ class _Sep extends StatelessWidget {
 ///   - Status badge top-right (10px font)
 ///   - Body: avatar h-11 (44px) overlapping with -mt-6, title text-sm, then
 ///     rating/location sub-line
-class _BarberCard extends StatelessWidget {
+class _BarberCard extends ConsumerWidget {
   const _BarberCard({required this.barber, required this.avatarUrl});
   final Barber barber;
   final String avatarUrl;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final firstGallery = barber.gallery.isNotEmpty ? barber.gallery.first : '';
 
     return Container(
@@ -365,7 +365,9 @@ class _BarberCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    barber.isAvailable ? "Bo'sh" : "Band",
+                    barber.isAvailable
+                        ? tr(ref, 'barbers.available', "Bo'sh")
+                        : tr(ref, 'barbers.unavailable', "Band"),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 9,
