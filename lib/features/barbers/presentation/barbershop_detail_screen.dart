@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
 /// Customer-facing barbershop profile. Shows the salon's hero image, name,
@@ -21,7 +22,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (data) {
           final shop = data['shop'] as Map<String, dynamic>;
           final barbers = (data['barbers'] as List).cast<Map<String, dynamic>>();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/tr.dart';
 import '../theme/colors.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 
@@ -16,7 +17,7 @@ class AppDrawer extends ConsumerWidget {
     final user = ref.watch(authControllerProvider).user;
     final role = user?.role ?? 'user';
 
-    final items = _itemsForRole(role);
+    final items = _itemsForRole(role, ref);
 
     return Drawer(
       backgroundColor: AppColors.background,
@@ -113,13 +114,13 @@ class AppDrawer extends ConsumerWidget {
                 await ref.read(authControllerProvider.notifier).logout();
                 if (context.mounted) context.go('/login');
               },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 child: Row(children: [
-                  Icon(Icons.logout, color: AppColors.danger, size: 22),
-                  SizedBox(width: 14),
-                  Text("Chiqish",
-                      style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700, fontSize: 15)),
+                  const Icon(Icons.logout, color: AppColors.danger, size: 22),
+                  const SizedBox(width: 14),
+                  Text(tr(ref, 'barberApp.logout', "Chiqish"),
+                      style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.w700, fontSize: 15)),
                 ]),
               ),
             ),
@@ -140,67 +141,73 @@ class AppDrawer extends ConsumerWidget {
   }
 
   /// `null` means render a divider.
-  List<_DrawerItem?> _itemsForRole(String role) {
+  List<_DrawerItem?> _itemsForRole(String role, WidgetRef ref) {
+    final iAi = tr(ref, 'mobile.tabs.aiStyle', 'AI Stil');
+    final iSms = tr(ref, 'mobile.barber.sms.title', 'SMS tarixi');
+    final iNotif = tr(ref, 'barberApp.notifications', 'Bildirishnomalar');
+    final iSettings = tr(ref, 'barberApp.settings', 'Sozlamalar');
+    final iEditProfile = tr(ref, 'profile.editProfile', 'Profilni tahrirlash');
+    final iPromo = tr(ref, 'promoCode.title', 'Promo kod');
     switch (role) {
       case 'barber':
         return [
-          _DrawerItem(Icons.calendar_view_day, "Jadval", '/barber-app'),
-          _DrawerItem(Icons.people, "Bugungi mijozlar", '/barber/clients'),
-          _DrawerItem(Icons.history, "Mijozlar tarixi", '/barber/my-clients'),
-          _DrawerItem(Icons.bar_chart, "Statistika", '/barber-app'),
-          _DrawerItem(Icons.auto_awesome, "AI Stil", '/ai-style'),
+          _DrawerItem(Icons.calendar_view_day, tr(ref, 'mobile.barber.schedule.title', "Jadval"), '/barber-app'),
+          _DrawerItem(Icons.people, tr(ref, 'mobile.barber.schedule.addClient', "Bugungi mijozlar"), '/barber/clients'),
+          _DrawerItem(Icons.history, tr(ref, 'barberMyClients.title', "Mijozlarim"), '/barber/my-clients'),
+          _DrawerItem(Icons.bar_chart, tr(ref, 'mobile.barber.stats.title', "Statistika"), '/barber-app'),
+          _DrawerItem(Icons.auto_awesome, iAi, '/ai-style'),
           null,
-          _DrawerItem(Icons.edit, "Profilni tahrirlash", '/barber/profile'),
-          _DrawerItem(Icons.share, "Ommaviy havola", '/barber/public-link'),
-          _DrawerItem(Icons.notifications_active, "Eslatma sozlamalari", '/barber/reminders'),
-          _DrawerItem(Icons.location_on, "Manzilim", '/barber/location'),
-          _DrawerItem(Icons.credit_card, "Kartalarim", '/barber/cards'),
-          _DrawerItem(Icons.local_offer, "Promo kod", '/barber/promo-code'),
+          _DrawerItem(Icons.edit, iEditProfile, '/barber/profile'),
+          _DrawerItem(Icons.share, tr(ref, 'barberApp.publicLink', "Ommaviy havola"), '/barber/public-link'),
+          _DrawerItem(Icons.notifications_active, tr(ref, 'barberApp.reminderSettings', "Eslatma sozlamalari"), '/barber/reminders'),
+          _DrawerItem(Icons.location_on, tr(ref, 'barberApp.myLocation', "Manzilim"), '/barber/location'),
+          _DrawerItem(Icons.credit_card, tr(ref, 'barberApp.cards', "Kartalarim"), '/barber/cards'),
+          _DrawerItem(Icons.local_offer, iPromo, '/barber/promo-code'),
           null,
-          _DrawerItem(Icons.account_balance_wallet, "Hisob", '/transactions'),
-          _DrawerItem(Icons.sms, "SMS tarixi", '/barber/sms'),
-          _DrawerItem(Icons.notifications, "Bildirishnomalar", '/notifications'),
-          _DrawerItem(Icons.settings, "Sozlamalar", '/barber/settings'),
+          _DrawerItem(Icons.account_balance_wallet, tr(ref, 'mobile.customer.transactions.title', "Hisob"), '/transactions'),
+          _DrawerItem(Icons.sms, iSms, '/barber/sms'),
+          _DrawerItem(Icons.notifications, iNotif, '/notifications'),
+          _DrawerItem(Icons.settings, iSettings, '/barber/settings'),
         ];
       case 'barbershop':
         return [
-          _DrawerItem(Icons.dashboard, "Boshqaruv", '/shop'),
-          _DrawerItem(Icons.event_note, "Bronlar", '/shop'),
-          _DrawerItem(Icons.people_alt, "Mastera", '/shop'),
-          _DrawerItem(Icons.people_outline, "Mijozlar", '/shop/clients'),
-          _DrawerItem(Icons.alarm, "Eslatmalar", '/shop/reminders'),
-          _DrawerItem(Icons.sms, "SMS tarixi", '/shop/sms'),
-          _DrawerItem(Icons.account_balance_wallet, "Tranzaktsiyalar", '/shop/transactions'),
-          _DrawerItem(Icons.admin_panel_settings, "Adminlar", '/shop/admins'),
+          _DrawerItem(Icons.dashboard, tr(ref, 'mobile.shop.home.dashboard', "Boshqaruv"), '/shop'),
+          _DrawerItem(Icons.event_note, tr(ref, 'mobile.tabs.bookings', "Bronlar"), '/shop'),
+          _DrawerItem(Icons.people_alt, tr(ref, 'mobile.shop.home.masters', "Mastera"), '/shop'),
+          _DrawerItem(Icons.people_outline, tr(ref, 'shop.nav.clients', "Mijozlar"), '/shop/clients'),
+          _DrawerItem(Icons.alarm, tr(ref, 'barberApp.reminderSettings', "Eslatmalar"), '/shop/reminders'),
+          _DrawerItem(Icons.sms, iSms, '/shop/sms'),
+          _DrawerItem(Icons.account_balance_wallet, tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"), '/shop/transactions'),
+          _DrawerItem(Icons.admin_panel_settings, tr(ref, 'shop.nav.admins', "Adminlar"), '/shop/admins'),
           null,
-          _DrawerItem(Icons.storefront, "Salon profili", '/shop/profile'),
-          _DrawerItem(Icons.settings, "Sozlamalar", '/shop/settings'),
-          _DrawerItem(Icons.notifications, "Bildirishnomalar", '/notifications'),
-          _DrawerItem(Icons.auto_awesome, "AI Stil", '/ai-style'),
+          _DrawerItem(Icons.storefront, tr(ref, 'profile.barberProfile', "Salon profili"), '/shop/profile'),
+          _DrawerItem(Icons.settings, iSettings, '/shop/settings'),
+          _DrawerItem(Icons.notifications, iNotif, '/notifications'),
+          _DrawerItem(Icons.auto_awesome, iAi, '/ai-style'),
         ];
       case 'shop':
         return [
-          _DrawerItem(Icons.dashboard, "Boshqaruv", '/lopepay'),
-          _DrawerItem(Icons.people, "Mijozlar", '/lopepay'),
-          _DrawerItem(Icons.shopping_bag, "Mahsulotlar", '/lopepay/products'),
-          _DrawerItem(Icons.sms, "SMS tarixi", '/lopepay/sms'),
-          _DrawerItem(Icons.account_balance_wallet, "Tranzaktsiyalar", '/lopepay/transactions'),
+          _DrawerItem(Icons.dashboard, tr(ref, 'mobile.shop.home.dashboard', "Boshqaruv"), '/lopepay'),
+          _DrawerItem(Icons.people, tr(ref, 'shop.nav.clients', "Mijozlar"), '/lopepay'),
+          _DrawerItem(Icons.shopping_bag, tr(ref, 'mobile.lopepay.products.title', "Mahsulotlar"), '/lopepay/products'),
+          _DrawerItem(Icons.sms, iSms, '/lopepay/sms'),
+          _DrawerItem(Icons.account_balance_wallet, tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"), '/lopepay/transactions'),
           null,
-          _DrawerItem(Icons.notifications, "Bildirishnomalar", '/notifications'),
+          _DrawerItem(Icons.notifications, iNotif, '/notifications'),
         ];
       default: // 'user'
         return [
-          _DrawerItem(Icons.content_cut, "Sartaroshlar", '/home'),
-          _DrawerItem(Icons.calendar_month, "Bronlarim", '/home'),
-          _DrawerItem(Icons.auto_awesome, "AI Stil", '/ai-style'),
-          _DrawerItem(Icons.favorite, "Sevimlilar", '/favorites'),
-          _DrawerItem(Icons.map, "Xarita", '/map'),
+          _DrawerItem(Icons.content_cut, tr(ref, 'mobile.tabs.discover', "Sartaroshlar"), '/home'),
+          _DrawerItem(Icons.calendar_month, tr(ref, 'mobile.tabs.bookings', "Bronlarim"), '/home'),
+          _DrawerItem(Icons.auto_awesome, iAi, '/ai-style'),
+          _DrawerItem(Icons.favorite, tr(ref, 'profile.favorites', "Sevimlilar"), '/favorites'),
+          _DrawerItem(Icons.map, tr(ref, 'mobile.map.title', "Xarita"), '/map'),
           null,
-          _DrawerItem(Icons.account_balance_wallet, "Hisobim", '/transactions'),
-          _DrawerItem(Icons.local_offer, "Promo kod", '/promo'),
-          _DrawerItem(Icons.notifications, "Bildirishnomalar", '/notifications'),
-          _DrawerItem(Icons.settings, "Sozlamalar", '/settings'),
-          _DrawerItem(Icons.edit, "Profilni tahrirlash", '/profile-edit'),
+          _DrawerItem(Icons.account_balance_wallet, tr(ref, 'mobile.customer.transactions.title', "Hisobim"), '/transactions'),
+          _DrawerItem(Icons.local_offer, iPromo, '/promo'),
+          _DrawerItem(Icons.notifications, iNotif, '/notifications'),
+          _DrawerItem(Icons.settings, iSettings, '/settings'),
+          _DrawerItem(Icons.edit, iEditProfile, '/profile-edit'),
         ];
     }
   }
