@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart' show BarberBookingActions, barberPanelRepositoryProvider;
@@ -63,7 +64,9 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
     final user = ref.read(authControllerProvider).user;
     if (user == null) return;
     if (_to.isBefore(_from)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sana oralig'i noto'g'ri")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'mobile.barber.scheduleGen.invalidRange',
+              "Sana oralig'i noto'g'ri"))));
       return;
     }
     setState(() => _busy = true);
@@ -79,11 +82,12 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
             lunchEnd: _lunchEnabled ? _t(_lunchEnd) : null,
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jadval yaratildi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'mobile.barber.scheduleGen.created', "Jadval yaratildi"))));
         Navigator.of(context).pop();
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -96,37 +100,53 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
     final total = (dayCount > 0 ? dayCount : 1) * slotsPerDay;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Avtomatik jadval")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.scheduleGen.title', "Avtomatik jadval"))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          const Text("Sana oralig'i",
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+          Text(tr(ref, 'mobile.barber.scheduleGen.dateRange', "Sana oralig'i"),
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Row(children: [
-            Expanded(child: _Picker(icon: Icons.calendar_today, label: "Boshlanish", value: _d(_from), onTap: () => _pickDate(true))),
+            Expanded(child: _Picker(
+                icon: Icons.calendar_today,
+                label: tr(ref, 'mobile.barber.scheduleGen.start', "Boshlanish"),
+                value: _d(_from),
+                onTap: () => _pickDate(true))),
             const SizedBox(width: 10),
-            Expanded(child: _Picker(icon: Icons.event, label: "Tugash", value: _d(_to), onTap: () => _pickDate(false))),
+            Expanded(child: _Picker(
+                icon: Icons.event,
+                label: tr(ref, 'mobile.barber.scheduleGen.end', "Tugash"),
+                value: _d(_to),
+                onTap: () => _pickDate(false))),
           ]),
 
           const SizedBox(height: 22),
-          const Text("Ish soatlari",
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+          Text(tr(ref, 'profile.workingHours', "Ish soatlari"),
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Row(children: [
-            Expanded(child: _Picker(icon: Icons.wb_sunny_outlined, label: "Ochilish", value: _t(_dayStart), onTap: () => _pickTime(0))),
+            Expanded(child: _Picker(
+                icon: Icons.wb_sunny_outlined,
+                label: tr(ref, 'profile.openTime', "Ochilish"),
+                value: _t(_dayStart),
+                onTap: () => _pickTime(0))),
             const SizedBox(width: 10),
-            Expanded(child: _Picker(icon: Icons.nightlight_outlined, label: "Yopilish", value: _t(_dayEnd), onTap: () => _pickTime(1))),
+            Expanded(child: _Picker(
+                icon: Icons.nightlight_outlined,
+                label: tr(ref, 'profile.closeTime', "Yopilish"),
+                value: _t(_dayEnd),
+                onTap: () => _pickTime(1))),
           ]),
 
           const SizedBox(height: 22),
-          const Text("Bir slot davomiyligi",
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+          Text(tr(ref, 'mobile.barber.scheduleGen.slotDuration', "Bir slot davomiyligi"),
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [15, 20, 30, 45, 60].map((m) => ChoiceChip(
-                  label: Text("$m daq"),
+                  label: Text("$m ${tr(ref, 'booking.duration', 'daq')}"),
                   selected: _slotMinutes == m,
                   onSelected: (_) => setState(() => _slotMinutes = m),
                 )).toList(),
@@ -140,14 +160,23 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.border)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14),
             onChanged: (v) => setState(() => _lunchEnabled = v),
-            title: const Text("Tushlik tanaffusi", style: TextStyle(fontWeight: FontWeight.w600)),
+            title: Text(tr(ref, 'mobile.barber.scheduleGen.lunchBreak', "Tushlik tanaffusi"),
+                style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           if (_lunchEnabled) ...[
             const SizedBox(height: 8),
             Row(children: [
-              Expanded(child: _Picker(icon: Icons.restaurant_outlined, label: "Boshlanish", value: _t(_lunchStart), onTap: () => _pickTime(2))),
+              Expanded(child: _Picker(
+                  icon: Icons.restaurant_outlined,
+                  label: tr(ref, 'mobile.barber.scheduleGen.start', "Boshlanish"),
+                  value: _t(_lunchStart),
+                  onTap: () => _pickTime(2))),
               const SizedBox(width: 10),
-              Expanded(child: _Picker(icon: Icons.restaurant, label: "Tugash", value: _t(_lunchEnd), onTap: () => _pickTime(3))),
+              Expanded(child: _Picker(
+                  icon: Icons.restaurant,
+                  label: tr(ref, 'mobile.barber.scheduleGen.end', "Tugash"),
+                  value: _t(_lunchEnd),
+                  onTap: () => _pickTime(3))),
             ]),
           ],
 
@@ -164,7 +193,13 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  "Taxminan $dayCount kun × $slotsPerDay slot = $total slot yaratiladi",
+                  tr(ref, 'mobile.barber.scheduleGen.summary',
+                      "Taxminan {{days}} kun × {{slots}} slot = {{total}} slot yaratiladi",
+                      {
+                        'days': '$dayCount',
+                        'slots': '$slotsPerDay',
+                        'total': '$total',
+                      }),
                   style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
                 ),
               ),
@@ -178,7 +213,8 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
               onPressed: _busy ? null : _generate,
               child: _busy
                   ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text("Jadval yaratish", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  : Text(tr(ref, 'mobile.barber.scheduleGen.generate', "Jadval yaratish"),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             ),
           ),
         ],

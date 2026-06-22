@@ -1412,6 +1412,18 @@
         "invalidLatLng": "Lat/Lng noto'g'ri",
         "copied": "Nusxalandi"
       },
+      "scheduleGen": {
+        "title": "Avtomatik jadval",
+        "dateRange": "Sana oralig'i",
+        "start": "Boshlanish",
+        "end": "Tugash",
+        "slotDuration": "Bir slot davomiyligi",
+        "lunchBreak": "Tushlik tanaffusi",
+        "generate": "Jadval yaratish",
+        "invalidRange": "Sana oralig'i noto'g'ri",
+        "created": "Jadval yaratildi",
+        "summary": "Taxminan {{days}} kun × {{slots}} slot = {{total}} slot yaratiladi"
+      },
       "cards": {
         "title": "Mening kartalarim",
         "hint": "Pul olish uchun kartalaringizni boshqaring",

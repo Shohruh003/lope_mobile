@@ -1411,6 +1411,18 @@
         "invalidLatLng": "Invalid lat/lng",
         "copied": "Copied"
       },
+      "scheduleGen": {
+        "title": "Auto schedule",
+        "dateRange": "Date range",
+        "start": "Start",
+        "end": "End",
+        "slotDuration": "Slot duration",
+        "lunchBreak": "Lunch break",
+        "generate": "Generate schedule",
+        "invalidRange": "Invalid date range",
+        "created": "Schedule created",
+        "summary": "About {{days}} days × {{slots}} slots = {{total}} slots"
+      },
       "cards": {
         "title": "My cards",
         "hint": "Manage your payout cards",
