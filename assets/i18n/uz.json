@@ -158,7 +158,8 @@
     "contact": "Aloqa",
     "reviewsTab": "Sharhlar",
     "locationNotSet": "Manzil ko'rsatilmagan",
-    "noReviews": "Sharhlar yo'q"
+    "noReviews": "Sharhlar yo'q",
+    "closed": "Yopiq"
   },
   "booking": {
     "title": "Yozilish",

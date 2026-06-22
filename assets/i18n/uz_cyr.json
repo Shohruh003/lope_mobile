@@ -158,7 +158,8 @@
     "contact": "Алоқа",
     "reviewsTab": "Шарҳлар",
     "locationNotSet": "Манзил кўрсатилмаган",
-    "noReviews": "Шарҳлар йўқ"
+    "noReviews": "Шарҳлар йўқ",
+    "closed": "Ёпиқ"
   },
   "booking": {
     "title": "Ёзилиш",

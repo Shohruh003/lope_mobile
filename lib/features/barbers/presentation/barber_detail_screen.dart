@@ -416,29 +416,23 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   }
 
   List<Widget> _workingHoursRows(Map<String, dynamic>? wh) {
-    const days = [
-      ('monday', 'Dushanba'),
-      ('tuesday', 'Seshanba'),
-      ('wednesday', 'Chorshanba'),
-      ('thursday', 'Payshanba'),
-      ('friday', 'Juma'),
-      ('saturday', 'Shanba'),
-      ('sunday', 'Yakshanba'),
-    ];
-    return days.map((d) {
-      final entry = wh?[d.$1] as Map<String, dynamic>?;
+    const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayFallback = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'];
+    final dayNames = trList(ref, 'mobile.dates.weekDaysLong', dayFallback);
+    return List.generate(dayKeys.length, (i) {
+      final entry = wh?[dayKeys[i]] as Map<String, dynamic>?;
       final isOpen = entry?['isOpen'] == true;
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 3),
         child: Row(children: [
           Expanded(
-            child: Text(d.$2,
+            child: Text(dayNames[i],
                 style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
           ),
           Text(
             isOpen
                 ? "${entry!['open'] ?? '—'} - ${entry['close'] ?? '—'}"
-                : "Yopiq",
+                : tr(ref, 'barbers.closed', "Yopiq"),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -447,7 +441,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
           ),
         ]),
       );
-    }).toList();
+    });
   }
 
   Widget _socialRow({

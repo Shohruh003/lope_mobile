@@ -158,7 +158,8 @@
     "contact": "Contact",
     "reviewsTab": "Reviews",
     "locationNotSet": "Address not set",
-    "noReviews": "No reviews yet"
+    "noReviews": "No reviews yet",
+    "closed": "Closed"
   },
   "booking": {
     "title": "Book Appointment",

@@ -158,7 +158,8 @@
     "contact": "Контакты",
     "reviewsTab": "Отзывы",
     "locationNotSet": "Адрес не указан",
-    "noReviews": "Отзывов нет"
+    "noReviews": "Отзывов нет",
+    "closed": "Закрыто"
   },
   "booking": {
     "title": "Запись",
