@@ -264,10 +264,10 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (_) => setState(() => _error = null),
         style: const TextStyle(fontSize: 18, color: AppColors.textBright, fontWeight: FontWeight.w700),
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           hintText: "10 000",
-          suffixText: "so'm",
-          suffixStyle: TextStyle(color: AppColors.textMuted, fontSize: 14),
+          suffixText: tr(ref, 'common.currency', "so'm"),
+          suffixStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
         ),
       ),
       if (_error != null) ...[

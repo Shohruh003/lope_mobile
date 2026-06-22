@@ -74,7 +74,7 @@ class LopepayTransactionsScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Text("${inflow ? '+' : '−'}${_fmt(amount.abs())} so'm",
+                    Text("${inflow ? '+' : '−'}${_fmt(amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
                         style: TextStyle(fontWeight: FontWeight.w800, color: inflow ? AppColors.success : AppColors.danger)),
                   ]),
                 ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);

@@ -119,7 +119,7 @@ class ShopClientDetailScreen extends ConsumerWidget {
                         ),
                         Text(((h['totalPrice'] ?? 0) as num).toInt() == 0
                                 ? ''
-                                : "${_fmt(((h['totalPrice']) as num).toInt())} so'm",
+                                : "${_fmt(((h['totalPrice']) as num).toInt())} ${tr(ref, 'common.currency', "so'm")}",
                             style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w800, fontSize: 13)),
                       ]),
                     )),
