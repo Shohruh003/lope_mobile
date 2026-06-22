@@ -1412,6 +1412,13 @@
         "copied": "Copied"
       },
       "settings": { "salon": "SALON" },
+      "admins": {
+        "addBtn": "Add admin",
+        "empty": "No admins yet",
+        "addHint": "Enter the user's phone number — they need to be registered in the app",
+        "removeTitle": "Remove admin?",
+        "removeBtn": "Remove"
+      },
       "profile": {
         "salonName": "Salon name",
         "description": "Description"
@@ -1579,6 +1586,14 @@
       "successTitle": "You're booked!",
       "successMsg": "{{name}} is waiting for you. A confirmation SMS will arrive."
     },
+    "payment": {
+      "successTitle": "Payment successful",
+      "failTitle": "Payment cancelled",
+      "successMsg": "Your balance will update shortly",
+      "failMsg": "Nothing was charged. Please try again",
+      "openWallet": "Open wallet",
+      "home": "Home"
+    },
     "lopepay": {
       "home": {
         "subtitle": "Installments management",
@@ -1587,7 +1602,8 @@
         "totalReceivable": "Total receivable",
         "activeCustomers": "Active customers",
         "dueTodayTitle": "Today's payment day",
-        "noDueToday": "No payments due today"
+        "noDueToday": "No payments due today",
+        "noCustomers": "No customers"
       },
       "products": {
         "title": "Products",
@@ -1605,7 +1621,8 @@
         "installments": "Installments",
         "noActiveInstallments": "No active installments",
         "paymentsHistory": "Payment history",
-        "noPayments": "No payments yet"
+        "noPayments": "No payments yet",
+        "received": "Payment received"
       }
     },
     "promo": {

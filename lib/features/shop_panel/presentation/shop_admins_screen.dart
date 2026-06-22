@@ -16,22 +16,23 @@ class ShopAdminsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_adminsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Adminlar")),
+      appBar: AppBar(title: Text(tr(ref, 'shop.nav.admins', "Adminlar"))),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         onPressed: () => _add(context, ref),
         icon: const Icon(Icons.person_add_alt_1),
-        label: const Text("Admin qo'shish"),
+        label: Text(tr(ref, 'mobile.shop.admins.addBtn', "Admin qo'shish")),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text("Hali admin qo'shilmagan", style: TextStyle(color: AppColors.textMuted)),
+                padding: const EdgeInsets.all(32),
+                child: Text(tr(ref, 'mobile.shop.admins.empty', "Hali admin qo'shilmagan"),
+                    style: const TextStyle(color: AppColors.textMuted)),
               ),
             );
           }
@@ -117,10 +118,12 @@ class ShopAdminsScreen extends ConsumerWidget {
           bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text("Admin qo'shish", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(tr(ref, 'mobile.shop.admins.addBtn', "Admin qo'shish"),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          const Text("Foydalanuvchi telefon raqamini kiriting — u akkauntda ro'yxatdan o'tgan bo'lishi kerak",
-              style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          Text(tr(ref, 'mobile.shop.admins.addHint',
+              "Foydalanuvchi telefon raqamini kiriting — u akkauntda ro'yxatdan o'tgan bo'lishi kerak"),
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
           const SizedBox(height: 14),
           TextField(
             controller: phone,
@@ -132,7 +135,7 @@ class ShopAdminsScreen extends ConsumerWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => Navigator.of(sheetCtx).pop(true),
-              child: const Text("Qo'shish"),
+              child: Text(tr(ref, 'mobile.barber.schedule.add', "Qo'shish")),
             ),
           ),
         ]),
@@ -152,13 +155,15 @@ class ShopAdminsScreen extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text("Adminni olib tashlash?"),
+        title: Text(tr(ref, 'mobile.shop.admins.removeTitle', "Adminni olib tashlash?")),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Bekor")),
+          TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("Olib tashlash"),
+            child: Text(tr(ref, 'mobile.shop.admins.removeBtn', "Olib tashlash")),
           ),
         ],
       ),

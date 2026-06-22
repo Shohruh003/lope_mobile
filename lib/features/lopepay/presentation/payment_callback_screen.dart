@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/balance_repository.dart';
@@ -48,14 +49,18 @@ class _PaymentCallbackScreenState extends ConsumerState<PaymentCallbackScreen> {
                       size: 56, color: ok ? AppColors.success : AppColors.danger),
                 ).animate().scale(duration: 500.ms, begin: const Offset(0.4, 0.4), end: const Offset(1, 1), curve: Curves.easeOutBack),
                 const SizedBox(height: 24),
-                Text(ok ? "To'lov muvaffaqiyatli" : "To'lov bekor qilindi",
+                Text(
+                    ok
+                        ? tr(ref, 'mobile.payment.successTitle', "To'lov muvaffaqiyatli")
+                        : tr(ref, 'mobile.payment.failTitle', "To'lov bekor qilindi"),
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textBright),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 10),
                 Text(
                   ok
-                      ? "Hisobingiz tezda yangilanadi"
-                      : "Hech narsa yechilmadi. Qaytadan urinib ko'ring",
+                      ? tr(ref, 'mobile.payment.successMsg', "Hisobingiz tezda yangilanadi")
+                      : tr(ref, 'mobile.payment.failMsg',
+                          "Hech narsa yechilmadi. Qaytadan urinib ko'ring"),
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
                   textAlign: TextAlign.center,
                 ),
@@ -64,13 +69,13 @@ class _PaymentCallbackScreenState extends ConsumerState<PaymentCallbackScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => context.go('/transactions'),
-                    child: const Text("Hisobni ochish"),
+                    child: Text(tr(ref, 'mobile.payment.openWallet', "Hisobni ochish")),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () => context.go('/home'),
-                  child: const Text("Bosh sahifa"),
+                  child: Text(tr(ref, 'mobile.payment.home', "Bosh sahifa")),
                 ),
               ],
             ),

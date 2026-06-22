@@ -189,7 +189,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
       await ref.read(lopepayRepositoryProvider).recordPayment(customerId, amt);
       ref.invalidate(_lopepayCustomerProvider(customerId));
       ref.invalidate(lopepayDashboardProvider);
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Qabul qilindi")));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'mobile.lopepay.customer.received', "Qabul qilindi"))));
     } catch (e) {
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }

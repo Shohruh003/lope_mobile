@@ -184,7 +184,7 @@ class _LopepayDashboard extends ConsumerWidget {
               const SizedBox(height: 8),
               dueTodayAsync.when(
                 loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-                error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 data: (list) {
                   if (list.isEmpty) {
                     return Container(
@@ -410,13 +410,14 @@ class _LopepayCustomersTab extends ConsumerWidget {
       body: SafeArea(
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text("Xato: $e")),
+          error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
           data: (list) {
             if (list.isEmpty) {
-              return const Center(
+              return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Text("Mijozlar yo'q", style: TextStyle(color: AppColors.textMuted)),
+                  padding: const EdgeInsets.all(32),
+                  child: Text(tr(ref, 'mobile.lopepay.home.noCustomers', "Mijozlar yo'q"),
+                      style: const TextStyle(color: AppColors.textMuted)),
                 ),
               );
             }

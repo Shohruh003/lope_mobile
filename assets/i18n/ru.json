@@ -1420,6 +1420,13 @@
         "copied": "Скопировано"
       },
       "settings": { "salon": "САЛОН" },
+      "admins": {
+        "addBtn": "Добавить админа",
+        "empty": "Админов пока нет",
+        "addHint": "Введите телефон пользователя — он должен быть зарегистрирован в приложении",
+        "removeTitle": "Удалить админа?",
+        "removeBtn": "Удалить"
+      },
       "profile": {
         "salonName": "Название салона",
         "description": "Описание"
@@ -1587,6 +1594,14 @@
       "successTitle": "Записаны!",
       "successMsg": "{{name}} ждёт вас. Придёт SMS-подтверждение."
     },
+    "payment": {
+      "successTitle": "Платёж успешен",
+      "failTitle": "Платёж отменён",
+      "successMsg": "Баланс обновится в ближайшее время",
+      "failMsg": "Ничего не списано. Попробуйте ещё раз",
+      "openWallet": "Открыть кошелёк",
+      "home": "Главная"
+    },
     "lopepay": {
       "home": {
         "subtitle": "Управление рассрочкой",
@@ -1595,7 +1610,8 @@
         "totalReceivable": "Всего к получению",
         "activeCustomers": "Активные клиенты",
         "dueTodayTitle": "Сегодня день платежа",
-        "noDueToday": "Сегодня платежей нет"
+        "noDueToday": "Сегодня платежей нет",
+        "noCustomers": "Клиентов нет"
       },
       "products": {
         "title": "Товары",
@@ -1613,7 +1629,8 @@
         "installments": "Рассрочки",
         "noActiveInstallments": "Нет активных рассрочек",
         "paymentsHistory": "История платежей",
-        "noPayments": "Платежей пока нет"
+        "noPayments": "Платежей пока нет",
+        "received": "Платёж принят"
       }
     },
     "promo": {

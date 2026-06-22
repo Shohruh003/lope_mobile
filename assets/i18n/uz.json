@@ -1413,6 +1413,13 @@
         "copied": "Nusxalandi"
       },
       "settings": { "salon": "SALON" },
+      "admins": {
+        "addBtn": "Admin qo'shish",
+        "empty": "Hali admin qo'shilmagan",
+        "addHint": "Foydalanuvchi telefon raqamini kiriting — u akkauntda ro'yxatdan o'tgan bo'lishi kerak",
+        "removeTitle": "Adminni olib tashlash?",
+        "removeBtn": "Olib tashlash"
+      },
       "profile": {
         "salonName": "Salon nomi",
         "description": "Tavsif"
@@ -1580,6 +1587,14 @@
       "successTitle": "Yozildingiz!",
       "successMsg": "{{name}} sizni kutadi. Tasdiqlash SMS keladi."
     },
+    "payment": {
+      "successTitle": "To'lov muvaffaqiyatli",
+      "failTitle": "To'lov bekor qilindi",
+      "successMsg": "Hisobingiz tezda yangilanadi",
+      "failMsg": "Hech narsa yechilmadi. Qaytadan urinib ko'ring",
+      "openWallet": "Hisobni ochish",
+      "home": "Bosh sahifa"
+    },
     "lopepay": {
       "home": {
         "subtitle": "Rassrochka boshqaruvi",
@@ -1588,7 +1603,8 @@
         "totalReceivable": "Jami olinishi kerak",
         "activeCustomers": "Faol mijozlar",
         "dueTodayTitle": "Bugun to'lov kuni",
-        "noDueToday": "Bugun to'lov kerak emas"
+        "noDueToday": "Bugun to'lov kerak emas",
+        "noCustomers": "Mijozlar yo'q"
       },
       "products": {
         "title": "Mahsulotlar",
@@ -1606,7 +1622,8 @@
         "installments": "Rassrochkalar",
         "noActiveInstallments": "Faol rassrochka yo'q",
         "paymentsHistory": "To'lovlar tarixi",
-        "noPayments": "Hali to'lov yo'q"
+        "noPayments": "Hali to'lov yo'q",
+        "received": "Qabul qilindi"
       }
     },
     "promo": {
