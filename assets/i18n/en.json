@@ -378,6 +378,7 @@
     "phoneAlreadyRegistered": "This number is already registered",
     "newCodeSent": "New code sent",
     "codeMustBe4": "The code must be 4 digits",
+    "codeWrong": "Code is wrong",
     "codeWrongOrExpired": "Code is wrong or expired",
     "codeSentToPhone": "Sent to {{phone}}",
     "secondsShort": "s",
@@ -1352,7 +1353,16 @@
         "refMissing": "Upload at least one reference",
         "errorBalance": "Insufficient balance. Top up your account.",
         "errorInternet": "Internet issue",
-        "errorGeneric": "Generation failed"
+        "errorGeneric": "Generation failed",
+        "errorPickStyle": "Pick at least one style",
+        "styles": {
+          "hair": "Hair",
+          "beard": "Beard",
+          "hair_color": "Hair color",
+          "eyebrows": "Eyebrows",
+          "lips": "Lips",
+          "eyelashes": "Eyelashes"
+        }
       },
       "transactions": {
         "title": "Wallet",
@@ -1592,7 +1602,8 @@
     },
     "map": {
       "title": "Nearby",
-      "empty": "No barbers nearby"
+      "empty": "No barbers nearby",
+      "directions": "Directions"
     },
     "publicBooking": {
       "invalidLink": "This link is outdated or invalid",

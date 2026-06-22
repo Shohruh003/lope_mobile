@@ -378,6 +378,7 @@
     "phoneAlreadyRegistered": "Этот номер уже зарегистрирован",
     "newCodeSent": "Новый код отправлен",
     "codeMustBe4": "Код должен состоять из 4 цифр",
+    "codeWrong": "Код неверный",
     "codeWrongOrExpired": "Код неверный или истёк",
     "codeSentToPhone": "Отправлено на {{phone}}",
     "secondsShort": "с",
@@ -1360,7 +1361,16 @@
         "refMissing": "Загрузите хотя бы один образец стиля",
         "errorBalance": "Недостаточно средств. Пополните баланс.",
         "errorInternet": "Проблема с интернетом",
-        "errorGeneric": "Генерация не выполнена"
+        "errorGeneric": "Генерация не выполнена",
+        "errorPickStyle": "Выберите хотя бы один стиль",
+        "styles": {
+          "hair": "Волосы",
+          "beard": "Борода",
+          "hair_color": "Цвет волос",
+          "eyebrows": "Брови",
+          "lips": "Губы",
+          "eyelashes": "Ресницы"
+        }
       },
       "transactions": {
         "title": "Счёт",
@@ -1600,7 +1610,8 @@
     },
     "map": {
       "title": "Рядом",
-      "empty": "Поблизости барберов нет"
+      "empty": "Поблизости барберов нет",
+      "directions": "Маршрут"
     },
     "publicBooking": {
       "invalidLink": "Эта ссылка устарела или неверна",

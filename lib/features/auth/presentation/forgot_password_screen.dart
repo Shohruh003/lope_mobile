@@ -65,10 +65,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           _step = 2;
         });
       } else {
-        setState(() => _error = "Kod noto'g'ri");
+        setState(() => _error = tr(ref, 'auth.codeWrong', "Kod noto'g'ri"));
       }
     } catch (_) {
-      setState(() => _error = "Kod noto'g'ri yoki muddati tugagan");
+      setState(() => _error = tr(ref, 'auth.codeWrongOrExpired',
+          "Kod noto'g'ri yoki muddati tugagan"));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

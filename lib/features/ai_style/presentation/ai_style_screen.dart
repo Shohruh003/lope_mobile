@@ -63,11 +63,13 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
 
   Future<void> _generate() async {
     if (_selfie == null) {
-      setState(() => _error = "Avval o'zingizning rasmingizni yuklang");
+      setState(() => _error = tr(ref, 'mobile.aiStyle.selfieMissing',
+          "Avval o'zingizning rasmingizni yuklang"));
       return;
     }
     if (_selectedStyles.isEmpty) {
-      setState(() => _error = "Kamida bitta stil tanlang");
+      setState(() => _error = tr(ref, 'mobile.aiStyle.errorPickStyle',
+          "Kamida bitta stil tanlang"));
       return;
     }
     setState(() {
@@ -85,12 +87,16 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       final user = ref.read(authControllerProvider).user;
       if (user != null) ref.invalidate(myBalanceProvider(user.id));
     } on Object catch (e) {
-      String msg = "Generatsiya bajarilmadi";
+      String msg = tr(ref, 'mobile.aiStyle.errorGeneric',
+          "Generatsiya bajarilmadi");
       final s = e.toString();
       if (s.contains('402') || s.contains('balance')) {
-        msg = "Balansingiz yetarli emas. Hisobni to'ldiring.";
+        msg = tr(ref, 'mobile.aiStyle.errorBalance',
+            "Balansingiz yetarli emas. Hisobni to'ldiring.");
       }
-      if (s.contains('SocketException')) msg = "Internet bilan muammo";
+      if (s.contains('SocketException')) {
+        msg = tr(ref, 'mobile.aiStyle.errorInternet', "Internet bilan muammo");
+      }
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -238,7 +244,9 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                                         style:
                                             const TextStyle(fontSize: 24)),
                                     const SizedBox(height: 6),
-                                    Text(opt.label,
+                                    Text(tr(ref,
+                                        'mobile.aiStyle.styles.${opt.key}',
+                                        opt.label),
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                             fontSize: 10,

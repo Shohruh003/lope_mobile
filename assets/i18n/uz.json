@@ -378,6 +378,7 @@
     "phoneAlreadyRegistered": "Bu raqam allaqachon ro'yxatdan o'tgan",
     "newCodeSent": "Yangi kod yuborildi",
     "codeMustBe4": "Kod 4 raqamli bo'lishi kerak",
+    "codeWrong": "Kod noto'g'ri",
     "codeWrongOrExpired": "Kod noto'g'ri yoki muddati tugagan",
     "codeSentToPhone": "{{phone}} raqamiga yuborildi",
     "secondsShort": "s",
@@ -1353,7 +1354,16 @@
         "refMissing": "Kamida bitta stil namunasi yuklang",
         "errorBalance": "Balansingiz yetarli emas. Hisobni to'ldiring.",
         "errorInternet": "Internet bilan muammo",
-        "errorGeneric": "Generatsiya bajarilmadi"
+        "errorGeneric": "Generatsiya bajarilmadi",
+        "errorPickStyle": "Kamida bitta stil tanlang",
+        "styles": {
+          "hair": "Soch",
+          "beard": "Soqol",
+          "hair_color": "Soch rangi",
+          "eyebrows": "Qoshlar",
+          "lips": "Labbo",
+          "eyelashes": "Kiprik"
+        }
       },
       "transactions": {
         "title": "Hisobim",
@@ -1593,7 +1603,8 @@
     },
     "map": {
       "title": "Yaqin atrofda",
-      "empty": "Yaqin atrofda sartaroshlar topilmadi"
+      "empty": "Yaqin atrofda sartaroshlar topilmadi",
+      "directions": "Yo'l ko'rsatish"
     },
     "publicBooking": {
       "invalidLink": "Bu havola eski yoki noto'g'ri",

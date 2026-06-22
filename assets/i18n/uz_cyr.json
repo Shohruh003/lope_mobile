@@ -378,6 +378,7 @@
     "phoneAlreadyRegistered": "Бу рақам аллақачон рўйхатдан ўтган",
     "newCodeSent": "Янги код юборилди",
     "codeMustBe4": "Код 4 рақамли бўлиши керак",
+    "codeWrong": "Код нотўғри",
     "codeWrongOrExpired": "Код нотўғри ёки муддати тугаган",
     "codeSentToPhone": "{{phone}} рақамига юборилди",
     "secondsShort": "с",
@@ -1353,7 +1354,16 @@
         "refMissing": "Камида битта стил намунаси юкланг",
         "errorBalance": "Балансингиз етарли эмас. Ҳисобни тўлдиринг.",
         "errorInternet": "Интернет билан муаммо",
-        "errorGeneric": "Генерация бажарилмади"
+        "errorGeneric": "Генерация бажарилмади",
+        "errorPickStyle": "Камида битта стил танланг",
+        "styles": {
+          "hair": "Соч",
+          "beard": "Соқол",
+          "hair_color": "Соч ранги",
+          "eyebrows": "Қошлар",
+          "lips": "Лаб",
+          "eyelashes": "Киприк"
+        }
       },
       "transactions": {
         "title": "Ҳисобим",
@@ -1593,7 +1603,8 @@
     },
     "map": {
       "title": "Яқин атрофда",
-      "empty": "Яқин атрофда сартарошлар топилмади"
+      "empty": "Яқин атрофда сартарошлар топилмади",
+      "directions": "Йўл кўрсатиш"
     },
     "publicBooking": {
       "invalidLink": "Бу ҳавола эски ёки нотўғри",

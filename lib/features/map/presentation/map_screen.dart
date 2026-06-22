@@ -79,7 +79,8 @@ class MapScreen extends ConsumerWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: "Yo'l ko'rsatish",
+                        tooltip: tr(ref, 'mobile.map.directions',
+                            "Yo'l ko'rsatish"),
                         icon: const Icon(Icons.directions, color: AppColors.primary),
                         onPressed: () => _openDirections(b.location),
                       ),
