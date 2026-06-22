@@ -23,7 +23,7 @@ class ShopBarbersScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
             return Center(
@@ -70,7 +70,8 @@ class ShopBarbersScreen extends ConsumerWidget {
                         children: [
                           Text(b.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                           if (b.experience.isNotEmpty)
-                            Text("Tajriba: ${b.experience}",
+                            Text(tr(ref, 'mobile.shop.masters.experience',
+                                'Tajriba: {{value}}', {'value': b.experience}),
                                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                           if (b.phone?.isNotEmpty == true)
                             Text(b.phone!,
@@ -114,20 +115,34 @@ class ShopBarbersScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(existing == null ? "Yangi master" : "Tahrirlash",
+            Text(
+                existing == null
+                    ? tr(ref, 'mobile.shop.masters.newTitle', "Yangi master")
+                    : tr(ref, 'mobile.shop.masters.editTitle', "Tahrirlash"),
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 14),
-            TextField(controller: name, decoration: const InputDecoration(hintText: "Ism")),
+            TextField(
+                controller: name,
+                decoration: InputDecoration(hintText: tr(ref, 'mobile.shop.masters.namePh', "Ism"))),
             const SizedBox(height: 10),
-            TextField(controller: exp, decoration: const InputDecoration(hintText: "Tajriba (masalan: 3 yil)")),
+            TextField(
+                controller: exp,
+                decoration: InputDecoration(
+                    hintText: tr(ref, 'mobile.shop.masters.expPh',
+                        "Tajriba (masalan: 3 yil)"))),
             const SizedBox(height: 10),
-            TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(hintText: "Telefon (ixtiyoriy)")),
+            TextField(
+                controller: phone,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                    hintText: tr(ref, 'mobile.shop.masters.phonePh',
+                        "Telefon (ixtiyoriy)"))),
             const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () => Navigator.of(sheetCtx).pop(true),
-                child: const Text("Saqlash"),
+                child: Text(tr(ref, 'common.save', "Saqlash")),
               ),
             ),
           ],
@@ -149,7 +164,7 @@ class ShopBarbersScreen extends ConsumerWidget {
       ref.invalidate(shopBarbersProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
   }
@@ -159,14 +174,17 @@ class ShopBarbersScreen extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text("Masterni o'chirish?"),
-        content: Text("\"${b.name}\" salondan olib tashlansinmi?"),
+        title: Text(tr(ref, 'mobile.shop.masters.deleteTitle', "Masterni o'chirish?")),
+        content: Text(tr(ref, 'mobile.shop.masters.deleteAsk',
+            "\"{{name}}\" salondan olib tashlansinmi?", {'name': b.name})),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Bekor")),
+          TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("O'chirish"),
+            child: Text(tr(ref, 'common.delete', "O'chirish")),
           ),
         ],
       ),
@@ -177,7 +195,7 @@ class ShopBarbersScreen extends ConsumerWidget {
       ref.invalidate(shopBarbersProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
   }

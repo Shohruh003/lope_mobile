@@ -1547,7 +1547,8 @@
         "deleteTitle": "Мастерни ўчириш?",
         "deleteAsk": "\"{{name}}\" салондан олиб ташлансинми?"
       },
-      "bookings": { "title": "Салон бронлари", "empty": "Брон йўқ", "master": "Мастер: {{name}}" }
+      "bookings": { "title": "Салон бронлари", "empty": "Брон йўқ", "master": "Мастер: {{name}}" },
+      "clients": { "empty": "Мижозлар рўйхати бўш" }
     },
     "notifications": { "title": "Билдиришномалар", "empty": "Билдиришномалар йўқ", "markAllRead": "Ҳаммасини ўқиш" },
     "reviews": {

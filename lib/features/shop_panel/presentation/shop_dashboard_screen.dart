@@ -64,7 +64,7 @@ class ShopDashboardScreen extends ConsumerWidget {
                 loading: () => const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(child: CircularProgressIndicator())),
-                error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
                 data: (s) => GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),

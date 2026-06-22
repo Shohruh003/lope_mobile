@@ -1547,7 +1547,8 @@
         "deleteTitle": "Masterni o'chirish?",
         "deleteAsk": "\"{{name}}\" salondan olib tashlansinmi?"
       },
-      "bookings": { "title": "Salon bronlari", "empty": "Bron yo'q", "master": "Master: {{name}}" }
+      "bookings": { "title": "Salon bronlari", "empty": "Bron yo'q", "master": "Master: {{name}}" },
+      "clients": { "empty": "Mijozlar ro'yxati bo'sh" }
     },
     "notifications": { "title": "Bildirishnomalar", "empty": "Bildirishnomalar yo'q", "markAllRead": "Hammasini o'qish" },
     "reviews": {

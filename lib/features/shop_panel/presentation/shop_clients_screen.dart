@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
@@ -18,22 +19,22 @@ class ShopClientsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(shopClientsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Mijozlar")),
+      appBar: AppBar(title: Text(tr(ref, 'shop.nav.clients', "Mijozlar"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.people_outline, size: 56, color: AppColors.textMuted),
-                    SizedBox(height: 14),
-                    Text("Mijozlar ro'yxati bo'sh",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    const Icon(Icons.people_outline, size: 56, color: AppColors.textMuted),
+                    const SizedBox(height: 14),
+                    Text(tr(ref, 'mobile.shop.clients.empty', "Mijozlar ro'yxati bo'sh"),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
                   ],
                 ),
               ),
@@ -82,7 +83,7 @@ class ShopClientsScreen extends ConsumerWidget {
                             Text(c.phone,
                                 style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                           if (c.lastVisit != null)
-                            Text("Oxirgi tashrif: ${_df.format(c.lastVisit!.toLocal())}",
+                            Text("${tr(ref, 'barberMyClients.lastVisit', 'Oxirgi tashrif')}: ${_df.format(c.lastVisit!.toLocal())}",
                                 style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
                         ],
                       ),
