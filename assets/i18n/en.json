@@ -1549,6 +1549,17 @@
       "bookings": { "title": "Salon bookings", "empty": "No bookings", "master": "Master: {{name}}" }
     },
     "notifications": { "title": "Notifications", "empty": "No notifications", "markAllRead": "Mark all read" },
+    "reviews": {
+      "title": "Reviews",
+      "leaveReview": "Leave a review",
+      "empty": "No reviews yet",
+      "commentPlaceholder": "Your review (optional)",
+      "submit": "Submit"
+    },
+    "map": {
+      "title": "Nearby",
+      "empty": "No barbers nearby"
+    },
     "promo": {
       "enterTitle": "Enter promo code",
       "hint": "A valid code will add a bonus to your balance",

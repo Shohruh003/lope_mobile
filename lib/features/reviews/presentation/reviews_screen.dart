@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/reviews_repository.dart';
 
@@ -16,28 +17,28 @@ class ReviewsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(barberReviewsProvider(barberId));
     return Scaffold(
-      appBar: AppBar(title: const Text("Sharhlar")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.reviews.title', "Sharhlar"))),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         onPressed: () => _openSubmitSheet(context, ref),
         icon: const Icon(Icons.rate_review_outlined),
-        label: const Text("Sharh qoldirish"),
+        label: Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish")),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.rate_review_outlined, size: 56, color: AppColors.textMuted),
-                    SizedBox(height: 14),
-                    Text("Hali sharhlar yo'q",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    const Icon(Icons.rate_review_outlined, size: 56, color: AppColors.textMuted),
+                    const SizedBox(height: 14),
+                    Text(tr(ref, 'mobile.reviews.empty', "Hali sharhlar yo'q"),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
                   ],
                 ),
               ),
@@ -63,7 +64,10 @@ class ReviewsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        Expanded(child: Text(r.userName.isEmpty ? 'Mijoz' : r.userName,
+                        Expanded(child: Text(
+                            r.userName.isEmpty
+                                ? tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz')
+                                : r.userName,
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
                         Row(children: List.generate(5, (idx) => Icon(
                               idx < r.rating ? Icons.star : Icons.star_border,
@@ -107,8 +111,8 @@ class ReviewsScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Sharh qoldirish",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish"),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
               Center(
                 child: Row(mainAxisSize: MainAxisSize.min, children: List.generate(5, (i) {
@@ -123,7 +127,9 @@ class ReviewsScreen extends ConsumerWidget {
               TextField(
                 controller: commentCtrl,
                 maxLines: 4,
-                decoration: const InputDecoration(hintText: "Sharhingiz (ixtiyoriy)"),
+                decoration: InputDecoration(
+                    hintText: tr(ref, 'mobile.reviews.commentPlaceholder',
+                        "Sharhingiz (ixtiyoriy)")),
               ),
               const SizedBox(height: 18),
               SizedBox(
@@ -140,7 +146,8 @@ class ReviewsScreen extends ConsumerWidget {
                       if (sheetCtx.mounted) Navigator.of(sheetCtx).pop(true);
                     } catch (e) {
                       if (sheetCtx.mounted) {
-                        ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(content: Text("Xato: $e")));
+                        ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(
+                            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
                       }
                     } finally {
                       setSheet(() => busy = false);
@@ -148,7 +155,7 @@ class ReviewsScreen extends ConsumerWidget {
                   },
                   child: busy
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Yuborish"),
+                      : Text(tr(ref, 'mobile.reviews.submit', "Yuborish")),
                 ),
               ),
             ],

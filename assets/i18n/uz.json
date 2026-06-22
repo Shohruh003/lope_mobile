@@ -1550,6 +1550,17 @@
       "bookings": { "title": "Salon bronlari", "empty": "Bron yo'q", "master": "Master: {{name}}" }
     },
     "notifications": { "title": "Bildirishnomalar", "empty": "Bildirishnomalar yo'q", "markAllRead": "Hammasini o'qish" },
+    "reviews": {
+      "title": "Sharhlar",
+      "leaveReview": "Sharh qoldirish",
+      "empty": "Hali sharhlar yo'q",
+      "commentPlaceholder": "Sharhingiz (ixtiyoriy)",
+      "submit": "Yuborish"
+    },
+    "map": {
+      "title": "Yaqin atrofda",
+      "empty": "Yaqin atrofda sartaroshlar topilmadi"
+    },
     "promo": {
       "enterTitle": "Promo kod kiriting",
       "hint": "Yaroqli kod balansingizga bonus qo'shadi",

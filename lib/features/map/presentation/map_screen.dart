@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../barbers/data/barber_repository.dart';
 
@@ -19,17 +20,17 @@ class MapScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(barbersListProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Yaqin atrofda")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.map.title', "Yaqin atrofda"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text("Yaqin atrofda sartaroshlar topilmadi",
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 15)),
+                padding: const EdgeInsets.all(32),
+                child: Text(tr(ref, 'mobile.map.empty', "Yaqin atrofda sartaroshlar topilmadi"),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 15)),
               ),
             );
           }
