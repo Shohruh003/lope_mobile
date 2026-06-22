@@ -376,6 +376,8 @@
     "enterName": "Исмни киритинг",
     "registrationError": "Рўйхатдан ўтишда хато",
     "phoneAlreadyRegistered": "Бу рақам аллақачон рўйхатдан ўтган",
+    "phoneNotRegistered": "Бу рақам рўйхатда йўқ",
+    "tryAgain": "Хато — қайтадан уриниб кўринг",
     "newCodeSent": "Янги код юборилди",
     "codeMustBe4": "Код 4 рақамли бўлиши керак",
     "codeWrong": "Код нотўғри",
@@ -1481,6 +1483,9 @@
         "totalBookings": "Жами бронлар",
         "bookingsShort": "та брон",
         "countSuffix": "та"
+      },
+      "location": {
+        "editHint": "Мижозлар сизни харитада топа олиши учун аниқ манзил ва координаталарни киритинг"
       },
       "profileEdit": {
         "title": "Профилни таҳрирлаш",

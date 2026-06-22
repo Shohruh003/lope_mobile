@@ -147,9 +147,10 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
                   children: [
                     if (_editing) ...[
                       // ===== Edit mode =====
-                      const Text(
-                        "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting",
-                        style: TextStyle(
+                      Text(
+                        tr(ref, 'mobile.barber.location.editHint',
+                            "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting"),
+                        style: const TextStyle(
                             color: AppColors.textMuted, fontSize: 13, height: 1.5),
                       ),
                       const SizedBox(height: 14),

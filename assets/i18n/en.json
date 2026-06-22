@@ -376,6 +376,8 @@
     "enterName": "Enter your name",
     "registrationError": "Registration error",
     "phoneAlreadyRegistered": "This number is already registered",
+    "phoneNotRegistered": "This number is not registered",
+    "tryAgain": "Error — try again",
     "newCodeSent": "New code sent",
     "codeMustBe4": "The code must be 4 digits",
     "codeWrong": "Code is wrong",
@@ -1480,6 +1482,9 @@
         "totalBookings": "Total bookings",
         "bookingsShort": "bookings",
         "countSuffix": "pcs"
+      },
+      "location": {
+        "editHint": "Enter precise address and coordinates so clients can find you on the map"
       },
       "profileEdit": {
         "title": "Edit profile",

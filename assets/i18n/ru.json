@@ -376,6 +376,8 @@
     "enterName": "Введите имя",
     "registrationError": "Ошибка регистрации",
     "phoneAlreadyRegistered": "Этот номер уже зарегистрирован",
+    "phoneNotRegistered": "Этот номер не зарегистрирован",
+    "tryAgain": "Ошибка — попробуйте ещё раз",
     "newCodeSent": "Новый код отправлен",
     "codeMustBe4": "Код должен состоять из 4 цифр",
     "codeWrong": "Код неверный",
@@ -1488,6 +1490,9 @@
         "totalBookings": "Всего записей",
         "bookingsShort": "записей",
         "countSuffix": "шт"
+      },
+      "location": {
+        "editHint": "Укажите точный адрес и координаты, чтобы клиенты могли найти вас на карте"
       },
       "profileEdit": {
         "title": "Изменить профиль",

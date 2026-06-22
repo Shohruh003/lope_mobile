@@ -40,10 +40,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       });
     } on DioException catch (e) {
       setState(() => _error = e.response?.statusCode == 404
-          ? "Bu raqam ro'yxatda yo'q"
-          : "Xato — qaytadan urinib ko'ring");
+          ? tr(ref, 'auth.phoneNotRegistered', "Bu raqam ro'yxatda yo'q")
+          : tr(ref, 'auth.tryAgain', "Xato — qaytadan urinib ko'ring"));
     } catch (_) {
-      setState(() => _error = "Xato — qaytadan urinib ko'ring");
+      setState(() => _error = tr(ref, 'auth.tryAgain', "Xato — qaytadan urinib ko'ring"));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

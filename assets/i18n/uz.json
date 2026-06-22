@@ -376,6 +376,8 @@
     "enterName": "Ismni kiriting",
     "registrationError": "Ro'yxatdan o'tishda xato",
     "phoneAlreadyRegistered": "Bu raqam allaqachon ro'yxatdan o'tgan",
+    "phoneNotRegistered": "Bu raqam ro'yxatda yo'q",
+    "tryAgain": "Xato — qaytadan urinib ko'ring",
     "newCodeSent": "Yangi kod yuborildi",
     "codeMustBe4": "Kod 4 raqamli bo'lishi kerak",
     "codeWrong": "Kod noto'g'ri",
@@ -1481,6 +1483,9 @@
         "totalBookings": "Jami bronlar",
         "bookingsShort": "ta bron",
         "countSuffix": "ta"
+      },
+      "location": {
+        "editHint": "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting"
       },
       "profileEdit": {
         "title": "Profilni tahrirlash",
