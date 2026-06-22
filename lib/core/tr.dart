@@ -21,3 +21,15 @@ String _interpolate(String s, Map<String, String>? vars) {
   vars.forEach((k, v) => out = out.replaceAll('{{$k}}', v));
   return out;
 }
+
+/// Array-valued lookup. Returns the JSON array at `key`, or `fallback`
+/// when the active locale doesn't ship one (e.g. while the JSON files
+/// are being filled in). Used for month/weekday names where a single
+/// string isn't expressive enough.
+List<String> trList(WidgetRef ref, String key, List<String> fallback) {
+  final l10n = ref.watch(localeProvider).asData?.value;
+  if (l10n == null) return fallback;
+  final v = l10n.tList(key);
+  if (v.isEmpty) return fallback;
+  return v;
+}

@@ -386,8 +386,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     final bookedAsync = ref.watch(bookedSlotsProvider(key));
     final blockedAsync = ref.watch(blockedSlotsProvider(key));
 
-    final selectedWeekday = _weekDaysLong[_selectedDate.weekday - 1];
-    final dateHeader = "${_selectedDate.day}-${_months[_selectedDate.month - 1].toLowerCase()}, ${selectedWeekday.toLowerCase()}";
+    final months = trList(ref, 'mobile.dates.months', _months);
+    final weekDays = trList(ref, 'mobile.dates.weekDaysShort', _weekDays);
+    final weekDaysLong = trList(ref, 'mobile.dates.weekDaysLong', _weekDaysLong);
+    final selectedWeekday = weekDaysLong[_selectedDate.weekday - 1];
+    final dateHeader = "${_selectedDate.day}-${months[_selectedDate.month - 1].toLowerCase()}, ${selectedWeekday.toLowerCase()}";
 
     return Scaffold(
       body: ListView(
@@ -485,7 +488,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _weekDays[d.weekday - 1].toUpperCase(),
+                            weekDays[d.weekday - 1].toUpperCase(),
                             style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -501,7 +504,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            _months[d.month - 1].substring(0, 3).toLowerCase(),
+                            months[d.month - 1].substring(0, 3).toLowerCase(),
                             style: TextStyle(
                                 fontSize: 10,
                                 color: isSelected ? Colors.white70 : AppColors.textMuted),

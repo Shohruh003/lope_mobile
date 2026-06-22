@@ -36,6 +36,26 @@ class L10n {
     return out;
   }
 
+  /// Look up a dotted key whose value is a JSON array of strings (e.g.
+  /// month or weekday names). Returns the strings in order, or an empty
+  /// list if the key isn't found / isn't an array — callers can fall
+  /// back to a hardcoded list when the result is empty.
+  List<String> tList(String key) {
+    final segments = key.split('.');
+    dynamic node = _table;
+    for (final s in segments) {
+      if (node is Map<String, dynamic> && node.containsKey(s)) {
+        node = node[s];
+      } else {
+        return const [];
+      }
+    }
+    if (node is List) {
+      return node.map((e) => e.toString()).toList(growable: false);
+    }
+    return const [];
+  }
+
   static Future<L10n> load(String locale) async {
     final raw = await rootBundle.loadString('assets/i18n/$locale.json');
     return L10n(locale, jsonDecode(raw) as Map<String, dynamic>);

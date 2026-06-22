@@ -1304,6 +1304,11 @@
       "camera": "Kamera",
       "gallery": "Galereya"
     },
+    "dates": {
+      "months": ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"],
+      "weekDaysShort": ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"],
+      "weekDaysLong": ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]
+    },
     "auth": {
       "phone": "Telefon",
       "phoneLocked": "Telefon o'zgartirilmaydi",
