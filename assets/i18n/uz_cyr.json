@@ -1575,6 +1575,35 @@
       "successTitle": "Ёзилдингиз!",
       "successMsg": "{{name}} сизни кутади. Тасдиқлаш SMS келади."
     },
+    "lopepay": {
+      "home": {
+        "subtitle": "Рассрочка бошқаруви",
+        "dueToday": "Бугун тушиши керак",
+        "overdue": "Муддати ўтган",
+        "totalReceivable": "Жами олиниши керак",
+        "activeCustomers": "Фаол мижозлар",
+        "dueTodayTitle": "Бугун тўлов куни",
+        "noDueToday": "Бугун тўлов керак эмас"
+      },
+      "products": {
+        "title": "Маҳсулотлар",
+        "addBtn": "Маҳсулот қўшиш",
+        "empty": "Ҳали маҳсулот йўқ",
+        "newProduct": "Янги маҳсулот",
+        "namePh": "Номи",
+        "pricePh": "Нархи (сўм)",
+        "deleteTitle": "Маҳсулотни ўчириш?"
+      },
+      "customer": {
+        "recordPayment": "Тўлов қабул қилиш",
+        "debt": "Қарз",
+        "call": "Қўнғироқ",
+        "installments": "Рассрочкалар",
+        "noActiveInstallments": "Фаол рассрочка йўқ",
+        "paymentsHistory": "Тўловлар тарихи",
+        "noPayments": "Ҳали тўлов йўқ"
+      }
+    },
     "promo": {
       "enterTitle": "Промо код киритинг",
       "hint": "Яроқли код балансингизга бонус қўшади",

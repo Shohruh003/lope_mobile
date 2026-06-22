@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/lopepay_repository.dart';
 
@@ -21,7 +22,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
     final async = ref.watch(_lopepayCustomerProvider(customerId));
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Mijoz"),
+        title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz")),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -35,11 +36,11 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         backgroundColor: AppColors.success,
         onPressed: () => _recordPayment(context, ref),
         icon: const Icon(Icons.payments),
-        label: const Text("To'lov qabul qilish"),
+        label: Text(tr(ref, 'mobile.lopepay.customer.recordPayment', "To'lov qabul qilish")),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (data) {
           final name = (data['name'] ?? '').toString();
           final phone = (data['phone'] ?? '').toString();
@@ -75,7 +76,8 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                       Text(address, style: const TextStyle(color: Colors.white70, fontSize: 13)),
                     ],
                     const SizedBox(height: 12),
-                    const Text("Qarz", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text(tr(ref, 'mobile.lopepay.customer.debt', "Qarz"),
+                        style: const TextStyle(color: Colors.white70, fontSize: 12)),
                     Text("${_fmt(debt)} so'm",
                         style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
                   ],
@@ -86,7 +88,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.phone),
-                    label: const Text("Qo'ng'iroq"),
+                    label: Text(tr(ref, 'mobile.lopepay.customer.call', "Qo'ng'iroq")),
                     onPressed: phone.isEmpty ? null : () async {
                       final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
                       final uri = Uri(scheme: 'tel', path: clean);
@@ -98,7 +100,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.sms),
-                    label: const Text("SMS"),
+                    label: const Text("SMS"),  // brand name
                     onPressed: phone.isEmpty ? null : () async {
                       final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
                       final uri = Uri(scheme: 'sms', path: clean);
@@ -109,10 +111,12 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
               ]),
 
               const SizedBox(height: 22),
-              const Text("Rassrochkalar", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(tr(ref, 'mobile.lopepay.customer.installments', "Rassrochkalar"),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: 10),
               if (installments.isEmpty)
-                const Text("Faol rassrochka yo'q", style: TextStyle(color: AppColors.textMuted))
+                Text(tr(ref, 'mobile.lopepay.customer.noActiveInstallments', "Faol rassrochka yo'q"),
+                    style: const TextStyle(color: AppColors.textMuted))
               else
                 ...installments.map((i) => _RowCard(
                       title: (i['productName'] ?? 'Mahsulot').toString(),
@@ -122,10 +126,12 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                     )),
 
               const SizedBox(height: 22),
-              const Text("To'lovlar tarixi", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(tr(ref, 'mobile.lopepay.customer.paymentsHistory', "To'lovlar tarixi"),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: 10),
               if (payments.isEmpty)
-                const Text("Hali to'lov yo'q", style: TextStyle(color: AppColors.textMuted))
+                Text(tr(ref, 'mobile.lopepay.customer.noPayments', "Hali to'lov yo'q"),
+                    style: const TextStyle(color: AppColors.textMuted))
               else
                 ...payments.map((p) {
                   final at = DateTime.tryParse(p['paidAt']?.toString() ?? '');
@@ -157,7 +163,8 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text("To'lov qabul qilish", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(tr(ref, 'mobile.lopepay.customer.recordPayment', "To'lov qabul qilish"),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 14),
           TextField(
             controller: amount,
@@ -169,7 +176,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => Navigator.of(sheetCtx).pop(true),
-              child: const Text("Qabul qilish"),
+              child: Text(tr(ref, 'common.confirm', "Qabul qilish")),
             ),
           ),
         ]),
@@ -184,7 +191,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
       ref.invalidate(lopepayDashboardProvider);
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Qabul qilindi")));
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 

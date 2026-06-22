@@ -1575,6 +1575,35 @@
       "successTitle": "Yozildingiz!",
       "successMsg": "{{name}} sizni kutadi. Tasdiqlash SMS keladi."
     },
+    "lopepay": {
+      "home": {
+        "subtitle": "Rassrochka boshqaruvi",
+        "dueToday": "Bugun tushishi kerak",
+        "overdue": "Muddati o'tgan",
+        "totalReceivable": "Jami olinishi kerak",
+        "activeCustomers": "Faol mijozlar",
+        "dueTodayTitle": "Bugun to'lov kuni",
+        "noDueToday": "Bugun to'lov kerak emas"
+      },
+      "products": {
+        "title": "Mahsulotlar",
+        "addBtn": "Mahsulot qo'shish",
+        "empty": "Hali mahsulot yo'q",
+        "newProduct": "Yangi mahsulot",
+        "namePh": "Nomi",
+        "pricePh": "Narxi (so'm)",
+        "deleteTitle": "Mahsulotni o'chirish?"
+      },
+      "customer": {
+        "recordPayment": "To'lov qabul qilish",
+        "debt": "Qarz",
+        "call": "Qo'ng'iroq",
+        "installments": "Rassrochkalar",
+        "noActiveInstallments": "Faol rassrochka yo'q",
+        "paymentsHistory": "To'lovlar tarixi",
+        "noPayments": "Hali to'lov yo'q"
+      }
+    },
     "promo": {
       "enterTitle": "Promo kod kiriting",
       "hint": "Yaroqli kod balansingizga bonus qo'shadi",

@@ -1582,6 +1582,35 @@
       "successTitle": "Записаны!",
       "successMsg": "{{name}} ждёт вас. Придёт SMS-подтверждение."
     },
+    "lopepay": {
+      "home": {
+        "subtitle": "Управление рассрочкой",
+        "dueToday": "К получению сегодня",
+        "overdue": "Просрочено",
+        "totalReceivable": "Всего к получению",
+        "activeCustomers": "Активные клиенты",
+        "dueTodayTitle": "Сегодня день платежа",
+        "noDueToday": "Сегодня платежей нет"
+      },
+      "products": {
+        "title": "Товары",
+        "addBtn": "Добавить товар",
+        "empty": "Товаров пока нет",
+        "newProduct": "Новый товар",
+        "namePh": "Название",
+        "pricePh": "Цена (сум)",
+        "deleteTitle": "Удалить товар?"
+      },
+      "customer": {
+        "recordPayment": "Принять платёж",
+        "debt": "Долг",
+        "call": "Звонок",
+        "installments": "Рассрочки",
+        "noActiveInstallments": "Нет активных рассрочек",
+        "paymentsHistory": "История платежей",
+        "noPayments": "Платежей пока нет"
+      }
+    },
     "promo": {
       "enterTitle": "Введите промокод",
       "hint": "Действительный код добавит бонус на ваш баланс",

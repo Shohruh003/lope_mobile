@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:go_router/go_router.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../data/lopepay_repository.dart';
@@ -137,14 +138,14 @@ class _LopepayDashboard extends ConsumerWidget {
               const Text("Lope Pay",
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textBright)),
               const SizedBox(height: 2),
-              const Text("Rassrochka boshqaruvi",
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              Text(tr(ref, 'mobile.lopepay.home.subtitle', "Rassrochka boshqaruvi"),
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
               const SizedBox(height: 14),
 
               // ===== 4 stat tiles =====
               async.when(
                 loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator())),
-                error: (e, _) => Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
                 data: (d) => GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -153,10 +154,22 @@ class _LopepayDashboard extends ConsumerWidget {
                   crossAxisSpacing: 8,
                   childAspectRatio: 1.45,
                   children: [
-                    _MetricTile(label: "Bugun tushishi kerak", value: "${_fmt(d.dueToday)} so'm", color: AppColors.warning, icon: Icons.event_available),
-                    _MetricTile(label: "Muddati o'tgan", value: "${_fmt(d.overdue)} so'm", color: AppColors.danger, icon: Icons.warning_amber_rounded),
-                    _MetricTile(label: "Jami olinishi kerak", value: "${_fmt(d.totalReceivable)} so'm", color: AppColors.primary, icon: Icons.account_balance_wallet_outlined),
-                    _MetricTile(label: "Faol mijozlar", value: "${d.activeCustomers}", color: AppColors.success, icon: Icons.people_outline),
+                    _MetricTile(
+                        label: tr(ref, 'mobile.lopepay.home.dueToday', "Bugun tushishi kerak"),
+                        value: "${_fmt(d.dueToday)} ${tr(ref, 'common.currency', "so'm")}",
+                        color: AppColors.warning, icon: Icons.event_available),
+                    _MetricTile(
+                        label: tr(ref, 'mobile.lopepay.home.overdue', "Muddati o'tgan"),
+                        value: "${_fmt(d.overdue)} ${tr(ref, 'common.currency', "so'm")}",
+                        color: AppColors.danger, icon: Icons.warning_amber_rounded),
+                    _MetricTile(
+                        label: tr(ref, 'mobile.lopepay.home.totalReceivable', "Jami olinishi kerak"),
+                        value: "${_fmt(d.totalReceivable)} ${tr(ref, 'common.currency', "so'm")}",
+                        color: AppColors.primary, icon: Icons.account_balance_wallet_outlined),
+                    _MetricTile(
+                        label: tr(ref, 'mobile.lopepay.home.activeCustomers', "Faol mijozlar"),
+                        value: "${d.activeCustomers}",
+                        color: AppColors.success, icon: Icons.people_outline),
                   ],
                 ),
               ),
@@ -164,7 +177,10 @@ class _LopepayDashboard extends ConsumerWidget {
               const SizedBox(height: 18),
 
               // ===== Due today list =====
-              const _SectionHeader(icon: Icons.event_available, label: "Bugun to'lov kuni", iconColor: AppColors.warning),
+              _SectionHeader(
+                  icon: Icons.event_available,
+                  label: tr(ref, 'mobile.lopepay.home.dueTodayTitle', "Bugun to'lov kuni"),
+                  iconColor: AppColors.warning),
               const SizedBox(height: 8),
               dueTodayAsync.when(
                 loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
@@ -178,9 +194,10 @@ class _LopepayDashboard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Center(
-                        child: Text("Bugun to'lov kerak emas",
-                            style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                      child: Center(
+                        child: Text(tr(ref, 'mobile.lopepay.home.noDueToday',
+                            "Bugun to'lov kerak emas"),
+                            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                       ),
                     );
                   }
@@ -200,7 +217,10 @@ class _LopepayDashboard extends ConsumerWidget {
                 data: (list) {
                   if (list.isEmpty) return const SizedBox.shrink();
                   return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    const _SectionHeader(icon: Icons.warning_amber, label: "Muddati o'tgan", iconColor: AppColors.danger),
+                    _SectionHeader(
+                        icon: Icons.warning_amber,
+                        label: tr(ref, 'mobile.lopepay.home.overdue', "Muddati o'tgan"),
+                        iconColor: AppColors.danger),
                     const SizedBox(height: 8),
                     ...list.take(5).map((inst) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),

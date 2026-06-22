@@ -1574,6 +1574,35 @@
       "successTitle": "You're booked!",
       "successMsg": "{{name}} is waiting for you. A confirmation SMS will arrive."
     },
+    "lopepay": {
+      "home": {
+        "subtitle": "Installments management",
+        "dueToday": "Due today",
+        "overdue": "Overdue",
+        "totalReceivable": "Total receivable",
+        "activeCustomers": "Active customers",
+        "dueTodayTitle": "Today's payment day",
+        "noDueToday": "No payments due today"
+      },
+      "products": {
+        "title": "Products",
+        "addBtn": "Add product",
+        "empty": "No products yet",
+        "newProduct": "New product",
+        "namePh": "Name",
+        "pricePh": "Price (sum)",
+        "deleteTitle": "Delete product?"
+      },
+      "customer": {
+        "recordPayment": "Record payment",
+        "debt": "Debt",
+        "call": "Call",
+        "installments": "Installments",
+        "noActiveInstallments": "No active installments",
+        "paymentsHistory": "Payment history",
+        "noPayments": "No payments yet"
+      }
+    },
     "promo": {
       "enterTitle": "Enter promo code",
       "hint": "A valid code will add a bonus to your balance",

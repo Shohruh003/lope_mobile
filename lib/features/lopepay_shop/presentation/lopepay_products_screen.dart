@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/lopepay_repository.dart';
 
@@ -13,22 +14,23 @@ class LopepayProductsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(lopepayProductsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Mahsulotlar")),
+      appBar: AppBar(title: Text(tr(ref, 'mobile.lopepay.products.title', "Mahsulotlar"))),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
         onPressed: () => _add(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text("Mahsulot qo'shish"),
+        label: Text(tr(ref, 'mobile.lopepay.products.addBtn', "Mahsulot qo'shish")),
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text("Hali mahsulot yo'q", style: TextStyle(color: AppColors.textMuted)),
+                padding: const EdgeInsets.all(32),
+                child: Text(tr(ref, 'mobile.lopepay.products.empty', "Hali mahsulot yo'q"),
+                    style: const TextStyle(color: AppColors.textMuted)),
               ),
             );
           }
@@ -63,7 +65,7 @@ class LopepayProductsScreen extends ConsumerWidget {
                       child: Text(p.name,
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                     ),
-                    Text("${_fmt(p.price)} so'm",
+                    Text("${_fmt(p.price)} ${tr(ref, 'common.currency', "so'm")}",
                         style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 14)),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, color: AppColors.danger, size: 20),
@@ -93,21 +95,26 @@ class LopepayProductsScreen extends ConsumerWidget {
           bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text("Yangi mahsulot", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(tr(ref, 'mobile.lopepay.products.newProduct', "Yangi mahsulot"),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 14),
-          TextField(controller: name, decoration: const InputDecoration(hintText: "Nomi")),
+          TextField(
+              controller: name,
+              decoration: InputDecoration(
+                  hintText: tr(ref, 'mobile.lopepay.products.namePh', "Nomi"))),
           const SizedBox(height: 10),
           TextField(
             controller: price,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(hintText: "Narxi (so'm)"),
+            decoration: InputDecoration(
+                hintText: tr(ref, 'mobile.lopepay.products.pricePh', "Narxi (so'm)")),
           ),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => Navigator.of(sheetCtx).pop(true),
-              child: const Text("Saqlash"),
+              child: Text(tr(ref, 'common.save', "Saqlash")),
             ),
           ),
         ]),
@@ -121,7 +128,7 @@ class LopepayProductsScreen extends ConsumerWidget {
       });
       ref.invalidate(lopepayProductsProvider);
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 
@@ -130,13 +137,15 @@ class LopepayProductsScreen extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text("Mahsulotni o'chirish?"),
+        title: Text(tr(ref, 'mobile.lopepay.products.deleteTitle', "Mahsulotni o'chirish?")),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Bekor")),
+          TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("O'chirish"),
+            child: Text(tr(ref, 'common.delete', "O'chirish")),
           ),
         ],
       ),
@@ -146,7 +155,7 @@ class LopepayProductsScreen extends ConsumerWidget {
       await ref.read(dioProvider).delete('/lopepay/products/$id');
       ref.invalidate(lopepayProductsProvider);
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 
