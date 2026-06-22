@@ -54,7 +54,7 @@ class AppDrawer extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      _roleLabel(role),
+                      _roleLabel(role, ref),
                       style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -130,13 +130,13 @@ class AppDrawer extends ConsumerWidget {
     );
   }
 
-  String _roleLabel(String role) {
+  String _roleLabel(String role, WidgetRef ref) {
     switch (role) {
       case 'barber': return 'BARBER';
       case 'barbershop': return 'SALON';
       case 'shop': return 'LOPE PAY';
       case 'admin': return 'ADMIN';
-      default: return 'MIJOZ';
+      default: return tr(ref, 'auth.roleCustomer', 'Mijoz').toUpperCase();
     }
   }
 
