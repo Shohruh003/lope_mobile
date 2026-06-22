@@ -41,7 +41,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
       });
       ref.invalidate(shopMeProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
@@ -54,7 +54,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(shopMeProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text("Salon profili")),
+      appBar: AppBar(title: Text(tr(ref, 'profile.barberProfile', "Salon profili"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
@@ -69,22 +69,22 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              _Label("Salon nomi"),
+              _Label(tr(ref, 'mobile.shop.profile.salonName', "Salon nomi")),
               const SizedBox(height: 6),
               TextField(controller: _nameCtrl),
 
               const SizedBox(height: 14),
-              _Label("Telefon"),
+              _Label(tr(ref, 'auth.phone', "Telefon")),
               const SizedBox(height: 6),
               TextField(controller: _phoneCtrl, keyboardType: TextInputType.phone),
 
               const SizedBox(height: 14),
-              _Label("Manzil"),
+              _Label(tr(ref, 'profile.location', "Manzil")),
               const SizedBox(height: 6),
               TextField(controller: _addressCtrl),
 
               const SizedBox(height: 14),
-              _Label("Tavsif"),
+              _Label(tr(ref, 'mobile.shop.profile.description', "Tavsif")),
               const SizedBox(height: 6),
               TextField(controller: _descCtrl, maxLines: 4),
 
@@ -95,7 +95,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                   onPressed: _saving ? null : _save,
                   child: _saving
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Saqlash"),
+                      : Text(tr(ref, 'common.save', "Saqlash")),
                 ),
               ),
             ],

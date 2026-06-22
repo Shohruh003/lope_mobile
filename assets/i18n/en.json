@@ -1411,6 +1411,11 @@
         "invalidLatLng": "Invalid lat/lng",
         "copied": "Copied"
       },
+      "settings": { "salon": "SALON" },
+      "profile": {
+        "salonName": "Salon name",
+        "description": "Description"
+      },
       "scheduleGen": {
         "title": "Auto schedule",
         "dateRange": "Date range",

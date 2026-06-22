@@ -1412,6 +1412,11 @@
         "invalidLatLng": "Lat/Lng noto'g'ri",
         "copied": "Nusxalandi"
       },
+      "settings": { "salon": "SALON" },
+      "profile": {
+        "salonName": "Salon nomi",
+        "description": "Tavsif"
+      },
       "scheduleGen": {
         "title": "Avtomatik jadval",
         "dateRange": "Sana oralig'i",

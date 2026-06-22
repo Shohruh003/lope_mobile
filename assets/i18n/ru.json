@@ -1419,6 +1419,11 @@
         "invalidLatLng": "Неверные Lat/Lng",
         "copied": "Скопировано"
       },
+      "settings": { "salon": "САЛОН" },
+      "profile": {
+        "salonName": "Название салона",
+        "description": "Описание"
+      },
       "scheduleGen": {
         "title": "Автоматическое расписание",
         "dateRange": "Период дат",

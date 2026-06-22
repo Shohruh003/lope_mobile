@@ -1412,6 +1412,11 @@
         "invalidLatLng": "Lat/Lng нотўғри",
         "copied": "Нусхаланди"
       },
+      "settings": { "salon": "САЛОН" },
+      "profile": {
+        "salonName": "Салон номи",
+        "description": "Тавсиф"
+      },
       "scheduleGen": {
         "title": "Автоматик жадвал",
         "dateRange": "Сана оралиғи",
