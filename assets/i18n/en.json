@@ -1293,7 +1293,12 @@
       "minute": "minute",
       "next": "Next",
       "submit": "Submit",
-      "confirm": "Confirm"
+      "confirm": "Confirm",
+      "pageNotFound": "Page not found: {{uri}}"
+    },
+    "imagePicker": {
+      "camera": "Camera",
+      "gallery": "Gallery"
     },
     "auth": {
       "phone": "Phone",

@@ -67,7 +67,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
   }
 
   Future<void> _pickAvatar(String userId) async {
-    final file = await ImagePickerService.instance.pickFromSheet(context);
+    final file = await ImagePickerService.instance.pickFromSheet(context, ref: ref);
     if (file == null) return;
     setState(() => _uploadingAvatar = true);
     try {

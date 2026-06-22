@@ -1294,7 +1294,12 @@
       "minute": "дақиқа",
       "next": "Кейинги",
       "submit": "Жўнатиш",
-      "confirm": "Тасдиқлаш"
+      "confirm": "Тасдиқлаш",
+      "pageNotFound": "Саҳифа топилмади: {{uri}}"
+    },
+    "imagePicker": {
+      "camera": "Камера",
+      "gallery": "Галерея"
     },
     "auth": {
       "phone": "Телефон",

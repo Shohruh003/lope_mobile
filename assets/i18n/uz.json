@@ -1294,7 +1294,12 @@
       "minute": "daqiqa",
       "next": "Keyingi",
       "submit": "Jo'natish",
-      "confirm": "Tasdiqlash"
+      "confirm": "Tasdiqlash",
+      "pageNotFound": "Sahifa topilmadi: {{uri}}"
+    },
+    "imagePicker": {
+      "camera": "Kamera",
+      "gallery": "Galereya"
     },
     "auth": {
       "phone": "Telefon",

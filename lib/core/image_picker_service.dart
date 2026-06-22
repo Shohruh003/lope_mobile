@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../shared/theme/colors.dart';
+import 'tr.dart';
 
 /// Thin wrapper around image_picker that lets callers pop a "kameradan
 /// olishmi yoki galereyadanmi" sheet without rebuilding the same chooser
@@ -13,7 +15,7 @@ class ImagePickerService {
   static final instance = ImagePickerService._();
   final _picker = ImagePicker();
 
-  Future<File?> pickFromSheet(BuildContext context, {bool allowCamera = true}) async {
+  Future<File?> pickFromSheet(BuildContext context, {bool allowCamera = true, WidgetRef? ref}) async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -36,12 +38,16 @@ class ImagePickerService {
             if (allowCamera)
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
-                title: const Text("Kamera"),
+                title: Text(ref == null
+                    ? "Kamera"
+                    : tr(ref, 'mobile.imagePicker.camera', "Kamera")),
                 onTap: () => Navigator.of(sheetCtx).pop(ImageSource.camera),
               ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
-              title: const Text("Galereya"),
+              title: Text(ref == null
+                  ? "Galereya"
+                  : tr(ref, 'mobile.imagePicker.gallery', "Galereya")),
               onTap: () => Navigator.of(sheetCtx).pop(ImageSource.gallery),
             ),
             const SizedBox(height: 8),

@@ -229,7 +229,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Sahifa topilmadi: ${state.uri}')),
+      body: Center(
+        child: Consumer(
+          builder: (context, ref, _) => Text(
+            tr(ref, 'mobile.common.pageNotFound', 'Sahifa topilmadi: {{uri}}',
+                {'uri': state.uri.toString()}),
+          ),
+        ),
+      ),
     ),
   );
 });

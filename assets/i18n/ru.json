@@ -1301,7 +1301,12 @@
       "minute": "минута",
       "next": "Далее",
       "submit": "Отправить",
-      "confirm": "Подтвердить"
+      "confirm": "Подтвердить",
+      "pageNotFound": "Страница не найдена: {{uri}}"
+    },
+    "imagePicker": {
+      "camera": "Камера",
+      "gallery": "Галерея"
     },
     "auth": {
       "phone": "Телефон",

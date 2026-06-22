@@ -52,12 +52,12 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       _gender == 'female' ? _femaleOptions : _maleOptions;
 
   Future<void> _pickSelfie() async {
-    final f = await ImagePickerService.instance.pickFromSheet(context);
+    final f = await ImagePickerService.instance.pickFromSheet(context, ref: ref);
     if (f != null) setState(() => _selfie = f);
   }
 
   Future<void> _pickRef(String key) async {
-    final f = await ImagePickerService.instance.pickFromSheet(context, allowCamera: false);
+    final f = await ImagePickerService.instance.pickFromSheet(context, allowCamera: false, ref: ref);
     if (f != null) setState(() => _refImages[key] = f);
   }
 
