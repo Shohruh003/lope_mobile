@@ -1417,7 +1417,7 @@
         "contactsDenied": "Kontaktlarga ruxsat berilmadi",
         "contactReadError": "Kontaktni o'qib bo'lmadi"
       },
-      "bookingsAll": { "title": "Barcha bronlar", "empty": "Hali bron yo'q", "client": "Mijoz" },
+      "bookingsAll": { "title": "Barcha bronlar", "empty": "Hali bron yo'q", "client": "Mijoz", "today": "Bugun" },
       "bookings": {
         "searchPlaceholder": "Mijoz nomi yoki telefon"
       },
@@ -1485,7 +1485,8 @@
         "countSuffix": "ta"
       },
       "location": {
-        "editHint": "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting"
+        "editHint": "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting",
+        "openYandex": "Yandex Maps'dan koordinata olish"
       },
       "profileEdit": {
         "title": "Profilni tahrirlash",

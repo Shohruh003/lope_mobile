@@ -116,9 +116,9 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
-                      "Bugun",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
+                    child: Text(
+                      tr(ref, 'mobile.barber.bookingsAll.today', "Bugun"),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
                     ),
                   ),
                 ),

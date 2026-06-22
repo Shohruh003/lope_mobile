@@ -1416,7 +1416,7 @@
         "contactsDenied": "Contacts permission denied",
         "contactReadError": "Couldn't read the contact"
       },
-      "bookingsAll": { "title": "All bookings", "empty": "No bookings yet", "client": "Client" },
+      "bookingsAll": { "title": "All bookings", "empty": "No bookings yet", "client": "Client", "today": "Today" },
       "bookings": {
         "searchPlaceholder": "Client name or phone"
       },
@@ -1484,7 +1484,8 @@
         "countSuffix": "pcs"
       },
       "location": {
-        "editHint": "Enter precise address and coordinates so clients can find you on the map"
+        "editHint": "Enter precise address and coordinates so clients can find you on the map",
+        "openYandex": "Pick coordinates from Yandex Maps"
       },
       "profileEdit": {
         "title": "Edit profile",

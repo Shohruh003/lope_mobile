@@ -211,9 +211,10 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
                         height: 40,
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.open_in_new, size: 14),
-                          label: const Text(
-                              "Yandex Maps'dan koordinata olish",
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                          label: Text(
+                              tr(ref, 'mobile.barber.location.openYandex',
+                                  "Yandex Maps'dan koordinata olish"),
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                           onPressed: _openYandex,
                         ),
                       ),
