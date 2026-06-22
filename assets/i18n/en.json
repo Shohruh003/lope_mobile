@@ -1549,6 +1549,17 @@
       "bookings": { "title": "Salon bookings", "empty": "No bookings", "master": "Master: {{name}}" }
     },
     "notifications": { "title": "Notifications", "empty": "No notifications", "markAllRead": "Mark all read" },
+    "promo": {
+      "enterTitle": "Enter promo code",
+      "hint": "A valid code will add a bonus to your balance",
+      "enterCode": "Enter a code",
+      "activate": "Activate",
+      "activated": "Code activated!",
+      "bonusAdded": "+{{amount}} {{currency}} added to your balance",
+      "invalidCode": "Error — invalid code",
+      "notFound": "No such code",
+      "alreadyUsed": "This code has already been used"
+    },
     "admin": { "title": "Admin panel is not available on mobile", "subtitle": "Use the web version: app.lopestyle.uz" },
     "status": { "confirmed": "Confirmed", "completed": "Completed", "cancelled": "Cancelled" }
   }

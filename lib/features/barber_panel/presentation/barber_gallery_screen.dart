@@ -31,7 +31,9 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
       ref.invalidate(barberProfileProvider(widget.barberId));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Yuklashda xato: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'mobile.barber.gallery.uploadError',
+                'Yuklashda xato: {{msg}}', {'msg': '$e'}))));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -43,13 +45,15 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text("Rasmni o'chirish?"),
+        title: Text(tr(ref, 'mobile.barber.gallery.deleteTitle', "Rasmni o'chirish?")),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dCtx).pop(false), child: const Text("Bekor")),
+          TextButton(
+              onPressed: () => Navigator.of(dCtx).pop(false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: const Text("O'chirish"),
+            child: Text(tr(ref, 'common.delete', "O'chirish")),
           ),
         ],
       ),
@@ -59,7 +63,7 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
       await ref.read(barberProfileRepositoryProvider).deleteGalleryImage(widget.barberId, url);
       ref.invalidate(barberProfileProvider(widget.barberId));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 
@@ -78,7 +82,7 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (barber) {
           final gallery = ((barber['gallery'] as List?) ?? [])
               .map((e) => e.toString())

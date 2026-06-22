@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/data/balance_repository.dart';
@@ -31,7 +32,7 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
   Future<void> _redeem() async {
     final code = _ctrl.text.trim();
     if (code.isEmpty) {
-      setState(() => _error = "Kodni kiriting");
+      setState(() => _error = tr(ref, 'mobile.promo.enterCode', "Kodni kiriting"));
       return;
     }
     setState(() {
@@ -49,12 +50,16 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
       final user = ref.read(authControllerProvider).user;
       if (user != null) ref.invalidate(myBalanceProvider(user.id));
     } on DioException catch (e) {
-      String msg = "Xato — kod noto'g'ri";
-      if (e.response?.statusCode == 404) msg = "Bunday kod yo'q";
-      if (e.response?.statusCode == 409) msg = "Bu kod allaqachon ishlatilgan";
+      String msg = tr(ref, 'mobile.promo.invalidCode', "Xato — kod noto'g'ri");
+      if (e.response?.statusCode == 404) {
+        msg = tr(ref, 'mobile.promo.notFound', "Bunday kod yo'q");
+      }
+      if (e.response?.statusCode == 409) {
+        msg = tr(ref, 'mobile.promo.alreadyUsed', "Bu kod allaqachon ishlatilgan");
+      }
       setState(() => _error = msg);
     } catch (_) {
-      setState(() => _error = "Xato — qaytadan urinib ko'ring");
+      setState(() => _error = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring"));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -63,18 +68,18 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Promo kod")),
+      appBar: AppBar(title: Text(tr(ref, 'promoCode.title', "Promo kod"))),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Promo kod kiriting",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+              Text(tr(ref, 'mobile.promo.enterTitle', "Promo kod kiriting"),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textBright)),
               const SizedBox(height: 8),
-              const Text("Yaroqli kod balansingizga bonus qo'shadi",
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5)),
+              Text(tr(ref, 'mobile.promo.hint', "Yaroqli kod balansingizga bonus qo'shadi"),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5)),
               const SizedBox(height: 28),
               TextField(
                 controller: _ctrl,
@@ -102,8 +107,13 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
                     Expanded(
                       child: Text(
                         _bonus == 0
-                            ? "Kod faollashtirildi!"
-                            : "Balansga +${_fmt(_bonus!)} so'm qo'shildi",
+                            ? tr(ref, 'mobile.promo.activated', "Kod faollashtirildi!")
+                            : tr(ref, 'mobile.promo.bonusAdded',
+                                "Balansga +{{amount}} {{currency}} qo'shildi",
+                                {
+                                  'amount': _fmt(_bonus!),
+                                  'currency': tr(ref, 'common.currency', "so'm"),
+                                }),
                         style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                     ),
@@ -117,7 +127,8 @@ class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
                   onPressed: _busy ? null : _redeem,
                   child: _busy
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Faollashtirish", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      : Text(tr(ref, 'mobile.promo.activate', "Faollashtirish"),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
               ),
             ],

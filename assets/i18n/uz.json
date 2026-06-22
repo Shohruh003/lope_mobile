@@ -1550,6 +1550,17 @@
       "bookings": { "title": "Salon bronlari", "empty": "Bron yo'q", "master": "Master: {{name}}" }
     },
     "notifications": { "title": "Bildirishnomalar", "empty": "Bildirishnomalar yo'q", "markAllRead": "Hammasini o'qish" },
+    "promo": {
+      "enterTitle": "Promo kod kiriting",
+      "hint": "Yaroqli kod balansingizga bonus qo'shadi",
+      "enterCode": "Kodni kiriting",
+      "activate": "Faollashtirish",
+      "activated": "Kod faollashtirildi!",
+      "bonusAdded": "Balansga +{{amount}} {{currency}} qo'shildi",
+      "invalidCode": "Xato — kod noto'g'ri",
+      "notFound": "Bunday kod yo'q",
+      "alreadyUsed": "Bu kod allaqachon ishlatilgan"
+    },
     "admin": { "title": "Admin panel mobile'da mavjud emas", "subtitle": "Veb-versiyadan foydalaning: app.lopestyle.uz" },
     "status": { "confirmed": "Tasdiqlangan", "completed": "Yakunlangan", "cancelled": "Bekor qilingan" }
   }

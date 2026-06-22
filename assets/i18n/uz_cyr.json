@@ -1550,6 +1550,17 @@
       "bookings": { "title": "Салон бронлари", "empty": "Брон йўқ", "master": "Мастер: {{name}}" }
     },
     "notifications": { "title": "Билдиришномалар", "empty": "Билдиришномалар йўқ", "markAllRead": "Ҳаммасини ўқиш" },
+    "promo": {
+      "enterTitle": "Промо код киритинг",
+      "hint": "Яроқли код балансингизга бонус қўшади",
+      "enterCode": "Кодни киритинг",
+      "activate": "Фаоллаштириш",
+      "activated": "Код фаоллаштирилди!",
+      "bonusAdded": "Балансга +{{amount}} {{currency}} қўшилди",
+      "invalidCode": "Хато — код нотўғри",
+      "notFound": "Бундай код йўқ",
+      "alreadyUsed": "Бу код аллақачон ишлатилган"
+    },
     "admin": { "title": "Admin панел мобильда мавжуд эмас", "subtitle": "Веб-версиядан фойдаланинг: app.lopestyle.uz" },
     "status": { "confirmed": "Тасдиқланган", "completed": "Якунланган", "cancelled": "Бекор қилинган" }
   }
