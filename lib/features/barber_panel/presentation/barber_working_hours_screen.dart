@@ -90,6 +90,7 @@ class _BarberWorkingHoursScreenState extends ConsumerState<BarberWorkingHoursScr
           if (_config.every((d) => d.start == '09:00' && d.end == '20:00')) {
             _seedFromBarber(barber);
           }
+          final days = trList(ref, 'mobile.dates.weekDaysShort', _days);
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
@@ -106,7 +107,7 @@ class _BarberWorkingHoursScreenState extends ConsumerState<BarberWorkingHoursScr
                     children: [
                       SizedBox(
                         width: 28,
-                        child: Text(_days[i],
+                        child: Text(days[i],
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                       ),
                       const SizedBox(width: 8),

@@ -140,7 +140,11 @@ class BarberStatsScreen extends ConsumerWidget {
                                     fontSize: 14,
                                     color: AppColors.textBright)),
                             const SizedBox(height: 8),
-                            WeeklyBookingsBarChart(counts: byDow),
+                            WeeklyBookingsBarChart(
+                              counts: byDow,
+                              dayLabels: trList(ref, 'mobile.dates.weekDaysShort',
+                                  const ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']),
+                            ),
                           ],
                         ),
                       ),

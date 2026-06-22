@@ -6,11 +6,20 @@ import '../theme/colors.dart';
 /// Compact week-of-bookings bar chart used in the barber stats screen.
 /// Pass 7 day-of-week counts ordered Mon → Sun.
 class WeeklyBookingsBarChart extends StatelessWidget {
-  const WeeklyBookingsBarChart({super.key, required this.counts, this.height = 180});
+  const WeeklyBookingsBarChart({
+    super.key,
+    required this.counts,
+    this.height = 180,
+    this.dayLabels,
+  });
   final List<int> counts;
   final double height;
 
-  static const _days = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+  /// 7 weekday abbreviations Mon→Sun. Pass localized labels from the caller;
+  /// falls back to Uzbek if null so the widget stays usable standalone.
+  final List<String>? dayLabels;
+
+  static const _daysFallback = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +50,7 @@ class WeeklyBookingsBarChart extends StatelessWidget {
                 reservedSize: 22,
                 getTitlesWidget: (v, _) => Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(_days[v.toInt() % 7],
+                  child: Text((dayLabels ?? _daysFallback)[v.toInt() % 7],
                       style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w600)),
                 ),
               ),

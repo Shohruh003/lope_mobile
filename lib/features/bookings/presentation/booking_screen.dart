@@ -283,7 +283,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(_weekDays[d.weekday - 1].toUpperCase(),
+                      Text(trList(ref, 'mobile.dates.weekDaysShort', _weekDays)[d.weekday - 1].toUpperCase(),
                           style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
