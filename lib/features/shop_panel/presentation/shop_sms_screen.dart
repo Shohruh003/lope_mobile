@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
@@ -18,7 +19,7 @@ class ShopSmsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text("SMS tarixi")),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
             return const Center(

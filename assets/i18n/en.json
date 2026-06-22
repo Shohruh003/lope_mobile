@@ -1546,7 +1546,14 @@
         "deleteTitle": "Remove master?",
         "deleteAsk": "Remove \"{{name}}\" from the salon?"
       },
-      "bookings": { "title": "Salon bookings", "empty": "No bookings", "master": "Master: {{name}}" },
+      "bookings": {
+        "title": "Salon bookings",
+        "empty": "No bookings",
+        "master": "Master: {{name}}",
+        "masterLabel": "Master",
+        "statusLabel": "Status",
+        "emptyForDay": "No bookings on this date"
+      },
       "clients": { "empty": "Client list is empty" }
     },
     "notifications": { "title": "Notifications", "empty": "No notifications", "markAllRead": "Mark all read" },

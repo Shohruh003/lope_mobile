@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../data/shop_repository.dart';
@@ -64,8 +65,8 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
             // ===== Title =====
-            const Text("Salon bronlari",
-                style: TextStyle(
+            Text(tr(ref, 'mobile.shop.bookings.title', "Salon bronlari"),
+                style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textBright)),
@@ -85,8 +86,8 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                 child: Row(children: [
                   const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
                   const SizedBox(width: 8),
-                  const Text("Sana:",
-                      style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                  Text("${tr(ref, 'booking.date', 'Sana')}:",
+                      style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
                   const SizedBox(width: 6),
                   Text(_dateStr(_date),
                       style: const TextStyle(
@@ -97,7 +98,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                   IconButton(
                     icon: const Icon(Icons.today_outlined, size: 16, color: AppColors.primary),
                     onPressed: () => setState(() => _date = DateTime.now()),
-                    tooltip: 'Bugun',
+                    tooltip: tr(ref, 'barberApp.today', 'Bugun'),
                   ),
                 ]),
               ),
@@ -108,10 +109,10 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
             // ===== Barber filter =====
             mastersAsync.maybeWhen(
               data: (masters) => _filterDropdown<String>(
-                label: "Master",
+                label: tr(ref, 'mobile.shop.bookings.masterLabel', "Master"),
                 value: _barberId,
                 items: [
-                  const DropdownMenuItem(value: 'all', child: Text("Barchasi")),
+                  DropdownMenuItem(value: 'all', child: Text(tr(ref, 'common.all', "Barchasi"))),
                   ...masters.map((b) =>
                       DropdownMenuItem(value: b.id, child: Text(b.name))),
                 ],
@@ -124,13 +125,13 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
 
             // ===== Status filter =====
             _filterDropdown<String>(
-              label: "Status",
+              label: tr(ref, 'mobile.shop.bookings.statusLabel', "Status"),
               value: _status,
-              items: const [
-                DropdownMenuItem(value: 'all', child: Text("Barchasi")),
-                DropdownMenuItem(value: 'confirmed', child: Text("Tasdiqlangan")),
-                DropdownMenuItem(value: 'completed', child: Text("Yakunlangan")),
-                DropdownMenuItem(value: 'cancelled', child: Text("Bekor qilingan")),
+              items: [
+                DropdownMenuItem(value: 'all', child: Text(tr(ref, 'common.all', "Barchasi"))),
+                DropdownMenuItem(value: 'confirmed', child: Text(tr(ref, 'myBookings.statusConfirmed', "Tasdiqlangan"))),
+                DropdownMenuItem(value: 'completed', child: Text(tr(ref, 'myBookings.statusCompleted', "Yakunlangan"))),
+                DropdownMenuItem(value: 'cancelled', child: Text(tr(ref, 'myBookings.statusCancelled', "Bekor qilingan"))),
               ],
               onChanged: (v) => setState(() => _status = v ?? 'all'),
             ),
@@ -142,7 +143,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
               data: (list) => Row(children: [
                 const Icon(Icons.event_note, size: 14, color: AppColors.textMuted),
                 const SizedBox(width: 6),
-                Text("${list.length} ta bron",
+                Text("${list.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
                     style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
               ]),
               orElse: () => const SizedBox.shrink(),
@@ -157,15 +158,16 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                   child: Center(child: CircularProgressIndicator())),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted)),
+                child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
               ),
               data: (list) {
                 if (list.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Center(
-                      child: Text("Bu sanada bronlar yo'q",
-                          style: TextStyle(color: AppColors.textMuted)),
+                      child: Text(tr(ref, 'mobile.shop.bookings.emptyForDay',
+                          "Bu sanada bronlar yo'q"),
+                          style: const TextStyle(color: AppColors.textMuted)),
                     ),
                   );
                 }
@@ -229,7 +231,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
   }
 }
 
-class _BookingCard extends StatelessWidget {
+class _BookingCard extends ConsumerWidget {
   const _BookingCard({required this.b});
   final ShopBooking b;
 
@@ -244,19 +246,19 @@ class _BookingCard extends StatelessWidget {
     }
   }
 
-  String get _statusText {
+  String _statusText(WidgetRef ref) {
     switch (b.status) {
       case 'completed':
-        return 'Yakunlangan';
+        return tr(ref, 'myBookings.statusCompleted', 'Yakunlangan');
       case 'cancelled':
-        return 'Bekor';
+        return tr(ref, 'profile.cancelled', 'Bekor');
       default:
-        return 'Tasdiqlangan';
+        return tr(ref, 'myBookings.statusConfirmed', 'Tasdiqlangan');
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ShadCard(
       padding: const EdgeInsets.all(12),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -315,7 +317,7 @@ class _BookingCard extends StatelessWidget {
                     color: _statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(_statusText,
+                  child: Text(_statusText(ref),
                       style: TextStyle(
                           color: _statusColor,
                           fontSize: 10,
@@ -323,7 +325,7 @@ class _BookingCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 if (b.totalPrice > 0)
-                  Text("${_fmt(b.totalPrice)} so'm",
+                  Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
                       style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,

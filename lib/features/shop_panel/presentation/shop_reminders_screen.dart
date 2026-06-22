@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
 /// Pending SMS reminders queue. Read-only list of who's scheduled to receive
@@ -19,7 +20,7 @@ class ShopRemindersScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text("Eslatmalar")),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
             return const Center(

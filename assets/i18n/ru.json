@@ -1554,7 +1554,14 @@
         "deleteTitle": "Удалить мастера?",
         "deleteAsk": "Удалить \"{{name}}\" из салона?"
       },
-      "bookings": { "title": "Записи салона", "empty": "Нет записей", "master": "Мастер: {{name}}" },
+      "bookings": {
+        "title": "Записи салона",
+        "empty": "Нет записей",
+        "master": "Мастер: {{name}}",
+        "masterLabel": "Мастер",
+        "statusLabel": "Статус",
+        "emptyForDay": "На эту дату записей нет"
+      },
       "clients": { "empty": "Список клиентов пуст" }
     },
     "notifications": { "title": "Уведомления", "empty": "Уведомлений нет", "markAllRead": "Прочитать все" },

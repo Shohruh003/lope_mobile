@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
@@ -43,7 +44,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Saqlandi")));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -56,7 +57,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
       appBar: AppBar(title: const Text("Salon profili")),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (m) {
           if (!_seeded) {
             _seeded = true;

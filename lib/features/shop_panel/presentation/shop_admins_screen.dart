@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
 /// Salon admins multi-management. Owner can add/remove admins; admins
@@ -24,7 +25,7 @@ class ShopAdminsScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {
             return const Center(
@@ -142,7 +143,7 @@ class ShopAdminsScreen extends ConsumerWidget {
       await ref.read(dioProvider).post('/barbershop/admins', data: {'phone': phone.text.trim()});
       ref.invalidate(_adminsProvider);
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 
@@ -167,7 +168,7 @@ class ShopAdminsScreen extends ConsumerWidget {
       await ref.read(dioProvider).delete('/barbershop/admins/$id');
       ref.invalidate(_adminsProvider);
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Xato: $e")));
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
 /// Detail view for one shop client. Loads /barbershop/clients/:key (the
@@ -22,7 +23,7 @@ class ShopClientDetailScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text("Mijoz")),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Xato: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
         data: (data) {
           final name = (data['name'] ?? '').toString();
           final phone = (data['phone'] ?? '').toString();
