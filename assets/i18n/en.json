@@ -1560,6 +1560,12 @@
       "title": "Nearby",
       "empty": "No barbers nearby"
     },
+    "publicBooking": {
+      "invalidLink": "This link is outdated or invalid",
+      "noServices": "This barber hasn't set up any services",
+      "successTitle": "You're booked!",
+      "successMsg": "{{name}} is waiting for you. A confirmation SMS will arrive."
+    },
     "promo": {
       "enterTitle": "Enter promo code",
       "hint": "A valid code will add a bonus to your balance",

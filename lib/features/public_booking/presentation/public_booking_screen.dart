@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
 /// Public, no-auth booking page reached via a shared link like
@@ -79,9 +80,13 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
       });
       setState(() => _success = true);
     } on DioException catch (e) {
-      String msg = "Xato — qaytadan urinib ko'ring";
-      if (e.response?.statusCode == 409) msg = "Bu vaqt allaqachon band";
-      if (e.response?.statusCode == 404) msg = "Bu havola eski yoki noto'g'ri";
+      String msg = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring");
+      if (e.response?.statusCode == 409) {
+        msg = tr(ref, 'booking.slotTaken', "Bu vaqt allaqachon band qilingan");
+      }
+      if (e.response?.statusCode == 404) {
+        msg = tr(ref, 'mobile.publicBooking.invalidLink', "Bu havola eski yoki noto'g'ri");
+      }
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -92,7 +97,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(_publicBarberProvider(widget.slug));
     return Scaffold(
-      appBar: AppBar(title: const Text("Yozilish")),
+      appBar: AppBar(title: Text(tr(ref, 'booking.title', "Yozilish"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -100,11 +105,11 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
             padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.link_off, size: 56, color: AppColors.textMuted),
-                SizedBox(height: 12),
-                Text("Bu havola eski yoki noto'g'ri",
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+              children: [
+                const Icon(Icons.link_off, size: 56, color: AppColors.textMuted),
+                const SizedBox(height: 12),
+                Text(tr(ref, 'mobile.publicBooking.invalidLink', "Bu havola eski yoki noto'g'ri"),
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
               ],
             ),
           ),
@@ -139,11 +144,13 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               ]),
 
               const SizedBox(height: 24),
-              const Text("Xizmatlar", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(tr(ref, 'profile.services', "Xizmatlar"),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: 8),
               if (services.isEmpty)
-                const Text("Bu sartaroshda xizmat sozlanmagan",
-                    style: TextStyle(color: AppColors.textMuted))
+                Text(tr(ref, 'mobile.publicBooking.noServices',
+                    "Bu sartaroshda xizmat sozlanmagan"),
+                    style: const TextStyle(color: AppColors.textMuted))
               else
                 Wrap(
                   spacing: 8, runSpacing: 8,
@@ -153,7 +160,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                     final price = ((s['price'] ?? 0) as num).toInt();
                     final on = _selected.contains(id);
                     return FilterChip(
-                      label: Text("$name — ${_fmt(price)} so'm"),
+                      label: Text("$name — ${_fmt(price)} ${tr(ref, 'common.currency', "so'm")}"),
                       selected: on,
                       onSelected: (v) => setState(() {
                         if (v) {
@@ -167,7 +174,8 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                 ),
 
               const SizedBox(height: 22),
-              const Text("Sana", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(tr(ref, 'booking.date', "Sana"),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: 8),
               SizedBox(
                 height: 70,
@@ -209,7 +217,8 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               ),
 
               const SizedBox(height: 18),
-              const Text("Vaqt", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(tr(ref, 'booking.time', "Vaqt"),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: 8),
               FutureBuilder<List<String>>(
                 key: ValueKey(_date.toIso8601String()),
@@ -222,8 +231,8 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                   }
                   final slots = snap.data!;
                   if (slots.isEmpty) {
-                    return const Text("Bu kunda bo'sh vaqt yo'q",
-                        style: TextStyle(color: AppColors.textMuted));
+                    return Text(tr(ref, 'common.noSlots', "Bu kunda bo'sh vaqt yo'q"),
+                        style: const TextStyle(color: AppColors.textMuted));
                   }
                   return Wrap(
                     spacing: 8, runSpacing: 8,
@@ -237,9 +246,13 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               ),
 
               const SizedBox(height: 22),
-              const Text("Ma'lumotlaringiz", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              Text(tr(ref, 'auth.yourInfo', "Ma'lumotlaringiz"),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: 8),
-              TextField(controller: _nameCtrl, decoration: const InputDecoration(hintText: "Ismingiz")),
+              TextField(
+                  controller: _nameCtrl,
+                  decoration: InputDecoration(
+                      hintText: tr(ref, 'auth.yourName', "Ismingiz"))),
               const SizedBox(height: 10),
               TextField(
                 controller: _phoneCtrl,
@@ -263,7 +276,8 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                   onPressed: _busy ? null : () => _submit(barberId),
                   child: _busy
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Yozilish", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                      : Text(tr(ref, 'booking.title', "Yozilish"),
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
               ),
             ],
@@ -290,11 +304,11 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
   }
 }
 
-class _SuccessView extends StatelessWidget {
+class _SuccessView extends ConsumerWidget {
   const _SuccessView({required this.name});
   final String name;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -310,10 +324,13 @@ class _SuccessView extends StatelessWidget {
               child: const Icon(Icons.check, size: 56, color: AppColors.success),
             ).animate().scale(duration: 500.ms, begin: const Offset(0.4, 0.4), end: const Offset(1, 1), curve: Curves.easeOutBack),
             const SizedBox(height: 20),
-            const Text("Yozildingiz!",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+            Text(tr(ref, 'mobile.publicBooking.successTitle', "Yozildingiz!"),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textBright)),
             const SizedBox(height: 8),
-            Text("$name sizni kutadi. Tasdiqlash SMS keladi.",
+            Text(
+                tr(ref, 'mobile.publicBooking.successMsg',
+                    "{{name}} sizni kutadi. Tasdiqlash SMS keladi.",
+                    {'name': name}),
                 style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
                 textAlign: TextAlign.center),
           ],

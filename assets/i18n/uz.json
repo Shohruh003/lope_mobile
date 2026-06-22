@@ -1561,6 +1561,12 @@
       "title": "Yaqin atrofda",
       "empty": "Yaqin atrofda sartaroshlar topilmadi"
     },
+    "publicBooking": {
+      "invalidLink": "Bu havola eski yoki noto'g'ri",
+      "noServices": "Bu sartaroshda xizmat sozlanmagan",
+      "successTitle": "Yozildingiz!",
+      "successMsg": "{{name}} sizni kutadi. Tasdiqlash SMS keladi."
+    },
     "promo": {
       "enterTitle": "Promo kod kiriting",
       "hint": "Yaroqli kod balansingizga bonus qo'shadi",
