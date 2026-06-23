@@ -4,19 +4,29 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
+import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../data/barber_panel_repository.dart';
+import '../data/barber_profile_repository.dart';
 
 class BarberSettingsScreen extends ConsumerWidget {
   const BarberSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authControllerProvider).user;
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'barberApp.settings', "Sozlamalar"))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
+          // ===== Availability toggle — mirrors web BarberSettingsDrawer =====
+          if (user != null) ...[
+            _AvailabilityTile(userId: user.id),
+            const SizedBox(height: 18),
+          ],
+
           ShadSectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           const SizedBox(height: 8),
@@ -100,5 +110,82 @@ class BarberSettingsScreen extends ConsumerWidget {
     final scheme = uri.scheme.toLowerCase();
     if (scheme != 'http' && scheme != 'https') return;
     if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
+/// Quick toggle for "I'm accepting bookings". Mirrors the prominent
+/// availability switch in web's BarberSettingsDrawer — keeps the barber from
+/// having to dive into the Profile editor just to flip this one flag.
+class _AvailabilityTile extends ConsumerStatefulWidget {
+  const _AvailabilityTile({required this.userId});
+  final String userId;
+  @override
+  ConsumerState<_AvailabilityTile> createState() => _AvailabilityTileState();
+}
+
+class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final async = ref.watch(barberProfileProvider(widget.userId));
+    return async.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (b) {
+        final on = b['isAvailable'] != false;
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: SwitchListTile(
+            value: on,
+            activeThumbColor: AppColors.primary,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            secondary: Icon(
+                on ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: AppColors.primary),
+            title: Text(
+                on
+                    ? tr(ref, 'barbers.available', "Bo'sh")
+                    : tr(ref, 'barbers.unavailable', 'Band'),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: AppColors.textBright)),
+            subtitle: Text(
+                on
+                    ? tr(ref, 'mobile.barber.profileEdit.availableHint',
+                        "Yangi bronlar tushishi mumkin")
+                    : tr(ref, 'mobile.barber.profileEdit.unavailableHint',
+                        "Bron qabul qilmayapsiz — profil yashirin"),
+                style: const TextStyle(
+                    color: AppColors.textMuted, fontSize: 12)),
+            onChanged: _busy
+                ? null
+                : (_) async {
+                    setState(() => _busy = true);
+                    try {
+                      await ref
+                          .read(barberPanelRepositoryProvider)
+                          .toggleAvailability(widget.userId);
+                      ref.invalidate(barberProfileProvider(widget.userId));
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              "${tr(ref, 'common.error', 'Xatolik')}: $e")));
+                    } finally {
+                      if (mounted) setState(() => _busy = false);
+                    }
+                  },
+          ),
+        );
+      },
+    );
   }
 }
