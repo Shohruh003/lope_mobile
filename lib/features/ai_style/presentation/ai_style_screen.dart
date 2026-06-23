@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
@@ -635,7 +636,14 @@ class _ResultView extends ConsumerWidget {
             child: ElevatedButton.icon(
               icon: const Icon(Icons.download, size: 16),
               label: Text(tr(ref, 'aiStyle.download', "Yuklab olish")),
-              onPressed: () {},
+              onPressed: () async {
+                final uri = Uri.tryParse(resultUrl);
+                if (uri == null) return;
+                if (uri.scheme != 'http' && uri.scheme != 'https') return;
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
             ),
           ),
         ),
