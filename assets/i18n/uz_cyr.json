@@ -1623,7 +1623,8 @@
       "invalidLink": "Бу ҳавола эски ёки нотўғри",
       "noServices": "Бу сартарошда хизмат созланмаган",
       "successTitle": "Ёзилдингиз!",
-      "successMsg": "{{name}} сизни кутади. Тасдиқлаш SMS келади."
+      "successMsg": "{{name}} сизни кутади. Тасдиқлаш SMS келади.",
+      "pickServiceTime": "Хизмат ва вақт танланг"
     },
     "payment": {
       "successTitle": "Тўлов муваффақиятли",

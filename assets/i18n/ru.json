@@ -1630,7 +1630,8 @@
       "invalidLink": "Эта ссылка устарела или неверна",
       "noServices": "У этого барбера не настроены услуги",
       "successTitle": "Записаны!",
-      "successMsg": "{{name}} ждёт вас. Придёт SMS-подтверждение."
+      "successMsg": "{{name}} ждёт вас. Придёт SMS-подтверждение.",
+      "pickServiceTime": "Выберите услугу и время"
     },
     "payment": {
       "successTitle": "Платёж успешен",

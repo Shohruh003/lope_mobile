@@ -56,12 +56,14 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
   Future<void> _submit(String barberId) async {
     if (_selected.isEmpty || _time == null) {
-      setState(() => _error = "Xizmat va vaqt tanlang");
+      setState(() => _error = tr(ref, 'mobile.publicBooking.pickServiceTime',
+          "Xizmat va vaqt tanlang"));
       return;
     }
     final phone = _phoneCtrl.text.replaceAll(RegExp(r'\D'), '');
     if (phone.length != 9) {
-      setState(() => _error = "Telefon raqami noto'g'ri");
+      setState(() => _error = tr(ref, 'common.validation.invalidPhone',
+          "Telefon raqami noto'g'ri"));
       return;
     }
     setState(() {

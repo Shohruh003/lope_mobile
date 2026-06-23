@@ -1623,7 +1623,8 @@
       "invalidLink": "Bu havola eski yoki noto'g'ri",
       "noServices": "Bu sartaroshda xizmat sozlanmagan",
       "successTitle": "Yozildingiz!",
-      "successMsg": "{{name}} sizni kutadi. Tasdiqlash SMS keladi."
+      "successMsg": "{{name}} sizni kutadi. Tasdiqlash SMS keladi.",
+      "pickServiceTime": "Xizmat va vaqt tanlang"
     },
     "payment": {
       "successTitle": "To'lov muvaffaqiyatli",
