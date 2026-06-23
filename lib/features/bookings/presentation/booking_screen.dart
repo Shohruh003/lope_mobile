@@ -254,11 +254,21 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
       SizedBox(
         height: 76,
-        child: ListView.builder(
+        child: Consumer(builder: (context, ref, _) {
+          final scheduledAsync = ref.watch(scheduledDatesProvider((
+            barberId: widget.barberId,
+            dates: _days.map(_dateStr).toList(),
+          )));
+          final scheduledSet =
+              scheduledAsync.maybeWhen(data: (l) => l.toSet(), orElse: () => <String>{});
+          return ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: _days.length,
           itemBuilder: (context, i) {
             final d = _days[i];
+            final dateKey = _dateStr(d);
+            final hasSchedule = scheduledSet.contains(dateKey) ||
+                scheduledAsync.maybeWhen(loading: () => true, orElse: () => false);
             final isSelected = _selectedDate != null &&
                 d.year == _selectedDate!.year &&
                 d.month == _selectedDate!.month &&
@@ -267,11 +277,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
-                onTap: () => setState(() {
-                  _selectedDate = d;
-                  _selectedTime = null;
-                }),
-                child: Container(
+                onTap: hasSchedule
+                    ? () => setState(() {
+                          _selectedDate = d;
+                          _selectedTime = null;
+                        })
+                    : null,
+                child: Opacity(
+                  opacity: hasSchedule ? 1.0 : 0.35,
+                  child: Container(
                   width: 64,
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : Colors.transparent,
@@ -307,11 +321,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                   : AppColors.textMuted)),
                     ],
                   ),
+                  ),
                 ),
               ),
             );
           },
-        ),
+          );
+        }),
       ),
 
       const SizedBox(height: 18),

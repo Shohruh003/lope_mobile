@@ -84,10 +84,35 @@ class BookingRepository {
     await _dio.patch('/bookings/$bookingId/reschedule',
         data: {'date': date, 'time': time});
   }
+
+  /// Of the given date list, which dates does the barber actually
+  /// have schedule slots on. Returns a subset (or empty list).
+  Future<List<String>> scheduledDates({
+    required String barberId,
+    required List<String> dates,
+  }) async {
+    final res = await _dio.get(
+      '/schedule/$barberId/scheduled-dates',
+      queryParameters: {'dates': dates},
+    );
+    final data = res.data;
+    if (data is List) return data.cast<String>();
+    return const [];
+  }
 }
 
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
   return BookingRepository(ref.watch(dioProvider));
+});
+
+/// Family provider over (barberId, dates) returning which of the given
+/// dates the barber has any schedule slots on. Empty list means none
+/// of the dates have slots yet.
+final scheduledDatesProvider = FutureProvider.family<List<String>,
+    ({String barberId, List<String> dates})>((ref, k) async {
+  return ref
+      .watch(bookingRepositoryProvider)
+      .scheduledDates(barberId: k.barberId, dates: k.dates);
 });
 
 /// My bookings provider — keyed on the current user id so a fresh login pulls
