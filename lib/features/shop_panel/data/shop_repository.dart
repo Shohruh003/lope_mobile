@@ -152,6 +152,17 @@ class ShopRepository {
     await _dio.delete('/barbershop/barbers/$id');
   }
 
+  /// GET /barbershop/balance — owner's balance for the transactions
+  /// screen header.
+  Future<int> balance() async {
+    final res = await _dio.get('/barbershop/balance');
+    final data = res.data;
+    if (data is Map && data['balance'] != null) {
+      return ((data['balance']) as num).toInt();
+    }
+    return 0;
+  }
+
   // Bookings
   Future<List<ShopBooking>> bookings({
     String? date,
@@ -186,6 +197,8 @@ final shopBarbersProvider = FutureProvider<List<ShopBarber>>(
     (ref) => ref.watch(shopRepositoryProvider).barbers());
 final shopBookingsProvider = FutureProvider<List<ShopBooking>>(
     (ref) => ref.watch(shopRepositoryProvider).bookings());
+final shopBalanceProvider =
+    FutureProvider<int>((ref) => ref.watch(shopRepositoryProvider).balance());
 
 /// Shop clients (customers who booked at this salon).
 class ShopClient {
