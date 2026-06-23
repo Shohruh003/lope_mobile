@@ -3,19 +3,99 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
 
+class ShopDailyPoint {
+  ShopDailyPoint(
+      {required this.date,
+      required this.bookings,
+      required this.revenue,
+      required this.newClients});
+  final String date;
+  final int bookings;
+  final int revenue;
+  final int newClients;
+}
+
 class ShopStats {
-  ShopStats({required this.bookings, required this.clients, required this.revenue, required this.messages});
+  ShopStats({
+    required this.bookings,
+    required this.clients,
+    required this.revenue,
+    required this.messages,
+    required this.todayRevenue,
+    required this.todayBookings,
+    required this.todayCompleted,
+    required this.uniqueClients,
+    required this.newClients,
+    required this.manualBookings,
+    required this.fromSmsBookings,
+    required this.barbersCount,
+    required this.clientsDueForReminder,
+    required this.smsConfirmation,
+    required this.smsReminder,
+    required this.smsRetention,
+    required this.daily,
+  });
   final int bookings;
   final int clients;
   final int revenue;
   final int messages;
+  final int todayRevenue;
+  final int todayBookings;
+  final int todayCompleted;
+  final int uniqueClients;
+  final int newClients;
+  final int manualBookings;
+  final int fromSmsBookings;
+  final int barbersCount;
+  final int clientsDueForReminder;
+  final int smsConfirmation;
+  final int smsReminder;
+  final int smsRetention;
+  final List<ShopDailyPoint> daily;
 
-  factory ShopStats.fromJson(Map<String, dynamic> json) => ShopStats(
-        bookings: ((json['bookings'] ?? 0) as num).toInt(),
-        clients: ((json['clients'] ?? 0) as num).toInt(),
-        revenue: ((json['revenue'] ?? 0) as num).toInt(),
-        messages: ((json['messages'] ?? json['sms'] ?? 0) as num).toInt(),
-      );
+  factory ShopStats.fromJson(Map<String, dynamic> json) {
+    // Accept either flat keys (older shape) or the canonical
+    // `{totals, daily, sms}` wrapper returned by the backend today.
+    final totals = json['totals'] is Map
+        ? (json['totals'] as Map).cast<String, dynamic>()
+        : json;
+    final sms = json['sms'] is Map
+        ? (json['sms'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    final dailyRaw =
+        (json['daily'] is List ? json['daily'] as List : const []);
+    int pickInt(Map<String, dynamic> m, String key) =>
+        ((m[key] ?? 0) as num).toInt();
+    return ShopStats(
+      bookings: pickInt(totals, 'bookings'),
+      clients: pickInt(totals, 'uniqueClients') == 0
+          ? pickInt(totals, 'clients')
+          : pickInt(totals, 'uniqueClients'),
+      revenue: pickInt(totals, 'revenue'),
+      messages: ((sms['total'] ?? totals['messages'] ?? 0) as num).toInt(),
+      todayRevenue: pickInt(totals, 'todayRevenue'),
+      todayBookings: pickInt(totals, 'todayBookings'),
+      todayCompleted: pickInt(totals, 'todayCompleted'),
+      uniqueClients: pickInt(totals, 'uniqueClients'),
+      newClients: pickInt(totals, 'newClients'),
+      manualBookings: pickInt(totals, 'manualBookings'),
+      fromSmsBookings: pickInt(totals, 'fromSmsBookings'),
+      barbersCount: pickInt(totals, 'barbersCount'),
+      clientsDueForReminder: pickInt(totals, 'clientsDueForReminder'),
+      smsConfirmation: ((sms['confirmation'] ?? 0) as num).toInt(),
+      smsReminder: ((sms['reminder'] ?? 0) as num).toInt(),
+      smsRetention: ((sms['retention'] ?? 0) as num).toInt(),
+      daily: dailyRaw
+          .map((e) => e as Map<String, dynamic>)
+          .map((m) => ShopDailyPoint(
+                date: (m['date'] ?? '').toString(),
+                bookings: ((m['bookings'] ?? 0) as num).toInt(),
+                revenue: ((m['revenue'] ?? 0) as num).toInt(),
+                newClients: ((m['newClients'] ?? 0) as num).toInt(),
+              ))
+          .toList(),
+    );
+  }
 }
 
 class ShopBarber {
@@ -215,6 +295,15 @@ final shopMeProvider = FutureProvider<Map<String, dynamic>>(
     (ref) => ref.watch(shopRepositoryProvider).me());
 final shopStatsProvider = FutureProvider<ShopStats>(
     (ref) => ref.watch(shopRepositoryProvider).stats());
+
+/// Filtered stats keyed on (from, to) — used by the dashboard's date-range
+/// picker. Mirrors web's `getShopStatsAPI({from, to})`. Pass `null` for both
+/// to fall through to the default 30-day window.
+typedef ShopStatsKey = ({String? from, String? to});
+final shopStatsFilteredProvider =
+    FutureProvider.family<ShopStats, ShopStatsKey>((ref, k) async {
+  return ref.watch(shopRepositoryProvider).stats(from: k.from, to: k.to);
+});
 final shopBarbersProvider = FutureProvider<List<ShopBarber>>(
     (ref) => ref.watch(shopRepositoryProvider).barbers());
 final shopBookingsProvider = FutureProvider<List<ShopBooking>>(
