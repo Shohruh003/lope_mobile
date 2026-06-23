@@ -134,6 +134,34 @@ class BarberSmsStats {
 
 /// Booking actions a barber can take on their own bookings. These are POSTed
 /// to existing NestJS endpoints; the web uses the same routes.
+extension BarberLookupApi on BarberPanelRepository {
+  /// GET /bookings/barber/:id/lookup-client?phone=... — used by the
+  /// manual booking dialog to auto-fill a returning client's name as
+  /// soon as the barber finishes typing their phone. Returns null on
+  /// 404 / any error so callers can treat "not found" as a no-op.
+  Future<({String name, String phone})?> lookupClientByPhone({
+    required String barberId,
+    required String phone,
+  }) async {
+    try {
+      final res = await _dio.get(
+        '/bookings/barber/$barberId/lookup-client',
+        queryParameters: {'phone': phone},
+      );
+      if (res.data is Map) {
+        final m = res.data as Map;
+        return (
+          name: (m['name'] ?? '').toString(),
+          phone: (m['phone'] ?? phone).toString(),
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 extension BarberSmsStatsApi on BarberPanelRepository {
   Future<BarberSmsStats> smsStats({
     required String barberId,

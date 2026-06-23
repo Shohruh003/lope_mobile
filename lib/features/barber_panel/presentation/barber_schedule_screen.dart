@@ -338,6 +338,21 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                       hintText: tr(ref, 'mobile.barber.schedule.phoneOptional', "Telefon (ixtiyoriy)")),
+                  onChanged: (v) async {
+                    final cleaned = v.replaceAll(RegExp(r'[^\d+]'), '');
+                    // Mirror web: only probe when we have a plausibly
+                    // complete phone (8+ digits / +998xxxxxxxxx).
+                    if (cleaned.length < 8) return;
+                    if (nameCtrl.text.trim().isNotEmpty) return;
+                    final hit = await ref
+                        .read(barberPanelRepositoryProvider)
+                        .lookupClientByPhone(
+                            barberId: barberId, phone: cleaned);
+                    if (hit != null && hit.name.isNotEmpty &&
+                        nameCtrl.text.trim().isEmpty) {
+                      setSheet(() => nameCtrl.text = hit.name);
+                    }
+                  },
                 ),
                 const SizedBox(height: 12),
                 if (services.isEmpty)
