@@ -8,6 +8,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../core/constants.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../favorites/data/favorites_repository.dart';
 import '../data/barber_repository.dart';
 import '../domain/barber.dart';
 
@@ -344,14 +345,34 @@ class _BarberCard extends ConsumerWidget {
               // Heart top-left
               Positioned(
                 top: 6, left: 6,
-                child: Container(
-                  width: 26, height: 26,
-                  decoration: BoxDecoration(
-                    color: AppColors.background.withValues(alpha: 0.7),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.favorite_border, size: 14, color: AppColors.textPrimary),
-                ),
+                child: Consumer(builder: (context, ref, _) {
+                  final favsAsync = ref.watch(favoritesProvider);
+                  final isFav = favsAsync.maybeWhen<bool>(
+                      data: (l) => l.any((b) => b.id == barber.id),
+                      orElse: () => false);
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(13),
+                    onTap: () async {
+                      try {
+                        await ref
+                            .read(favoritesRepositoryProvider)
+                            .toggle(barber.id);
+                        ref.invalidate(favoritesProvider);
+                      } catch (_) {}
+                    },
+                    child: Container(
+                      width: 26, height: 26,
+                      decoration: BoxDecoration(
+                        color: AppColors.background.withValues(alpha: 0.7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          size: 14,
+                          color: isFav ? AppColors.danger : AppColors.textPrimary),
+                    ),
+                  );
+                }),
               ),
               // Status badge top-right
               Positioned(
