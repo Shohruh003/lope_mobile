@@ -717,6 +717,7 @@
     "logout": "Logout",
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "Are you sure you want to delete your account? A request will be sent to the administrator.",
+    "deleteAccountQueued": "Your delete request has been received",
     "support": "Support",
     "markAllRead": "Mark all read",
     "noNotifications": "No notifications",

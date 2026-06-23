@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/api_client.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -214,6 +215,21 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
     if (ok != true) return;
+    try {
+      await ref.read(dioProvider).post('/users/delete-request',
+          data: <String, dynamic>{});
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'barberApp.deleteAccountQueued',
+                "O'chirish so'rovingiz qabul qilindi"))));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
+      return;
+    }
     await ref.read(authControllerProvider.notifier).logout();
     if (context.mounted) context.go('/login');
   }

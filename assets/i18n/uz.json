@@ -718,6 +718,7 @@
     "logout": "Chiqish",
     "deleteAccount": "Akkauntni o'chirish",
     "deleteAccountConfirm": "Haqiqatan ham akkauntingizni o'chirmoqchimisiz? So'rov adminga yuboriladi.",
+    "deleteAccountQueued": "O'chirish so'rovingiz qabul qilindi",
     "support": "Qo'llab-quvvatlash",
     "markAllRead": "Barchasini o'qilgan",
     "noNotifications": "Bildirishnoma yo'q",
