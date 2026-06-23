@@ -17,13 +17,14 @@ import '../data/lopepay_repository.dart';
 ///   - Customers (list of installment debtors)
 ///   - Profile (shared with other roles)
 class LopepayHomeShell extends ConsumerStatefulWidget {
-  const LopepayHomeShell({super.key});
+  const LopepayHomeShell({super.key, this.initialTab = 0});
+  final int initialTab;
   @override
   ConsumerState<LopepayHomeShell> createState() => _LopepayHomeShellState();
 }
 
 class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
-  int _index = 0;
+  late int _index = widget.initialTab.clamp(0, 2);
   static const _tabs = [
     _LopepayDashboard(),
     _LopepayCustomersTab(),

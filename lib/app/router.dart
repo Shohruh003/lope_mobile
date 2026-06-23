@@ -105,9 +105,27 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Roots
       GoRoute(path: '/home', builder: (context, state) => const HomeShell()),
-      GoRoute(path: '/barber-app', builder: (context, state) => const BarberHomeShell()),
-      GoRoute(path: '/shop', builder: (context, state) => const ShopHomeShell()),
-      GoRoute(path: '/lopepay', builder: (context, state) => const LopepayHomeShell()),
+      GoRoute(
+        path: '/barber-app',
+        builder: (context, state) {
+          final t = int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0;
+          return BarberHomeShell(initialTab: t);
+        },
+      ),
+      GoRoute(
+        path: '/shop',
+        builder: (context, state) {
+          final t = int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0;
+          return ShopHomeShell(initialTab: t);
+        },
+      ),
+      GoRoute(
+        path: '/lopepay',
+        builder: (context, state) {
+          final t = int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0;
+          return LopepayHomeShell(initialTab: t);
+        },
+      ),
 
       // Customer feature paths
       GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),

@@ -11,13 +11,14 @@ import 'shop_dashboard_screen.dart';
 import 'shop_settings_screen.dart';
 
 class ShopHomeShell extends ConsumerStatefulWidget {
-  const ShopHomeShell({super.key});
+  const ShopHomeShell({super.key, this.initialTab = 0});
+  final int initialTab;
   @override
   ConsumerState<ShopHomeShell> createState() => _ShopHomeShellState();
 }
 
 class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
-  int _index = 0;
+  late int _index = widget.initialTab.clamp(0, 3);
 
   static const _tabs = [
     ShopDashboardScreen(),

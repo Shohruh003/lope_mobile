@@ -16,13 +16,14 @@ import 'barber_settings_screen.dart';
 /// Clients, AI Style, Stats, Settings) and a flat top header with the
 /// Lope Style logo + notification bell. NO drawer — settings is its own tab.
 class BarberHomeShell extends ConsumerStatefulWidget {
-  const BarberHomeShell({super.key});
+  const BarberHomeShell({super.key, this.initialTab = 0});
+  final int initialTab;
   @override
   ConsumerState<BarberHomeShell> createState() => _BarberHomeShellState();
 }
 
 class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
-  int _index = 0;
+  late int _index = widget.initialTab.clamp(0, 4);
   bool _balanceCheckDone = false;
 
   @override

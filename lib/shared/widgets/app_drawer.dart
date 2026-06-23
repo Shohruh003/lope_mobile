@@ -151,10 +151,10 @@ class AppDrawer extends ConsumerWidget {
     switch (role) {
       case 'barber':
         return [
-          _DrawerItem(Icons.calendar_view_day, tr(ref, 'mobile.barber.schedule.title', "Jadval"), '/barber-app'),
+          _DrawerItem(Icons.calendar_view_day, tr(ref, 'mobile.barber.schedule.title', "Jadval"), '/barber-app?tab=0'),
           _DrawerItem(Icons.people, tr(ref, 'mobile.barber.schedule.addClient', "Bugungi mijozlar"), '/barber/clients'),
           _DrawerItem(Icons.history, tr(ref, 'barberMyClients.title', "Mijozlarim"), '/barber/my-clients'),
-          _DrawerItem(Icons.bar_chart, tr(ref, 'mobile.barber.stats.title', "Statistika"), '/barber-app'),
+          _DrawerItem(Icons.bar_chart, tr(ref, 'mobile.barber.stats.title', "Statistika"), '/barber-app?tab=3'),
           _DrawerItem(Icons.auto_awesome, iAi, '/ai-style'),
           null,
           _DrawerItem(Icons.edit, iEditProfile, '/barber/profile'),
@@ -171,9 +171,9 @@ class AppDrawer extends ConsumerWidget {
         ];
       case 'barbershop':
         return [
-          _DrawerItem(Icons.dashboard, tr(ref, 'mobile.shop.home.dashboard', "Boshqaruv"), '/shop'),
-          _DrawerItem(Icons.event_note, tr(ref, 'mobile.tabs.bookings', "Bronlar"), '/shop'),
-          _DrawerItem(Icons.people_alt, tr(ref, 'mobile.shop.home.masters', "Mastera"), '/shop'),
+          _DrawerItem(Icons.dashboard, tr(ref, 'mobile.shop.home.dashboard', "Boshqaruv"), '/shop?tab=0'),
+          _DrawerItem(Icons.event_note, tr(ref, 'mobile.tabs.bookings', "Bronlar"), '/shop?tab=2'),
+          _DrawerItem(Icons.people_alt, tr(ref, 'mobile.shop.home.masters', "Mastera"), '/shop?tab=1'),
           _DrawerItem(Icons.people_outline, tr(ref, 'shop.nav.clients', "Mijozlar"), '/shop/clients'),
           _DrawerItem(Icons.alarm, tr(ref, 'barberApp.reminderSettings', "Eslatmalar"), '/shop/reminders'),
           _DrawerItem(Icons.sms, iSms, '/shop/sms'),
@@ -187,8 +187,8 @@ class AppDrawer extends ConsumerWidget {
         ];
       case 'shop':
         return [
-          _DrawerItem(Icons.dashboard, tr(ref, 'mobile.shop.home.dashboard', "Boshqaruv"), '/lopepay'),
-          _DrawerItem(Icons.people, tr(ref, 'shop.nav.clients', "Mijozlar"), '/lopepay'),
+          _DrawerItem(Icons.dashboard, tr(ref, 'mobile.shop.home.dashboard', "Boshqaruv"), '/lopepay?tab=0'),
+          _DrawerItem(Icons.people, tr(ref, 'shop.nav.clients', "Mijozlar"), '/lopepay?tab=1'),
           _DrawerItem(Icons.assignment, tr(ref, 'mobile.lopepay.installments.title', "Rassrochkalar"), '/lopepay/installments'),
           _DrawerItem(Icons.shopping_bag, tr(ref, 'mobile.lopepay.products.title', "Mahsulotlar"), '/lopepay/products'),
           _DrawerItem(Icons.sms, iSms, '/lopepay/sms'),
