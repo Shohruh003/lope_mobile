@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_drawer.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../data/lopepay_repository.dart';
 
@@ -31,8 +32,9 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       body: Column(children: [
-        _header(context),
+        Builder(builder: (ctx) => _header(ctx)),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
       ]),
       bottomNavigationBar: Container(
@@ -63,8 +65,13 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
         child: Row(children: [
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.menu, color: AppColors.textPrimary, size: 22),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
           Row(children: const [
             Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 24),
             SizedBox(width: 6),

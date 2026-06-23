@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_drawer.dart';
 import 'shop_barbers_screen.dart';
 import 'shop_bookings_screen.dart';
 import 'shop_dashboard_screen.dart';
@@ -41,6 +42,7 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
           label: tr(ref, 'mobile.tabs.profile', 'Profil')),
     ];
     return Scaffold(
+      drawer: const AppDrawer(),
       body: Column(children: [
         const _Header(),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
@@ -61,8 +63,13 @@ class _Header extends StatelessWidget {
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
         child: Row(children: [
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.menu, color: AppColors.textPrimary, size: 22),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
           Row(children: const [
             Icon(Icons.storefront, color: AppColors.primary, size: 24),
             SizedBox(width: 6),
