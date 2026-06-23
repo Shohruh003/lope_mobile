@@ -1697,6 +1697,13 @@
         "typeDue": "Сегодня",
         "typeOverdue": "Просрочено"
       },
+      "installments": {
+        "title": "Рассрочки",
+        "empty": "Рассрочки не найдены",
+        "daysLate": "просрочено на {{n}} дн.",
+        "dueTomorrow": "Завтра",
+        "upcoming": "Предстоит"
+      },
       "installment": {
         "markPaid": "Отметить месяц оплаченным",
         "undoLast": "Отменить последний платёж",

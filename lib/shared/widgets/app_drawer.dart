@@ -189,6 +189,7 @@ class AppDrawer extends ConsumerWidget {
         return [
           _DrawerItem(Icons.dashboard, tr(ref, 'mobile.shop.home.dashboard', "Boshqaruv"), '/lopepay'),
           _DrawerItem(Icons.people, tr(ref, 'shop.nav.clients', "Mijozlar"), '/lopepay'),
+          _DrawerItem(Icons.assignment, tr(ref, 'mobile.lopepay.installments.title', "Rassrochkalar"), '/lopepay/installments'),
           _DrawerItem(Icons.shopping_bag, tr(ref, 'mobile.lopepay.products.title', "Mahsulotlar"), '/lopepay/products'),
           _DrawerItem(Icons.sms, iSms, '/lopepay/sms'),
           _DrawerItem(Icons.account_balance_wallet, tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"), '/lopepay/transactions'),

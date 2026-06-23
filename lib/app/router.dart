@@ -51,6 +51,7 @@ import '../features/shop_panel/presentation/shop_sms_screen.dart';
 import '../features/shop_panel/presentation/shop_transactions_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_customer_detail_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_customer_form_screen.dart';
+import '../features/lopepay_shop/presentation/lopepay_installments_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_products_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_sms_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_transactions_screen.dart';
@@ -179,6 +180,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Lope Pay sub-screens
+      GoRoute(path: '/lopepay/installments', builder: (context, state) => const LopepayInstallmentsScreen()),
       GoRoute(path: '/lopepay/products', builder: (context, state) => const LopepayProductsScreen()),
       GoRoute(path: '/lopepay/sms', builder: (context, state) => const LopepaySmsScreen()),
       GoRoute(path: '/lopepay/transactions', builder: (context, state) => const LopepayTransactionsScreen()),

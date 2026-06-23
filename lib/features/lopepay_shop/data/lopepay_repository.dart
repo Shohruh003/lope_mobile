@@ -214,6 +214,45 @@ class LopepayRepository {
     }
   }
 
+  /// GET /lopepay/installments — full installment list with filters.
+  /// Web's listInstallmentsAPI shape. Returns the raw map so callers
+  /// can pluck status / daysLate / monthsPaid / nextDueDate without a
+  /// per-row class.
+  Future<({List<Map<String, dynamic>> data, int total})>
+      listInstallments({
+    String? search,
+    String? phone,
+    String? productId,
+    String? status,
+    String? from,
+    String? to,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final res = await _dio.get('/lopepay/installments', queryParameters: {
+      'search': ?search,
+      'phone': ?phone,
+      'productId': ?productId,
+      'status': ?status,
+      'from': ?from,
+      'to': ?to,
+      'page': page,
+      'limit': limit,
+    });
+    final data = res.data;
+    if (data is List) {
+      return (data: data.cast<Map<String, dynamic>>(), total: data.length);
+    }
+    if (data is Map) {
+      final list = (data['data'] is List ? data['data'] as List : <dynamic>[])
+          .cast<Map<String, dynamic>>();
+      final meta = data['meta'] is Map ? data['meta'] as Map : null;
+      final total = ((meta?['total'] ?? list.length) as num).toInt();
+      return (data: list, total: total);
+    }
+    return (data: <Map<String, dynamic>>[], total: 0);
+  }
+
   /// Active overdue installments — used by the dashboard's "Muddati o'tgan"
   /// section. Web: `listInstallmentsAPI({status: 'overdue', limit: 5})`.
   Future<List<Map<String, dynamic>>> overdueInstallments({int limit = 5}) async {

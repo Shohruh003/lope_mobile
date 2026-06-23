@@ -1689,6 +1689,13 @@
         "typeDue": "Due today",
         "typeOverdue": "Overdue"
       },
+      "installments": {
+        "title": "Installments",
+        "empty": "No installments found",
+        "daysLate": "{{n}} days late",
+        "dueTomorrow": "Tomorrow",
+        "upcoming": "Upcoming"
+      },
       "installment": {
         "markPaid": "Mark month as paid",
         "undoLast": "Undo last payment",

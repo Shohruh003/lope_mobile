@@ -1690,6 +1690,13 @@
         "typeDue": "Бугун тўлов",
         "typeOverdue": "Кечиккан"
       },
+      "installments": {
+        "title": "Рассрочкалар",
+        "empty": "Рассрочка топилмади",
+        "daysLate": "{{n}} кун кечиккан",
+        "dueTomorrow": "Эртага",
+        "upcoming": "Келажакда"
+      },
       "installment": {
         "markPaid": "Ойни тўланган деб белгилаш",
         "undoLast": "Охирги тўловни бекор қилиш",
