@@ -1654,7 +1654,9 @@
       "leaveReview": "Sharh qoldirish",
       "empty": "Hali sharhlar yo'q",
       "commentPlaceholder": "Sharhingiz (ixtiyoriy)",
-      "submit": "Yuborish"
+      "submit": "Yuborish",
+      "rateHint": "{{name}}'ning ishini baholang",
+      "skip": "O'tkazib yuborish"
     },
     "map": {
       "title": "Yaqin atrofda",

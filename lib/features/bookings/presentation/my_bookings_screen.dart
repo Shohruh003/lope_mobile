@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../reviews/data/reviews_repository.dart';
 import '../data/booking_repository.dart';
 import '../domain/booking.dart';
 
@@ -325,8 +326,9 @@ class _BookingCard extends ConsumerWidget {
       await ref.read(bookingRepositoryProvider).complete(b.id);
       ref.invalidate(myBookingsProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+        // Web flow: after completing, prompt the customer to rate
+        // the barber. They can also skip and just close.
+        await _maybePromptReview(context, ref);
       }
     } catch (e) {
       if (context.mounted) {
@@ -334,6 +336,113 @@ class _BookingCard extends ConsumerWidget {
             content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
     }
+  }
+
+  Future<void> _maybePromptReview(BuildContext context, WidgetRef ref) async {
+    var rating = 0;
+    final commentCtrl = TextEditingController();
+    var submitting = false;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) => StatefulBuilder(builder: (sheetCtx, setSheet) {
+        Future<void> doSkip() async {
+          Navigator.of(sheetCtx).pop();
+        }
+
+        Future<void> doSubmit() async {
+          if (rating == 0) {
+            await doSkip();
+            return;
+          }
+          setSheet(() => submitting = true);
+          try {
+            await ref.read(reviewsRepositoryProvider).submit(
+                  barberId: b.barberId,
+                  rating: rating,
+                  comment: commentCtrl.text.trim(),
+                  bookingId: b.id,
+                );
+            if (sheetCtx.mounted) Navigator.of(sheetCtx).pop();
+          } catch (e) {
+            if (sheetCtx.mounted) {
+              ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(
+                  content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            }
+          } finally {
+            setSheet(() => submitting = false);
+          }
+        }
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 18,
+            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish"),
+                  style:
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              Text(
+                  tr(ref, 'mobile.reviews.rateHint',
+                      "{{name}}'ning ishini baholang",
+                      {'name': b.barberName}),
+                  style: const TextStyle(
+                      color: AppColors.textMuted, fontSize: 13)),
+              const SizedBox(height: 16),
+              Center(
+                child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(5, (i) {
+                      final filled = i < rating;
+                      return IconButton(
+                        icon: Icon(filled ? Icons.star : Icons.star_border,
+                            color: AppColors.warning, size: 36),
+                        onPressed: () => setSheet(() => rating = i + 1),
+                      );
+                    })),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: commentCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                    hintText: tr(ref, 'mobile.reviews.commentPlaceholder',
+                        "Sharhingiz (ixtiyoriy)")),
+              ),
+              const SizedBox(height: 14),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: submitting ? null : doSkip,
+                    child: Text(tr(ref, 'mobile.reviews.skip', "O'tkazib yuborish")),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: submitting ? null : doSubmit,
+                    child: submitting
+                        ? const SizedBox(
+                            width: 18, height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : Text(tr(ref, 'mobile.reviews.submit', "Yuborish")),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        );
+      }),
+    );
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
