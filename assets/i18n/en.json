@@ -1583,7 +1583,11 @@
         "open": "Open",
         "notifyTitle": "SMS on new booking",
         "notifyHint": "You'll get an SMS when a new booking arrives",
-        "tgLabel": "Telegram bot username"
+        "tgLabel": "Telegram bot username",
+        "directTitle": "Direct link",
+        "directDesc": "Public booking page that opens in a browser",
+        "tgTitle": "Telegram bot link",
+        "tgDesc": "Opens inside Telegram, phone is verified automatically"
       }
     },
     "shop": {

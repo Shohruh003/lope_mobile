@@ -1591,7 +1591,11 @@
         "open": "Открыть",
         "notifyTitle": "SMS при новой записи",
         "notifyHint": "При новой записи вам придёт SMS на телефон",
-        "tgLabel": "Telegram bot username"
+        "tgLabel": "Telegram bot username",
+        "directTitle": "Прямая ссылка",
+        "directDesc": "Публичная страница записи открывается в браузере",
+        "tgTitle": "Ссылка на Telegram-бота",
+        "tgDesc": "Открывается в Telegram, телефон подтверждается автоматически"
       }
     },
     "shop": {

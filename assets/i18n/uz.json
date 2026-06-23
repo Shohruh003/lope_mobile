@@ -1584,7 +1584,11 @@
         "open": "Ochish",
         "notifyTitle": "Bron qabul qilinganda SMS",
         "notifyHint": "Yangi bron tushganda telefoningizga SMS keladi",
-        "tgLabel": "Telegram bot username"
+        "tgLabel": "Telegram bot username",
+        "directTitle": "To'g'ridan-to'g'ri havola",
+        "directDesc": "Brauzerda ochiladigan ommaviy bron sahifasi",
+        "tgTitle": "Telegram bot havolasi",
+        "tgDesc": "Telegram ichida ochiladi, telefon avtomatik tasdiqlanadi"
       }
     },
     "shop": {

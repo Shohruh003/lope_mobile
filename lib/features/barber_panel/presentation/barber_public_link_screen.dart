@@ -97,48 +97,50 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                           "Public slug hali sozlanmagan. Veb-versiyada faollashtiring."),
                       style: const TextStyle(color: AppColors.warning, fontSize: 13)),
                 )
-              else
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tr(ref, 'mobile.barber.publicLink.yourLink', "Sizning havolangiz"),
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                      const SizedBox(height: 8),
-                      Text(link, style: const TextStyle(color: AppColors.primary, fontSize: 13)),
-                      const SizedBox(height: 14),
-                      Row(children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            icon: const Icon(Icons.copy, size: 18),
-                            label: Text(tr(ref, 'mobile.barber.publicLink.copyShort', "Nusxa")),
-                            onPressed: () async {
-                              await Clipboard.setData(ClipboardData(text: link));
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                    content: Text(tr(ref, 'mobile.barber.location.copied', "Nusxalandi"))));
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.open_in_new, size: 18),
-                            label: Text(tr(ref, 'mobile.barber.publicLink.open', "Ochish")),
-                            onPressed: () => _openUrl(link),
-                          ),
-                        ),
-                      ]),
-                    ],
-                  ),
+              else ...[
+                _LinkCard(
+                  title: tr(ref, 'mobile.barber.publicLink.directTitle',
+                      "To'g'ridan-to'g'ri havola"),
+                  subtitle: tr(ref, 'mobile.barber.publicLink.directDesc',
+                      "Brauzerda ochiladigan ommaviy bron sahifasi"),
+                  url: link,
+                  icon: Icons.link,
+                  iconColor: AppColors.primary,
+                  onCopy: () async {
+                    await Clipboard.setData(ClipboardData(text: link));
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(tr(ref, 'mobile.barber.location.copied',
+                            "Nusxalandi"))));
+                  },
+                  onOpen: () => _openUrl(link),
                 ),
+                const SizedBox(height: 10),
+                Builder(builder: (_) {
+                  // Telegram bot deep-link: customer's phone is implicitly
+                  // verified by Telegram, so this is the cleanest invite
+                  // surface. Same format as the web BarberPublicLinkCard.
+                  const tgBot = 'lope_style_bot';
+                  final tgUrl = 'https://t.me/$tgBot?start=$slug';
+                  return _LinkCard(
+                    title: tr(ref, 'mobile.barber.publicLink.tgTitle',
+                        "Telegram bot havolasi"),
+                    subtitle: tr(ref, 'mobile.barber.publicLink.tgDesc',
+                        "Telegram ichida ochiladi, telefon avtomatik tasdiqlanadi"),
+                    url: tgUrl,
+                    icon: Icons.send,
+                    iconColor: const Color(0xFF2AABEE),
+                    onCopy: () async {
+                      await Clipboard.setData(ClipboardData(text: tgUrl));
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(tr(ref, 'mobile.barber.location.copied',
+                              "Nusxalandi"))));
+                    },
+                    onOpen: () => _openUrl(tgUrl),
+                  );
+                }),
+              ],
 
               const SizedBox(height: 20),
               SwitchListTile(
@@ -178,6 +180,73 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
           );
         },
       ),
+    );
+  }
+}
+
+class _LinkCard extends StatelessWidget {
+  const _LinkCard({
+    required this.title,
+    required this.subtitle,
+    required this.url,
+    required this.icon,
+    required this.iconColor,
+    required this.onCopy,
+    required this.onOpen,
+  });
+  final String title;
+  final String subtitle;
+  final String url;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback onCopy;
+  final VoidCallback onOpen;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(icon, size: 16, color: iconColor),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700, fontSize: 14)),
+          ),
+        ]),
+        const SizedBox(height: 4),
+        Text(subtitle,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+        const SizedBox(height: 10),
+        Text(url,
+            style: TextStyle(color: iconColor, fontSize: 12),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.copy, size: 16),
+              label: const Text('Nusxa', style: TextStyle(fontSize: 12)),
+              onPressed: onCopy,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: const Text('Ochish', style: TextStyle(fontSize: 12)),
+              onPressed: onOpen,
+            ),
+          ),
+        ]),
+      ]),
     );
   }
 }
