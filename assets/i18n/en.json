@@ -1652,7 +1652,9 @@
         "dueTodayTitle": "Today's payment day",
         "noDueToday": "No payments due today",
         "noCustomers": "No customers",
-        "overdueShort": "overdue"
+        "overdueShort": "overdue",
+        "balance": "Balance",
+        "allCustomers": "All customers"
       },
       "products": {
         "title": "Products",

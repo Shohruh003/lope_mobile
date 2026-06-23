@@ -118,6 +118,7 @@ class _LopepayDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(lopepayDashboardProvider);
+    final shopMeAsync = ref.watch(lopepayShopMeProvider);
     final dueTodayAsync = ref.watch(lopepayDueTodayProvider);
     final overdueAsync = ref.watch(lopepayOverdueProvider);
 
@@ -128,21 +129,33 @@ class _LopepayDashboard extends ConsumerWidget {
           color: AppColors.primary,
           onRefresh: () async {
             ref.invalidate(lopepayDashboardProvider);
+            ref.invalidate(lopepayShopMeProvider);
             ref.invalidate(lopepayDueTodayProvider);
             ref.invalidate(lopepayOverdueProvider);
           },
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
-              // ===== Title =====
-              const Text("Lope Pay",
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textBright)),
-              const SizedBox(height: 2),
-              Text(tr(ref, 'mobile.lopepay.home.subtitle', "Rassrochka boshqaruvi"),
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              // ===== Header: shop name + address (mirrors web's h1) =====
+              shopMeAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
+                data: (s) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.name.isEmpty ? "Lope Pay" : s.name,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textBright)),
+                    if (s.address.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(s.address,
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                    ],
+                  ],
+                ),
+              ),
               const SizedBox(height: 14),
 
-              // ===== 4 stat tiles =====
+              // ===== 4 stat tiles (mirrors web: Balance / DueToday / Overdue / AllCustomers) =====
               async.when(
                 loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator())),
                 error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
@@ -155,6 +168,13 @@ class _LopepayDashboard extends ConsumerWidget {
                   childAspectRatio: 1.45,
                   children: [
                     _MetricTile(
+                        label: tr(ref, 'mobile.lopepay.home.balance', "Balans"),
+                        value: shopMeAsync.maybeWhen(
+                          data: (s) => "${_fmt(s.ownerBalance)} ${tr(ref, 'common.currency', "so'm")}",
+                          orElse: () => "—",
+                        ),
+                        color: AppColors.primary, icon: Icons.account_balance_wallet_outlined),
+                    _MetricTile(
                         label: tr(ref, 'mobile.lopepay.home.dueToday', "Bugun tushishi kerak"),
                         value: "${_fmt(d.dueToday)} ${tr(ref, 'common.currency', "so'm")}",
                         color: AppColors.warning, icon: Icons.event_available),
@@ -163,12 +183,11 @@ class _LopepayDashboard extends ConsumerWidget {
                         value: "${_fmt(d.overdue)} ${tr(ref, 'common.currency', "so'm")}",
                         color: AppColors.danger, icon: Icons.warning_amber_rounded),
                     _MetricTile(
-                        label: tr(ref, 'mobile.lopepay.home.totalReceivable', "Jami olinishi kerak"),
-                        value: "${_fmt(d.totalReceivable)} ${tr(ref, 'common.currency', "so'm")}",
-                        color: AppColors.primary, icon: Icons.account_balance_wallet_outlined),
-                    _MetricTile(
-                        label: tr(ref, 'mobile.lopepay.home.activeCustomers', "Faol mijozlar"),
-                        value: "${d.activeCustomers}",
+                        label: tr(ref, 'mobile.lopepay.home.allCustomers', "Hammasi"),
+                        value: shopMeAsync.maybeWhen(
+                          data: (s) => "${s.totalInstallments}",
+                          orElse: () => "${d.activeCustomers}",
+                        ),
                         color: AppColors.success, icon: Icons.people_outline),
                   ],
                 ),

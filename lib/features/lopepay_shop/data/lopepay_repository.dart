@@ -56,6 +56,36 @@ class LopepayDashboard {
       );
 }
 
+/// GET /shops/me — shop record for the logged-in owner. Used by the
+/// LopePay dashboard header (shop name + address) and the balance tile.
+class LopepayShopMe {
+  LopepayShopMe({
+    required this.name,
+    required this.address,
+    required this.ownerBalance,
+    required this.totalInstallments,
+  });
+  final String name;
+  final String address;
+  final int ownerBalance;
+  final int totalInstallments;
+
+  factory LopepayShopMe.fromJson(Map<String, dynamic> json) {
+    final owner = (json['owner'] is Map)
+        ? Map<String, dynamic>.from(json['owner'] as Map)
+        : <String, dynamic>{};
+    final count = (json['_count'] is Map)
+        ? Map<String, dynamic>.from(json['_count'] as Map)
+        : <String, dynamic>{};
+    return LopepayShopMe(
+      name: (json['name'] ?? '').toString(),
+      address: (json['address'] ?? '').toString(),
+      ownerBalance: ((owner['balance'] ?? 0) as num).toInt(),
+      totalInstallments: ((count['installments'] ?? 0) as num).toInt(),
+    );
+  }
+}
+
 class LopepayRepository {
   LopepayRepository(this._dio);
   final Dio _dio;
@@ -63,6 +93,13 @@ class LopepayRepository {
   Future<LopepayDashboard> dashboard() async {
     final res = await _dio.get('/lopepay/dashboard');
     return LopepayDashboard.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+
+  /// GET /shops/me — returns the owner's shop with balance + total
+  /// installment count for the dashboard header.
+  Future<LopepayShopMe> shopMe() async {
+    final res = await _dio.get('/shops/me');
+    return LopepayShopMe.fromJson(Map<String, dynamic>.from(res.data as Map));
   }
 
   Future<List<LopepayCustomer>> customers({int page = 1, int limit = 30, String? search}) async {
@@ -184,6 +221,9 @@ final lopepayRepositoryProvider = Provider<LopepayRepository>(
 
 final lopepayDashboardProvider = FutureProvider<LopepayDashboard>(
     (ref) => ref.watch(lopepayRepositoryProvider).dashboard());
+
+final lopepayShopMeProvider = FutureProvider<LopepayShopMe>(
+    (ref) => ref.watch(lopepayRepositoryProvider).shopMe());
 
 final lopepayCustomersProvider = FutureProvider<List<LopepayCustomer>>(
     (ref) => ref.watch(lopepayRepositoryProvider).customers());

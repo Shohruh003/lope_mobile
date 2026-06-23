@@ -1660,7 +1660,9 @@
         "dueTodayTitle": "Сегодня день платежа",
         "noDueToday": "Сегодня платежей нет",
         "noCustomers": "Клиентов нет",
-        "overdueShort": "просрочено"
+        "overdueShort": "просрочено",
+        "balance": "Баланс",
+        "allCustomers": "Всего"
       },
       "products": {
         "title": "Товары",
