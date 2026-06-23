@@ -9,6 +9,7 @@ import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/photo_lightbox.dart';
 import '../../../shared/widgets/shadcn.dart';
+import '../../favorites/data/favorites_repository.dart';
 import '../../reviews/data/reviews_repository.dart';
 import '../data/barber_repository.dart';
 import '../domain/barber.dart';
@@ -35,11 +36,32 @@ class BarberDetailScreen extends ConsumerStatefulWidget {
 
 class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   int _tab = 0; // 0=contact, 1=services, 2=gallery, 3=reviews
+  bool? _favoritedOverride; // null = use server snapshot, true/false = optimistic
+  bool _favoriteBusy = false;
 
   String _avatarUrl(String a) {
     if (a.isEmpty) return '';
     if (a.startsWith('http')) return a;
     return '${AppConfig.apiUrl}$a';
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_favoriteBusy) return;
+    setState(() => _favoriteBusy = true);
+    try {
+      final next = await ref
+          .read(favoritesRepositoryProvider)
+          .toggle(widget.barberId);
+      setState(() => _favoritedOverride = next);
+      ref.invalidate(favoritesProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
+    } finally {
+      if (mounted) setState(() => _favoriteBusy = false);
+    }
   }
 
   @override
@@ -72,10 +94,25 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
               onPressed: () => context.pop(),
             ),
             const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.favorite_border, color: AppColors.textPrimary, size: 22),
-              onPressed: () {},
-            ),
+            Consumer(builder: (context, ref, _) {
+              final favoritesAsync = ref.watch(favoritesProvider);
+              final bool isFav = _favoritedOverride ??
+                  favoritesAsync.maybeWhen<bool>(
+                      data: (l) => l.any((b) => b.id == widget.barberId),
+                      orElse: () => false);
+              return IconButton(
+                icon: _favoriteBusy
+                    ? const SizedBox(
+                        width: 18, height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.textPrimary))
+                    : Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: isFav ? AppColors.danger : AppColors.textPrimary,
+                        size: 22),
+                onPressed: _favoriteBusy ? null : _toggleFavorite,
+              );
+            }),
           ]),
         ),
 
