@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -260,9 +262,14 @@ class _BookingCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ShadCard(
-      padding: const EdgeInsets.all(12),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: b.barberId.isEmpty
+          ? null
+          : () => GoRouter.of(context).push('/shop/barbers/${b.barberId}'),
+      child: ShadCard(
+        padding: const EdgeInsets.all(12),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // Time pill
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -279,21 +286,18 @@ class _BookingCard extends ConsumerWidget {
         ),
         const SizedBox(width: 10),
 
-        // Barber avatar fallback (36px)
-        Container(
-          width: 36, height: 36,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            b.barberName.isNotEmpty ? b.barberName[0].toUpperCase() : '?',
-            style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 14),
-          ),
+        // Barber avatar — image if present, otherwise initial fallback (36px)
+        ClipOval(
+          child: (b.barberAvatar?.isNotEmpty ?? false)
+              ? CachedNetworkImage(
+                  imageUrl: b.barberAvatar!,
+                  width: 36,
+                  height: 36,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, _, _) =>
+                      _avatarFallback(b.barberName),
+                )
+              : _avatarFallback(b.barberName),
         ),
         const SizedBox(width: 10),
 
@@ -301,15 +305,45 @@ class _BookingCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(b.barberName,
+              Text(b.userName,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       fontSize: 13,
                       color: AppColors.textBright)),
               const SizedBox(height: 2),
-              Text(b.userName,
-                  style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 11)),
+              Row(children: [
+                const Icon(Icons.person_outline,
+                    size: 11, color: AppColors.textMuted),
+                const SizedBox(width: 3),
+                Flexible(
+                  child: Text(b.barberName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 11)),
+                ),
+                if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
+                  const Text("  •  ",
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                  Flexible(
+                    child: Text(b.userPhone!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppColors.textMuted, fontSize: 11)),
+                  ),
+                ],
+                if (b.totalDuration > 0) ...[
+                  const Text("  •  ",
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                  const Icon(Icons.access_time,
+                      size: 11, color: AppColors.textMuted),
+                  const SizedBox(width: 3),
+                  Text("${b.totalDuration}m",
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 11)),
+                ],
+              ]),
               const SizedBox(height: 4),
               Row(children: [
                 Container(
@@ -377,8 +411,26 @@ class _BookingCard extends ConsumerWidget {
           ),
         ),
       ]),
+      ),
     );
   }
+
+  Widget _avatarFallback(String name) => Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 14),
+        ),
+      );
 
   Future<void> _complete(BuildContext context, WidgetRef ref) async {
     final ok = await showDialog<bool>(

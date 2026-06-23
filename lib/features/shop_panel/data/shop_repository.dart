@@ -47,26 +47,48 @@ class ShopBooking {
     required this.date,
     required this.time,
     required this.status,
+    required this.barberId,
     required this.barberName,
+    required this.barberAvatar,
     required this.userName,
+    required this.userPhone,
     required this.totalPrice,
+    required this.totalDuration,
   });
   final String id;
   final String date;
   final String time;
   final String status;
+  final String barberId;
   final String barberName;
+  final String? barberAvatar;
   final String userName;
+  final String? userPhone;
   final int totalPrice;
+  final int totalDuration;
 
   factory ShopBooking.fromJson(Map<String, dynamic> json) => ShopBooking(
         id: json['id'].toString(),
         date: (json['date'] ?? '').toString(),
         time: (json['time'] ?? '').toString(),
         status: (json['status'] ?? 'confirmed').toString(),
+        barberId: (json['barberId'] ?? '').toString(),
         barberName: (json['barberName'] ?? '').toString(),
-        userName: (json['userName'] ?? json['guestName'] ?? 'Mijoz').toString(),
+        barberAvatar: (json['barberAvatar'] as String?)?.isEmpty ?? true
+            ? null
+            : json['barberAvatar'] as String,
+        userName: (json['clientName'] ??
+                json['userName'] ??
+                json['guestName'] ??
+                'Mijoz')
+            .toString(),
+        userPhone: ((json['clientPhone'] ?? json['userPhone']) as String?)
+                    ?.isEmpty ??
+                true
+            ? null
+            : (json['clientPhone'] ?? json['userPhone']) as String,
         totalPrice: ((json['totalPrice'] ?? 0) as num).toInt(),
+        totalDuration: ((json['totalDuration'] ?? 0) as num).toInt(),
       );
 }
 
