@@ -417,13 +417,41 @@ class _InstallmentRow extends ConsumerWidget {
   }
 }
 
-class _LopepayCustomersTab extends ConsumerWidget {
+class _LopepayCustomersTab extends ConsumerStatefulWidget {
   const _LopepayCustomersTab();
 
+  @override
+  ConsumerState<_LopepayCustomersTab> createState() =>
+      _LopepayCustomersTabState();
+}
+
+class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
   static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
+  String _query = '';
+  String _filter = 'all'; // 'all' | 'overdue' | 'dueToday' | 'paidOff'
+
+  bool _matchesFilter(LopepayCustomer c, DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    final overdue = c.nextDue != null && c.nextDue!.isBefore(today);
+    final dueToday = c.nextDue != null &&
+        c.nextDue!.year == today.year &&
+        c.nextDue!.month == today.month &&
+        c.nextDue!.day == today.day;
+    final paidOff = c.totalDebt <= 0;
+    switch (_filter) {
+      case 'overdue':
+        return overdue;
+      case 'dueToday':
+        return dueToday;
+      case 'paidOff':
+        return paidOff;
+      default:
+        return true;
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final async = ref.watch(lopepayCustomersProvider);
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
@@ -437,26 +465,96 @@ class _LopepayCustomersTab extends ConsumerWidget {
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
-          data: (list) {
-            if (list.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Text(tr(ref, 'mobile.lopepay.home.noCustomers', "Mijozlar yo'q"),
-                      style: const TextStyle(color: AppColors.textMuted)),
-                ),
-              );
-            }
+          data: (rawList) {
+            final now = DateTime.now();
+            final list = rawList.where((c) {
+              if (_query.isNotEmpty) {
+                final q = _query.toLowerCase();
+                final hit = c.name.toLowerCase().contains(q) ||
+                    c.phone.contains(_query);
+                if (!hit) return false;
+              }
+              return _matchesFilter(c, now);
+            }).toList();
+
             return RefreshIndicator(
               color: AppColors.primary,
               onRefresh: () async => ref.refresh(lopepayCustomersProvider.future),
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                itemCount: list.length,
-                separatorBuilder: (context, i) => const SizedBox(height: 10),
-                itemBuilder: (context, i) {
-                  final c = list[i];
-                  final overdue = c.nextDue != null && c.nextDue!.isBefore(DateTime.now());
+              child: Column(children: [
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: TextField(
+                    onChanged: (v) => setState(() => _query = v),
+                    style: const TextStyle(color: AppColors.textBright),
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search,
+                          color: AppColors.textMuted, size: 22),
+                      hintText: tr(ref, 'mobile.lopepay.customers.searchHint',
+                          "Ism yoki telefon"),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                // Filter chips
+                SizedBox(
+                  height: 40,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      _FilterChip(
+                        label: tr(ref, 'common.all', "Hammasi"),
+                        on: _filter == 'all',
+                        onTap: () => setState(() => _filter = 'all'),
+                      ),
+                      _FilterChip(
+                        label: tr(ref, 'mobile.lopepay.customer.statusOverdue',
+                            "Muddati o'tgan"),
+                        on: _filter == 'overdue',
+                        onTap: () => setState(() => _filter = 'overdue'),
+                      ),
+                      _FilterChip(
+                        label: tr(ref, 'mobile.lopepay.home.dueToday',
+                            "Bugun tushishi kerak"),
+                        on: _filter == 'dueToday',
+                        onTap: () => setState(() => _filter = 'dueToday'),
+                      ),
+                      _FilterChip(
+                        label: tr(ref, 'mobile.lopepay.customer.statusPaid',
+                            "To'langan"),
+                        on: _filter == 'paidOff',
+                        onTap: () => setState(() => _filter = 'paidOff'),
+                      ),
+                    ],
+                  ),
+                ),
+                if (list.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          rawList.isEmpty
+                              ? tr(ref, 'mobile.lopepay.home.noCustomers',
+                                  "Mijozlar yo'q")
+                              : tr(ref, 'common.noResults',
+                                  "Filterga mos natija yo'q"),
+                          style: const TextStyle(color: AppColors.textMuted),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                      itemCount: list.length,
+                      separatorBuilder: (context, i) => const SizedBox(height: 10),
+                      itemBuilder: (context, i) {
+                        final c = list[i];
+                        final overdue = c.nextDue != null &&
+                            c.nextDue!.isBefore(DateTime.now());
                   return InkWell(
                     borderRadius: BorderRadius.circular(14),
                     onTap: () => context.push('/lopepay/customers/${c.id}'),
@@ -510,8 +608,10 @@ class _LopepayCustomersTab extends ConsumerWidget {
                     ]),
                   ),
                   ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);
-                },
-              ),
+                      },
+                    ),
+                  ),
+              ]),
             );
           },
         ),
@@ -528,5 +628,35 @@ class _LopepayCustomersTab extends ConsumerWidget {
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({required this.label, required this.on, required this.onTap});
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: on ? AppColors.primary.withValues(alpha: 0.15) : AppColors.background,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: on ? AppColors.primary : AppColors.border),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  color: on ? AppColors.primary : AppColors.textMuted)),
+        ),
+      ),
+    );
   }
 }

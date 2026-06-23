@@ -1657,6 +1657,9 @@
         "balance": "Баланс",
         "allCustomers": "Ҳаммаси"
       },
+      "customers": {
+        "searchHint": "Исм ёки телефон"
+      },
       "products": {
         "title": "Маҳсулотлар",
         "addBtn": "Маҳсулот қўшиш",

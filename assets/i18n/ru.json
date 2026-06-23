@@ -1664,6 +1664,9 @@
         "balance": "Баланс",
         "allCustomers": "Всего"
       },
+      "customers": {
+        "searchHint": "Имя или телефон"
+      },
       "products": {
         "title": "Товары",
         "addBtn": "Добавить товар",

@@ -1657,6 +1657,9 @@
         "balance": "Balans",
         "allCustomers": "Hammasi"
       },
+      "customers": {
+        "searchHint": "Ism yoki telefon"
+      },
       "products": {
         "title": "Mahsulotlar",
         "addBtn": "Mahsulot qo'shish",
