@@ -44,6 +44,7 @@ class BookingRepository {
     required List<Map<String, dynamic>> services,
     required int totalPrice,
     required int totalDuration,
+    String? notes,
   }) async {
     final res = await _dio.post('/bookings', data: {
       'userId': userId,
@@ -53,6 +54,7 @@ class BookingRepository {
       'services': services,
       'totalPrice': totalPrice,
       'totalDuration': totalDuration,
+      if (notes != null && notes.isNotEmpty) 'notes': notes,
     });
     return Booking.fromJson(res.data as Map<String, dynamic>);
   }

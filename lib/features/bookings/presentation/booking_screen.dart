@@ -30,7 +30,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   final Set<String> _selectedServiceIds = {};
   DateTime? _selectedDate;
   String? _selectedTime;
-  // ignore: unused_field
   String _notes = '';
   bool _submitting = false;
   bool _confirmed = false;
@@ -700,6 +699,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 .toList(),
             totalPrice: totalPrice,
             totalDuration: totalDuration,
+            notes: _notes.trim().isEmpty ? null : _notes.trim(),
           );
       if (mounted) setState(() => _confirmed = true);
     } catch (e) {
