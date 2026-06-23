@@ -62,7 +62,7 @@ class ShopTransactionsScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(t.description ?? t.method,
+                          Text(t.description ?? _methodLabel(ref, t.method),
                               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                           const SizedBox(height: 2),
                           Text(_df.format(t.createdAt.toLocal()),
@@ -91,5 +91,17 @@ class ShopTransactionsScreen extends ConsumerWidget {
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
+  }
+
+  String _methodLabel(WidgetRef ref, String m) {
+    switch (m) {
+      case 'click': return tr(ref, 'mobile.customer.transactions.methodClick', "Click to'lov");
+      case 'payme': return tr(ref, 'mobile.customer.transactions.methodPayme', "Payme to'lov");
+      case 'telegram': return tr(ref, 'mobile.customer.transactions.methodTelegram', 'Telegram bonus');
+      case 'sms': return tr(ref, 'mobile.customer.transactions.methodSms', 'SMS xizmat');
+      case 'ai': return tr(ref, 'mobile.customer.transactions.methodAi', 'AI Stil');
+      case 'referral': return tr(ref, 'mobile.customer.transactions.methodReferral', 'Referal bonus');
+      default: return tr(ref, 'mobile.customer.transactions.methodDefault', 'Tranzaktsiya');
+    }
   }
 }

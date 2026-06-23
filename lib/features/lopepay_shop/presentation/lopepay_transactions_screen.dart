@@ -62,7 +62,7 @@ class LopepayTransactionsScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text((t['description'] ?? 'Tranzaktsiya').toString(),
+                          Text((t['description'] ?? tr(ref, 'mobile.customer.transactions.methodDefault', 'Tranzaktsiya')).toString(),
                               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                           if (t['createdAt'] != null) ...[
                             const SizedBox(height: 2),
