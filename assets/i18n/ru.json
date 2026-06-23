@@ -1611,7 +1611,7 @@
         "visitsHistory": "История посещений",
         "noVisits": "Посещений нет"
       },
-      "reminders": { "empty": "В очереди напоминаний нет" }
+      "reminders": { "empty": "В очереди напоминаний нет", "statusPending": "В ожидании", "statusSent": "Отправлено" }
     },
     "notifications": { "title": "Уведомления", "empty": "Уведомлений нет", "markAllRead": "Прочитать все" },
     "reviews": {

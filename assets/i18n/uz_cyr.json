@@ -1604,7 +1604,7 @@
         "visitsHistory": "Ташрифлар тарихи",
         "noVisits": "Ташрифлар йўқ"
       },
-      "reminders": { "empty": "Навбатдаги эслатма йўқ" }
+      "reminders": { "empty": "Навбатдаги эслатма йўқ", "statusPending": "Кутилмоқда", "statusSent": "Юборилди" }
     },
     "notifications": { "title": "Билдиришномалар", "empty": "Билдиришномалар йўқ", "markAllRead": "Ҳаммасини ўқиш" },
     "reviews": {

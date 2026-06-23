@@ -1604,7 +1604,7 @@
         "visitsHistory": "Tashriflar tarixi",
         "noVisits": "Tashriflar yo'q"
       },
-      "reminders": { "empty": "Navbatdagi eslatma yo'q" }
+      "reminders": { "empty": "Navbatdagi eslatma yo'q", "statusPending": "Kutilmoqda", "statusSent": "Yuborildi" }
     },
     "notifications": { "title": "Bildirishnomalar", "empty": "Bildirishnomalar yo'q", "markAllRead": "Hammasini o'qish" },
     "reviews": {

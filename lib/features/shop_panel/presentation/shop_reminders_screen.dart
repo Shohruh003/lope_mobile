@@ -62,7 +62,10 @@ class ShopRemindersScreen extends ConsumerWidget {
                             color: (pending ? AppColors.warning : AppColors.success).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text((r['status'] ?? '').toString(),
+                          child: Text(
+                              pending
+                                  ? tr(ref, 'mobile.shop.reminders.statusPending', 'pending')
+                                  : tr(ref, 'mobile.shop.reminders.statusSent', 'sent'),
                               style: TextStyle(
                                   color: pending ? AppColors.warning : AppColors.success,
                                   fontSize: 11,
