@@ -214,7 +214,12 @@
     "cancel": "Бекор қилиш",
     "statusConfirmed": "Тасдиқланган",
     "statusCompleted": "Якунланган",
-    "statusCancelled": "Бекор қилинган"
+    "statusCancelled": "Бекор қилинган",
+    "completeConfirmTitle": "Бронни якунлайсизми?",
+    "completeConfirmMsg": "Брон якунланган деб белгиланади.",
+    "cancelConfirmTitle": "Бронни бекор қиласизми?",
+    "cancelConfirmMsg": "Бекор қилингач, қайтариб бўлмайди.",
+    "cancelled": "Брон бекор қилинди"
   },
   "profile": {
     "title": "Менинг профилим",

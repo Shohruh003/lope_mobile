@@ -214,7 +214,12 @@
     "cancel": "Cancel",
     "statusConfirmed": "Confirmed",
     "statusCompleted": "Completed",
-    "statusCancelled": "Cancelled"
+    "statusCancelled": "Cancelled",
+    "completeConfirmTitle": "Complete this booking?",
+    "completeConfirmMsg": "The booking will be marked as completed.",
+    "cancelConfirmTitle": "Cancel this booking?",
+    "cancelConfirmMsg": "Once cancelled, it cannot be restored.",
+    "cancelled": "Booking cancelled"
   },
   "profile": {
     "title": "My Profile",

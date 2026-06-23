@@ -267,7 +267,7 @@ class _BookingCard extends ConsumerWidget {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6)),
                         ),
-                        onPressed: () {},
+                        onPressed: () => _complete(context, ref),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -288,7 +288,7 @@ class _BookingCard extends ConsumerWidget {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6)),
                         ),
-                        onPressed: () {},
+                        onPressed: () => _cancel(context, ref),
                       ),
                     ),
                   ]),
@@ -299,6 +299,78 @@ class _BookingCard extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _complete(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(tr(ref, 'myBookings.completeConfirmTitle',
+            "Bronni yakunlash?")),
+        content: Text(tr(ref, 'myBookings.completeConfirmMsg',
+            "Bron yakunlangan deb belgilanadi.")),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, true),
+              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(bookingRepositoryProvider).complete(b.id);
+      ref.invalidate(myBookingsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
+    }
+  }
+
+  Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(tr(ref, 'myBookings.cancelConfirmTitle',
+            "Bronni bekor qilasizmi?")),
+        content: Text(tr(ref, 'myBookings.cancelConfirmMsg',
+            "Bekor qilingach, qaytarib bo'lmaydi.")),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, false),
+              child: Text(tr(ref, 'common.close', "Yopish"))),
+          TextButton(
+              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+              onPressed: () => Navigator.pop(dCtx, true),
+              child: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(bookingRepositoryProvider).cancel(b.id);
+      ref.invalidate(myBookingsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'myBookings.cancelled',
+                "Bron bekor qilindi"))));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
+    }
   }
 
   String _fmt(int n) {

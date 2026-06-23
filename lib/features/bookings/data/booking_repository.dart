@@ -70,6 +70,20 @@ class BookingRepository {
   Future<void> cancel(String bookingId) async {
     await _dio.patch('/bookings/$bookingId/cancel');
   }
+
+  /// Mark a booking as completed. Optional totalPrice override is sent
+  /// when the barber adjusts the final amount at checkout.
+  Future<void> complete(String bookingId, {int? totalPrice}) async {
+    await _dio.patch('/bookings/$bookingId/complete',
+        data: totalPrice == null ? <String, dynamic>{} : {'totalPrice': totalPrice});
+  }
+
+  /// Reschedule a booking to a different date/time.
+  Future<void> reschedule(String bookingId,
+      {required String date, required String time}) async {
+    await _dio.patch('/bookings/$bookingId/reschedule',
+        data: {'date': date, 'time': time});
+  }
 }
 
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
