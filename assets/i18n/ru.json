@@ -1686,6 +1686,11 @@
       "home": "Главная"
     },
     "lopepay": {
+      "sms": {
+        "typePreDue": "Завтра",
+        "typeDue": "Сегодня",
+        "typeOverdue": "Просрочено"
+      },
       "installment": {
         "markPaid": "Отметить месяц оплаченным",
         "undoLast": "Отменить последний платёж",

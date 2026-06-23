@@ -1679,6 +1679,11 @@
       "home": "Bosh sahifa"
     },
     "lopepay": {
+      "sms": {
+        "typePreDue": "Ertaga eslatma",
+        "typeDue": "Bugun to'lov",
+        "typeOverdue": "Kechikkan"
+      },
       "installment": {
         "markPaid": "Oyni to'langan deb belgilash",
         "undoLast": "Oxirgi to'lovni bekor qilish",

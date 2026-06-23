@@ -1678,6 +1678,11 @@
       "home": "Home"
     },
     "lopepay": {
+      "sms": {
+        "typePreDue": "Pre-due",
+        "typeDue": "Due today",
+        "typeOverdue": "Overdue"
+      },
       "installment": {
         "markPaid": "Mark month as paid",
         "undoLast": "Undo last payment",
