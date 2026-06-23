@@ -1598,6 +1598,10 @@
         "deleteTitle": "Удалить мастера?",
         "deleteAsk": "Удалить \"{{name}}\" из салона?"
       },
+      "barberDetail": {
+        "title": "Мастер",
+        "noClients": "Клиенты не найдены"
+      },
       "bookings": {
         "title": "Записи салона",
         "empty": "Нет записей",

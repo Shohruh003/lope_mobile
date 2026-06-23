@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -50,7 +51,10 @@ class ShopBarbersScreen extends ConsumerWidget {
               separatorBuilder: (context, i) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
                 final b = list[i];
-                return Container(
+                return InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () => context.push('/shop/barbers/${b.id}'),
+                  child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.background,
@@ -88,6 +92,7 @@ class ShopBarbersScreen extends ConsumerWidget {
                       onPressed: () => _confirmDelete(context, ref, b),
                     ),
                   ]),
+                  ),
                 ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms).slideY(begin: 0.1, end: 0);
               },
             ),

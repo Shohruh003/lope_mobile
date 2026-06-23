@@ -1591,6 +1591,10 @@
         "deleteTitle": "Masterni o'chirish?",
         "deleteAsk": "\"{{name}}\" salondan olib tashlansinmi?"
       },
+      "barberDetail": {
+        "title": "Sartarosh",
+        "noClients": "Mijozlar topilmadi"
+      },
       "bookings": {
         "title": "Salon bronlari",
         "empty": "Bron yo'q",

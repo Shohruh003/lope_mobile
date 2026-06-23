@@ -41,6 +41,7 @@ import '../features/profile/presentation/settings_screen.dart';
 import '../features/reviews/presentation/reviews_screen.dart';
 import '../features/shop_panel/presentation/shop_admins_screen.dart';
 import '../features/shop_panel/presentation/shop_client_detail_screen.dart';
+import '../features/shop_panel/presentation/shop_barber_detail_screen.dart';
 import '../features/shop_panel/presentation/shop_clients_screen.dart';
 import '../features/shop_panel/presentation/shop_home_shell.dart';
 import '../features/shop_panel/presentation/shop_profile_screen.dart';
@@ -161,6 +162,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/barber/schedule-generator', builder: (context, state) => const ScheduleGeneratorScreen()),
 
       // Shop feature paths
+      GoRoute(
+        path: '/shop/barbers/:id',
+        builder: (context, state) => ShopBarberDetailScreen(barberId: state.pathParameters['id']!),
+      ),
       GoRoute(path: '/shop/clients', builder: (context, state) => const ShopClientsScreen()),
       GoRoute(path: '/shop/sms', builder: (context, state) => const ShopSmsScreen()),
       GoRoute(path: '/shop/transactions', builder: (context, state) => const ShopTransactionsScreen()),

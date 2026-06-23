@@ -1590,6 +1590,10 @@
         "deleteTitle": "Remove master?",
         "deleteAsk": "Remove \"{{name}}\" from the salon?"
       },
+      "barberDetail": {
+        "title": "Master",
+        "noClients": "No clients found"
+      },
       "bookings": {
         "title": "Salon bookings",
         "empty": "No bookings",

@@ -114,6 +114,27 @@ class ShopRepository {
     await _dio.patch('/barbershop/barbers/$id', data: body);
   }
 
+  /// Fetch a single barber (master) by id — used by the shop-owner's
+  /// per-barber schedule screen.
+  Future<ShopBarber> getBarber(String id) async {
+    final res = await _dio.get('/barbershop/barbers/$id');
+    return ShopBarber.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+
+  /// Clients that booked with the given barber — used by the per-
+  /// barber detail screen's Clients tab. The backend route returns
+  /// a paginated `{data: [...]}` envelope; we unwrap to a flat list.
+  Future<List<Map<String, dynamic>>> barberClients(String barberId,
+      {int page = 1, int limit = 100}) async {
+    final res = await _dio.get('/bookings/barber/$barberId/clients',
+        queryParameters: {'page': page, 'limit': limit});
+    final data = res.data;
+    final list = (data is List)
+        ? data
+        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    return list.cast<Map<String, dynamic>>();
+  }
+
   Future<void> deleteBarber(String id) async {
     await _dio.delete('/barbershop/barbers/$id');
   }
