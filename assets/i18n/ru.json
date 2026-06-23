@@ -1459,7 +1459,14 @@
       },
       "profile": {
         "salonName": "Название салона",
-        "description": "Описание"
+        "description": "Описание",
+        "basicInfo": "Основное",
+        "settings": "Настройки",
+        "reminderDays": "Дней до напоминания (с последнего визита)",
+        "reminderHours": "За сколько часов до записи (SMS)",
+        "slotDuration": "Длительность слота",
+        "invalidReminder": "Дней напоминания должно быть от 1 до 365",
+        "invalidSlot": "Слот должен быть 5-240 минут"
       },
       "scheduleGen": {
         "title": "Автоматическое расписание",

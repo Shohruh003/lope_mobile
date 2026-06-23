@@ -1452,7 +1452,14 @@
       },
       "profile": {
         "salonName": "Салон номи",
-        "description": "Тавсиф"
+        "description": "Тавсиф",
+        "basicInfo": "Асосий маълумотлар",
+        "settings": "Созламалар",
+        "reminderDays": "Эслатма кунлари (охирги ташрифдан)",
+        "reminderHours": "Брон олдидан эслатма (соат)",
+        "slotDuration": "Слот давомийлиги",
+        "invalidReminder": "Эслатма кунлари 1-365 оралиқда бўлсин",
+        "invalidSlot": "Слот 5-240 дақиқа оралиқда бўлсин"
       },
       "scheduleGen": {
         "title": "Автоматик жадвал",

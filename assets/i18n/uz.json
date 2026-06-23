@@ -1452,7 +1452,14 @@
       },
       "profile": {
         "salonName": "Salon nomi",
-        "description": "Tavsif"
+        "description": "Tavsif",
+        "basicInfo": "Asosiy ma'lumotlar",
+        "settings": "Sozlamalar",
+        "reminderDays": "Eslatma kunlari (oxirgi tashrifdan)",
+        "reminderHours": "Bron oldidan eslatma (soat)",
+        "slotDuration": "Slot davomiyligi",
+        "invalidReminder": "Eslatma kunlari 1-365 oraliqda bo'lsin",
+        "invalidSlot": "Slot 5-240 daqiqa oraliqda bo'lsin"
       },
       "scheduleGen": {
         "title": "Avtomatik jadval",

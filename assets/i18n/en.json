@@ -1451,7 +1451,14 @@
       },
       "profile": {
         "salonName": "Salon name",
-        "description": "Description"
+        "description": "Description",
+        "basicInfo": "Basic info",
+        "settings": "Settings",
+        "reminderDays": "Reminder days (since last visit)",
+        "reminderHours": "Reminder hours before booking",
+        "slotDuration": "Slot duration",
+        "invalidReminder": "Reminder days must be 1-365",
+        "invalidSlot": "Slot must be 5-240 minutes"
       },
       "scheduleGen": {
         "title": "Auto schedule",
