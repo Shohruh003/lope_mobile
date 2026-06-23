@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
+import '../../bookings/data/booking_repository.dart';
 import '../data/shop_repository.dart';
 
 /// Mirrors `BarbershopBookings.tsx` 1:1.
@@ -331,11 +332,124 @@ class _BookingCard extends ConsumerWidget {
                           fontWeight: FontWeight.w700,
                           fontSize: 12)),
               ]),
+              if (b.status == 'confirmed') ...[
+                const SizedBox(height: 8),
+                Row(children: [
+                  SizedBox(
+                    height: 28,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.check_circle_outline, size: 11),
+                      label: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
+                          style: const TextStyle(
+                              fontSize: 10, fontWeight: FontWeight.w600)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6)),
+                      ),
+                      onPressed: () => _complete(context, ref),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  SizedBox(
+                    height: 28,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.close,
+                          size: 11, color: AppColors.danger),
+                      label: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.danger,
+                              fontWeight: FontWeight.w600)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        side: BorderSide(
+                            color: AppColors.danger.withValues(alpha: 0.5)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6)),
+                      ),
+                      onPressed: () => _cancel(context, ref),
+                    ),
+                  ),
+                ]),
+              ],
             ],
           ),
         ),
       ]),
     );
+  }
+
+  Future<void> _complete(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(tr(ref, 'myBookings.completeConfirmTitle',
+            "Bronni yakunlash?")),
+        content: Text(tr(ref, 'myBookings.completeConfirmMsg',
+            "Bron yakunlangan deb belgilanadi.")),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, true),
+              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(bookingRepositoryProvider).complete(b.id);
+      ref.invalidate(shopBookingsFilteredProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
+    }
+  }
+
+  Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(tr(ref, 'myBookings.cancelConfirmTitle',
+            "Bronni bekor qilasizmi?")),
+        content: Text(tr(ref, 'myBookings.cancelConfirmMsg',
+            "Bekor qilingach, qaytarib bo'lmaydi.")),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, false),
+              child: Text(tr(ref, 'common.close', "Yopish"))),
+          TextButton(
+              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+              onPressed: () => Navigator.pop(dCtx, true),
+              child: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(bookingRepositoryProvider).cancel(b.id);
+      ref.invalidate(shopBookingsFilteredProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'myBookings.cancelled',
+                "Bron bekor qilindi"))));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
+    }
   }
 
   String _fmt(int n) {
