@@ -60,6 +60,7 @@ class AuthRepository {
     String role = 'user',
     String? gender,
     String? promoCode,
+    String? shopName,
   }) async {
     final res = await _dio.post('/auth/register', data: {
       'name': name,
@@ -69,6 +70,7 @@ class AuthRepository {
       // ignore: use_null_aware_elements
       if (gender != null) 'gender': gender,
       if (promoCode != null && promoCode.isNotEmpty) 'promoCode': promoCode,
+      if (shopName != null && shopName.isNotEmpty) 'shopName': shopName,
     });
     final data = res.data as Map<String, dynamic>;
     final token = data['token'] as String;

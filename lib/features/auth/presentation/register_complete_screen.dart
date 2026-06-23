@@ -27,6 +27,7 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
   final _nameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _promoCtrl = TextEditingController();
+  final _shopNameCtrl = TextEditingController();
   String _role = 'user';
   String? _gender; // 'MALE' | 'FEMALE'
   bool _loading = false;
@@ -38,6 +39,7 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
     _nameCtrl.dispose();
     _passwordCtrl.dispose();
     _promoCtrl.dispose();
+    _shopNameCtrl.dispose();
     super.dispose();
   }
 
@@ -52,6 +54,16 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
       setState(() => _error = tr(ref, 'auth.shortPassword', "Parol kamida 4 belgi"));
       return;
     }
+    if (_role == 'barbershop' && _shopNameCtrl.text.trim().isEmpty) {
+      setState(() => _error = tr(ref, 'auth.shopNameRequired',
+          "Salon nomini kiriting"));
+      return;
+    }
+    if (_role != 'barbershop' && _gender == null) {
+      setState(() => _error = tr(ref, 'auth.genderRequired',
+          "Jinsni tanlang"));
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -62,8 +74,9 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
             phone: widget.phone,
             password: password,
             role: _role,
-            gender: _gender,
+            gender: _role == 'barbershop' ? null : _gender,
             promoCode: _promoCtrl.text.trim().isEmpty ? null : _promoCtrl.text.trim(),
+            shopName: _role == 'barbershop' ? _shopNameCtrl.text.trim() : null,
           );
       await ref.read(authControllerProvider.notifier).signedIn(user);
       if (!mounted) return;
@@ -120,17 +133,35 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                   ),
                   const SizedBox(height: 14),
 
-                  // ===== Gender =====
-                  ShadLabel(tr(ref, 'auth.gender', "Jins")),
-                  const SizedBox(height: 6),
-                  Row(children: [
-                    Expanded(child: _genderBtn('MALE',
-                        "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}")),
-                    const SizedBox(width: 8),
-                    Expanded(child: _genderBtn('FEMALE',
-                        "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}")),
-                  ]),
-                  const SizedBox(height: 14),
+                  // ===== Gender (hidden for shop role) =====
+                  if (_role != 'barbershop') ...[
+                    ShadLabel(tr(ref, 'auth.gender', "Jins")),
+                    const SizedBox(height: 6),
+                    Row(children: [
+                      Expanded(child: _genderBtn('MALE',
+                          "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}")),
+                      const SizedBox(width: 8),
+                      Expanded(child: _genderBtn('FEMALE',
+                          "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}")),
+                    ]),
+                    const SizedBox(height: 14),
+                  ],
+
+                  // ===== Shop name (only for shop role) =====
+                  if (_role == 'barbershop') ...[
+                    ShadField(
+                      label: tr(ref, 'auth.shopName', "Salon nomi"),
+                      child: TextField(
+                        controller: _shopNameCtrl,
+                        textCapitalization: TextCapitalization.words,
+                        style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                        decoration: InputDecoration(
+                            hintText: tr(ref, 'auth.shopNamePlaceholder',
+                                "Masalan: Lope Style")),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
 
                   // ===== Password =====
                   ShadField(
