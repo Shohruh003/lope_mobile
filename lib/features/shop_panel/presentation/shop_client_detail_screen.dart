@@ -109,7 +109,7 @@ class ShopClientDetailScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text((h['barberName'] ?? 'Master').toString(),
+                              Text((h['barberName'] ?? tr(ref, 'mobile.shop.masters.singular', 'Master')).toString(),
                                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                               const SizedBox(height: 4),
                               Text(_fmtDate(h['date']?.toString() ?? ''),

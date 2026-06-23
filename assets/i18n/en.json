@@ -1578,6 +1578,7 @@
       },
       "masters": {
         "title": "Masters",
+        "singular": "Master",
         "addBtn": "Add",
         "empty": "No masters added yet",
         "newTitle": "New master",

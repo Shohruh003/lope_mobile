@@ -1579,6 +1579,7 @@
       },
       "masters": {
         "title": "Mastera",
+        "singular": "Master",
         "addBtn": "Qo'shish",
         "empty": "Hali masterlar qo'shilmagan",
         "newTitle": "Yangi master",
