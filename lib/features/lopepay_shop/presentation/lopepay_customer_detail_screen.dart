@@ -126,7 +126,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                             'amount': _fmt(((i['remaining'] ?? 0) as num).toInt()),
                             'currency': tr(ref, 'common.currency', "so'm"),
                           }),
-                      badge: (i['status'] ?? '').toString(),
+                      badge: _installmentStatusLabel(ref, (i['status'] ?? '').toString()),
                       badgeColor: i['status'] == 'overdue' ? AppColors.danger : AppColors.success,
                     )),
 
@@ -210,6 +210,19 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
+  }
+
+  String _installmentStatusLabel(WidgetRef ref, String status) {
+    switch (status) {
+      case 'overdue':
+        return tr(ref, 'mobile.lopepay.customer.statusOverdue', 'Muddati o\'tgan');
+      case 'paid':
+        return tr(ref, 'mobile.lopepay.customer.statusPaid', 'To\'langan');
+      case 'active':
+        return tr(ref, 'mobile.lopepay.customer.statusActive', 'Faol');
+      default:
+        return status;
+    }
   }
 }
 

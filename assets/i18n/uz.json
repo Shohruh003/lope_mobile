@@ -1663,7 +1663,10 @@
         "paymentsHistory": "To'lovlar tarixi",
         "noPayments": "Hali to'lov yo'q",
         "received": "Qabul qilindi",
-        "remaining": "Qoldi: {{amount}} {{currency}}"
+        "remaining": "Qoldi: {{amount}} {{currency}}",
+        "statusOverdue": "Muddati o'tgan",
+        "statusPaid": "To'langan",
+        "statusActive": "Faol"
       }
     },
     "promo": {

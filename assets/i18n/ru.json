@@ -1670,7 +1670,10 @@
         "paymentsHistory": "История платежей",
         "noPayments": "Платежей пока нет",
         "received": "Платёж принят",
-        "remaining": "Остаток: {{amount}} {{currency}}"
+        "remaining": "Остаток: {{amount}} {{currency}}",
+        "statusOverdue": "Просрочено",
+        "statusPaid": "Оплачено",
+        "statusActive": "Активен"
       }
     },
     "promo": {

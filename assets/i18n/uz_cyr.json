@@ -1663,7 +1663,10 @@
         "paymentsHistory": "Тўловлар тарихи",
         "noPayments": "Ҳали тўлов йўқ",
         "received": "Қабул қилинди",
-        "remaining": "Қолди: {{amount}} {{currency}}"
+        "remaining": "Қолди: {{amount}} {{currency}}",
+        "statusOverdue": "Муддати ўтган",
+        "statusPaid": "Тўланган",
+        "statusActive": "Фаол"
       }
     },
     "promo": {

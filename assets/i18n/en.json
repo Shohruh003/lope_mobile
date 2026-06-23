@@ -1662,7 +1662,10 @@
         "paymentsHistory": "Payment history",
         "noPayments": "No payments yet",
         "received": "Payment received",
-        "remaining": "Remaining: {{amount}} {{currency}}"
+        "remaining": "Remaining: {{amount}} {{currency}}",
+        "statusOverdue": "Overdue",
+        "statusPaid": "Paid",
+        "statusActive": "Active"
       }
     },
     "promo": {
