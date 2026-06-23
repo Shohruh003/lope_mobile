@@ -53,6 +53,18 @@ class AuthRepository {
   }
 
   /// Step 3 — actually create the account and grab the JWT.
+  /// PATCH /auth/me/referral-code — rotate the user's own referral
+  /// code. Returns the new code so callers can patch local state.
+  Future<String> updateMyReferralCode(String code) async {
+    final res = await _dio.patch('/auth/me/referral-code',
+        data: {'referralCode': code});
+    final data = res.data;
+    if (data is Map && data['referralCode'] != null) {
+      return data['referralCode'].toString();
+    }
+    return code;
+  }
+
   Future<AppUser> register({
     required String name,
     required String phone,

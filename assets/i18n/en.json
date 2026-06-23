@@ -1751,7 +1751,9 @@
       "bonusAdded": "+{{amount}} {{currency}} added to your balance",
       "invalidCode": "Error — invalid code",
       "notFound": "No such code",
-      "alreadyUsed": "This code has already been used"
+      "alreadyUsed": "This code has already been used",
+      "myCodeTitle": "Your referral code",
+      "invitedCount": "{{n}} people used your code"
     },
     "admin": { "title": "Admin panel is not available on mobile", "subtitle": "Use the web version: app.lopestyle.uz" },
     "status": { "confirmed": "Confirmed", "completed": "Completed", "cancelled": "Cancelled" }

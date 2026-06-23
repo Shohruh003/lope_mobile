@@ -1752,7 +1752,9 @@
       "bonusAdded": "Балансга +{{amount}} {{currency}} қўшилди",
       "invalidCode": "Хато — код нотўғри",
       "notFound": "Бундай код йўқ",
-      "alreadyUsed": "Бу код аллақачон ишлатилган"
+      "alreadyUsed": "Бу код аллақачон ишлатилган",
+      "myCodeTitle": "Сизнинг реферал кодингиз",
+      "invitedCount": "{{n}} киши сизнинг кодингиздан фойдаланди"
     },
     "admin": { "title": "Admin панел мобильда мавжуд эмас", "subtitle": "Веб-версиядан фойдаланинг: app.lopestyle.uz" },
     "status": { "confirmed": "Тасдиқланган", "completed": "Якунланган", "cancelled": "Бекор қилинган" }

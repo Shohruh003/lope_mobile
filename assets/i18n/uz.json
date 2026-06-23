@@ -1752,7 +1752,9 @@
       "bonusAdded": "Balansga +{{amount}} {{currency}} qo'shildi",
       "invalidCode": "Xato — kod noto'g'ri",
       "notFound": "Bunday kod yo'q",
-      "alreadyUsed": "Bu kod allaqachon ishlatilgan"
+      "alreadyUsed": "Bu kod allaqachon ishlatilgan",
+      "myCodeTitle": "Sizning referral kodingiz",
+      "invitedCount": "{{n}} kishi sizning kodingizdan foydalandi"
     },
     "admin": { "title": "Admin panel mobile'da mavjud emas", "subtitle": "Veb-versiyadan foydalaning: app.lopestyle.uz" },
     "status": { "confirmed": "Tasdiqlangan", "completed": "Yakunlangan", "cancelled": "Bekor qilingan" }

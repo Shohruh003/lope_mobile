@@ -40,6 +40,16 @@ class AuthController extends Notifier<AuthState> {
     await ref.read(authRepositoryProvider).logout();
     state = const AuthState(loading: false);
   }
+
+  /// Patch the in-memory user with a new referral code (after a
+  /// successful PATCH /auth/me/referral-code). Keeps the rest of the
+  /// user record intact.
+  Future<void> updateReferralCode(String newCode) async {
+    final current = state.user;
+    if (current == null) return;
+    final next = current.copyWith(referralCode: newCode);
+    state = state.copyWith(user: next);
+  }
 }
 
 final authControllerProvider = NotifierProvider<AuthController, AuthState>(AuthController.new);
