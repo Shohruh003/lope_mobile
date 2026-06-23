@@ -8,11 +8,18 @@ import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
 
-class ShopBarbersScreen extends ConsumerWidget {
+class ShopBarbersScreen extends ConsumerStatefulWidget {
   const ShopBarbersScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShopBarbersScreen> createState() => _ShopBarbersScreenState();
+}
+
+class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
     final async = ref.watch(shopBarbersProvider);
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'mobile.shop.masters.title', "Mastera"))),
@@ -25,8 +32,15 @@ class ShopBarbersScreen extends ConsumerWidget {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
-        data: (list) {
-          if (list.isEmpty) {
+        data: (rawList) {
+          final list = _query.isEmpty
+              ? rawList
+              : rawList.where((b) {
+                  final q = _query.toLowerCase();
+                  return b.name.toLowerCase().contains(q) ||
+                      (b.phone ?? '').contains(_query);
+                }).toList();
+          if (rawList.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -45,8 +59,30 @@ class ShopBarbersScreen extends ConsumerWidget {
           return RefreshIndicator(
             color: AppColors.primary,
             onRefresh: () async => ref.refresh(shopBarbersProvider.future),
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: TextField(
+                  onChanged: (v) => setState(() => _query = v),
+                  style: const TextStyle(color: AppColors.textBright),
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 22),
+                    hintText: tr(ref, 'mobile.lopepay.customers.searchHint', "Ism yoki telefon"),
+                    isDense: true,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: list.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Text(tr(ref, 'common.noResults', "Hech narsa topilmadi"),
+                              style: const TextStyle(color: AppColors.textMuted)),
+                        ),
+                      )
+                    : ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
               itemCount: list.length,
               separatorBuilder: (context, i) => const SizedBox(height: 10),
               itemBuilder: (context, i) {
@@ -96,6 +132,8 @@ class ShopBarbersScreen extends ConsumerWidget {
                 ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms).slideY(begin: 0.1, end: 0);
               },
             ),
+              ),
+            ]),
           );
         },
       ),
