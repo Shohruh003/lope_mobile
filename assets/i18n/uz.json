@@ -1613,7 +1613,15 @@
         "visitsHistory": "Tashriflar tarixi",
         "noVisits": "Tashriflar yo'q"
       },
-      "reminders": { "empty": "Navbatdagi eslatma yo'q", "statusPending": "Kutilmoqda", "statusSent": "Yuborildi" }
+      "reminders": {
+        "title": "Eslatma kutmoqda",
+        "empty": "Bu kun uchun eslatma kutayotgan mijozlar yo'q",
+        "statusPending": "Kutilmoqda",
+        "statusSent": "Yuborildi",
+        "hint": "Oxirgi tashrifidan {{n}} kun yoki undan ko'p o'tgan mijozlar.",
+        "changeBtn": "O'zgartirish",
+        "daysAgo": "{{n}} kun oldin"
+      }
     },
     "notifications": { "title": "Bildirishnomalar", "empty": "Bildirishnomalar yo'q", "markAllRead": "Hammasini o'qish" },
     "reviews": {
