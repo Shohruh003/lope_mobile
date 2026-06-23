@@ -1549,7 +1549,7 @@
         "hoursSuffix": " soat",
         "daysSuffix": " kun"
       },
-      "sms": { "title": "SMS tarixi", "empty": "SMS yo'q" },
+      "sms": { "title": "SMS tarixi", "empty": "SMS yo'q", "statusOk": "Yetkazildi", "statusFail": "Xato" },
       "publicLink": {
         "title": "Ommaviy havola",
         "hint": "Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing.",

@@ -58,7 +58,11 @@ class ShopSmsScreen extends ConsumerWidget {
                             color: (ok ? AppColors.success : AppColors.danger).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(s.status, style: TextStyle(color: ok ? AppColors.success : AppColors.danger, fontSize: 11, fontWeight: FontWeight.w700)),
+                          child: Text(
+                              ok
+                                  ? tr(ref, 'mobile.barber.sms.statusOk', 'delivered')
+                                  : tr(ref, 'mobile.barber.sms.statusFail', 'failed'),
+                              style: TextStyle(color: ok ? AppColors.success : AppColors.danger, fontSize: 11, fontWeight: FontWeight.w700)),
                         ),
                       ]),
                       const SizedBox(height: 6),
