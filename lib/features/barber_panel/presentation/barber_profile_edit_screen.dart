@@ -31,6 +31,11 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
   final _nameCtrl = TextEditingController();
   final _bioCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
+  final _experienceCtrl = TextEditingController();
+  final _instagramCtrl = TextEditingController();
+  final _telegramCtrl = TextEditingController();
+  final _facebookCtrl = TextEditingController();
+  String _targetGender = 'ALL'; // 'ALL' | 'MALE' | 'FEMALE'
   String? _seedKey;
   bool _saving = false;
   bool _uploadingAvatar = false;
@@ -40,6 +45,10 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
     _nameCtrl.dispose();
     _bioCtrl.dispose();
     _locationCtrl.dispose();
+    _experienceCtrl.dispose();
+    _instagramCtrl.dispose();
+    _telegramCtrl.dispose();
+    _facebookCtrl.dispose();
     super.dispose();
   }
 
@@ -52,6 +61,11 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
         'bio': _bioCtrl.text.trim(),
         'locationUz': _locationCtrl.text.trim(),
         'location': _locationCtrl.text.trim(),
+        'experience': _experienceCtrl.text.trim(),
+        'targetGender': _targetGender,
+        'instagram': _instagramCtrl.text.trim(),
+        'telegram': _telegramCtrl.text.trim(),
+        'facebook': _facebookCtrl.text.trim(),
       });
       ref.invalidate(barberProfileProvider(barberId));
       if (mounted) {
@@ -126,6 +140,11 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                   _nameCtrl.text = (b['name'] ?? user.name).toString();
                   _bioCtrl.text = (b['bioUz'] ?? b['bio'] ?? '').toString();
                   _locationCtrl.text = (b['locationUz'] ?? b['location'] ?? '').toString();
+                  _experienceCtrl.text = (b['experience'] ?? '').toString();
+                  _targetGender = (b['targetGender'] ?? 'ALL').toString();
+                  _instagramCtrl.text = (b['instagram'] ?? '').toString();
+                  _telegramCtrl.text = (b['telegram'] ?? '').toString();
+                  _facebookCtrl.text = (b['facebook'] ?? '').toString();
                 }
                 final avatarUrl = (b['avatar'] ?? '').toString();
 
@@ -296,6 +315,29 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
     );
   }
 
+  Widget _genderBtn(String value, String label) {
+    final on = _targetGender == value;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () => setState(() => _targetGender = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color:
+              on ? AppColors.primary.withValues(alpha: 0.12) : AppColors.background,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: on ? AppColors.primary : AppColors.border),
+        ),
+        alignment: Alignment.center,
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                color: on ? AppColors.primary : AppColors.textMuted)),
+      ),
+    );
+  }
+
   Widget _bioTab(String userId) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       ShadLabel(tr(ref, 'profile.name', "Ism")),
@@ -327,6 +369,57 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
         decoration: InputDecoration(
             hintText: tr(ref, 'mobile.barber.profileEdit.locationPlaceholder',
                 "Toshkent, Yunusobod")),
+      ),
+      const SizedBox(height: 14),
+
+      // ===== Target gender =====
+      ShadLabel(tr(ref, 'profile.targetGender', "Mijoz turi")),
+      const SizedBox(height: 6),
+      Row(children: [
+        Expanded(child: _genderBtn('ALL',
+            "👥 ${tr(ref, 'profile.targetAll', 'Hammasi')}")),
+        const SizedBox(width: 8),
+        Expanded(child: _genderBtn('MALE',
+            "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}")),
+        const SizedBox(width: 8),
+        Expanded(child: _genderBtn('FEMALE',
+            "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}")),
+      ]),
+      const SizedBox(height: 14),
+
+      // ===== Experience =====
+      ShadLabel(tr(ref, 'profile.experience', "Tajriba")),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _experienceCtrl,
+        style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+        decoration: const InputDecoration(hintText: '5, 8+, 10+'),
+      ),
+      const SizedBox(height: 14),
+
+      // ===== Social links =====
+      ShadLabel(tr(ref, 'profile.instagram', "Instagram")),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _instagramCtrl,
+        style: const TextStyle(fontSize: 14, color: AppColors.textBright),
+        decoration: const InputDecoration(hintText: 'username'),
+      ),
+      const SizedBox(height: 10),
+      ShadLabel(tr(ref, 'profile.telegram', "Telegram")),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _telegramCtrl,
+        style: const TextStyle(fontSize: 14, color: AppColors.textBright),
+        decoration: const InputDecoration(hintText: 'username'),
+      ),
+      const SizedBox(height: 10),
+      ShadLabel(tr(ref, 'profile.facebook', "Facebook")),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _facebookCtrl,
+        style: const TextStyle(fontSize: 14, color: AppColors.textBright),
+        decoration: const InputDecoration(hintText: 'username'),
       ),
       const SizedBox(height: 14),
 
