@@ -138,7 +138,21 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
                   style: const TextStyle(fontSize: 12)),
               onTap: () => Navigator.of(sheetCtx).pop('book'),
             ),
-          if (status != 'blocked')
+          if (status == 'booked') ...[
+            ListTile(
+              leading: const Icon(Icons.check_circle_outline, color: AppColors.success),
+              title: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.of(sheetCtx).pop('complete'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.close, color: AppColors.danger),
+              title: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.of(sheetCtx).pop('cancelBooking'),
+            ),
+          ],
+          if (status != 'blocked' && status != 'booked')
             ListTile(
               leading: const Icon(Icons.lock_outline, color: AppColors.danger),
               title: Text(tr(ref, 'mobile.barber.schedule.blockSlot', "Slotni bloklash")),
@@ -173,6 +187,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
         await _openManualBookingDialog(barberId, dateStr, time);
         return;
       }
+      if (picked == 'complete' || picked == 'cancelBooking') {
+        await _handleBookingAction(barberId, dateStr, time, picked);
+        return;
+      }
       if (picked == 'block' || picked == 'unblock') {
         await repo.toggleSlotBlock(barberId, dateStr, time);
       } else if (picked == 'delete') {
@@ -183,6 +201,76 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       _refreshDay(barberId);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    }
+  }
+
+  /// Look up the booking that owns [time] on [dateStr] and ask the
+  /// barber to confirm before completing or cancelling it. Falls back
+  /// to a SnackBar if the booking can't be found (e.g. stale cache).
+  Future<void> _handleBookingAction(
+      String barberId, String dateStr, String time, String action) async {
+    final repo = ref.read(barberPanelRepositoryProvider);
+    final bookings = await repo.byDay(barberId: barberId, date: dateStr);
+    final booking = bookings.firstWhere(
+      (b) => b.time == time && b.status != 'cancelled',
+      orElse: () => BarberBooking(
+          id: '', date: '', time: '', status: '', userName: '',
+          totalPrice: 0, totalDuration: 0),
+    );
+    if (booking.id.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.error', 'Xatolik'))));
+      return;
+    }
+    if (!mounted) return;
+    final isComplete = action == 'complete';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(isComplete
+            ? tr(ref, 'myBookings.completeConfirmTitle', "Bronni yakunlash?")
+            : tr(ref, 'myBookings.cancelConfirmTitle', "Bronni bekor qilasizmi?")),
+        content: Text(isComplete
+            ? tr(ref, 'myBookings.completeConfirmMsg',
+                "Bron yakunlangan deb belgilanadi.")
+            : tr(ref, 'myBookings.cancelConfirmMsg',
+                "Bekor qilingach, qaytarib bo'lmaydi.")),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+          TextButton(
+              style: TextButton.styleFrom(
+                  foregroundColor: isComplete ? null : AppColors.danger),
+              onPressed: () => Navigator.pop(dCtx, true),
+              child: Text(isComplete
+                  ? tr(ref, 'common.confirm', "Tasdiqlash")
+                  : tr(ref, 'myBookings.cancel', "Bekor qilish"))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      if (isComplete) {
+        await repo.markComplete(booking.id);
+      } else {
+        await repo.cancel(booking.id);
+      }
+      _refreshDay(barberId);
+      ref.invalidate(barberAllBookingsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(isComplete
+                ? tr(ref, 'common.saved', "Saqlandi")
+                : tr(ref, 'myBookings.cancelled', "Bron bekor qilindi"))));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
     }
   }
 
