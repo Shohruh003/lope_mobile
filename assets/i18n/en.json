@@ -1678,6 +1678,14 @@
       "home": "Home"
     },
     "lopepay": {
+      "installment": {
+        "markPaid": "Mark month as paid",
+        "undoLast": "Undo last payment",
+        "undoConfirmTitle": "Undo the last payment?",
+        "delete": "Delete installment",
+        "deleteConfirmTitle": "Delete this installment?",
+        "deleteConfirmMsg": "The installment and all its payments will be removed."
+      },
       "home": {
         "subtitle": "Installments management",
         "dueToday": "Due today",

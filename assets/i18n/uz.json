@@ -1679,6 +1679,14 @@
       "home": "Bosh sahifa"
     },
     "lopepay": {
+      "installment": {
+        "markPaid": "Oyni to'langan deb belgilash",
+        "undoLast": "Oxirgi to'lovni bekor qilish",
+        "undoConfirmTitle": "Oxirgi to'lov bekor qilinsinmi?",
+        "delete": "Rassrochkani o'chirish",
+        "deleteConfirmTitle": "Rassrochka o'chirilsinmi?",
+        "deleteConfirmMsg": "Rassrochka va uning barcha to'lovlari o'chiriladi."
+      },
       "home": {
         "subtitle": "Rassrochka boshqaruvi",
         "dueToday": "Bugun tushishi kerak",

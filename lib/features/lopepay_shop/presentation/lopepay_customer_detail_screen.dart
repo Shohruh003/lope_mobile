@@ -117,16 +117,20 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                 Text(tr(ref, 'mobile.lopepay.customer.noActiveInstallments', "Faol rassrochka yo'q"),
                     style: const TextStyle(color: AppColors.textMuted))
               else
-                ...installments.map((i) => _RowCard(
-                      title: (i['productName'] ?? tr(ref, 'mobile.lopepay.products.newProduct', 'Mahsulot')).toString(),
-                      subtitle: tr(ref, 'mobile.lopepay.customer.remaining',
-                          "Qoldi: {{amount}} {{currency}}",
-                          {
-                            'amount': _fmt(((i['remaining'] ?? 0) as num).toInt()),
-                            'currency': tr(ref, 'common.currency', "so'm"),
-                          }),
-                      badge: _installmentStatusLabel(ref, (i['status'] ?? '').toString()),
-                      badgeColor: i['status'] == 'overdue' ? AppColors.danger : AppColors.success,
+                ...installments.map((i) => InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => _openInstallmentActions(context, ref, i),
+                      child: _RowCard(
+                        title: (i['productName'] ?? tr(ref, 'mobile.lopepay.products.newProduct', 'Mahsulot')).toString(),
+                        subtitle: tr(ref, 'mobile.lopepay.customer.remaining',
+                            "Qoldi: {{amount}} {{currency}}",
+                            {
+                              'amount': _fmt(((i['remaining'] ?? 0) as num).toInt()),
+                              'currency': tr(ref, 'common.currency', "so'm"),
+                            }),
+                        badge: _installmentStatusLabel(ref, (i['status'] ?? '').toString()),
+                        badgeColor: i['status'] == 'overdue' ? AppColors.danger : AppColors.success,
+                      ),
                     )),
 
               const SizedBox(height: 22),
@@ -221,6 +225,129 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         return tr(ref, 'mobile.lopepay.customer.statusActive', 'Faol');
       default:
         return status;
+    }
+  }
+
+  /// Per-installment action sheet: mark next month paid, undo last
+  /// payment (when at least one is logged), delete entire plan.
+  Future<void> _openInstallmentActions(
+      BuildContext context, WidgetRef ref, Map<String, dynamic> inst) async {
+    final instId = (inst['id'] ?? '').toString();
+    if (instId.isEmpty) return;
+    final monthsPaid = ((inst['monthsPaid'] ?? 0) as num).toInt();
+    final isPaidOff = inst['isPaidOff'] == true;
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 12),
+          Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 12),
+          if (!isPaidOff)
+            ListTile(
+              leading: const Icon(Icons.check_circle_outline, color: AppColors.success),
+              title: Text(tr(ref, 'mobile.lopepay.installment.markPaid',
+                  "Oyni to'langan deb belgilash")),
+              onTap: () => Navigator.of(sheetCtx).pop('mark'),
+            ),
+          if (monthsPaid > 0)
+            ListTile(
+              leading: const Icon(Icons.undo, color: AppColors.warning),
+              title: Text(tr(ref, 'mobile.lopepay.installment.undoLast',
+                  "Oxirgi to'lovni bekor qilish")),
+              onTap: () => Navigator.of(sheetCtx).pop('undo'),
+            ),
+          ListTile(
+            leading: const Icon(Icons.delete_outline, color: AppColors.danger),
+            title: Text(tr(ref, 'mobile.lopepay.installment.delete',
+                "Rassrochkani o'chirish")),
+            onTap: () => Navigator.of(sheetCtx).pop('delete'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.close, color: AppColors.textMuted),
+            title: Text(tr(ref, 'common.close', "Yopish")),
+            onTap: () => Navigator.of(sheetCtx).pop(null),
+          ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+    if (picked == null) return;
+    final repo = ref.read(lopepayRepositoryProvider);
+    try {
+      if (picked == 'mark') {
+        await repo.markInstallmentPaid(instId);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+        }
+      } else if (picked == 'undo') {
+        if (!context.mounted) return;
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (dCtx) => AlertDialog(
+            backgroundColor: AppColors.background,
+            title: Text(tr(ref, 'mobile.lopepay.installment.undoConfirmTitle',
+                "Oxirgi to'lov bekor qilinsinmi?")),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(dCtx, false),
+                  child: Text(tr(ref, 'common.cancel', "Bekor"))),
+              TextButton(
+                  onPressed: () => Navigator.pop(dCtx, true),
+                  child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+            ],
+          ),
+        );
+        if (ok != true) return;
+        await repo.undoLastInstallmentPayment(instId);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+        }
+      } else if (picked == 'delete') {
+        if (!context.mounted) return;
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (dCtx) => AlertDialog(
+            backgroundColor: AppColors.background,
+            title: Text(tr(ref, 'mobile.lopepay.installment.deleteConfirmTitle',
+                "Rassrochka o'chirilsinmi?")),
+            content: Text(tr(ref, 'mobile.lopepay.installment.deleteConfirmMsg',
+                "Rassrochka va uning barcha to'lovlari o'chiriladi.")),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(dCtx, false),
+                  child: Text(tr(ref, 'common.cancel', "Bekor"))),
+              TextButton(
+                  style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                  onPressed: () => Navigator.pop(dCtx, true),
+                  child: Text(tr(ref, 'common.delete', "O'chirish"))),
+            ],
+          ),
+        );
+        if (ok != true) return;
+        await repo.deleteInstallment(instId);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(ref, 'common.deleted', "O'chirildi"))));
+        }
+      }
+      ref.invalidate(_lopepayCustomerProvider(customerId));
+      ref.invalidate(lopepayDashboardProvider);
+      ref.invalidate(lopepayCustomersProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      }
     }
   }
 }

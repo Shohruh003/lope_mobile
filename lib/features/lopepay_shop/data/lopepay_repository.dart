@@ -144,6 +144,26 @@ class LopepayRepository {
     await _dio.patch('/lopepay/installments/$id', data: data);
   }
 
+  /// POST /installments/:id/mark-paid — marks the next outstanding
+  /// month as paid. Optional amount lets the shop owner record a
+  /// partial / over payment; otherwise the server uses monthlyPayment.
+  Future<void> markInstallmentPaid(String id, {int? amount}) async {
+    await _dio.post('/installments/$id/mark-paid',
+        data: amount == null ? <String, dynamic>{} : {'amount': amount});
+  }
+
+  /// POST /installments/:id/undo-last-payment — reverses the most
+  /// recent month-paid action (mistakes happen).
+  Future<void> undoLastInstallmentPayment(String id) async {
+    await _dio.post('/installments/$id/undo-last-payment');
+  }
+
+  /// DELETE /installments/:id — owner deletes the whole installment.
+  /// Server soft-deletes / removes per its policy.
+  Future<void> deleteInstallment(String id) async {
+    await _dio.delete('/installments/$id');
+  }
+
   /// GET /lopepay/installments/:id — used by the edit form to seed the
   /// fields.
   Future<Map<String, dynamic>> getInstallment(String id) async {
