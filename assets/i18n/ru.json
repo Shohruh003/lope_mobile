@@ -1675,6 +1675,22 @@
         "statusOverdue": "Просрочено",
         "statusPaid": "Оплачено",
         "statusActive": "Активен"
+      },
+      "customerForm": {
+        "newTitle": "Новая рассрочка",
+        "editTitle": "Редактировать рассрочку",
+        "addBtn": "Добавить рассрочку",
+        "product": "Товар",
+        "productName": "Название товара (напр.: iPhone 13)",
+        "serialPh": "IMEI / Серийный номер (необязательно)",
+        "totalPrice": "Общая сумма",
+        "monthsTotal": "Месяцев",
+        "monthlyPayment": "Платёж в месяц",
+        "startDate": "Дата начала",
+        "notes": "Примечание (необязательно)",
+        "defaultPrice": "Цена по умолчанию (необязательно)",
+        "addNewProduct": "Добавить новый",
+        "fillRequired": "Пожалуйста, заполните все обязательные поля"
       }
     },
     "promo": {

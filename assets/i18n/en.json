@@ -1667,6 +1667,22 @@
         "statusOverdue": "Overdue",
         "statusPaid": "Paid",
         "statusActive": "Active"
+      },
+      "customerForm": {
+        "newTitle": "New installment",
+        "editTitle": "Edit installment",
+        "addBtn": "Add installment",
+        "product": "Product",
+        "productName": "Product name (e.g. iPhone 13)",
+        "serialPh": "IMEI / Serial (optional)",
+        "totalPrice": "Total price",
+        "monthsTotal": "Months",
+        "monthlyPayment": "Monthly payment",
+        "startDate": "Start date",
+        "notes": "Notes (optional)",
+        "defaultPrice": "Default price (optional)",
+        "addNewProduct": "Add new",
+        "fillRequired": "Please fill in all required fields"
       }
     },
     "promo": {

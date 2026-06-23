@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -26,9 +27,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              // Navigate to edit via path go (kept simple — using go_router root via Navigator parent).
-            },
+            onPressed: () => context.push('/lopepay/customers/$customerId/edit'),
           ),
         ],
       ),

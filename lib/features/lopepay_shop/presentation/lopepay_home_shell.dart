@@ -407,6 +407,13 @@ class _LopepayCustomersTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(lopepayCustomersProvider);
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        onPressed: () => context.push('/lopepay/customers/new'),
+        icon: const Icon(Icons.add),
+        label: Text(tr(ref, 'mobile.lopepay.customerForm.addBtn',
+            "Rassrochka qo'shish")),
+      ),
       body: SafeArea(
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),

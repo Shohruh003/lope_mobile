@@ -91,6 +91,39 @@ class LopepayRepository {
     await _dio.post('/lopepay/customers/$customerId/payments', data: {'amount': amount});
   }
 
+  /// POST /lopepay/installments — creates a new installment plan for a
+  /// customer. Server creates the customer record if one with the given
+  /// phone doesn't already exist. Returns the new installment id.
+  Future<String> createInstallment(Map<String, dynamic> data) async {
+    final res = await _dio.post('/lopepay/installments', data: data);
+    final body = res.data;
+    if (body is Map && body['id'] != null) return body['id'].toString();
+    return '';
+  }
+
+  /// PATCH /lopepay/installments/:id — updates plan fields. Money/date
+  /// fields are validated server-side.
+  Future<void> updateInstallment(String id, Map<String, dynamic> data) async {
+    await _dio.patch('/lopepay/installments/$id', data: data);
+  }
+
+  /// GET /lopepay/installments/:id — used by the edit form to seed the
+  /// fields.
+  Future<Map<String, dynamic>> getInstallment(String id) async {
+    final res = await _dio.get('/lopepay/installments/$id');
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// POST /lopepay/products — quick add from the customer form's product
+  /// dropdown. Returns the new product so the form can select it.
+  Future<LopepayProduct> createProduct({required String name, int? defaultPrice}) async {
+    final res = await _dio.post('/lopepay/products', data: {
+      'name': name,
+      'defaultPrice': ?defaultPrice,
+    });
+    return LopepayProduct.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+
   Future<List<Map<String, dynamic>>> sms() async {
     final res = await _dio.get('/lopepay/sms');
     final data = res.data;

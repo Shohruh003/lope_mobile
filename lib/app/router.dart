@@ -49,6 +49,7 @@ import '../features/shop_panel/presentation/shop_settings_screen.dart';
 import '../features/shop_panel/presentation/shop_sms_screen.dart';
 import '../features/shop_panel/presentation/shop_transactions_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_customer_detail_screen.dart';
+import '../features/lopepay_shop/presentation/lopepay_customer_form_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_products_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_sms_screen.dart';
 import '../features/lopepay_shop/presentation/lopepay_transactions_screen.dart';
@@ -176,6 +177,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/lopepay/products', builder: (context, state) => const LopepayProductsScreen()),
       GoRoute(path: '/lopepay/sms', builder: (context, state) => const LopepaySmsScreen()),
       GoRoute(path: '/lopepay/transactions', builder: (context, state) => const LopepayTransactionsScreen()),
+      GoRoute(
+        path: '/lopepay/customers/new',
+        builder: (context, state) => const LopepayCustomerFormScreen(),
+      ),
+      GoRoute(
+        path: '/lopepay/customers/:id/edit',
+        builder: (context, state) => LopepayCustomerFormScreen(installmentId: state.pathParameters['id']),
+      ),
       GoRoute(
         path: '/lopepay/customers/:id',
         builder: (context, state) => LopepayCustomerDetailScreen(customerId: state.pathParameters['id']!),

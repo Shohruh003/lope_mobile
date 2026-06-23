@@ -1668,6 +1668,22 @@
         "statusOverdue": "Muddati o'tgan",
         "statusPaid": "To'langan",
         "statusActive": "Faol"
+      },
+      "customerForm": {
+        "newTitle": "Yangi rassrochka",
+        "editTitle": "Rassrochkani tahrirlash",
+        "addBtn": "Rassrochka qo'shish",
+        "product": "Mahsulot",
+        "productName": "Mahsulot nomi (masalan: iPhone 13)",
+        "serialPh": "IMEI / Serial (ixtiyoriy)",
+        "totalPrice": "Umumiy narx",
+        "monthsTotal": "Oylar",
+        "monthlyPayment": "Oylik to'lov",
+        "startDate": "Boshlanish sanasi",
+        "notes": "Eslatma (ixtiyoriy)",
+        "defaultPrice": "Standart narx (ixtiyoriy)",
+        "addNewProduct": "Yangi qo'shish",
+        "fillRequired": "Iltimos, barcha majburiy maydonlarni to'ldiring"
       }
     },
     "promo": {

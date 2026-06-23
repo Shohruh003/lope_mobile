@@ -1668,6 +1668,22 @@
         "statusOverdue": "Муддати ўтган",
         "statusPaid": "Тўланган",
         "statusActive": "Фаол"
+      },
+      "customerForm": {
+        "newTitle": "Янги рассрочка",
+        "editTitle": "Рассрочкани таҳрирлаш",
+        "addBtn": "Рассрочка қўшиш",
+        "product": "Маҳсулот",
+        "productName": "Маҳсулот номи (масалан: iPhone 13)",
+        "serialPh": "IMEI / Сериал (ихтиёрий)",
+        "totalPrice": "Умумий нарх",
+        "monthsTotal": "Ойлар",
+        "monthlyPayment": "Ойлик тўлов",
+        "startDate": "Бошланиш санаси",
+        "notes": "Эслатма (ихтиёрий)",
+        "defaultPrice": "Стандарт нарх (ихтиёрий)",
+        "addNewProduct": "Янги қўшиш",
+        "fillRequired": "Илтимос, барча мажбурий майдонларни тўлдиринг"
       }
     },
     "promo": {
