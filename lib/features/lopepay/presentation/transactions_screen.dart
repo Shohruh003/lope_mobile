@@ -11,13 +11,19 @@ import 'top_up_modal.dart';
 
 /// Combined balance card + payment history list. Used by both customer and
 /// barber roles; only the entry point differs.
-class TransactionsScreen extends ConsumerWidget {
+class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
 
+  @override
+  ConsumerState<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   static final _df = DateFormat('dd.MM.yyyy HH:mm', 'ru_RU');
+  String _filter = 'all'; // 'all' | 'in' | 'out'
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
     if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final balance = ref.watch(myBalanceProvider(user.id));
@@ -47,16 +53,49 @@ class TransactionsScreen extends ConsumerWidget {
             Text(tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"),
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: -0.3)),
             const SizedBox(height: 10),
+            // Direction filter chips (mirror web MyTransactions)
+            SizedBox(
+              height: 38,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _TxnChip(
+                      label: tr(ref, 'common.all', "Hammasi"),
+                      on: _filter == 'all',
+                      onTap: () => setState(() => _filter = 'all')),
+                  _TxnChip(
+                      label: tr(ref, 'mobile.customer.transactions.income', "Kirim"),
+                      on: _filter == 'in',
+                      onTap: () => setState(() => _filter = 'in')),
+                  _TxnChip(
+                      label: tr(ref, 'mobile.customer.transactions.expense', "Chiqim"),
+                      on: _filter == 'out',
+                      onTap: () => setState(() => _filter = 'out')),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             history.when(
               loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator())),
               error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
-              data: (list) {
+              data: (raw) {
+                final list = raw.where((p) {
+                  final inflow = p.direction == 'in' || p.amount > 0;
+                  if (_filter == 'in') return inflow;
+                  if (_filter == 'out') return !inflow;
+                  return true;
+                }).toList();
                 if (list.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     child: Center(
-                        child: Text(tr(ref, 'mobile.customer.transactions.empty', "Hali tranzaktsiya yo'q"),
+                        child: Text(
+                            raw.isEmpty
+                                ? tr(ref, 'mobile.customer.transactions.empty',
+                                    "Hali tranzaktsiya yo'q")
+                                : tr(ref, 'common.noResults',
+                                    "Hech narsa topilmadi"),
                             style: const TextStyle(color: AppColors.textMuted))),
                   );
                 }
@@ -198,6 +237,38 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
                 style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TxnChip extends StatelessWidget {
+  const _TxnChip({required this.label, required this.on, required this.onTap});
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: on
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : AppColors.background,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: on ? AppColors.primary : AppColors.border),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  color: on ? AppColors.primary : AppColors.textMuted)),
+        ),
       ),
     );
   }

@@ -1398,7 +1398,9 @@
         "methodSms": "SMS хизмат",
         "methodAi": "AI Стил",
         "methodReferral": "Реферал бонус",
-        "methodDefault": "Транзакция"
+        "methodDefault": "Транзакция",
+        "income": "Кирим",
+        "expense": "Чиқим"
       }
     },
     "barber": {

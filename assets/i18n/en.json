@@ -1397,7 +1397,9 @@
         "methodSms": "SMS service",
         "methodAi": "AI Style",
         "methodReferral": "Referral bonus",
-        "methodDefault": "Transaction"
+        "methodDefault": "Transaction",
+        "income": "Income",
+        "expense": "Expense"
       }
     },
     "barber": {

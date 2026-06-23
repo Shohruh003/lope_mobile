@@ -1405,7 +1405,9 @@
         "methodSms": "SMS услуга",
         "methodAi": "AI Стиль",
         "methodReferral": "Реферальный бонус",
-        "methodDefault": "Транзакция"
+        "methodDefault": "Транзакция",
+        "income": "Доход",
+        "expense": "Расход"
       }
     },
     "barber": {

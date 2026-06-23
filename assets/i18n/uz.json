@@ -1398,7 +1398,9 @@
         "methodSms": "SMS xizmat",
         "methodAi": "AI Stil",
         "methodReferral": "Referal bonus",
-        "methodDefault": "Tranzaktsiya"
+        "methodDefault": "Tranzaktsiya",
+        "income": "Kirim",
+        "expense": "Chiqim"
       }
     },
     "barber": {
