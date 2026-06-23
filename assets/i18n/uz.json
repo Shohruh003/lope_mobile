@@ -1608,7 +1608,14 @@
         "statusLabel": "Status",
         "emptyForDay": "Bu sanada bronlar yo'q"
       },
-      "clients": { "empty": "Mijozlar ro'yxati bo'sh" },
+      "clients": {
+        "empty": "Mijozlar ro'yxati bo'sh",
+        "selectAll": "Hammasini tanlash",
+        "sendSmsBtn": "{{n}} ta mijozga SMS",
+        "bulkSendTitle": "Tanlanganlarga SMS yuborilsinmi?",
+        "bulkSendMsg": "{{n}} ta mijozga retention SMS jo'natiladi.",
+        "bulkSendQueued": "{{n}} ta SMS navbatga qo'shildi"
+      },
       "client": {
         "visitsHistory": "Tashriflar tarixi",
         "noVisits": "Tashriflar yo'q"

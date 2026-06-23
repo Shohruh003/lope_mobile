@@ -121,6 +121,19 @@ class ShopRepository {
     return ShopBarber.fromJson(Map<String, dynamic>.from(res.data as Map));
   }
 
+  /// POST /barbershop/send-retention-sms — bulk retention SMS to the
+  /// selected phones. Returns the server's job id so the UI can poll
+  /// progress.
+  Future<({String jobId, int total})> sendRetentionSms(List<String> phones) async {
+    final res = await _dio.post('/barbershop/send-retention-sms',
+        data: {'phones': phones});
+    final data = res.data is Map ? res.data as Map : <String, dynamic>{};
+    return (
+      jobId: (data['jobId'] ?? '').toString(),
+      total: ((data['total'] ?? phones.length) as num).toInt(),
+    );
+  }
+
   /// Clients that booked with the given barber — used by the per-
   /// barber detail screen's Clients tab. The backend route returns
   /// a paginated `{data: [...]}` envelope; we unwrap to a flat list.

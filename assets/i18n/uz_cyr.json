@@ -1608,7 +1608,14 @@
         "statusLabel": "Статус",
         "emptyForDay": "Бу санада бронлар йўқ"
       },
-      "clients": { "empty": "Мижозлар рўйхати бўш" },
+      "clients": {
+        "empty": "Мижозлар рўйхати бўш",
+        "selectAll": "Ҳаммасини танлаш",
+        "sendSmsBtn": "{{n}} та мижозга SMS",
+        "bulkSendTitle": "Танланганларга SMS юборилсинми?",
+        "bulkSendMsg": "{{n}} та мижозга retention SMS жўнатилади.",
+        "bulkSendQueued": "{{n}} та SMS навбатга қўшилди"
+      },
       "client": {
         "visitsHistory": "Ташрифлар тарихи",
         "noVisits": "Ташрифлар йўқ"

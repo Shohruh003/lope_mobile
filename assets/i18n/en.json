@@ -1607,7 +1607,14 @@
         "statusLabel": "Status",
         "emptyForDay": "No bookings on this date"
       },
-      "clients": { "empty": "Client list is empty" },
+      "clients": {
+        "empty": "Client list is empty",
+        "selectAll": "Select all",
+        "sendSmsBtn": "Send SMS to {{n}} clients",
+        "bulkSendTitle": "Send SMS to selected?",
+        "bulkSendMsg": "{{n}} clients will receive a retention SMS.",
+        "bulkSendQueued": "{{n}} SMS queued"
+      },
       "client": {
         "visitsHistory": "Visit history",
         "noVisits": "No visits"
