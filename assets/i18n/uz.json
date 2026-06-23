@@ -1494,7 +1494,14 @@
         "summary": "Umumiy hisob",
         "totalBookings": "Jami bronlar",
         "bookingsShort": "ta bron",
-        "countSuffix": "ta"
+        "countSuffix": "ta",
+        "smsTitle": "SMS xizmat",
+        "smsTotal": "Jami SMS",
+        "smsConfirmation": "Tasdiqlash",
+        "smsReminder": "Eslatma",
+        "smsRetention": "Retention",
+        "smsReturned": "Qaytib kelganlar",
+        "thisMonth": "Bu oy"
       },
       "location": {
         "editHint": "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting",

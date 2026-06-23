@@ -1501,7 +1501,14 @@
         "summary": "Итоги",
         "totalBookings": "Всего записей",
         "bookingsShort": "записей",
-        "countSuffix": "шт"
+        "countSuffix": "шт",
+        "smsTitle": "SMS-услуга",
+        "smsTotal": "Всего SMS",
+        "smsConfirmation": "Подтверждения",
+        "smsReminder": "Напоминания",
+        "smsRetention": "Retention",
+        "smsReturned": "Вернулись",
+        "thisMonth": "В этом месяце"
       },
       "location": {
         "editHint": "Укажите точный адрес и координаты, чтобы клиенты могли найти вас на карте",

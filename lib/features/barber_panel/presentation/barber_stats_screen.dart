@@ -182,6 +182,8 @@ class BarberStatsScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 14),
+                      _SmsStatsCard(barberId: barberId),
                     ],
                   );
                 },
@@ -281,6 +283,115 @@ class _SummaryRow extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w600)),
       ],
+    );
+  }
+}
+
+/// SMS-billing breakdown card. Mirrors the web BarberStatsScreen SMS
+/// section — total sent + total cost at the top, per-type
+/// (confirmation / reminder / retention) rows below.
+class _SmsStatsCard extends ConsumerWidget {
+  const _SmsStatsCard({required this.barberId});
+  final String barberId;
+
+  String _fmt(int n) {
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      final ri = s.length - i;
+      buf.write(s[i]);
+      if (ri > 1 && ri % 3 == 1) buf.write(' ');
+    }
+    return buf.toString();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = DateTime.now();
+    final firstOfMonth =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-01';
+    final today =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final async = ref.watch(barberSmsStatsProvider(
+        (barberId: barberId, from: firstOfMonth, to: today)));
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.sms_outlined,
+                size: 16, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Text(tr(ref, 'mobile.barber.stats.smsTitle', "SMS xizmat"),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: AppColors.textBright)),
+            const Spacer(),
+            Text(tr(ref, 'mobile.barber.stats.thisMonth', "Bu oy"),
+                style: const TextStyle(
+                    color: AppColors.textMuted, fontSize: 11)),
+          ]),
+          const SizedBox(height: 10),
+          async.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                  child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
+            ),
+            error: (e, _) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+                  style:
+                      const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+            ),
+            data: (s) => Column(
+              children: [
+                _SummaryRow(
+                    label: tr(ref, 'mobile.barber.stats.smsTotal',
+                        "Jami SMS"),
+                    value:
+                        "${s.totalSent} · ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                const Divider(color: AppColors.border, height: 14),
+                _SummaryRow(
+                    label: tr(ref, 'mobile.barber.stats.smsConfirmation',
+                        "Tasdiqlash"),
+                    value:
+                        "${s.confirmationRegistered + s.confirmationGuest} · ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                const Divider(color: AppColors.border, height: 14),
+                _SummaryRow(
+                    label: tr(ref, 'mobile.barber.stats.smsReminder',
+                        "Eslatma"),
+                    value:
+                        "${s.reminderCount} · ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                const Divider(color: AppColors.border, height: 14),
+                _SummaryRow(
+                    label: tr(ref, 'mobile.barber.stats.smsRetention',
+                        "Retention"),
+                    value:
+                        "${s.retentionCount} · ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                if (s.returnedClients > 0) ...[
+                  const Divider(color: AppColors.border, height: 14),
+                  _SummaryRow(
+                      label: tr(ref, 'mobile.barber.stats.smsReturned',
+                          "Qaytib kelganlar"),
+                      value: "${s.returnedClients}"),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

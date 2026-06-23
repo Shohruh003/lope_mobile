@@ -86,8 +86,76 @@ final barberAllBookingsProvider = FutureProvider.family<List<BarberBooking>, Str
   return ref.watch(barberPanelRepositoryProvider).all(barberId: barberId);
 });
 
+/// Aggregated SMS-billing stats for a barber over a date range. Mirrors
+/// the web's SmsStats interface. Fields are all `int`s; cost is in so'm.
+class BarberSmsStats {
+  BarberSmsStats({
+    required this.confirmationRegistered,
+    required this.confirmationGuest,
+    required this.reminderCount,
+    required this.retentionCount,
+    required this.totalSent,
+    required this.totalCost,
+    required this.confirmationRegisteredCost,
+    required this.confirmationGuestCost,
+    required this.reminderCost,
+    required this.retentionCost,
+    required this.returnedClients,
+  });
+  final int confirmationRegistered;
+  final int confirmationGuest;
+  final int reminderCount;
+  final int retentionCount;
+  final int totalSent;
+  final int totalCost;
+  final int confirmationRegisteredCost;
+  final int confirmationGuestCost;
+  final int reminderCost;
+  final int retentionCost;
+  final int returnedClients;
+
+  factory BarberSmsStats.fromJson(Map<String, dynamic> json) => BarberSmsStats(
+        confirmationRegistered:
+            ((json['confirmationRegistered'] ?? 0) as num).toInt(),
+        confirmationGuest: ((json['confirmationGuest'] ?? 0) as num).toInt(),
+        reminderCount: ((json['reminderCount'] ?? 0) as num).toInt(),
+        retentionCount: ((json['retentionCount'] ?? 0) as num).toInt(),
+        totalSent: ((json['totalSent'] ?? 0) as num).toInt(),
+        totalCost: ((json['totalCost'] ?? 0) as num).toInt(),
+        confirmationRegisteredCost:
+            ((json['confirmationRegisteredCost'] ?? 0) as num).toInt(),
+        confirmationGuestCost:
+            ((json['confirmationGuestCost'] ?? 0) as num).toInt(),
+        reminderCost: ((json['reminderCost'] ?? 0) as num).toInt(),
+        retentionCost: ((json['retentionCost'] ?? 0) as num).toInt(),
+        returnedClients: ((json['returnedClients'] ?? 0) as num).toInt(),
+      );
+}
+
 /// Booking actions a barber can take on their own bookings. These are POSTed
 /// to existing NestJS endpoints; the web uses the same routes.
+extension BarberSmsStatsApi on BarberPanelRepository {
+  Future<BarberSmsStats> smsStats({
+    required String barberId,
+    String? from,
+    String? to,
+  }) async {
+    final res = await _dio.get('/bookings/barber/$barberId/sms-stats',
+        queryParameters: {
+          'from': ?from,
+          'to': ?to,
+        });
+    return BarberSmsStats.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+}
+
+final barberSmsStatsProvider = FutureProvider.family<BarberSmsStats,
+    ({String barberId, String? from, String? to})>((ref, k) async {
+  return ref
+      .watch(barberPanelRepositoryProvider)
+      .smsStats(barberId: k.barberId, from: k.from, to: k.to);
+});
+
 extension BarberBookingActions on BarberPanelRepository {
   Future<void> markComplete(String bookingId) async {
     await _dio.patch('/bookings/$bookingId/complete');

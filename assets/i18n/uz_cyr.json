@@ -1494,7 +1494,14 @@
         "summary": "Умумий ҳисоб",
         "totalBookings": "Жами бронлар",
         "bookingsShort": "та брон",
-        "countSuffix": "та"
+        "countSuffix": "та",
+        "smsTitle": "SMS хизмат",
+        "smsTotal": "Жами SMS",
+        "smsConfirmation": "Тасдиқлаш",
+        "smsReminder": "Эслатма",
+        "smsRetention": "Retention",
+        "smsReturned": "Қайтиб келганлар",
+        "thisMonth": "Бу ой"
       },
       "location": {
         "editHint": "Мижозлар сизни харитада топа олиши учун аниқ манзил ва координаталарни киритинг",

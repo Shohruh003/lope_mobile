@@ -1493,7 +1493,14 @@
         "summary": "Summary",
         "totalBookings": "Total bookings",
         "bookingsShort": "bookings",
-        "countSuffix": "pcs"
+        "countSuffix": "pcs",
+        "smsTitle": "SMS service",
+        "smsTotal": "Total SMS",
+        "smsConfirmation": "Confirmations",
+        "smsReminder": "Reminders",
+        "smsRetention": "Retention",
+        "smsReturned": "Returned",
+        "thisMonth": "This month"
       },
       "location": {
         "editHint": "Enter precise address and coordinates so clients can find you on the map",
