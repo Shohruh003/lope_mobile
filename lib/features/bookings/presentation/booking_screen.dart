@@ -192,7 +192,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       ],
                     ),
                   ),
-                  Text("${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
+                  Text(
+                      s.priceMax != null && s.priceMax! > s.price
+                          ? "${_fmt(s.price)} – ${_fmt(s.priceMax!)} ${tr(ref, 'common.currency', "so'm")}"
+                          : "${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                       style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
@@ -523,7 +526,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   padding: const EdgeInsets.only(bottom: 6),
                   child: _SummaryRow(
                     label: "${s.icon} ${s.name}",
-                    value: "${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
+                    value: s.priceMax != null && s.priceMax! > s.price
+                        ? "${_fmt(s.price)} – ${_fmt(s.priceMax!)} ${tr(ref, 'common.currency', "so'm")}"
+                        : "${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                   ),
                 )),
           const Divider(color: AppColors.border, height: 18),

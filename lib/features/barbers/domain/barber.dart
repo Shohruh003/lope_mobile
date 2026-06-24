@@ -112,19 +112,23 @@ class BarberService {
     required this.price,
     required this.duration,
     required this.icon,
+    this.priceMax,
   });
 
   final String id;
   final String name;
   final int price;
+  final int? priceMax; // when set, displayed as "min – max"
   final int duration; // minutes
   final String icon;
 
   factory BarberService.fromJson(Map<String, dynamic> json) {
+    final raw = json['priceMax'];
     return BarberService(
       id: json['id'] as String,
       name: (json['nameUz'] ?? json['name'] ?? '') as String,
       price: ((json['price'] ?? 0) as num).toInt(),
+      priceMax: raw is num ? raw.toInt() : null,
       duration: ((json['duration'] ?? 30) as num).toInt(),
       icon: (json['icon'] ?? '✂️') as String,
     );

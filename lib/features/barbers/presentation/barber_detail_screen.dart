@@ -572,7 +572,10 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                         ],
                       ),
                     ),
-                    Text("${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
+                    Text(
+                        s.priceMax != null && s.priceMax! > s.price
+                            ? "${_fmt(s.price)} – ${_fmt(s.priceMax!)} ${tr(ref, 'common.currency', "so'm")}"
+                            : "${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                         style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary,
