@@ -414,12 +414,47 @@ extension ShopRepoExtras on ShopRepository {
   }
 
   Future<List<ShopTxnEntry>> transactions({int page = 1, int limit = 30}) async {
-    final res = await _dio.get('/barbershop/transactions', queryParameters: {'page': page, 'limit': limit});
+    final r = await transactionsFiltered(page: page, limit: limit);
+    return r.data;
+  }
+
+  /// Filtered + paginated. Mirrors web `getShopTransactionsAPI`: type,
+  /// direction (income/expense), barberId, smsType, date range.
+  Future<({List<ShopTxnEntry> data, int total})> transactionsFiltered({
+    String? type,
+    String? direction,
+    String? barberId,
+    String? smsType,
+    String? from,
+    String? to,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final res =
+        await _dio.get('/barbershop/transactions', queryParameters: {
+      'page': page,
+      'limit': limit,
+      'type': ?type,
+      'direction': ?direction,
+      'barberId': ?barberId,
+      'smsType': ?smsType,
+      'from': ?from,
+      'to': ?to,
+    });
     final data = res.data;
     final list = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return list.cast<Map<String, dynamic>>().map(ShopTxnEntry.fromJson).toList();
+    final meta = data is Map && data['meta'] is Map
+        ? (data['meta'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    return (
+      data: list
+          .cast<Map<String, dynamic>>()
+          .map(ShopTxnEntry.fromJson)
+          .toList(),
+      total: ((meta['total'] ?? list.length) as num).toInt(),
+    );
   }
 }
 
@@ -447,3 +482,25 @@ final shopSmsFilteredProvider = FutureProvider.family<
 });
 final shopTransactionsProvider = FutureProvider<List<ShopTxnEntry>>(
     (ref) => ref.watch(shopRepositoryProvider).transactions());
+
+typedef ShopTxnKey = ({
+  String? type,
+  String? direction,
+  String? barberId,
+  String? smsType,
+  String? from,
+  String? to,
+  int page,
+});
+
+final shopTxnFilteredProvider = FutureProvider.family<
+    ({List<ShopTxnEntry> data, int total}), ShopTxnKey>((ref, k) async {
+  return ref.watch(shopRepositoryProvider).transactionsFiltered(
+      type: k.type,
+      direction: k.direction,
+      barberId: k.barberId,
+      smsType: k.smsType,
+      from: k.from,
+      to: k.to,
+      page: k.page);
+});
