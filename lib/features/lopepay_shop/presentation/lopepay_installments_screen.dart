@@ -23,8 +23,14 @@ class LopepayInstallmentsScreen extends ConsumerStatefulWidget {
 class _LopepayInstallmentsScreenState
     extends ConsumerState<LopepayInstallmentsScreen> {
   static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
+  static final _ymd = DateFormat('yyyy-MM-dd');
   String _query = '';
   String _status = 'all'; // 'all' | 'overdue' | 'due_today' | 'upcoming' | 'paid_off'
+  String _phone = '';
+  String? _productId; // null = any
+  DateTime? _from;
+  DateTime? _to;
+  bool _filtersOpen = false;
 
   String _statusLabel(WidgetRef ref, String s, int daysLate) {
     switch (s) {
@@ -71,12 +77,41 @@ class _LopepayInstallmentsScreenState
     return buf.toString();
   }
 
+  _InstallmentsKey get _key => (
+        search: _query.isEmpty ? null : _query,
+        status: _status == 'all' ? null : _status,
+        phone: _phone.isEmpty ? null : _phone,
+        productId: _productId,
+        from: _from == null ? null : _ymd.format(_from!),
+        to: _to == null ? null : _ymd.format(_to!),
+      );
+
+  Future<void> _pickDate(bool isFrom) async {
+    final init = (isFrom ? _from : _to) ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: init,
+      firstDate: DateTime.now().subtract(const Duration(days: 365 * 3)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+    );
+    if (picked != null) setState(() => isFrom ? _from = picked : _to = picked);
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _query = '';
+      _status = 'all';
+      _phone = '';
+      _productId = null;
+      _from = null;
+      _to = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(_installmentsListProvider((
-      search: _query.isEmpty ? null : _query,
-      status: _status == 'all' ? null : _status,
-    )));
+    final async = ref.watch(_installmentsListProvider(_key));
+    final productsAsync = ref.watch(lopepayProductsProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(tr(ref, 'mobile.lopepay.installments.title',
@@ -90,21 +125,137 @@ class _LopepayInstallmentsScreenState
             "Rassrochka qo'shish")),
       ),
       body: Column(children: [
-        // Search bar
+        // Search bar + filter toggle
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: TextField(
-            onChanged: (v) => setState(() => _query = v),
-            style: const TextStyle(color: AppColors.textBright),
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search,
-                  color: AppColors.textMuted, size: 22),
-              hintText: tr(ref, 'mobile.lopepay.customers.searchHint',
-                  "Ism yoki telefon"),
-              isDense: true,
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                onChanged: (v) => setState(() => _query = v),
+                style: const TextStyle(color: AppColors.textBright),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search,
+                      color: AppColors.textMuted, size: 22),
+                  hintText: tr(ref, 'mobile.lopepay.customers.searchHint',
+                      "Ism yoki telefon"),
+                  isDense: true,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => setState(() => _filtersOpen = !_filtersOpen),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _filtersOpen
+                      ? AppColors.primary.withValues(alpha: 0.15)
+                      : AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: _filtersOpen
+                          ? AppColors.primary
+                          : AppColors.border),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.filter_list,
+                  color: _filtersOpen
+                      ? AppColors.primary
+                      : AppColors.textMuted,
+                  size: 20,
+                ),
+              ),
+            ),
+          ]),
+        ),
+
+        // ===== Advanced filter panel (collapsible) =====
+        if (_filtersOpen)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                TextField(
+                  onChanged: (v) => setState(() => _phone = v),
+                  controller: TextEditingController(text: _phone)
+                    ..selection = TextSelection.collapsed(offset: _phone.length),
+                  style: const TextStyle(color: AppColors.textBright),
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    labelText: tr(ref, 'lopePay.shop.filterPhone',
+                        'Telefon raqami'),
+                    hintText: '+998...',
+                  ),
+                ),
+                const SizedBox(height: 10),
+                productsAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                  data: (products) => DropdownButtonFormField<String?>(
+                    isDense: true,
+                    initialValue: _productId,
+                    decoration: InputDecoration(
+                      labelText: tr(ref, 'lopePay.shop.filterProduct',
+                          "Mahsulot"),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                          value: null,
+                          child: Text(tr(ref, 'common.all', "Hammasi"))),
+                      ...products.map((p) => DropdownMenuItem(
+                          value: p.id,
+                          child: Text(p.name,
+                              overflow: TextOverflow.ellipsis))),
+                    ],
+                    onChanged: (v) => setState(() => _productId = v),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(children: [
+                  Expanded(
+                    child: _DatePill(
+                      label: _from == null
+                          ? tr(ref, 'lopePay.shop.filterFrom', "Dan")
+                          : _ymd.format(_from!),
+                      onTap: () => _pickDate(true),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text("—",
+                      style: TextStyle(color: AppColors.textMuted)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _DatePill(
+                      label: _to == null
+                          ? tr(ref, 'lopePay.shop.filterTo', "Gacha")
+                          : _ymd.format(_to!),
+                      onTap: () => _pickDate(false),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 10),
+                Row(children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: Text(tr(ref, 'common.reset', "Tozalash")),
+                      onPressed: _resetFilters,
+                    ),
+                  ),
+                ]),
+              ]),
             ),
           ),
-        ),
         // Status filter chips
         SizedBox(
           height: 40,
@@ -161,10 +312,7 @@ class _LopepayInstallmentsScreenState
                 color: AppColors.primary,
                 onRefresh: () async {
                   ref.invalidate(_installmentsListProvider);
-                  await ref.read(_installmentsListProvider((
-                    search: _query.isEmpty ? null : _query,
-                    status: _status == 'all' ? null : _status,
-                  )).future);
+                  await ref.read(_installmentsListProvider(_key).future);
                 },
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -327,7 +475,47 @@ class _Chip extends StatelessWidget {
   }
 }
 
-typedef _InstallmentsKey = ({String? search, String? status});
+class _DatePill extends StatelessWidget {
+  const _DatePill({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(children: [
+          const Icon(Icons.event_outlined,
+              size: 14, color: AppColors.textMuted),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    color: AppColors.textBright, fontSize: 12)),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+typedef _InstallmentsKey = ({
+  String? search,
+  String? status,
+  String? phone,
+  String? productId,
+  String? from,
+  String? to,
+});
 
 final _installmentsListProvider = FutureProvider.family<
     ({List<Map<String, dynamic>> data, int total}),
@@ -335,6 +523,10 @@ final _installmentsListProvider = FutureProvider.family<
   return ref.watch(lopepayRepositoryProvider).listInstallments(
         search: k.search,
         status: k.status,
+        phone: k.phone,
+        productId: k.productId,
+        from: k.from,
+        to: k.to,
         limit: 100,
       );
 });
