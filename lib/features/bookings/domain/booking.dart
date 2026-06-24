@@ -15,6 +15,7 @@ class Booking {
     this.userPhone,
     this.guestName,
     this.guestPhone,
+    this.notes,
   });
 
   final String id;
@@ -32,6 +33,7 @@ class Booking {
   final String? userPhone;
   final String? guestName;
   final String? guestPhone;
+  final String? notes;
 
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
@@ -54,6 +56,9 @@ class Booking {
       userPhone: json['userPhone'] as String?,
       guestName: json['guestName'] as String?,
       guestPhone: json['guestPhone'] as String?,
+      notes: (json['notes'] as String?)?.isEmpty ?? true
+          ? null
+          : json['notes'] as String,
     );
   }
 }

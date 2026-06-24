@@ -254,6 +254,23 @@ class _BookingCard extends ConsumerWidget {
                             fontWeight: FontWeight.w700,
                             color: AppColors.primary)),
                 ]),
+                if (b.notes != null && b.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Icon(Icons.notes,
+                        size: 11, color: AppColors.textMuted),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(b.notes!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic)),
+                    ),
+                  ]),
+                ],
                 if (b.status == 'confirmed') ...[
                   const SizedBox(height: 8),
                   Row(children: [
