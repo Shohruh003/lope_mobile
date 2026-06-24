@@ -3,6 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
 
+class BarberBookingService {
+  BarberBookingService({required this.name, required this.price});
+  final String name;
+  final int price;
+
+  factory BarberBookingService.fromJson(Map<String, dynamic> json) =>
+      BarberBookingService(
+        name: (json['nameUz'] ?? json['name'] ?? '') as String,
+        price: ((json['price'] ?? 0) as num).toInt(),
+      );
+}
+
 class BarberBooking {
   BarberBooking({
     required this.id,
@@ -12,6 +24,7 @@ class BarberBooking {
     required this.userName,
     required this.totalPrice,
     required this.totalDuration,
+    required this.services,
     this.userPhone,
     this.guestName,
     this.guestPhone,
@@ -27,6 +40,7 @@ class BarberBooking {
   final String? userPhone;
   final String? guestName;
   final String? guestPhone;
+  final List<BarberBookingService> services;
 
   factory BarberBooking.fromJson(Map<String, dynamic> json) => BarberBooking(
         id: json['id'] as String,
@@ -39,6 +53,10 @@ class BarberBooking {
         guestPhone: json['guestPhone'] as String?,
         totalPrice: ((json['totalPrice'] ?? 0) as num).toInt(),
         totalDuration: ((json['totalDuration'] ?? 0) as num).toInt(),
+        services: ((json['services'] as List?) ?? const [])
+            .cast<Map<String, dynamic>>()
+            .map(BarberBookingService.fromJson)
+            .toList(growable: false),
       );
 }
 

@@ -215,7 +215,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       (b) => b.time == time && b.status != 'cancelled',
       orElse: () => BarberBooking(
           id: '', date: '', time: '', status: '', userName: '',
-          totalPrice: 0, totalDuration: 0),
+          totalPrice: 0, totalDuration: 0, services: const []),
     );
     if (booking.id.isEmpty) {
       if (!mounted) return;

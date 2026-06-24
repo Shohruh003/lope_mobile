@@ -52,13 +52,36 @@ class BarberStatsScreen extends ConsumerWidget {
 
                   int weekCount = 0, monthCount = 0, totalRev = 0;
                   int weekRev = 0, monthRev = 0;
+                  int confirmedCount = 0, completedCount = 0, cancelledCount = 0;
+                  final serviceAgg = <String, ({String name, int count, int revenue})>{};
                   // Build day-of-week (Mon=0..Sun=6) bucket for the bar chart.
                   final byDow = List<int>.filled(7, 0);
                   for (final b in list) {
                     final d = DateTime.tryParse(b.date);
                     if (d == null) continue;
+                    switch (b.status) {
+                      case 'confirmed':
+                        confirmedCount++;
+                        break;
+                      case 'completed':
+                        completedCount++;
+                        break;
+                      case 'cancelled':
+                        cancelledCount++;
+                        break;
+                    }
                     if (b.status == 'cancelled') continue;
                     totalRev += b.totalPrice;
+                    // Aggregate services for the Top Services card.
+                    for (final s in b.services) {
+                      final key = s.name;
+                      final prev = serviceAgg[key];
+                      serviceAgg[key] = (
+                        name: s.name,
+                        count: (prev?.count ?? 0) + 1,
+                        revenue: (prev?.revenue ?? 0) + s.price,
+                      );
+                    }
                     if (d.isAfter(weekAgo)) {
                       weekCount++;
                       weekRev += b.totalPrice;
@@ -70,6 +93,8 @@ class BarberStatsScreen extends ConsumerWidget {
                       monthRev += b.totalPrice;
                     }
                   }
+                  final topServices = serviceAgg.values.toList()
+                    ..sort((a, b) => b.count.compareTo(a.count));
 
                   // Count today's bookings (matches web's todayCount)
                   final todayStr =
@@ -183,6 +208,87 @@ class BarberStatsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 14),
+
+                      // ===== Booking status breakdown (mirrors web) =====
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                tr(ref, 'barberApp.bookingsByStatus',
+                                    "Bronlar holati bo'yicha"),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: AppColors.textBright)),
+                            const SizedBox(height: 12),
+                            _StatusRow(
+                                color: const Color(0xFF3B82F6),
+                                label: tr(ref, 'status.confirmed',
+                                    'Tasdiqlangan'),
+                                count: confirmedCount),
+                            const SizedBox(height: 8),
+                            _StatusRow(
+                                color: const Color(0xFF22C55E),
+                                label:
+                                    tr(ref, 'status.completed', 'Yakunlangan'),
+                                count: completedCount),
+                            const SizedBox(height: 8),
+                            _StatusRow(
+                                color: const Color(0xFFEF4444),
+                                label:
+                                    tr(ref, 'status.cancelled', 'Bekor qilingan'),
+                                count: cancelledCount),
+                          ],
+                        ),
+                      ),
+
+                      if (topServices.isNotEmpty) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  tr(ref, 'barberApp.topServices',
+                                      "Eng ko'p so'ralgan xizmatlar"),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                      color: AppColors.textBright)),
+                              const SizedBox(height: 10),
+                              ...topServices.take(5).toList().asMap().entries.map(
+                                  (e) => Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8),
+                                        child: _TopServiceRow(
+                                          rank: e.key + 1,
+                                          name: e.value.name,
+                                          count: e.value.count,
+                                          revenue: e.value.revenue,
+                                          currency: tr(ref, 'common.currency',
+                                              "so'm"),
+                                          fmt: _fmt,
+                                        ),
+                                      )),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 14),
                       _SmsStatsCard(barberId: barberId),
                     ],
                   );
@@ -284,6 +390,102 @@ class _SummaryRow extends StatelessWidget {
                 fontWeight: FontWeight.w600)),
       ],
     );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  const _StatusRow(
+      {required this.color, required this.label, required this.count});
+  final Color color;
+  final String label;
+  final int count;
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(label,
+            style: const TextStyle(
+                color: AppColors.textBright, fontSize: 13)),
+      ),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Text("$count",
+            style: const TextStyle(
+                color: AppColors.textBright,
+                fontWeight: FontWeight.w700,
+                fontSize: 12)),
+      ),
+    ]);
+  }
+}
+
+class _TopServiceRow extends StatelessWidget {
+  const _TopServiceRow({
+    required this.rank,
+    required this.name,
+    required this.count,
+    required this.revenue,
+    required this.currency,
+    required this.fmt,
+  });
+  final int rank;
+  final String name;
+  final int count;
+  final int revenue;
+  final String currency;
+  final String Function(int) fmt;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      SizedBox(
+        width: 22,
+        child: Text("#$rank",
+            style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'monospace')),
+      ),
+      Expanded(
+        child: Text(name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                color: AppColors.textBright, fontSize: 13)),
+      ),
+      const SizedBox(width: 8),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Text("${count}x",
+            style: const TextStyle(
+                color: AppColors.textBright,
+                fontWeight: FontWeight.w700,
+                fontSize: 11)),
+      ),
+      const SizedBox(width: 8),
+      Text("${fmt(revenue)} $currency",
+          style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w600)),
+    ]);
   }
 }
 
