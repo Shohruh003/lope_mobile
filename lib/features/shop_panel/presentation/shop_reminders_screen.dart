@@ -13,14 +13,20 @@ import '../../../shared/theme/colors.dart';
 /// Mirrors the web's BarbershopReminders page exactly — taps open the
 /// shop-side client detail. Backend:
 /// GET /barbershop/clients/due-for-reminder.
-class ShopRemindersScreen extends ConsumerWidget {
+class ShopRemindersScreen extends ConsumerStatefulWidget {
   const ShopRemindersScreen({super.key});
+  @override
+  ConsumerState<ShopRemindersScreen> createState() =>
+      _ShopRemindersScreenState();
+}
 
+class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
   static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
+  int _page = 1;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(_dueForReminderProvider);
+  Widget build(BuildContext context) {
+    final async = ref.watch(_dueForReminderProvider(_page));
     return Scaffold(
       appBar: AppBar(
         title: Text(tr(ref, 'mobile.shop.reminders.title', "Eslatma kutmoqda")),
@@ -37,7 +43,7 @@ class ShopRemindersScreen extends ConsumerWidget {
             color: AppColors.primary,
             onRefresh: () async {
               ref.invalidate(_dueForReminderProvider);
-              await ref.read(_dueForReminderProvider.future);
+              await ref.read(_dueForReminderProvider(_page).future);
             },
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -144,32 +150,110 @@ class ShopRemindersScreen extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                            if (c.lastVisit != null)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: (c.daysSince >= days + 7
+                                            ? AppColors.danger
+                                            : AppColors.warning)
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
                                       tr(
                                           ref,
                                           'mobile.shop.reminders.daysAgo',
                                           "{{n}} kun oldin",
                                           {'n': '${c.daysSince}'}),
-                                      style: const TextStyle(
-                                          color: AppColors.warning,
+                                      style: TextStyle(
+                                          color: c.daysSince >= days + 7
+                                              ? AppColors.danger
+                                              : AppColors.warning,
                                           fontWeight: FontWeight.w700,
-                                          fontSize: 11)),
-                                  const SizedBox(height: 2),
+                                          fontSize: 10)),
+                                ),
+                                if (c.smsSentRecently) ...[
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success
+                                          .withValues(alpha: 0.15),
+                                      borderRadius:
+                                          BorderRadius.circular(4),
+                                    ),
+                                    child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.check,
+                                              size: 10,
+                                              color: AppColors.success),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                              tr(
+                                                  ref,
+                                                  'mobile.shop.reminders.smsSent',
+                                                  "SMS yuborilgan"),
+                                              style: const TextStyle(
+                                                  color: AppColors.success,
+                                                  fontSize: 9,
+                                                  fontWeight:
+                                                      FontWeight.w700)),
+                                        ]),
+                                  ),
+                                ],
+                                if (c.lastVisit != null) ...[
+                                  const SizedBox(height: 3),
                                   Text(_df.format(c.lastVisit!.toLocal()),
                                       style: const TextStyle(
                                           color: AppColors.textMuted,
                                           fontSize: 10)),
                                 ],
-                              ),
+                                if (c.lastBarberName.isNotEmpty)
+                                  Text(c.lastBarberName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          color: AppColors.textMuted,
+                                          fontSize: 10)),
+                              ],
+                            ),
                           ]),
                         ),
                       ).animate().fadeIn(duration: 250.ms, delay: (e.key * 25).ms),
                     );
                   }),
+                if (data.totalPages > 1) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlinedButton(
+                        onPressed: _page <= 1
+                            ? null
+                            : () => setState(() => _page--),
+                        child: Text(tr(ref, 'common.prev', "Oldingi")),
+                      ),
+                      const SizedBox(width: 12),
+                      Text("$_page / ${data.totalPages}",
+                          style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w700)),
+                      const SizedBox(width: 12),
+                      OutlinedButton(
+                        onPressed: _page >= data.totalPages
+                            ? null
+                            : () => setState(() => _page++),
+                        child: Text(tr(ref, 'common.next', "Keyingi")),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           );
@@ -186,6 +270,8 @@ class _ReminderClient {
     required this.phone,
     required this.avatar,
     required this.daysSince,
+    required this.lastBarberName,
+    required this.smsSentRecently,
     this.lastVisit,
   });
   final String key;
@@ -193,6 +279,8 @@ class _ReminderClient {
   final String phone;
   final String avatar;
   final int daysSince;
+  final String lastBarberName;
+  final bool smsSentRecently;
   final DateTime? lastVisit;
 
   factory _ReminderClient.fromJson(Map<String, dynamic> json) {
@@ -203,22 +291,30 @@ class _ReminderClient {
       phone: (json['phone'] ?? '').toString(),
       avatar: (json['avatar'] ?? '').toString(),
       daysSince: ((json['daysSince'] ?? json['daysAgo'] ?? 0) as num).toInt(),
+      lastBarberName: (json['lastBarberName'] ?? '').toString(),
+      smsSentRecently: json['smsSentRecently'] == true,
       lastVisit: last == null || last.isEmpty ? null : DateTime.tryParse(last),
     );
   }
 }
 
 class _RemindersData {
-  _RemindersData({required this.reminderDays, required this.clients});
+  _RemindersData(
+      {required this.reminderDays,
+      required this.clients,
+      required this.total,
+      required this.totalPages});
   final int reminderDays;
+  final int total;
+  final int totalPages;
   final List<_ReminderClient> clients;
 }
 
-final _dueForReminderProvider =
-    FutureProvider<_RemindersData>((ref) async {
+final _dueForReminderProvider = FutureProvider.family<_RemindersData, int>(
+    (ref, page) async {
   final res = await ref.watch(dioProvider).get(
       '/barbershop/clients/due-for-reminder',
-      queryParameters: {'page': 1, 'limit': 50});
+      queryParameters: {'page': page, 'limit': 20});
   final data = res.data;
   final raw = (data is Map && data['data'] is List)
       ? data['data'] as List
@@ -226,8 +322,13 @@ final _dueForReminderProvider =
   final reminderDays = (data is Map && data['reminderDays'] != null)
       ? (data['reminderDays'] as num).toInt()
       : 20;
+  final meta = data is Map && data['meta'] is Map
+      ? (data['meta'] as Map).cast<String, dynamic>()
+      : <String, dynamic>{};
   return _RemindersData(
     reminderDays: reminderDays,
+    total: ((meta['total'] ?? raw.length) as num).toInt(),
+    totalPages: ((meta['totalPages'] ?? 1) as num).toInt(),
     clients: raw
         .cast<Map<String, dynamic>>()
         .map(_ReminderClient.fromJson)
