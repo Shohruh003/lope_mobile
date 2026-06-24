@@ -375,12 +375,42 @@ extension ShopRepoExtras on ShopRepository {
   }
 
   Future<List<ShopSmsLogEntry>> smsLog({int page = 1, int limit = 30}) async {
-    final res = await _dio.get('/barbershop/sms', queryParameters: {'page': page, 'limit': limit});
+    final r = await smsLogFiltered(page: page, limit: limit);
+    return r.data;
+  }
+
+  /// Filtered + paginated. Mirrors web `getShopSmsLogsAPI` — barberId,
+  /// type and date range are all server-side.
+  Future<({List<ShopSmsLogEntry> data, int total})> smsLogFiltered({
+    String? barberId,
+    String? type,
+    String? from,
+    String? to,
+    int page = 1,
+    int limit = 30,
+  }) async {
+    final res = await _dio.get('/barbershop/sms', queryParameters: {
+      'page': page,
+      'limit': limit,
+      'barberId': ?barberId,
+      'type': ?type,
+      'from': ?from,
+      'to': ?to,
+    });
     final data = res.data;
     final list = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return list.cast<Map<String, dynamic>>().map(ShopSmsLogEntry.fromJson).toList();
+    final meta = data is Map && data['meta'] is Map
+        ? (data['meta'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    return (
+      data: list
+          .cast<Map<String, dynamic>>()
+          .map(ShopSmsLogEntry.fromJson)
+          .toList(),
+      total: ((meta['total'] ?? list.length) as num).toInt(),
+    );
   }
 
   Future<List<ShopTxnEntry>> transactions({int page = 1, int limit = 30}) async {
@@ -397,5 +427,23 @@ final shopClientsProvider = FutureProvider<List<ShopClient>>(
     (ref) => ref.watch(shopRepositoryProvider).clients());
 final shopSmsLogProvider = FutureProvider<List<ShopSmsLogEntry>>(
     (ref) => ref.watch(shopRepositoryProvider).smsLog());
+
+typedef ShopSmsKey = ({
+  String? barberId,
+  String? type,
+  String? from,
+  String? to,
+  int page,
+});
+
+final shopSmsFilteredProvider = FutureProvider.family<
+    ({List<ShopSmsLogEntry> data, int total}), ShopSmsKey>((ref, k) async {
+  return ref.watch(shopRepositoryProvider).smsLogFiltered(
+      barberId: k.barberId,
+      type: k.type,
+      from: k.from,
+      to: k.to,
+      page: k.page);
+});
 final shopTransactionsProvider = FutureProvider<List<ShopTxnEntry>>(
     (ref) => ref.watch(shopRepositoryProvider).transactions());
