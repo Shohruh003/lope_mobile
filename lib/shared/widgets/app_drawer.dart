@@ -152,7 +152,7 @@ class AppDrawer extends ConsumerWidget {
       case 'barber':
         return [
           _DrawerItem(Icons.calendar_view_day, tr(ref, 'mobile.barber.schedule.title', "Jadval"), '/barber-app?tab=0'),
-          _DrawerItem(Icons.people, tr(ref, 'mobile.barber.schedule.addClient', "Bugungi mijozlar"), '/barber/clients'),
+          _DrawerItem(Icons.people, tr(ref, 'mobile.barber.schedule.addClient', "Bugungi mijozlar"), '/barber-app?tab=1'),
           _DrawerItem(Icons.history, tr(ref, 'barberMyClients.title', "Mijozlarim"), '/barber/my-clients'),
           _DrawerItem(Icons.bar_chart, tr(ref, 'mobile.barber.stats.title', "Statistika"), '/barber-app?tab=3'),
           _DrawerItem(Icons.auto_awesome, iAi, '/ai-style'),
