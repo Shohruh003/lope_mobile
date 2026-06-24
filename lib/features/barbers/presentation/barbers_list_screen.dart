@@ -26,7 +26,8 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   String _filter = 'all'; // 'all' | 'favorites' | 'available'
-  String _sort = 'rating'; // 'rating' | 'experience'
+  String _sort = 'rating'; // 'rating' | 'name'
+  String _gender = 'ALL'; // 'ALL' | 'MALE' | 'FEMALE'
 
   @override
   void dispose() {
@@ -57,11 +58,14 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 query: _query,
                 filter: _filter,
                 sort: _sort,
+                gender: _gender,
                 searchHint: '${tr(ref, 'common.search', 'Qidirish')}...',
                 allLabel: tr(ref, 'common.all', 'Hammasi'),
                 availableLabel: tr(ref, 'barbers.available', "Bo'sh"),
                 ratingLabel: tr(ref, 'barbers.rating', "Reyting"),
                 nameLabel: tr(ref, 'barbers.sortByName', "Ism"),
+                maleLabel: tr(ref, 'barbers.genderMale', "Erkak"),
+                femaleLabel: tr(ref, 'barbers.genderFemale', "Ayol"),
                 onSearch: (v) => setState(() => _query = v.trim().toLowerCase()),
                 onClearSearch: () {
                   _searchController.clear();
@@ -69,6 +73,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 },
                 onFilter: (f) => setState(() => _filter = f),
                 onSort: (s) => setState(() => _sort = s),
+                onGender: (g) => setState(() => _gender = g),
               ),
             ),
 
@@ -85,6 +90,21 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                         .toList();
                 if (_filter == 'available') {
                   filtered = filtered.where((b) => b.isAvailable).toList();
+                }
+                // Gender filter — barber.targetGender is 'MALE_ONLY' / 'FEMALE_ONLY'
+                // / null. A null (no preference) barber serves anyone, so they
+                // appear in every gender bucket. Same semantics web uses.
+                if (_gender == 'MALE') {
+                  filtered = filtered
+                      .where(
+                          (b) => b.targetGender == null || b.targetGender == 'MALE_ONLY')
+                      .toList();
+                } else if (_gender == 'FEMALE') {
+                  filtered = filtered
+                      .where((b) =>
+                          b.targetGender == null ||
+                          b.targetGender == 'FEMALE_ONLY')
+                      .toList();
                 }
                 filtered = [...filtered];
                 if (_sort == 'rating') {
@@ -124,39 +144,48 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
     required this.query,
     required this.filter,
     required this.sort,
+    required this.gender,
     required this.searchHint,
     required this.allLabel,
     required this.availableLabel,
     required this.ratingLabel,
     required this.nameLabel,
+    required this.maleLabel,
+    required this.femaleLabel,
     required this.onSearch,
     required this.onClearSearch,
     required this.onFilter,
     required this.onSort,
+    required this.onGender,
   });
   final TextEditingController searchController;
   final String query;
   final String filter;
   final String sort;
+  final String gender;
   final String searchHint;
   final String allLabel;
   final String availableLabel;
   final String ratingLabel;
   final String nameLabel;
+  final String maleLabel;
+  final String femaleLabel;
   final ValueChanged<String> onSearch;
   final VoidCallback onClearSearch;
   final ValueChanged<String> onFilter;
   final ValueChanged<String> onSort;
+  final ValueChanged<String> onGender;
 
   @override
-  double get maxExtent => 108;
+  double get maxExtent => 142;
   @override
-  double get minExtent => 108;
+  double get minExtent => 142;
   @override
   bool shouldRebuild(_StickyFilterHeader old) =>
       query != old.query ||
       filter != old.filter ||
       sort != old.sort ||
+      gender != old.gender ||
       searchHint != old.searchHint ||
       allLabel != old.allLabel;
 
@@ -220,6 +249,37 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
                 on: sort == 'name',
                 onTap: () => onSort('name'),
                 onColor: const Color(0xFF3B82F6),
+                tintBg: true,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        // Gender pills — match web's ALL/MALE/FEMALE target gender filter
+        SizedBox(
+          height: 28,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _Pill(
+                label: allLabel,
+                on: gender == 'ALL',
+                onTap: () => onGender('ALL'),
+                onColor: const Color(0xFF8B5CF6),
+                tintBg: true,
+              ),
+              _Pill(
+                label: maleLabel,
+                on: gender == 'MALE',
+                onTap: () => onGender('MALE'),
+                onColor: const Color(0xFF8B5CF6),
+                tintBg: true,
+              ),
+              _Pill(
+                label: femaleLabel,
+                on: gender == 'FEMALE',
+                onTap: () => onGender('FEMALE'),
+                onColor: const Color(0xFF8B5CF6),
                 tintBg: true,
               ),
             ],
