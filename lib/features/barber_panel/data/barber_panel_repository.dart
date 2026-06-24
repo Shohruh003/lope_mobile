@@ -203,8 +203,12 @@ final barberSmsStatsProvider = FutureProvider.family<BarberSmsStats,
 });
 
 extension BarberBookingActions on BarberPanelRepository {
-  Future<void> markComplete(String bookingId) async {
-    await _dio.patch('/bookings/$bookingId/complete');
+  /// Mark a booking complete. Pass [totalPrice] to override the sum the
+  /// barber actually collected (web's completeBookingAPI supports the
+  /// same arg) — useful when a tip or discount changed the final amount.
+  Future<void> markComplete(String bookingId, {int? totalPrice}) async {
+    await _dio.patch('/bookings/$bookingId/complete',
+        data: totalPrice == null ? <String, dynamic>{} : {'totalPrice': totalPrice});
   }
 
   Future<void> cancel(String bookingId, {String? reason}) async {

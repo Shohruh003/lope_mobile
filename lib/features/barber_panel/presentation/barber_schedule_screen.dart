@@ -225,18 +225,38 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     }
     if (!mounted) return;
     final isComplete = action == 'complete';
+    int? overrideTotal;
+    final priceCtrl = TextEditingController(
+        text: booking.totalPrice > 0 ? booking.totalPrice.toString() : '');
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
         title: Text(isComplete
             ? tr(ref, 'myBookings.completeConfirmTitle', "Bronni yakunlash?")
-            : tr(ref, 'myBookings.cancelConfirmTitle', "Bronni bekor qilasizmi?")),
-        content: Text(isComplete
-            ? tr(ref, 'myBookings.completeConfirmMsg',
-                "Bron yakunlangan deb belgilanadi.")
-            : tr(ref, 'myBookings.cancelConfirmMsg',
-                "Bekor qilingach, qaytarib bo'lmaydi.")),
+            : tr(ref, 'myBookings.cancelConfirmTitle',
+                "Bronni bekor qilasizmi?")),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(isComplete
+              ? tr(ref, 'myBookings.completeConfirmMsg',
+                  "Bron yakunlangan deb belgilanadi.")
+              : tr(ref, 'myBookings.cancelConfirmMsg',
+                  "Bekor qilingach, qaytarib bo'lmaydi.")),
+          // Optional total override on complete — mirrors web (tip/discount).
+          if (isComplete) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: priceCtrl,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: tr(ref, 'myBookings.totalPriceLabel',
+                    "Olingan summa (ixtiyoriy)"),
+                hintText: '0',
+                suffixText: tr(ref, 'common.currency', "so'm"),
+              ),
+            ),
+          ],
+        ]),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dCtx, false),
@@ -244,7 +264,12 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
           TextButton(
               style: TextButton.styleFrom(
                   foregroundColor: isComplete ? null : AppColors.danger),
-              onPressed: () => Navigator.pop(dCtx, true),
+              onPressed: () {
+                if (isComplete) {
+                  overrideTotal = int.tryParse(priceCtrl.text.trim());
+                }
+                Navigator.pop(dCtx, true);
+              },
               child: Text(isComplete
                   ? tr(ref, 'common.confirm', "Tasdiqlash")
                   : tr(ref, 'myBookings.cancel', "Bekor qilish"))),
@@ -254,7 +279,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     if (ok != true) return;
     try {
       if (isComplete) {
-        await repo.markComplete(booking.id);
+        await repo.markComplete(booking.id, totalPrice: overrideTotal);
       } else {
         await repo.cancel(booking.id);
       }
