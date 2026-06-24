@@ -120,6 +120,7 @@ class BarberServicesScreen extends ConsumerWidget {
       {Map<String, dynamic>? existing}) async {
     final name = TextEditingController(text: (existing?['nameUz'] ?? existing?['name'] ?? '').toString());
     final price = TextEditingController(text: existing?['price']?.toString() ?? '');
+    final priceMax = TextEditingController(text: existing?['priceMax']?.toString() ?? '');
     final dur = TextEditingController(text: existing?['duration']?.toString() ?? '30');
     final result = await showModalBottomSheet<bool>(
       context: context,
@@ -148,12 +149,26 @@ class BarberServicesScreen extends ConsumerWidget {
                     hintText: tr(ref, 'mobile.barber.services.namePh',
                         "Nomi (masalan: Soch olish)"))),
             const SizedBox(height: 12),
-            TextField(
-                controller: price,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                    hintText: tr(ref, 'mobile.barber.services.pricePh',
-                        "Narxi (so'm)"))),
+            Row(children: [
+              Expanded(
+                child: TextField(
+                    controller: price,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                        labelText: tr(ref, 'mobile.barber.services.pricePh',
+                            "Narxi (so'm)"))),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                    controller: priceMax,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                        labelText: tr(ref,
+                            'mobile.barber.services.priceMaxPh',
+                            "Maks (ixtiyoriy)"))),
+              ),
+            ]),
             const SizedBox(height: 12),
             TextField(
                 controller: dur,
@@ -174,10 +189,14 @@ class BarberServicesScreen extends ConsumerWidget {
       ),
     );
     if (result != true) return;
-    final body = {
+    final pMax = int.tryParse(priceMax.text.trim());
+    final body = <String, dynamic>{
       'nameUz': name.text.trim(),
       'name': name.text.trim(),
       'price': int.tryParse(price.text.trim()) ?? 0,
+      // Send priceMax only when it's set AND larger than price — null
+      // clears any previous range so the service goes back to single-price.
+      'priceMax': pMax != null && pMax > 0 ? pMax : null,
       'duration': int.tryParse(dur.text.trim()) ?? 30,
     };
     try {
