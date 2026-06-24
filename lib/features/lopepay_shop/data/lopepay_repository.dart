@@ -224,12 +224,41 @@ class LopepayRepository {
   }
 
   Future<List<Map<String, dynamic>>> transactions() async {
-    final res = await _dio.get('/lopepay/transactions');
+    final r = await transactionsFiltered();
+    return r.data;
+  }
+
+  /// Filtered + paginated variant. Returns the balance the backend sends
+  /// alongside the page so the screen can render the "current balance"
+  /// card without a second round-trip. Mirrors web `shopTransactionsAPI`.
+  Future<({List<Map<String, dynamic>> data, int total, int balance})>
+      transactionsFiltered({
+    String? type,
+    String? from,
+    String? to,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final res = await _dio.get('/lopepay/transactions', queryParameters: {
+      'type': ?type,
+      'from': ?from,
+      'to': ?to,
+      'page': page,
+      'limit': limit,
+    });
     final data = res.data;
     final list = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return list.cast<Map<String, dynamic>>();
+    final meta = data is Map && data['meta'] is Map
+        ? (data['meta'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    final balance = data is Map ? data['balance'] : null;
+    return (
+      data: list.cast<Map<String, dynamic>>(),
+      total: ((meta['total'] ?? list.length) as num).toInt(),
+      balance: ((balance ?? 0) as num).toInt(),
+    );
   }
 
   /// Installments due today — used by the dashboard's "Bugun" section.
@@ -307,6 +336,15 @@ final lopepaySmsProvider = FutureProvider<List<Map<String, dynamic>>>(
     (ref) => ref.watch(lopepayRepositoryProvider).sms());
 final lopepayTxnProvider = FutureProvider<List<Map<String, dynamic>>>(
     (ref) => ref.watch(lopepayRepositoryProvider).transactions());
+
+typedef LopepayTxnKey = ({String? type, String? from, String? to, int page});
+
+final lopepayTxnFilteredProvider = FutureProvider.family<
+    ({List<Map<String, dynamic>> data, int total, int balance}),
+    LopepayTxnKey>((ref, k) async {
+  return ref.watch(lopepayRepositoryProvider).transactionsFiltered(
+      type: k.type, from: k.from, to: k.to, page: k.page);
+});
 
 final lopepayRepositoryProvider = Provider<LopepayRepository>(
     (ref) => LopepayRepository(ref.watch(dioProvider)));
