@@ -63,6 +63,37 @@ class BalanceRepository {
     int page = 1,
     int limit = 20,
   }) async {
+    final r = await historyEnvelope(
+        userId: userId,
+        direction: direction,
+        method: method,
+        from: from,
+        to: to,
+        page: page,
+        limit: limit);
+    return r.data;
+  }
+
+  /// Full envelope variant — returns {data, balance, meta, stats}. Used by
+  /// the customer transactions screen so the balance + income/expense
+  /// totals can be rendered without a second round-trip. Mirrors web
+  /// `fetchMyPaymentHistoryAPI`.
+  Future<({
+    List<PaymentEntry> data,
+    int balance,
+    int total,
+    int totalPages,
+    int totalIncome,
+    int totalExpense,
+  })> historyEnvelope({
+    required String userId,
+    String direction = 'all',
+    String method = 'all',
+    String? from,
+    String? to,
+    int page = 1,
+    int limit = 20,
+  }) async {
     final res = await _dio.get('/users/$userId/payment-history', queryParameters: {
       if (direction != 'all') 'direction': direction,
       if (method != 'all') 'method': method,
@@ -77,7 +108,24 @@ class BalanceRepository {
     final list = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return list.cast<Map<String, dynamic>>().map(PaymentEntry.fromJson).toList();
+    final meta = data is Map && data['meta'] is Map
+        ? (data['meta'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    final stats = data is Map && data['stats'] is Map
+        ? (data['stats'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    final balance = data is Map ? data['balance'] : null;
+    return (
+      data: list
+          .cast<Map<String, dynamic>>()
+          .map(PaymentEntry.fromJson)
+          .toList(),
+      balance: ((balance ?? 0) as num).toInt(),
+      total: ((meta['total'] ?? list.length) as num).toInt(),
+      totalPages: ((meta['totalPages'] ?? 1) as num).toInt(),
+      totalIncome: ((stats['totalIncome'] ?? 0) as num).toInt(),
+      totalExpense: ((stats['totalExpense'] ?? 0) as num).toInt(),
+    );
   }
 
   /// Returns the gateway URL the user should be redirected to.
@@ -101,3 +149,31 @@ final myBalanceProvider = FutureProvider.family<BalanceState, String>(
 
 final paymentHistoryProvider = FutureProvider.family<List<PaymentEntry>, String>(
     (ref, userId) => ref.watch(balanceRepositoryProvider).history(userId: userId));
+
+typedef PaymentHistoryKey = ({
+  String userId,
+  String direction,
+  String method,
+  String? from,
+  String? to,
+  int page,
+});
+
+final paymentHistoryFilteredProvider = FutureProvider.family<
+    ({
+      List<PaymentEntry> data,
+      int balance,
+      int total,
+      int totalPages,
+      int totalIncome,
+      int totalExpense,
+    }),
+    PaymentHistoryKey>((ref, k) async {
+  return ref.watch(balanceRepositoryProvider).historyEnvelope(
+      userId: k.userId,
+      direction: k.direction,
+      method: k.method,
+      from: k.from,
+      to: k.to,
+      page: k.page);
+});
