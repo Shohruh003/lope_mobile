@@ -7,7 +7,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../barber_panel/data/barber_panel_repository.dart';
+import '../../bookings/data/booking_repository.dart';
 import '../data/shop_repository.dart';
+import 'shop_bookings_screen.dart' show shopBookingsFilteredProvider;
 
 /// Shop-owner view of a single barber inside their salon. Mirrors the
 /// web `BarbershopBarberDetail.tsx` flow — header with master info,
@@ -281,7 +284,7 @@ class _ScheduleTab extends ConsumerWidget {
                   .entries
                   .map((e) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: _BookingRow(b: e.value, ref: ref)
+                        child: _BookingRow(b: e.value, dateStr: dateStr)
                             .animate()
                             .fadeIn(duration: 200.ms, delay: (e.key * 25).ms),
                       ))
@@ -294,12 +297,12 @@ class _ScheduleTab extends ConsumerWidget {
   }
 }
 
-class _BookingRow extends StatelessWidget {
-  const _BookingRow({required this.b, required this.ref});
+class _BookingRow extends ConsumerWidget {
+  const _BookingRow({required this.b, required this.dateStr});
   final ShopBooking b;
-  final WidgetRef ref;
+  final String dateStr;
 
-  String _statusLabel() {
+  String _statusLabel(WidgetRef ref) {
     switch (b.status) {
       case 'completed':
         return tr(ref, 'myBookings.statusCompleted', 'Yakunlangan');
@@ -333,7 +336,7 @@ class _BookingRow extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final color = _statusColor();
     return Container(
       padding: const EdgeInsets.all(12),
@@ -372,7 +375,7 @@ class _BookingRow extends StatelessWidget {
                     color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(_statusLabel(),
+                  child: Text(_statusLabel(ref),
                       style: TextStyle(
                           color: color,
                           fontSize: 10,
@@ -391,8 +394,168 @@ class _BookingRow extends StatelessWidget {
             ],
           ),
         ),
+        if (b.status == 'confirmed' && b.id.isNotEmpty)
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert,
+                color: AppColors.textMuted, size: 20),
+            onSelected: (value) async {
+              switch (value) {
+                case 'reschedule':
+                  await _reschedule(context, ref);
+                  break;
+                case 'extend':
+                  await _extend(context, ref);
+                  break;
+                case 'cancel':
+                  await _cancel(context, ref);
+                  break;
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'reschedule',
+                child: Row(children: [
+                  const Icon(Icons.event_repeat,
+                      size: 16, color: AppColors.textBright),
+                  const SizedBox(width: 8),
+                  Text(tr(ref, 'mobile.shop.barber.reschedule',
+                      "Boshqa vaqtga ko'chirish")),
+                ]),
+              ),
+              PopupMenuItem(
+                value: 'extend',
+                child: Row(children: [
+                  const Icon(Icons.timer_outlined,
+                      size: 16, color: AppColors.textBright),
+                  const SizedBox(width: 8),
+                  Text(tr(ref, 'mobile.shop.barber.extend',
+                      "Vaqtni uzaytirish")),
+                ]),
+              ),
+              PopupMenuItem(
+                value: 'cancel',
+                child: Row(children: [
+                  const Icon(Icons.close,
+                      size: 16, color: AppColors.danger),
+                  const SizedBox(width: 8),
+                  Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
+                      style: const TextStyle(color: AppColors.danger)),
+                ]),
+              ),
+            ],
+          ),
       ]),
     );
+  }
+
+  Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(tr(ref, 'myBookings.cancelConfirmTitle',
+            "Bronni bekor qilasizmi?")),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, false),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(dCtx, true),
+            child: Text(tr(ref, 'myBookings.cancel', "Bekor qilish")),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(bookingRepositoryProvider).cancel(b.id);
+      ref.invalidate(_shopBarberBookingsProvider);
+      ref.invalidate(shopBookingsFilteredProvider);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    }
+  }
+
+  Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
+    final initial = DateTime.tryParse(dateStr) ?? DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (pickedDate == null) return;
+    if (!context.mounted) return;
+    final parts = b.time.split(':');
+    final initTime = TimeOfDay(
+        hour: int.tryParse(parts[0]) ?? 9,
+        minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
+    final pickedTime =
+        await showTimePicker(context: context, initialTime: initTime);
+    if (pickedTime == null) return;
+    final newDate =
+        "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+    final newTime =
+        "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
+    try {
+      await ref
+          .read(bookingRepositoryProvider)
+          .reschedule(b.id, date: newDate, time: newTime);
+      ref.invalidate(_shopBarberBookingsProvider);
+      ref.invalidate(shopBookingsFilteredProvider);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    }
+  }
+
+  Future<void> _extend(BuildContext context, WidgetRef ref) async {
+    int minutes = 30;
+    final ok = await showDialog<int>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(tr(ref, 'mobile.shop.barber.extendTitle',
+            "Vaqtni uzaytirish (daqiqa)")),
+        content: StatefulBuilder(builder: (sCtx, setSt) {
+          return DropdownButtonFormField<int>(
+            initialValue: minutes,
+            items: const [
+              DropdownMenuItem(value: 15, child: Text("+15")),
+              DropdownMenuItem(value: 30, child: Text("+30")),
+              DropdownMenuItem(value: 45, child: Text("+45")),
+              DropdownMenuItem(value: 60, child: Text("+60")),
+              DropdownMenuItem(value: 90, child: Text("+90")),
+            ],
+            onChanged: (v) => setSt(() => minutes = v ?? 30),
+          );
+        }),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, minutes),
+              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+        ],
+      ),
+    );
+    if (ok == null) return;
+    try {
+      await ref
+          .read(barberPanelRepositoryProvider)
+          .extendDuration(b.id, ok);
+      ref.invalidate(_shopBarberBookingsProvider);
+      ref.invalidate(shopBookingsFilteredProvider);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    }
   }
 }
 
