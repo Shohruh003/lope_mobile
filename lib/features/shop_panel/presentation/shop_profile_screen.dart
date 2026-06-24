@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -32,6 +33,9 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
+  final _geoAddressCtrl = TextEditingController();
+  final _latCtrl = TextEditingController();
+  final _lngCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _reminderDaysCtrl = TextEditingController(text: '20');
   final _reminderHoursCtrl = TextEditingController(text: '1');
@@ -60,6 +64,9 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _addressCtrl.dispose();
+    _geoAddressCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
     _descCtrl.dispose();
     _reminderDaysCtrl.dispose();
     _reminderHoursCtrl.dispose();
@@ -112,10 +119,15 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
           'close': h.close,
         };
       }
+      final lat = double.tryParse(_latCtrl.text.trim());
+      final lng = double.tryParse(_lngCtrl.text.trim());
       await ref.read(shopRepositoryProvider).updateMe({
         'name': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'address': _addressCtrl.text.trim(),
+        'geoAddress': _geoAddressCtrl.text.trim(),
+        'latitude': ?lat,
+        'longitude': ?lng,
         'description': _descCtrl.text.trim(),
         'reminderDays': reminderDays,
         'reminderHoursBefore': reminderHours,
@@ -137,12 +149,33 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     }
   }
 
+  Future<void> _openYandex() async {
+    final q = _addressCtrl.text.trim();
+    final lat = _latCtrl.text.trim();
+    final lng = _lngCtrl.text.trim();
+    final url = lat.isNotEmpty && lng.isNotEmpty
+        ? 'https://yandex.uz/maps/?pt=$lng,$lat&z=16'
+        : q.isNotEmpty
+            ? 'https://yandex.uz/maps/?text=${Uri.encodeComponent(q)}'
+            : 'https://yandex.uz/maps/';
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   void _seed(Map<String, dynamic> m) {
     if (_seeded) return;
     _seeded = true;
     _nameCtrl.text = (m['name'] ?? '').toString();
     _phoneCtrl.text = (m['phone'] ?? '').toString();
     _addressCtrl.text = (m['address'] ?? m['location'] ?? '').toString();
+    _geoAddressCtrl.text = (m['geoAddress'] ?? '').toString();
+    final lat = m['latitude'];
+    final lng = m['longitude'];
+    if (lat is num) _latCtrl.text = lat.toString();
+    if (lng is num) _lngCtrl.text = lng.toString();
     _descCtrl.text = (m['description'] ?? '').toString();
     _reminderDaysCtrl.text =
         ((m['reminderDays'] ?? 20) as num).toInt().toString();
@@ -196,6 +229,59 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
               _Label(tr(ref, 'profile.location', "Manzil")),
               const SizedBox(height: 6),
               TextField(controller: _addressCtrl),
+              const SizedBox(height: 12),
+              _Label(tr(ref, 'mobile.shop.profile.geoAddress',
+                  "Geo manzil (xaritada)")),
+              const SizedBox(height: 6),
+              TextField(controller: _geoAddressCtrl),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Label(tr(
+                          ref, 'mobile.barber.location.lat', "Kenglik")),
+                      const SizedBox(height: 6),
+                      TextField(
+                          controller: _latCtrl,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(
+                                  decimal: true, signed: true),
+                          decoration: const InputDecoration(
+                              hintText: '41.299496')),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Label(tr(
+                          ref, 'mobile.barber.location.lng', "Uzunlik")),
+                      const SizedBox(height: 6),
+                      TextField(
+                          controller: _lngCtrl,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(
+                                  decimal: true, signed: true),
+                          decoration: const InputDecoration(
+                              hintText: '69.240073')),
+                    ],
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.search, size: 16),
+                  label: Text(tr(ref, 'mobile.barber.location.findOnYandex',
+                      "Yandex'da topish")),
+                  onPressed: _openYandex,
+                ),
+              ),
               const SizedBox(height: 12),
               _Label(tr(ref, 'mobile.shop.profile.description', "Tavsif")),
               const SizedBox(height: 6),

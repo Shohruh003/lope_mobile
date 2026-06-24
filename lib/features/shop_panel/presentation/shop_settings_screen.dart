@@ -17,6 +17,17 @@ class ShopSettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
+          ShadSectionLabel(
+              tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
+          const SizedBox(height: 8),
+          ShadTileGroup(children: [
+            ShadTile(
+                icon: Icons.person_outline,
+                label: tr(ref, 'profile.editProfile', "Profilni tahrirlash"),
+                onTap: () => context.push('/profile-edit')),
+          ]),
+
+          const SizedBox(height: 18),
           ShadSectionLabel(tr(ref, 'mobile.shop.settings.salon', 'SALON')),
           const SizedBox(height: 8),
           ShadTileGroup(children: [
