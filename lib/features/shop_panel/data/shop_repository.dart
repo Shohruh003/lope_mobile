@@ -193,15 +193,35 @@ class ShopRepository {
 
   // Barbers (masters) CRUD
   Future<List<ShopBarber>> barbers({int page = 1, int limit = 20, String? search}) async {
+    final r = await barbersPaged(page: page, limit: limit, search: search);
+    return r.data;
+  }
+
+  /// Paged variant returning total + page metadata. Mirrors web
+  /// `listShopBarbersAPI` envelope so the UI can render Prev/Next.
+  Future<({List<ShopBarber> data, int total, int totalPages, bool hasMore})>
+      barbersPaged({int page = 1, int limit = 20, String? search}) async {
     final res = await _dio.get('/barbershop/barbers', queryParameters: {
-      'page': page, 'limit': limit,
-      if (search != null && search.isNotEmpty) 'search': search,
+      'page': page,
+      'limit': limit,
+      'search': ?(search?.isEmpty ?? true) ? null : search,
     });
     final data = res.data;
     final raw = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return raw.cast<Map<String, dynamic>>().map(ShopBarber.fromJson).toList();
+    final meta = data is Map && data['meta'] is Map
+        ? (data['meta'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    return (
+      data: raw
+          .cast<Map<String, dynamic>>()
+          .map(ShopBarber.fromJson)
+          .toList(),
+      total: ((meta['total'] ?? raw.length) as num).toInt(),
+      totalPages: ((meta['totalPages'] ?? 1) as num).toInt(),
+      hasMore: meta['hasMore'] == true,
+    );
   }
 
   Future<void> createBarber({required String name, required String experience, String? phone}) async {
@@ -305,7 +325,17 @@ final shopStatsFilteredProvider =
   return ref.watch(shopRepositoryProvider).stats(from: k.from, to: k.to);
 });
 final shopBarbersProvider = FutureProvider<List<ShopBarber>>(
-    (ref) => ref.watch(shopRepositoryProvider).barbers());
+    (ref) => ref.watch(shopRepositoryProvider).barbers(limit: 100));
+
+typedef ShopBarbersKey = ({String? search, int page});
+
+final shopBarbersPagedProvider = FutureProvider.family<
+    ({List<ShopBarber> data, int total, int totalPages, bool hasMore}),
+    ShopBarbersKey>((ref, k) {
+  return ref
+      .watch(shopRepositoryProvider)
+      .barbersPaged(page: k.page, search: k.search);
+});
 final shopBookingsProvider = FutureProvider<List<ShopBooking>>(
     (ref) => ref.watch(shopRepositoryProvider).bookings());
 final shopBalanceProvider =

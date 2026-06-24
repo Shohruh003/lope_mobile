@@ -17,10 +17,16 @@ class ShopBarbersScreen extends ConsumerStatefulWidget {
 
 class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
   String _query = '';
+  int _page = 1;
+
+  ShopBarbersKey get _key => (
+        search: _query.isEmpty ? null : _query,
+        page: _page,
+      );
 
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(shopBarbersProvider);
+    final async = ref.watch(shopBarbersPagedProvider(_key));
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'mobile.shop.masters.title', "Mastera"))),
       floatingActionButton: FloatingActionButton.extended(
@@ -32,15 +38,10 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
-        data: (rawList) {
-          final list = _query.isEmpty
-              ? rawList
-              : rawList.where((b) {
-                  final q = _query.toLowerCase();
-                  return b.name.toLowerCase().contains(q) ||
-                      (b.phone ?? '').contains(_query);
-                }).toList();
-          if (rawList.isEmpty) {
+        data: (res) {
+          final list = res.data;
+          final totalPages = res.totalPages;
+          if (list.isEmpty && _query.isEmpty && _page == 1) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -58,12 +59,18 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
           }
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.refresh(shopBarbersProvider.future),
+            onRefresh: () async {
+              ref.invalidate(shopBarbersPagedProvider);
+              ref.invalidate(shopBarbersProvider);
+            },
             child: Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: TextField(
-                  onChanged: (v) => setState(() => _query = v),
+                  onChanged: (v) => setState(() {
+                    _query = v;
+                    _page = 1;
+                  }),
                   style: const TextStyle(color: AppColors.textBright),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 22),
@@ -133,6 +140,33 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
               },
             ),
               ),
+              if (totalPages > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlinedButton(
+                        onPressed: _page <= 1
+                            ? null
+                            : () => setState(() => _page--),
+                        child: Text(tr(ref, 'common.prev', "Oldingi")),
+                      ),
+                      const SizedBox(width: 12),
+                      Text("$_page / $totalPages",
+                          style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w700)),
+                      const SizedBox(width: 12),
+                      OutlinedButton(
+                        onPressed: _page >= totalPages
+                            ? null
+                            : () => setState(() => _page++),
+                        child: Text(tr(ref, 'common.next', "Keyingi")),
+                      ),
+                    ],
+                  ),
+                ),
             ]),
           );
         },
@@ -205,6 +239,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
         });
       }
       ref.invalidate(shopBarbersProvider);
+      ref.invalidate(shopBarbersPagedProvider);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
@@ -236,6 +271,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     try {
       await ref.read(shopRepositoryProvider).deleteBarber(b.id);
       ref.invalidate(shopBarbersProvider);
+      ref.invalidate(shopBarbersPagedProvider);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
