@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/app_drawer.dart';
+import '../../../shared/widgets/notification_bell.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../barbers/presentation/barbers_list_screen.dart';
@@ -98,13 +98,7 @@ class _CustomerHeader extends ConsumerWidget {
                     letterSpacing: -0.3)),
           ]),
           const Spacer(),
-          IconButton(
-            tooltip: tr(ref, 'barberApp.notifications', 'Bildirishnomalar'),
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.notifications_outlined,
-                color: AppColors.textPrimary, size: 22),
-            onPressed: () => context.push('/notifications'),
-          ),
+          const NotificationBell(),
         ]),
       ),
     );
@@ -174,3 +168,4 @@ class _Item {
   final IconData icon;
   final String label;
 }
+

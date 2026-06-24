@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/app_drawer.dart';
+import '../../../shared/widgets/notification_bell.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../data/lopepay_repository.dart';
 
@@ -80,11 +81,7 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
                 style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
           ]),
           const Spacer(),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary, size: 22),
-            onPressed: () => context.push('/notifications'),
-          ),
+          const NotificationBell(),
         ]),
       ),
     );
