@@ -134,6 +134,8 @@ class ShopBooking {
     required this.userPhone,
     required this.totalPrice,
     required this.totalDuration,
+    required this.notes,
+    required this.isManual,
   });
   final String id;
   final String date;
@@ -146,6 +148,8 @@ class ShopBooking {
   final String? userPhone;
   final int totalPrice;
   final int totalDuration;
+  final String? notes;
+  final bool isManual;
 
   factory ShopBooking.fromJson(Map<String, dynamic> json) => ShopBooking(
         id: json['id'].toString(),
@@ -169,6 +173,10 @@ class ShopBooking {
             : (json['clientPhone'] ?? json['userPhone']) as String,
         totalPrice: ((json['totalPrice'] ?? 0) as num).toInt(),
         totalDuration: ((json['totalDuration'] ?? 0) as num).toInt(),
+        notes: (json['notes'] as String?)?.isEmpty ?? true
+            ? null
+            : json['notes'] as String,
+        isManual: json['isManual'] == true,
       );
 }
 

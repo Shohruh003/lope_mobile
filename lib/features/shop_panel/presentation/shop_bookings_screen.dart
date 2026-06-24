@@ -343,7 +343,42 @@ class _BookingCard extends ConsumerWidget {
                       style: const TextStyle(
                           color: AppColors.textMuted, fontSize: 11)),
                 ],
+                if (b.isManual) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                        tr(ref, 'mobile.shop.bookings.manualBadge',
+                            "Qo'lda"),
+                        style: const TextStyle(
+                            color: AppColors.warning,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                ],
               ]),
+              if (b.notes != null && b.notes!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Icon(Icons.notes,
+                      size: 11, color: AppColors.textMuted),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(b.notes!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic)),
+                  ),
+                ]),
+              ],
               const SizedBox(height: 4),
               Row(children: [
                 Container(
