@@ -30,15 +30,31 @@ class LopepayCustomer {
 }
 
 class LopepayProduct {
-  LopepayProduct({required this.id, required this.name, required this.price});
+  LopepayProduct({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.isActive,
+    required this.installmentsCount,
+  });
   final String id;
   final String name;
   final int price;
-  factory LopepayProduct.fromJson(Map<String, dynamic> json) => LopepayProduct(
-        id: json['id']?.toString() ?? '',
-        name: (json['name'] ?? '').toString(),
-        price: ((json['price'] ?? 0) as num).toInt(),
-      );
+  final bool isActive;
+  final int installmentsCount;
+
+  factory LopepayProduct.fromJson(Map<String, dynamic> json) {
+    final count = json['_count'] is Map
+        ? (((json['_count'] as Map)['installments'] ?? 0) as num).toInt()
+        : 0;
+    return LopepayProduct(
+      id: json['id']?.toString() ?? '',
+      name: (json['name'] ?? '').toString(),
+      price: ((json['price'] ?? json['defaultPrice'] ?? 0) as num).toInt(),
+      isActive: json['isActive'] != false,
+      installmentsCount: count,
+    );
+  }
 }
 
 class LopepayDashboard {
@@ -115,13 +131,30 @@ class LopepayRepository {
     return list.cast<Map<String, dynamic>>().map(LopepayCustomer.fromJson).toList();
   }
 
-  Future<List<LopepayProduct>> products() async {
-    final res = await _dio.get('/lopepay/products');
+  Future<List<LopepayProduct>> products({String? search}) async {
+    final res = await _dio.get('/lopepay/products', queryParameters: {
+      'search': ?search,
+    });
     final data = res.data;
     final list = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
     return list.cast<Map<String, dynamic>>().map(LopepayProduct.fromJson).toList();
+  }
+
+  /// PATCH /lopepay/products/:id — update name/price/isActive.
+  Future<void> updateProduct(String id,
+      {String? name, int? defaultPrice, bool? isActive}) async {
+    await _dio.patch('/lopepay/products/$id', data: {
+      'name': ?name,
+      'defaultPrice': ?defaultPrice,
+      'isActive': ?isActive,
+    });
+  }
+
+  /// DELETE /lopepay/products/:id.
+  Future<void> deleteProduct(String id) async {
+    await _dio.delete('/lopepay/products/$id');
   }
 
   Future<void> recordPayment(String customerId, int amount) async {
@@ -289,6 +322,12 @@ final lopepayCustomersProvider = FutureProvider<List<LopepayCustomer>>(
 
 final lopepayProductsProvider = FutureProvider<List<LopepayProduct>>(
     (ref) => ref.watch(lopepayRepositoryProvider).products());
+
+/// Search-filtered variant — used by the products screen's search bar.
+final lopepayProductsFilteredProvider =
+    FutureProvider.family<List<LopepayProduct>, String>((ref, search) =>
+        ref.watch(lopepayRepositoryProvider).products(
+            search: search.isEmpty ? null : search));
 
 final lopepayDueTodayProvider = FutureProvider<List<Map<String, dynamic>>>(
     (ref) => ref.watch(lopepayRepositoryProvider).dueTodayInstallments());
