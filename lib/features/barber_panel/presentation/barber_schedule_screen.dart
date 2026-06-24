@@ -135,7 +135,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
               leading: const Icon(Icons.person_add_alt_1, color: AppColors.primary),
               title: Text(tr(ref, 'mobile.barber.schedule.addClient', "Mijoz qo'shish"),
                   style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: Text(tr(ref, 'mobile.barber.schedule.manualBooking', "Manual bron yaratish"),
+              subtitle: Text(tr(ref, 'mobile.barber.schedule.manualBooking', "Mijoz yozish"),
                   style: const TextStyle(fontSize: 12)),
               onTap: () => Navigator.of(sheetCtx).pop('book'),
             ),

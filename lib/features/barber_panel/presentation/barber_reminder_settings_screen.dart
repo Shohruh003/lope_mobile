@@ -7,7 +7,9 @@ import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_profile_repository.dart';
 
 /// Two-knob settings for the SMS reminder system:
-///   reminderHoursBefore: 1..24 — how far before a booking to send the SMS
+///   reminderHoursBefore: 1..6 — how far before a booking to send the SMS
+///     (web restricted to 1..6 in commit 9bfae71; SMS provider rate-limits
+///      anything longer than ~6h reliably)
 ///   reminderDays: 7..30 — lookback window for the "next reminder due" sweep
 class BarberReminderSettingsScreen extends ConsumerStatefulWidget {
   const BarberReminderSettingsScreen({super.key});
@@ -17,7 +19,7 @@ class BarberReminderSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSettingsScreen> {
-  int _hours = 12;
+  int _hours = 1;
   int _days = 14;
   bool _saving = false;
   bool _seeded = false;
@@ -53,7 +55,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
         data: (b) {
           if (!_seeded) {
             _seeded = true;
-            _hours = ((b['reminderHoursBefore'] ?? 12) as num).toInt().clamp(1, 24);
+            _hours = ((b['reminderHoursBefore'] ?? 1) as num).toInt().clamp(1, 6);
             _days = ((b['reminderDays'] ?? 14) as num).toInt().clamp(7, 30);
           }
           return ListView(
@@ -69,7 +71,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
               _SectionLabel(tr(ref, 'mobile.barber.reminders.hoursLabel', "Bron oldidan necha soat")),
               _Stepper(
                 value: _hours,
-                min: 1, max: 24,
+                min: 1, max: 6,
                 suffix: tr(ref, 'mobile.barber.reminders.hoursSuffix', " soat"),
                 onChanged: (v) => setState(() => _hours = v),
               ),
