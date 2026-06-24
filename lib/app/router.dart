@@ -198,7 +198,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Lope Pay sub-screens
-      GoRoute(path: '/lopepay/installments', builder: (context, state) => const LopepayInstallmentsScreen()),
+      GoRoute(
+        path: '/lopepay/installments',
+        builder: (context, state) => LopepayInstallmentsScreen(
+            initialStatus: state.uri.queryParameters['status']),
+      ),
       GoRoute(path: '/lopepay/products', builder: (context, state) => const LopepayProductsScreen()),
       GoRoute(path: '/lopepay/sms', builder: (context, state) => const LopepaySmsScreen()),
       GoRoute(path: '/lopepay/transactions', builder: (context, state) => const LopepayTransactionsScreen()),

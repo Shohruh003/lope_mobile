@@ -207,7 +207,9 @@ class _LopepayDashboard extends ConsumerWidget {
               _SectionHeader(
                   icon: Icons.event_available,
                   label: tr(ref, 'mobile.lopepay.home.dueTodayTitle', "Bugun to'lov kuni"),
-                  iconColor: AppColors.warning),
+                  iconColor: AppColors.warning,
+                  onViewAll: () =>
+                      context.push('/lopepay/installments?status=due_today')),
               const SizedBox(height: 8),
               dueTodayAsync.when(
                 loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
@@ -247,7 +249,9 @@ class _LopepayDashboard extends ConsumerWidget {
                     _SectionHeader(
                         icon: Icons.warning_amber,
                         label: tr(ref, 'mobile.lopepay.home.overdue', "Muddati o'tgan"),
-                        iconColor: AppColors.danger),
+                        iconColor: AppColors.danger,
+                        onViewAll: () => context
+                            .push('/lopepay/installments?status=overdue')),
                     const SizedBox(height: 8),
                     ...list.take(5).map((inst) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),
@@ -323,20 +327,53 @@ class _MetricTile extends StatelessWidget {
 /// "Muddati o'tgan" groups. Matches the web's `h2` rows with the colored
 /// leading icon.
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.icon, required this.label, required this.iconColor});
+  const _SectionHeader(
+      {required this.icon,
+      required this.label,
+      required this.iconColor,
+      this.onViewAll});
   final IconData icon;
   final String label;
   final Color iconColor;
+  final VoidCallback? onViewAll;
   @override
   Widget build(BuildContext context) {
     return Row(children: [
       Icon(icon, color: iconColor, size: 18),
       const SizedBox(width: 6),
-      Text(label,
-          style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: iconColor == AppColors.danger ? AppColors.danger : AppColors.textBright)),
+      Expanded(
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: iconColor == AppColors.danger
+                    ? AppColors.danger
+                    : AppColors.textBright)),
+      ),
+      if (onViewAll != null)
+        InkWell(
+          borderRadius: BorderRadius.circular(6),
+          onTap: onViewAll,
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text("Hammasi",
+                  style: TextStyle(
+                      color: iconColor == AppColors.danger
+                          ? AppColors.danger
+                          : AppColors.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700)),
+              const SizedBox(width: 2),
+              Icon(Icons.chevron_right,
+                  size: 16,
+                  color: iconColor == AppColors.danger
+                      ? AppColors.danger
+                      : AppColors.primary),
+            ]),
+          ),
+        ),
     ]);
   }
 }

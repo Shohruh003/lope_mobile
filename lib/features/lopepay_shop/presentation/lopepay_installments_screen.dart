@@ -13,7 +13,8 @@ import '../data/lopepay_repository.dart';
 /// Customer-aggregated view is still available on the LopePay home
 /// shell's Customers tab.
 class LopepayInstallmentsScreen extends ConsumerStatefulWidget {
-  const LopepayInstallmentsScreen({super.key});
+  const LopepayInstallmentsScreen({super.key, this.initialStatus});
+  final String? initialStatus;
 
   @override
   ConsumerState<LopepayInstallmentsScreen> createState() =>
@@ -25,7 +26,8 @@ class _LopepayInstallmentsScreenState
   static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
   static final _ymd = DateFormat('yyyy-MM-dd');
   String _query = '';
-  String _status = 'all'; // 'all' | 'overdue' | 'due_today' | 'upcoming' | 'paid_off'
+  late String _status =
+      widget.initialStatus ?? 'all'; // 'all' | 'overdue' | 'due_today' | 'upcoming' | 'paid_off'
   String _phone = '';
   String? _productId; // null = any
   DateTime? _from;
