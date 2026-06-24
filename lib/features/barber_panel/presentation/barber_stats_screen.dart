@@ -588,6 +588,14 @@ class _SmsStatsCard extends ConsumerWidget {
                       label: tr(ref, 'mobile.barber.stats.smsReturned',
                           "Qaytib kelganlar"),
                       value: "${s.returnedClients}"),
+                  if (s.totalSent > 0) ...[
+                    const Divider(color: AppColors.border, height: 14),
+                    _SummaryRow(
+                        label: tr(ref, 'mobile.barber.stats.smsConversion',
+                            "Konversiya"),
+                        value:
+                            "${((s.returnedClients / s.totalSent) * 100).round()}%"),
+                  ],
                 ],
               ],
             ),
