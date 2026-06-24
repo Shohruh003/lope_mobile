@@ -28,6 +28,8 @@ class BarberBooking {
     this.userPhone,
     this.guestName,
     this.guestPhone,
+    this.notes,
+    this.isManual = false,
   });
 
   final String id;
@@ -40,6 +42,8 @@ class BarberBooking {
   final String? userPhone;
   final String? guestName;
   final String? guestPhone;
+  final String? notes;
+  final bool isManual;
   final List<BarberBookingService> services;
 
   factory BarberBooking.fromJson(Map<String, dynamic> json) => BarberBooking(
@@ -53,6 +57,10 @@ class BarberBooking {
         guestPhone: json['guestPhone'] as String?,
         totalPrice: ((json['totalPrice'] ?? 0) as num).toInt(),
         totalDuration: ((json['totalDuration'] ?? 0) as num).toInt(),
+        notes: (json['notes'] as String?)?.isEmpty ?? true
+            ? null
+            : json['notes'] as String,
+        isManual: json['isManual'] == true,
         services: ((json['services'] as List?) ?? const [])
             .cast<Map<String, dynamic>>()
             .map(BarberBookingService.fromJson)
