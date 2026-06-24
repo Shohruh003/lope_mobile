@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api_client.dart';
 import '../../../core/routes.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -34,8 +38,43 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
   bool _obscure = true;
   String? _error;
 
+  // Promo code real-time validation (debounced)
+  String _promoStatus = 'idle'; // 'idle' | 'checking' | 'valid' | 'invalid'
+  Timer? _promoDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _promoCtrl.addListener(_onPromoChanged);
+  }
+
+  void _onPromoChanged() {
+    final v = _promoCtrl.text.trim();
+    _promoDebounce?.cancel();
+    if (v.isEmpty) {
+      setState(() => _promoStatus = 'idle');
+      return;
+    }
+    setState(() => _promoStatus = 'checking');
+    _promoDebounce = Timer(const Duration(milliseconds: 400), () async {
+      try {
+        final res = await ref
+            .read(dioProvider)
+            .get('/auth/check-promo', queryParameters: {'code': v});
+        final valid = res.data is Map && res.data['valid'] == true;
+        if (!mounted) return;
+        setState(() => _promoStatus = valid ? 'valid' : 'invalid');
+      } on DioException {
+        if (!mounted) return;
+        setState(() => _promoStatus = 'invalid');
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _promoDebounce?.cancel();
+    _promoCtrl.removeListener(_onPromoChanged);
     _nameCtrl.dispose();
     _passwordCtrl.dispose();
     _promoCtrl.dispose();
@@ -182,7 +221,7 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                   ),
                   const SizedBox(height: 14),
 
-                  // ===== Promo code (optional) =====
+                  // ===== Promo code (optional, real-time validated) =====
                   ShadField(
                     label: tr(ref, 'auth.promoCode', "Promo-kod (ixtiyoriy)"),
                     child: TextField(
@@ -190,9 +229,46 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                       textCapitalization: TextCapitalization.characters,
                       style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
                       decoration: InputDecoration(
-                          hintText: tr(ref, 'auth.promoIfAny', "Agar bor bo'lsa")),
+                          hintText: tr(ref, 'auth.promoIfAny', "Agar bor bo'lsa"),
+                          suffixIcon: _promoStatus == 'checking'
+                              ? const Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2)),
+                                )
+                              : _promoStatus == 'valid'
+                                  ? const Icon(Icons.check_circle,
+                                      color: AppColors.success, size: 18)
+                                  : _promoStatus == 'invalid'
+                                      ? const Icon(Icons.cancel,
+                                          color: AppColors.danger, size: 18)
+                                      : null),
                     ),
                   ),
+                  if (_promoStatus == 'valid')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                          tr(ref, 'auth.promoValid', "Promo-kod yaroqli"),
+                          style: const TextStyle(
+                              color: AppColors.success,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600)),
+                    )
+                  else if (_promoStatus == 'invalid')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                          tr(ref, 'auth.promoInvalid',
+                              "Promo-kod noto'g'ri"),
+                          style: const TextStyle(
+                              color: AppColors.danger,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600)),
+                    ),
                   const SizedBox(height: 14),
 
                   // ===== Role select =====
