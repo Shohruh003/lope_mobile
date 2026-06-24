@@ -9,6 +9,7 @@ import 'package:record/record.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../bookings/data/booking_repository.dart';
 import '../data/barber_panel_repository.dart';
 
 /// Mirrors the web `BarberScheduleScreen.tsx` 1:1:
@@ -146,6 +147,23 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
               onTap: () => Navigator.of(sheetCtx).pop('complete'),
             ),
             ListTile(
+              leading: const Icon(Icons.event_repeat, color: AppColors.primary),
+              title: Text(
+                  tr(ref, 'mobile.shop.barber.reschedule',
+                      "Boshqa vaqtga ko'chirish"),
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.of(sheetCtx).pop('reschedule'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.timer_outlined,
+                  color: AppColors.primary),
+              title: Text(
+                  tr(ref, 'mobile.shop.barber.extend',
+                      "Vaqtni uzaytirish"),
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.of(sheetCtx).pop('extend'),
+            ),
+            ListTile(
               leading: const Icon(Icons.close, color: AppColors.danger),
               title: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
                   style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -187,7 +205,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
         await _openManualBookingDialog(barberId, dateStr, time);
         return;
       }
-      if (picked == 'complete' || picked == 'cancelBooking') {
+      if (picked == 'complete' ||
+          picked == 'cancelBooking' ||
+          picked == 'reschedule' ||
+          picked == 'extend') {
         await _handleBookingAction(barberId, dateStr, time, picked);
         return;
       }
@@ -224,6 +245,18 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
       return;
     }
     if (!mounted) return;
+
+    // Reschedule + extend take their own dedicated flows — short-circuit
+    // before the complete/cancel dialog below.
+    if (action == 'reschedule') {
+      await _rescheduleBooking(booking, dateStr, barberId);
+      return;
+    }
+    if (action == 'extend') {
+      await _extendBooking(booking, barberId);
+      return;
+    }
+
     final isComplete = action == 'complete';
     int? overrideTotal;
     final priceCtrl = TextEditingController(
@@ -296,6 +329,92 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    }
+  }
+
+  Future<void> _rescheduleBooking(
+      BarberBooking booking, String currentDate, String barberId) async {
+    final initialDate = DateTime.tryParse(currentDate) ?? DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (pickedDate == null) return;
+    if (!mounted) return;
+    final parts = booking.time.split(':');
+    final initTime = TimeOfDay(
+        hour: int.tryParse(parts[0]) ?? 9,
+        minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
+    final pickedTime =
+        await showTimePicker(context: context, initialTime: initTime);
+    if (pickedTime == null) return;
+    final newDate =
+        "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+    final newTime =
+        "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
+    try {
+      await ref
+          .read(bookingRepositoryProvider)
+          .reschedule(booking.id, date: newDate, time: newTime);
+      _refreshDay(barberId);
+      ref.invalidate(barberAllBookingsProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    }
+  }
+
+  Future<void> _extendBooking(BarberBooking booking, String barberId) async {
+    int minutes = 30;
+    final ok = await showDialog<int>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(tr(ref, 'mobile.shop.barber.extendTitle',
+            "Vaqtni uzaytirish (daqiqa)")),
+        content: StatefulBuilder(builder: (sCtx, setSt) {
+          return DropdownButtonFormField<int>(
+            initialValue: minutes,
+            items: const [
+              DropdownMenuItem(value: 15, child: Text("+15")),
+              DropdownMenuItem(value: 30, child: Text("+30")),
+              DropdownMenuItem(value: 45, child: Text("+45")),
+              DropdownMenuItem(value: 60, child: Text("+60")),
+              DropdownMenuItem(value: 90, child: Text("+90")),
+            ],
+            onChanged: (v) => setSt(() => minutes = v ?? 30),
+          );
+        }),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, minutes),
+              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+        ],
+      ),
+    );
+    if (ok == null) return;
+    try {
+      await ref
+          .read(barberPanelRepositoryProvider)
+          .extendDuration(booking.id, ok);
+      _refreshDay(barberId);
+      ref.invalidate(barberAllBookingsProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 
