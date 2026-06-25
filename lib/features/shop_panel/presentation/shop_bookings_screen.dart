@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
+import '../../barber_panel/data/barber_panel_repository.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/shop_repository.dart';
 
@@ -440,6 +441,39 @@ class _BookingCard extends ConsumerWidget {
                       onPressed: () => _cancel(context, ref),
                     ),
                   ),
+                  const Spacer(),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert,
+                        size: 16, color: AppColors.textMuted),
+                    padding: EdgeInsets.zero,
+                    onSelected: (value) async {
+                      if (value == 'reschedule') {
+                        await _reschedule(context, ref);
+                      } else if (value == 'extend') {
+                        await _extend(context, ref);
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: 'reschedule',
+                        child: Row(children: [
+                          const Icon(Icons.event_repeat, size: 16),
+                          const SizedBox(width: 8),
+                          Text(tr(ref, 'mobile.shop.barber.reschedule',
+                              "Boshqa vaqtga ko'chirish")),
+                        ]),
+                      ),
+                      PopupMenuItem(
+                        value: 'extend',
+                        child: Row(children: [
+                          const Icon(Icons.timer_outlined, size: 16),
+                          const SizedBox(width: 8),
+                          Text(tr(ref, 'mobile.shop.barber.extend',
+                              "Vaqtni uzaytirish")),
+                        ]),
+                      ),
+                    ],
+                  ),
                 ]),
               ],
             ],
@@ -557,6 +591,89 @@ class _BookingCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    }
+  }
+
+  Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
+    final initial = DateTime.tryParse(b.date) ?? DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (pickedDate == null) return;
+    if (!context.mounted) return;
+    final parts = b.time.split(':');
+    final initTime = TimeOfDay(
+        hour: int.tryParse(parts[0]) ?? 9,
+        minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
+    final pickedTime =
+        await showTimePicker(context: context, initialTime: initTime);
+    if (pickedTime == null) return;
+    final newDate =
+        "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+    final newTime =
+        "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}";
+    try {
+      await ref
+          .read(bookingRepositoryProvider)
+          .reschedule(b.id, date: newDate, time: newTime);
+      ref.invalidate(shopBookingsFilteredProvider);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    }
+  }
+
+  Future<void> _extend(BuildContext context, WidgetRef ref) async {
+    int minutes = 30;
+    final ok = await showDialog<int>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(tr(ref, 'mobile.shop.barber.extendTitle',
+            "Vaqtni uzaytirish (daqiqa)")),
+        content: StatefulBuilder(builder: (sCtx, setSt) {
+          return DropdownButtonFormField<int>(
+            initialValue: minutes,
+            items: const [
+              DropdownMenuItem(value: 15, child: Text("+15")),
+              DropdownMenuItem(value: 30, child: Text("+30")),
+              DropdownMenuItem(value: 45, child: Text("+45")),
+              DropdownMenuItem(value: 60, child: Text("+60")),
+              DropdownMenuItem(value: 90, child: Text("+90")),
+            ],
+            onChanged: (v) => setSt(() => minutes = v ?? 30),
+          );
+        }),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx),
+              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+          TextButton(
+              onPressed: () => Navigator.pop(dCtx, minutes),
+              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+        ],
+      ),
+    );
+    if (ok == null) return;
+    try {
+      await ref
+          .read(barberPanelRepositoryProvider)
+          .extendDuration(b.id, ok);
+      ref.invalidate(shopBookingsFilteredProvider);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
     }
   }
 
