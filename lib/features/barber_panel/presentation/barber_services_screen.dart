@@ -60,6 +60,7 @@ class BarberServicesScreen extends ConsumerWidget {
                 final name = (svc['nameUz'] ?? svc['name'] ?? '').toString();
                 final price = ((svc['price'] ?? 0) as num).toInt();
                 final dur = ((svc['duration'] ?? 30) as num).toInt();
+                final iconText = (svc['icon'] ?? '').toString();
                 return Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -77,7 +78,11 @@ class BarberServicesScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         alignment: Alignment.center,
-                        child: const Icon(Icons.content_cut, color: AppColors.primary),
+                        child: iconText.isNotEmpty
+                            ? Text(iconText,
+                                style: const TextStyle(fontSize: 22))
+                            : const Icon(Icons.content_cut,
+                                color: AppColors.primary),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -119,6 +124,8 @@ class BarberServicesScreen extends ConsumerWidget {
   Future<void> _openEditor(BuildContext context, WidgetRef ref,
       {Map<String, dynamic>? existing}) async {
     final name = TextEditingController(text: (existing?['nameUz'] ?? existing?['name'] ?? '').toString());
+    final nameRu = TextEditingController(text: (existing?['nameRu'] ?? '').toString());
+    final icon = TextEditingController(text: (existing?['icon'] ?? '').toString());
     final price = TextEditingController(text: existing?['price']?.toString() ?? '');
     final priceMax = TextEditingController(text: existing?['priceMax']?.toString() ?? '');
     final dur = TextEditingController(text: existing?['duration']?.toString() ?? '30');
@@ -143,11 +150,32 @@ class BarberServicesScreen extends ConsumerWidget {
                     : tr(ref, 'mobile.barber.services.editTitle', "Xizmatni tahrirlash"),
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 14),
+            Row(children: [
+              SizedBox(
+                width: 60,
+                child: TextField(
+                    controller: icon,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 22),
+                    decoration: const InputDecoration(
+                        hintText: "✂️",
+                        contentPadding: EdgeInsets.symmetric(vertical: 8))),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                    controller: name,
+                    decoration: InputDecoration(
+                        labelText: tr(ref, 'mobile.barber.services.namePh',
+                            "Nomi (UZ)"))),
+              ),
+            ]),
+            const SizedBox(height: 10),
             TextField(
-                controller: name,
-                decoration: InputDecoration(
-                    hintText: tr(ref, 'mobile.barber.services.namePh',
-                        "Nomi (masalan: Soch olish)"))),
+                controller: nameRu,
+                decoration: const InputDecoration(
+                    labelText: "Название (RU)",
+                    hintText: "Стрижка")),
             const SizedBox(height: 12),
             Row(children: [
               Expanded(
@@ -190,9 +218,15 @@ class BarberServicesScreen extends ConsumerWidget {
     );
     if (result != true) return;
     final pMax = int.tryParse(priceMax.text.trim());
+    final iconText = icon.text.trim();
+    final nameRuText = nameRu.text.trim();
     final body = <String, dynamic>{
       'nameUz': name.text.trim(),
       'name': name.text.trim(),
+      // Send empty string when cleared so backend resets the field (avoids
+      // the 'never cleared once set' bug).
+      'nameRu': nameRuText,
+      'icon': iconText.isEmpty ? '✂️' : iconText,
       'price': int.tryParse(price.text.trim()) ?? 0,
       // Send priceMax only when it's set AND larger than price — null
       // clears any previous range so the service goes back to single-price.

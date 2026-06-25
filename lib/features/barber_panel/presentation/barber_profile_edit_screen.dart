@@ -30,7 +30,9 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
   int _tab = 0;
   final _nameCtrl = TextEditingController();
   final _bioCtrl = TextEditingController();
+  final _bioRuCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
+  final _locationRuCtrl = TextEditingController();
   final _experienceCtrl = TextEditingController();
   final _instagramCtrl = TextEditingController();
   final _telegramCtrl = TextEditingController();
@@ -44,7 +46,9 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
   void dispose() {
     _nameCtrl.dispose();
     _bioCtrl.dispose();
+    _bioRuCtrl.dispose();
     _locationCtrl.dispose();
+    _locationRuCtrl.dispose();
     _experienceCtrl.dispose();
     _instagramCtrl.dispose();
     _telegramCtrl.dispose();
@@ -59,8 +63,10 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
         'name': _nameCtrl.text.trim(),
         'bioUz': _bioCtrl.text.trim(),
         'bio': _bioCtrl.text.trim(),
+        'bioRu': _bioRuCtrl.text.trim(),
         'locationUz': _locationCtrl.text.trim(),
         'location': _locationCtrl.text.trim(),
+        'locationRu': _locationRuCtrl.text.trim(),
         'experience': _experienceCtrl.text.trim(),
         'targetGender': _targetGender,
         'instagram': _instagramCtrl.text.trim(),
@@ -139,7 +145,9 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                   _seedKey = b['id']?.toString();
                   _nameCtrl.text = (b['name'] ?? user.name).toString();
                   _bioCtrl.text = (b['bioUz'] ?? b['bio'] ?? '').toString();
+                  _bioRuCtrl.text = (b['bioRu'] ?? '').toString();
                   _locationCtrl.text = (b['locationUz'] ?? b['location'] ?? '').toString();
+                  _locationRuCtrl.text = (b['locationRu'] ?? '').toString();
                   _experienceCtrl.text = (b['experience'] ?? '').toString();
                   _targetGender = (b['targetGender'] ?? 'ALL').toString();
                   _instagramCtrl.text = (b['instagram'] ?? '').toString();
@@ -349,7 +357,7 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
       ),
       const SizedBox(height: 14),
 
-      ShadLabel(tr(ref, 'mobile.barber.profileEdit.bio', "Bio")),
+      ShadLabel("${tr(ref, 'mobile.barber.profileEdit.bio', "Bio")} (UZ)"),
       const SizedBox(height: 6),
       TextField(
         controller: _bioCtrl,
@@ -359,9 +367,23 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
             hintText: tr(ref, 'mobile.barber.profileEdit.bioPlaceholder',
                 "O'zingiz haqingizda qisqacha")),
       ),
+      const SizedBox(height: 10),
+      ShadLabel("${tr(ref, 'mobile.barber.profileEdit.bio', "Bio")} (RU)"),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _bioRuCtrl,
+        maxLines: 4,
+        style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.textBright,
+            fontWeight: FontWeight.w500),
+        decoration: const InputDecoration(
+            hintText: "Кратко о себе (для русскоязычных клиентов)"),
+      ),
       const SizedBox(height: 14),
 
-      ShadLabel(tr(ref, 'mobile.barber.profileEdit.location', "Manzil matni")),
+      ShadLabel(
+          "${tr(ref, 'mobile.barber.profileEdit.location', "Manzil matni")} (UZ)"),
       const SizedBox(height: 6),
       TextField(
         controller: _locationCtrl,
@@ -369,6 +391,19 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
         decoration: InputDecoration(
             hintText: tr(ref, 'mobile.barber.profileEdit.locationPlaceholder',
                 "Toshkent, Yunusobod")),
+      ),
+      const SizedBox(height: 10),
+      ShadLabel(
+          "${tr(ref, 'mobile.barber.profileEdit.location', "Manzil matni")} (RU)"),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _locationRuCtrl,
+        style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.textBright,
+            fontWeight: FontWeight.w500),
+        decoration: const InputDecoration(
+            hintText: "Ташкент, Юнусабад"),
       ),
       const SizedBox(height: 14),
 
