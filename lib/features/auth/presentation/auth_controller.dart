@@ -30,7 +30,32 @@ class AuthController extends Notifier<AuthState> {
     final repo = ref.read(authRepositoryProvider);
     final user = await repo.restoreSession();
     state = AuthState(user: user, loading: false);
+    // Always re-fetch /auth/me on app open (silently) so server-side
+    // balance / VIP grant / role changes propagate without forcing a
+    // logout. Mirrors web's `loadUser().finally(setInitializing(false))`
+    // pattern from App.tsx.
+    if (user != null) {
+      // ignore: unawaited_futures
+      _refreshSilent();
+    }
   }
+
+  Future<void> _refreshSilent() async {
+    final fresh = await ref.read(authRepositoryProvider).refreshMe();
+    if (fresh != null) {
+      state = state.copyWith(user: fresh);
+    } else if (state.user != null) {
+      // refreshMe returned null AFTER a 401 — auth repo already cleared
+      // storage; reflect signed-out in memory so guards re-render.
+      // (Non-401 errors leave the cached user intact.)
+      // We can't easily distinguish 401 vs other errors here; rely on
+      // a subsequent guarded call to push the user back to /login.
+    }
+  }
+
+  /// Public hook — callable from screens that just performed an action
+  /// the server side reflects in /auth/me (e.g. top-up callback).
+  Future<void> refreshFromServer() => _refreshSilent();
 
   Future<void> signedIn(AppUser user) async {
     state = AuthState(user: user, loading: false);

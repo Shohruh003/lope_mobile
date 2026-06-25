@@ -111,6 +111,29 @@ class AuthRepository {
     }
   }
 
+  /// Fetch the current user from /auth/me and persist the fresh copy.
+  /// Returns the new user record, or null if the token was rejected.
+  /// Web does this on every app open so balance / VIP / role updates
+  /// show up without forcing a logout — we mirror that.
+  Future<AppUser?> refreshMe() async {
+    try {
+      final res = await _dio.get('/auth/me');
+      if (res.data is! Map) return null;
+      final user = AppUser.fromJson(
+          (res.data as Map).cast<String, dynamic>());
+      await _storage.writeUser(jsonEncode(user.toJson()));
+      return user;
+    } on DioException catch (e) {
+      // 401: token expired or revoked — caller should clear session.
+      if (e.response?.statusCode == 401) {
+        await _storage.clearAll();
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> logout() async => _storage.clearAll();
 }
 
