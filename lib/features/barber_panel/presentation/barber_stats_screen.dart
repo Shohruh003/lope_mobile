@@ -492,9 +492,43 @@ class _TopServiceRow extends StatelessWidget {
 /// SMS-billing breakdown card. Mirrors the web BarberStatsScreen SMS
 /// section — total sent + total cost at the top, per-type
 /// (confirmation / reminder / retention) rows below.
-class _SmsStatsCard extends ConsumerWidget {
+///
+/// The date range is editable via two pickers (defaults to this month);
+/// a small × button next to the second picker snaps both back to the
+/// month-to-today default. Same behaviour web's BarberStatsScreen has.
+class _SmsStatsCard extends ConsumerStatefulWidget {
   const _SmsStatsCard({required this.barberId});
   final String barberId;
+  @override
+  ConsumerState<_SmsStatsCard> createState() => _SmsStatsCardState();
+}
+
+class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
+  DateTime? _from;
+  DateTime? _to;
+
+  String _ymd(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _dmy(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+
+  Future<void> _pickDate(bool isFrom) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: (isFrom ? _from : _to) ?? now,
+      firstDate: DateTime(now.year - 2),
+      lastDate: DateTime(now.year, now.month, now.day),
+    );
+    if (picked == null) return;
+    setState(() {
+      if (isFrom) {
+        _from = picked;
+      } else {
+        _to = picked;
+      }
+    });
+  }
 
   String _fmt(int n) {
     final s = n.toString();
@@ -508,14 +542,15 @@ class _SmsStatsCard extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final now = DateTime.now();
-    final firstOfMonth =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-01';
-    final today =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final firstOfMonth = DateTime(now.year, now.month, 1);
+    final effFrom = _from ?? firstOfMonth;
+    final effTo = _to ?? DateTime(now.year, now.month, now.day);
+    final customRange =
+        _from != null || (_to != null && _to!.day != now.day);
     final async = ref.watch(barberSmsStatsProvider(
-        (barberId: barberId, from: firstOfMonth, to: today)));
+        (barberId: widget.barberId, from: _ymd(effFrom), to: _ymd(effTo))));
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -536,10 +571,37 @@ class _SmsStatsCard extends ConsumerWidget {
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                     color: AppColors.textBright)),
-            const Spacer(),
-            Text(tr(ref, 'mobile.barber.stats.thisMonth', "Bu oy"),
-                style: const TextStyle(
-                    color: AppColors.textMuted, fontSize: 11)),
+          ]),
+          const SizedBox(height: 8),
+          // Date range row — two compact pickers + a reset chip when the
+          // range isn't the default (first-of-month .. today).
+          Row(children: [
+            Expanded(
+              child: _MiniDate(
+                label: _dmy(effFrom),
+                onTap: () => _pickDate(true),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 6),
+              child: Text('—', style: TextStyle(color: AppColors.textMuted)),
+            ),
+            Expanded(
+              child: _MiniDate(
+                label: _dmy(effTo),
+                onTap: () => _pickDate(false),
+              ),
+            ),
+            if (customRange)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.close,
+                    size: 14, color: AppColors.textMuted),
+                onPressed: () => setState(() {
+                  _from = null;
+                  _to = null;
+                }),
+              ),
           ]),
           const SizedBox(height: 10),
           async.when(
@@ -601,6 +663,37 @@ class _SmsStatsCard extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MiniDate extends StatelessWidget {
+  const _MiniDate({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(children: [
+          const Icon(Icons.calendar_today,
+              size: 12, color: AppColors.textMuted),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(label,
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 11)),
+          ),
+        ]),
       ),
     );
   }
