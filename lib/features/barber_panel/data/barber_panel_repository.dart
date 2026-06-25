@@ -250,7 +250,14 @@ extension BarberBookingActions on BarberPanelRepository {
     required String barberId,
     required String date,
     required String time,
-    required List<String> serviceIds,
+    // Full service rows pre-snapshot — backend writes them directly as the
+    // booking's services AND uses price/duration to compute totalPrice +
+    // totalDuration. Sending just serviceIds (old shape) produced bookings
+    // with totalPrice=0 and zero service rows — the customer's SMS then
+    // said "service: —" and the revenue chart undercounted everything.
+    required List<Map<String, dynamic>> services,
+    required int totalPrice,
+    required int totalDuration,
     String? guestName,
     String? guestPhone,
     String? notes,
@@ -259,7 +266,9 @@ extension BarberBookingActions on BarberPanelRepository {
       'barberId': barberId,
       'date': date,
       'time': time,
-      'serviceIds': serviceIds,
+      'services': services,
+      'totalPrice': totalPrice,
+      'totalDuration': totalDuration,
       // ignore: use_null_aware_elements
       if (guestName != null && guestName.isNotEmpty) 'guestName': guestName,
       // ignore: use_null_aware_elements

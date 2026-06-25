@@ -58,6 +58,56 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
             _hours = ((b['reminderHoursBefore'] ?? 1) as num).toInt().clamp(1, 6);
             _days = ((b['reminderDays'] ?? 14) as num).toInt().clamp(7, 30);
           }
+          final isShopManaged =
+              (b['barbershopId'] ?? '').toString().isNotEmpty;
+          if (isShopManaged) {
+            // Shop-managed barber: cron uses the salon's reminder values,
+            // not the barber's. Saving here would set ignored fields, so
+            // we explain and hide the steppers — mirrors web's
+            // BarberReminderSettingsScreen `isShopManaged` branch.
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.25)),
+                  ),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          const Icon(Icons.info_outline,
+                              size: 18, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                                tr(ref,
+                                    'reminderSettings.shopManagedTitle',
+                                    "Salon eslatma sozlamalarini boshqaradi"),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: AppColors.textBright)),
+                          ),
+                        ]),
+                        const SizedBox(height: 6),
+                        Text(
+                            tr(ref,
+                                'reminderSettings.shopManagedDescription',
+                                "Siz salonga biriktirilgansiz. Eslatmalar vaqti va davri salon profilida belgilanadi."),
+                            style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                                height: 1.5)),
+                      ]),
+                ),
+              ],
+            );
+          }
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [

@@ -545,11 +545,34 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
     );
     if (saved != true) return;
     try {
+      // Snapshot the FULL service rows the backend expects (price + duration
+      // come from these, not from a lookup). Sending just IDs left
+      // totalPrice/totalDuration at 0 and the booking with empty service rows.
+      final picked = services
+          .where((s) => selected.contains((s['id'] ?? '').toString()))
+          .toList();
+      final fullServices = picked
+          .map((s) => {
+                'id': s['id'],
+                'name': s['name'] ?? s['nameUz'] ?? '',
+                'nameUz': s['nameUz'] ?? s['name'] ?? '',
+                'nameRu': s['nameRu'] ?? '',
+                'price': s['price'] ?? 0,
+                'duration': s['duration'] ?? 30,
+                'icon': s['icon'] ?? '',
+              })
+          .toList();
+      final totalPrice = picked.fold<int>(
+          0, (a, s) => a + ((s['price'] ?? 0) as num).toInt());
+      final totalDuration = picked.fold<int>(
+          0, (a, s) => a + ((s['duration'] ?? 30) as num).toInt());
       await ref.read(barberPanelRepositoryProvider).createManual(
             barberId: barberId,
             date: dateStr,
             time: time,
-            serviceIds: selected.toList(),
+            services: fullServices,
+            totalPrice: totalPrice,
+            totalDuration: totalDuration,
             guestName: nameCtrl.text.trim(),
             guestPhone: phoneCtrl.text.trim(),
           );

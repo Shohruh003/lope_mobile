@@ -137,9 +137,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/promo', builder: (context, state) => const PromoCodeScreen()),
       GoRoute(
         path: '/payment-callback',
-        builder: (context, state) => PaymentCallbackScreen(
-          status: state.uri.queryParameters['status'] ?? 'unknown',
-        ),
+        builder: (context, state) {
+          // Click returns the user with ?payment_status=2 on success;
+          // Payme uses ?status=success. Map both to the same boolean
+          // the callback screen consumes.
+          final qp = state.uri.queryParameters;
+          final clickOk = qp['payment_status'] == '2';
+          final paymeOk = qp['status'] == 'success';
+          return PaymentCallbackScreen(
+            status: (clickOk || paymeOk) ? 'success' : 'failure',
+          );
+        },
       ),
       GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
       GoRoute(
