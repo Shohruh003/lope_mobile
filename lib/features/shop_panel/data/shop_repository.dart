@@ -301,18 +301,51 @@ class ShopRepository {
     int page = 1,
     int limit = 20,
   }) async {
+    final r = await bookingsPaged(
+        date: date,
+        barberId: barberId,
+        status: status,
+        page: page,
+        limit: limit);
+    return r.data;
+  }
+
+  /// Paged variant — used by ShopBookings screen so the owner can browse
+  /// past dates without the single-day filter. Web returns
+  /// {data, meta:{total,totalPages,hasMore}}.
+  Future<({List<ShopBooking> data, int total, int totalPages, bool hasMore})>
+      bookingsPaged({
+    String? date,
+    String? barberId,
+    String? status,
+    int page = 1,
+    int limit = 20,
+  }) async {
     final res = await _dio.get('/barbershop/bookings', queryParameters: {
       // ignore: use_null_aware_elements
       if (date != null) 'date': date,
       if (barberId != null && barberId.isNotEmpty) 'barberId': barberId,
-      if (status != null && status.isNotEmpty && status != 'all') 'status': status,
-      'page': page, 'limit': limit,
+      if (status != null && status.isNotEmpty && status != 'all')
+        'status': status,
+      'page': page,
+      'limit': limit,
     });
     final data = res.data;
     final raw = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return raw.cast<Map<String, dynamic>>().map(ShopBooking.fromJson).toList();
+    final meta = data is Map && data['meta'] is Map
+        ? (data['meta'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    return (
+      data: raw
+          .cast<Map<String, dynamic>>()
+          .map(ShopBooking.fromJson)
+          .toList(),
+      total: ((meta['total'] ?? raw.length) as num).toInt(),
+      totalPages: ((meta['totalPages'] ?? 1) as num).toInt(),
+      hasMore: meta['hasMore'] == true,
+    );
   }
 }
 

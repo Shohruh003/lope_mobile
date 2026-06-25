@@ -24,9 +24,13 @@ class ShopBookingsScreen extends ConsumerStatefulWidget {
 }
 
 class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
-  DateTime _date = DateTime.now();
+  /// `null` means "no date filter — show across all dates with pagination".
+  /// Web's BarbershopBookings starts at today but lets the owner clear it
+  /// to browse the full history.
+  DateTime? _date = DateTime.now();
   String _barberId = 'all';
   String _status = 'all';
+  int _page = 1;
 
   String _dateStr(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -34,20 +38,26 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
+      initialDate: _date ?? DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) setState(() => _date = picked);
+    if (picked != null) {
+      setState(() {
+        _date = picked;
+        _page = 1;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final mastersAsync = ref.watch(shopBarbersProvider);
     final bookingsAsync = ref.watch(shopBookingsFilteredProvider((
-      date: _dateStr(_date),
+      date: _date == null ? null : _dateStr(_date!),
       barberId: _barberId == 'all' ? null : _barberId,
       status: _status == 'all' ? null : _status,
+      page: _page,
     )));
 
     return Scaffold(
@@ -59,9 +69,10 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
             ref.invalidate(shopBarbersProvider);
             ref.invalidate(shopBookingsFilteredProvider);
             await ref.read(shopBookingsFilteredProvider((
-              date: _dateStr(_date),
+              date: _date == null ? null : _dateStr(_date!),
               barberId: _barberId == 'all' ? null : _barberId,
               status: _status == 'all' ? null : _status,
+              page: _page,
             )).future);
           },
           child: ListView(
@@ -93,15 +104,34 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                   Text("${tr(ref, 'booking.date', 'Sana')}:",
                       style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
                   const SizedBox(width: 6),
-                  Text(_dateStr(_date),
+                  Text(
+                      _date == null
+                          ? tr(ref, 'mobile.shop.bookings.allDates',
+                              "Barcha sanalar")
+                          : _dateStr(_date!),
                       style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textBright)),
                   const Spacer(),
+                  if (_date != null)
+                    IconButton(
+                      icon: const Icon(Icons.close,
+                          size: 16, color: AppColors.danger),
+                      onPressed: () => setState(() {
+                        _date = null;
+                        _page = 1;
+                      }),
+                      tooltip: tr(ref,
+                          'mobile.shop.bookings.clearDateFilter',
+                          "Sana filtrini olib tashlash"),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.today_outlined, size: 16, color: AppColors.primary),
-                    onPressed: () => setState(() => _date = DateTime.now()),
+                    onPressed: () => setState(() {
+                      _date = DateTime.now();
+                      _page = 1;
+                    }),
                     tooltip: tr(ref, 'barberApp.today', 'Bugun'),
                   ),
                 ]),
@@ -144,10 +174,11 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
 
             // ===== Count =====
             bookingsAsync.maybeWhen(
-              data: (list) => Row(children: [
+              data: (res) => Row(children: [
                 const Icon(Icons.event_note, size: 14, color: AppColors.textMuted),
                 const SizedBox(width: 6),
-                Text("${list.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
+                Text(
+                    "${res.total} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
                     style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
               ]),
               orElse: () => const SizedBox.shrink(),
@@ -164,7 +195,9 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
               ),
-              data: (list) {
+              data: (res) {
+                final list = res.data;
+                final totalPages = res.totalPages;
                 if (list.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
@@ -177,16 +210,43 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                 }
                 final sorted = [...list]..sort((a, b) => a.time.compareTo(b.time));
                 return Column(
-                  children: sorted
-                      .asMap()
-                      .entries
-                      .map((e) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: _BookingCard(b: e.value)
-                                .animate()
-                                .fadeIn(duration: 200.ms, delay: (e.key * 20).ms),
-                          ))
-                      .toList(),
+                  children: [
+                    ...sorted
+                        .asMap()
+                        .entries
+                        .map((e) => Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: _BookingCard(b: e.value)
+                                  .animate()
+                                  .fadeIn(duration: 200.ms, delay: (e.key * 20).ms),
+                            )),
+                    if (totalPages > 1 && _date == null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          OutlinedButton(
+                            onPressed: _page <= 1
+                                ? null
+                                : () => setState(() => _page--),
+                            child: Text(tr(ref, 'common.prev', "Oldingi")),
+                          ),
+                          const SizedBox(width: 12),
+                          Text("$_page / $totalPages",
+                              style: const TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontWeight: FontWeight.w700)),
+                          const SizedBox(width: 12),
+                          OutlinedButton(
+                            onPressed: _page >= totalPages
+                                ? null
+                                : () => setState(() => _page++),
+                            child: Text(tr(ref, 'common.next', "Keyingi")),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 );
               },
             ),
@@ -689,13 +749,17 @@ class _BookingCard extends ConsumerWidget {
   }
 }
 
-/// Provider matching the same query the web sends, so we can filter
-/// per-date and per-master without burning extra round-trips.
-final shopBookingsFilteredProvider = FutureProvider.family<List<ShopBooking>,
-    ({String? date, String? barberId, String? status})>((ref, key) async {
-  return ref.watch(shopRepositoryProvider).bookings(
+/// Provider matching the same query the web sends. Without `date` the
+/// backend returns paginated history across all dates, with `date` it
+/// returns every booking for that day.
+final shopBookingsFilteredProvider = FutureProvider.family<
+    ({List<ShopBooking> data, int total, int totalPages, bool hasMore}),
+    ({String? date, String? barberId, String? status, int page})>(
+    (ref, key) async {
+  return ref.watch(shopRepositoryProvider).bookingsPaged(
         date: key.date,
         barberId: key.barberId,
         status: key.status,
+        page: key.page,
       );
 });
