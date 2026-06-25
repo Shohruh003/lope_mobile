@@ -21,6 +21,17 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_lopepayCustomerProvider(customerId));
+    // Backend has no per-customer "record payment" endpoint — payments are
+    // applied per-installment. The FAB now routes to the next unpaid
+    // installment's mark-paid sheet (the same flow as tapping that row).
+    final installments = async.maybeWhen(
+      data: (d) => (d['installments'] as List? ?? const []).cast<Map<String, dynamic>>(),
+      orElse: () => const <Map<String, dynamic>>[],
+    );
+    final nextUnpaid = installments.firstWhere(
+      (inst) => inst['isPaidOff'] != true,
+      orElse: () => const <String, dynamic>{},
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz")),
@@ -31,12 +42,16 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.success,
-        onPressed: () => _recordPayment(context, ref),
-        icon: const Icon(Icons.payments),
-        label: Text(tr(ref, 'mobile.lopepay.customer.recordPayment', "To'lov qabul qilish")),
-      ),
+      floatingActionButton: nextUnpaid.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              backgroundColor: AppColors.success,
+              onPressed: () =>
+                  _openInstallmentActions(context, ref, nextUnpaid),
+              icon: const Icon(Icons.payments),
+              label: Text(tr(ref, 'mobile.lopepay.customer.recordPayment',
+                  "To'lov qabul qilish")),
+            ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
@@ -238,52 +253,6 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         },
       ),
     );
-  }
-
-  Future<void> _recordPayment(BuildContext context, WidgetRef ref) async {
-    final amount = TextEditingController();
-    final ok = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20, right: 20, top: 18,
-          bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(tr(ref, 'mobile.lopepay.customer.recordPayment', "To'lov qabul qilish"),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 14),
-          TextField(
-            controller: amount,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-                hintText: tr(ref, 'mobile.customer.transactions.topUpAmount', "Summa (so'm)")),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(sheetCtx).pop(true),
-              child: Text(tr(ref, 'common.confirm', "Qabul qilish")),
-            ),
-          ),
-        ]),
-      ),
-    );
-    if (ok != true) return;
-    final amt = int.tryParse(amount.text.trim()) ?? 0;
-    if (amt <= 0) return;
-    try {
-      await ref.read(lopepayRepositoryProvider).recordPayment(customerId, amt);
-      ref.invalidate(_lopepayCustomerProvider(customerId));
-      ref.invalidate(lopepayDashboardProvider);
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'mobile.lopepay.customer.received', "Qabul qilindi"))));
-    } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
-    }
   }
 
   String _fmt(int n) {
@@ -603,8 +572,56 @@ Widget _bannerRow(
   );
 }
 
+/// There's no /lopepay/customers/:id endpoint on the backend. We build the
+/// customer detail (name/phone/address/debt/installments/payments) by
+/// pulling /installments and grouping those whose customer matches `id`
+/// (which may be either Customer.id or a phone fallback).
 final _lopepayCustomerProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
   final Dio dio = ref.watch(dioProvider);
-  final res = await dio.get('/lopepay/customers/$id');
-  return Map<String, dynamic>.from(res.data as Map);
+  final res = await dio.get('/installments', queryParameters: {'limit': 500});
+  final raw = res.data;
+  final list = (raw is List)
+      ? raw
+      : (raw is Map && raw['data'] is List ? raw['data'] as List : <dynamic>[]);
+  String name = '';
+  String phone = '';
+  String address = '';
+  int totalDebt = 0;
+  final installments = <Map<String, dynamic>>[];
+  final payments = <Map<String, dynamic>>[];
+  for (final r in list) {
+    if (r is! Map) continue;
+    final m = r.cast<String, dynamic>();
+    final cust = m['customer'] is Map
+        ? (m['customer'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    final custId = (cust['id'] ?? '').toString();
+    final custPhone = (cust['phone'] ?? '').toString();
+    if (custId != id && custPhone != id) continue;
+    name = (cust['name'] ?? name).toString();
+    phone = (cust['phone'] ?? phone).toString();
+    address = (cust['address'] ?? address).toString();
+    totalDebt += ((m['remainingAmount'] ?? 0) as num).toInt();
+    installments.add(m);
+    final pays = m['payments'];
+    if (pays is List) {
+      for (final p in pays) {
+        if (p is Map) payments.add(p.cast<String, dynamic>());
+      }
+    }
+  }
+  payments.sort((a, b) {
+    final ax = DateTime.tryParse(a['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+    final bx = DateTime.tryParse(b['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+    return bx.compareTo(ax);
+  });
+  return {
+    'id': id,
+    'name': name,
+    'phone': phone,
+    'address': address,
+    'totalDebt': totalDebt,
+    'installments': installments,
+    'payments': payments,
+  };
 });

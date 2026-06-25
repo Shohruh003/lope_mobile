@@ -226,14 +226,6 @@ class LopepayRepository {
     await _dio.delete('/shop-products/$id');
   }
 
-  /// No /lopepay/customers/:id/payments endpoint exists on the backend.
-  /// Payments are recorded per-installment via /installments/:id/mark-paid.
-  /// Kept as a no-op so callers that still wire it up don't crash; new code
-  /// should call markInstallmentPaid directly.
-  Future<void> recordPayment(String customerId, int amount) async {
-    // intentional no-op — see comment above.
-  }
-
   /// POST /installments — creates a new installment plan for a
   /// customer. Server creates the customer record if one with the given
   /// phone doesn't already exist. Returns the new installment id.
