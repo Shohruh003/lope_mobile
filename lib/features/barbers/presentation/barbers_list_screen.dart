@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/location_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../favorites/data/favorites_repository.dart';
@@ -27,8 +28,10 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   String _filter = 'all'; // 'all' | 'favorites' | 'available'
-  // 'rating' | 'name' | 'experience' | 'price' — matches web's CustomerBarbersScreen
-  // (mobile has no distance sort yet — needs geolocator package).
+  // 'rating' | 'name' | 'experience' | 'price' | 'distance' — matches web's
+  // CustomerBarbersScreen. 'distance' uses the cached location provider; if
+  // the user denies the permission, items without a known location bucket
+  // to the bottom and the order falls back to rating.
   String _sort = 'rating';
   String _gender = 'ALL'; // 'ALL' | 'MALE' | 'FEMALE'
   bool _filterDefaulted = false;
@@ -55,6 +58,13 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   int _minPrice(Barber b) {
     if (b.services.isEmpty) return 1 << 30;
     return b.services.map((s) => s.price).reduce((a, b) => a < b ? a : b);
+  }
+
+  /// Haversine distance to a barber, or +infinity when their location is
+  /// missing so they sort to the bottom under distance order.
+  double _distOrInf(LatLng me, double? lat, double? lng) {
+    if (lat == null || lng == null) return double.infinity;
+    return haversineKm(me, LatLng(lat, lng));
   }
 
   String _avatarUrl(String avatar) {
@@ -89,6 +99,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 nameLabel: tr(ref, 'barbers.sortByName', "Ism"),
                 experienceLabel: tr(ref, 'barbers.experience', "Tajriba"),
                 priceLabel: tr(ref, 'booking.price', "Narx"),
+                distanceLabel: tr(ref, 'barbers.nearest', "Eng yaqin"),
                 maleLabel: tr(ref, 'barbers.genderMale', "Erkak"),
                 femaleLabel: tr(ref, 'barbers.genderFemale', "Ayol"),
                 onSearch: (v) => setState(() => _query = v.trim().toLowerCase()),
@@ -145,6 +156,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                       .toList();
                 }
                 filtered = [...filtered];
+                final me = ref.watch(currentLocationProvider).asData?.value;
                 switch (_sort) {
                   case 'name':
                     filtered.sort((a, b) => a.name.compareTo(b.name));
@@ -155,6 +167,17 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                     break;
                   case 'price':
                     filtered.sort((a, b) => _minPrice(a).compareTo(_minPrice(b)));
+                    break;
+                  case 'distance':
+                    if (me != null) {
+                      filtered.sort((a, b) {
+                        final da = _distOrInf(me, a.lat, a.lng);
+                        final db = _distOrInf(me, b.lat, b.lng);
+                        return da.compareTo(db);
+                      });
+                    } else {
+                      filtered.sort((a, b) => b.rating.compareTo(a.rating));
+                    }
                     break;
                   case 'rating':
                   default:
@@ -178,6 +201,18 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                   ...filtered.map((b) => _FeedItem.barber(b)),
                   ...mergedShops.map((s) => _FeedItem.shop(s)),
                 ];
+                if (_sort == 'distance' && me != null) {
+                  // Re-sort the merged list so shops mingle with barbers
+                  // by distance — same web behaviour.
+                  items.sort((a, b) {
+                    final aLat = a.barber?.lat ?? a.shop?.lat;
+                    final aLng = a.barber?.lng ?? a.shop?.lng;
+                    final bLat = b.barber?.lat ?? b.shop?.lat;
+                    final bLng = b.barber?.lng ?? b.shop?.lng;
+                    return _distOrInf(me, aLat, aLng)
+                        .compareTo(_distOrInf(me, bLat, bLng));
+                  });
+                }
                 if (items.isEmpty) return const SliverToBoxAdapter(child: _EmptyState());
                 return SliverPadding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
@@ -225,6 +260,7 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
     required this.nameLabel,
     required this.experienceLabel,
     required this.priceLabel,
+    required this.distanceLabel,
     required this.maleLabel,
     required this.femaleLabel,
     required this.onSearch,
@@ -246,6 +282,7 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
   final String nameLabel;
   final String experienceLabel;
   final String priceLabel;
+  final String distanceLabel;
   final String maleLabel;
   final String femaleLabel;
   final ValueChanged<String> onSearch;
@@ -321,6 +358,13 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
                 onColor: AppColors.primary,
               ),
               const _Sep(),
+              _Pill(
+                label: distanceLabel,
+                on: sort == 'distance',
+                onTap: () => onSort('distance'),
+                onColor: const Color(0xFF3B82F6),
+                tintBg: true,
+              ),
               _Pill(
                 label: ratingLabel,
                 on: sort == 'rating',

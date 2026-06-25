@@ -6,6 +6,8 @@
 	<true/>
 	<key>NSContactsUsageDescription</key>
 	<string>Telefon kontaktlaridan mijoz tanlash uchun ruxsat kerak.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Eng yaqin sartaroshlarni topishingiz uchun joylashuvingiz kerak.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
