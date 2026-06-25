@@ -231,8 +231,11 @@ extension BarberBookingActions on BarberPanelRepository {
   }
 
   /// Append N minutes to the booking's duration when the cut runs over.
+  /// Backend: PATCH /bookings/:id/extend (bookings.controller.ts:225).
+  /// Old /extend-duration had no handler — the extend popup-menu action
+  /// always 404'd in production.
   Future<void> extendDuration(String bookingId, int extraMinutes) async {
-    await _dio.patch('/bookings/$bookingId/extend-duration', data: {'extraMinutes': extraMinutes});
+    await _dio.patch('/bookings/$bookingId/extend', data: {'extraMinutes': extraMinutes});
   }
 
   /// Toggle the barber's accepting-bookings flag. The web has the same

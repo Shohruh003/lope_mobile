@@ -83,7 +83,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       final r = await ref.read(aiStyleRepositoryProvider).generate(
             selfie: _selfie!,
             gender: _gender,
-            references: _refImages.values.toList(),
+            styles: _selectedStyles.toList(),
+            references: Map<String, File>.from(_refImages),
           );
       setState(() => _resultUrl = r.imageUrl);
       final user = ref.read(authControllerProvider).user;

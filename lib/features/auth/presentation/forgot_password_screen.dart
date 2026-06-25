@@ -33,7 +33,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       _error = null;
     });
     try {
-      await ref.read(dioProvider).post('/auth/forgot/send-code', data: {'phone': phone});
+      // Backend: POST /auth/forgot-password/send-code (auth.controller.ts:61).
+      // Old /auth/forgot/* paths had no handler — entire "parolni unutdim"
+      // flow was 404'ing silently.
+      await ref.read(dioProvider).post('/auth/forgot-password/send-code', data: {'phone': phone});
       setState(() {
         _phone = phone;
         _step = 1;
@@ -56,7 +59,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
     try {
       final res = await ref.read(dioProvider).post(
-        '/auth/forgot/verify-code',
+        '/auth/forgot-password/verify-code',
         data: {'phone': _phone, 'code': code},
       );
       if (res.statusCode == 200 || res.data == true) {
@@ -81,7 +84,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       _error = null;
     });
     try {
-      await ref.read(dioProvider).post('/auth/forgot/reset', data: {
+      await ref.read(dioProvider).post('/auth/forgot-password/reset', data: {
         'phone': _phone,
         'code': _otp,
         'newPassword': newPassword,
