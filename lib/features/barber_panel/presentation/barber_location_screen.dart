@@ -48,14 +48,12 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
     }
     setState(() => _saving = true);
     try {
+      // Prisma rejects unknown args — only send the three columns the
+      // Barber model actually has. Web sends exactly these three.
       await ref.read(barberProfileRepositoryProvider).updateBarber(barberId, {
         'latitude': lat,
         'longitude': lng,
-        'lat': lat,
-        'lng': lng,
         'geoAddress': _addressCtrl.text.trim(),
-        'locationUz': _addressCtrl.text.trim(),
-        'location': _addressCtrl.text.trim(),
       });
       ref.invalidate(barberProfileProvider(barberId));
       if (mounted) {

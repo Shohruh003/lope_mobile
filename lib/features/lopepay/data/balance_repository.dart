@@ -129,15 +129,21 @@ class BalanceRepository {
   }
 
   /// Returns the gateway URL the user should be redirected to.
+  /// Backend (POST /click/initiate, POST /payme/initiate) takes the
+  /// authenticated user from the JWT and returns
+  /// `{payment_url, order_id}`. The old code read `url`/`redirectUrl`
+  /// which never existed in the response → empty string → silent fail.
   Future<String> initiateTopUp({
     required String userId,
     required int amount,
     required String gateway, // 'click' | 'payme'
   }) async {
     final path = gateway == 'payme' ? '/payme/initiate' : '/click/initiate';
-    final res = await _dio.post(path, data: {'userId': userId, 'amount': amount});
-    final url = (res.data is Map) ? (res.data['url'] ?? res.data['redirectUrl']) : null;
-    return url?.toString() ?? '';
+    final res = await _dio.post(path, data: {'amount': amount});
+    final paymentUrl = (res.data is Map)
+        ? (res.data['payment_url'] ?? res.data['paymentUrl'])
+        : null;
+    return paymentUrl?.toString() ?? '';
   }
 }
 

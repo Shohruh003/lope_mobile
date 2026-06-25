@@ -8,6 +8,7 @@ import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 /// Mirrors `BarberCardsScreen.tsx` 1:1.
 ///   - Header with back button + CreditCard icon + title
@@ -22,7 +23,11 @@ class BarberCardsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(_cardsProvider);
+    final barberId = ref.watch(authControllerProvider).user?.id;
+    if (barberId == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final async = ref.watch(_cardsProvider(barberId));
     return Scaffold(
       body: SafeArea(
         top: false,
@@ -57,7 +62,7 @@ class BarberCardsScreen extends ConsumerWidget {
                   child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
               data: (list) => RefreshIndicator(
                 color: AppColors.primary,
-                onRefresh: () async => ref.refresh(_cardsProvider.future),
+                onRefresh: () async => ref.refresh(_cardsProvider(barberId).future),
                 child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -126,8 +131,13 @@ class BarberCardsScreen extends ConsumerWidget {
   }
 
   Future<void> _setDefault(WidgetRef ref, String id) async {
+    final barberId = ref.read(authControllerProvider).user?.id;
+    if (barberId == null) return;
     try {
-      await ref.read(dioProvider).patch('/barber/cards/$id/default');
+      // Backend: POST /barbers/:barberId/cards/:cardId/set-default
+      await ref
+          .read(dioProvider)
+          .post('/barbers/$barberId/cards/$id/set-default');
       ref.invalidate(_cardsProvider);
     } catch (_) {}
   }
@@ -156,7 +166,11 @@ class BarberCardsScreen extends ConsumerWidget {
     );
     if (ok != true) return;
     try {
-      await ref.read(dioProvider).delete('/barber/cards/${card['id']}');
+      final barberId = ref.read(authControllerProvider).user?.id;
+      if (barberId == null) return;
+      await ref
+          .read(dioProvider)
+          .delete('/barbers/$barberId/cards/${card['id']}');
       ref.invalidate(_cardsProvider);
     } catch (e) {
       if (context.mounted) {
@@ -234,10 +248,16 @@ class BarberCardsScreen extends ConsumerWidget {
         'holderName': holder.text.trim(),
         'expiry': expiry.text.trim(),
       };
+      final barberId = ref.read(authControllerProvider).user?.id;
+      if (barberId == null) return;
       if (existing == null) {
-        await ref.read(dioProvider).post('/barber/cards', data: body);
+        await ref
+            .read(dioProvider)
+            .post('/barbers/$barberId/cards', data: body);
       } else {
-        await ref.read(dioProvider).patch('/barber/cards/${existing['id']}', data: body);
+        await ref
+            .read(dioProvider)
+            .patch('/barbers/$barberId/cards/${existing['id']}', data: body);
       }
       ref.invalidate(_cardsProvider);
     } catch (e) {
@@ -521,8 +541,11 @@ class _CardItem extends ConsumerWidget {
   }
 }
 
-final _cardsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final res = await ref.watch(dioProvider).get('/barber/cards');
+/// Family on barberId — backend endpoint is /barbers/:barberId/cards.
+/// All previous `/barber/cards` calls 404'd in production.
+final _cardsProvider = FutureProvider.family<List<Map<String, dynamic>>, String>(
+    (ref, barberId) async {
+  final res = await ref.watch(dioProvider).get('/barbers/$barberId/cards');
   final data = res.data;
   final list = (data is List)
       ? data

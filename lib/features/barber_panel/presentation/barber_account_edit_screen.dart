@@ -43,9 +43,17 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
       _busy = true;
       _msg = null;
     });
+    final user = ref.read(authControllerProvider).user;
+    if (user == null) return;
     try {
-      await ref.read(dioProvider).post('/auth/change-password', data: {
-        'currentPassword': _currentCtrl.text,
+      // Backend endpoint: PATCH /users/:id/profile with
+      // {oldPassword, newPassword}. The previous POST /auth/change-password
+      // call hit a route that doesn't exist — 404 silently shown as
+      // 'Xatolik — qaytadan urinib ko'ring'.
+      await ref
+          .read(dioProvider)
+          .patch('/users/${user.id}/profile', data: {
+        'oldPassword': _currentCtrl.text,
         'newPassword': _newCtrl.text,
       });
       setState(() {
