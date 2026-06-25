@@ -51,7 +51,9 @@ class NotificationsScreen extends ConsumerWidget {
                   tooltip: tr(ref, 'mobile.notifications.markAllRead', "Hammasini o'qish"),
                   onPressed: () async {
                     try {
-                      await ref.read(notificationsRepositoryProvider).markAllRead();
+                      await ref
+                          .read(notificationsRepositoryProvider)
+                          .markAllRead(role: user.role, userId: user.id);
                       ref.invalidate(notificationsProvider(user.role));
                     } catch (_) {}
                   },
@@ -145,7 +147,7 @@ class NotificationsScreen extends ConsumerWidget {
                               try {
                                 await ref
                                     .read(notificationsRepositoryProvider)
-                                    .markRead(n.id);
+                                    .markRead(n.id, role: user.role);
                                 ref.invalidate(notificationsProvider(user.role));
                               } catch (_) {}
                             },
