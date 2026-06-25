@@ -145,7 +145,7 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: [15, 20, 30, 45, 60].map((m) => ChoiceChip(
+            children: [15, 20, 30, 45, 60, 90].map((m) => ChoiceChip(
                   label: Text("$m ${tr(ref, 'booking.duration', 'daq')}"),
                   selected: _slotMinutes == m,
                   onSelected: (_) => setState(() => _slotMinutes = m),
