@@ -43,12 +43,18 @@ class BalanceRepository {
   final Dio _dio;
 
   Future<BalanceState> myBalance(String userId) async {
-    final res = await _dio.get('/users/$userId/balance');
+    // Backend endpoint: GET /balance/me (JWT-resolved). The old
+    // /users/:id/balance call hit a non-existent route and returned 404
+    // → 0 balance everywhere, top-up button hidden, low-balance modal
+    // perpetually popped.
+    final res = await _dio.get('/balance/me');
     final raw = res.data;
     if (raw is Map) {
       return BalanceState(
         amount: ((raw['amount'] ?? raw['balance'] ?? 0) as num).toInt(),
-        aiFreeRemaining: raw['aiFreeRemaining'] == null ? null : ((raw['aiFreeRemaining']) as num).toInt(),
+        aiFreeRemaining: raw['aiFreeRemaining'] == null
+            ? null
+            : ((raw['aiFreeRemaining']) as num).toInt(),
       );
     }
     return BalanceState(amount: ((raw ?? 0) as num).toInt());
