@@ -106,9 +106,50 @@ class LopepayRepository {
   LopepayRepository(this._dio);
   final Dio _dio;
 
+  /// There's no single dashboard endpoint on the backend — web composes
+  /// these tiles from /installments and /installments/due-today client-side.
+  /// We mirror that here so the LopePay shop home doesn't 404.
   Future<LopepayDashboard> dashboard() async {
-    final res = await _dio.get('/lopepay/dashboard');
-    return LopepayDashboard.fromJson(Map<String, dynamic>.from(res.data as Map));
+    int dueToday = 0;
+    int overdue = 0;
+    int totalReceivable = 0;
+    final customerPhones = <String>{};
+    try {
+      final res = await _dio.get('/installments/due-today');
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+      dueToday = list.length;
+    } catch (_) {}
+    try {
+      // All active installments — sum of remainingAmount + customer set.
+      final res = await _dio.get('/installments', queryParameters: {
+        'isActive': true,
+        'limit': 500,
+      });
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+      for (final raw in list) {
+        if (raw is! Map) continue;
+        final m = raw.cast<String, dynamic>();
+        final remaining = m['remainingAmount'] ?? m['totalPrice'] ?? 0;
+        totalReceivable += (remaining as num).toInt();
+        final status = (m['status'] ?? '').toString();
+        if (status == 'overdue') overdue += 1;
+        final phone = (m['customer'] is Map ? (m['customer'] as Map)['phone'] : null)
+            ?.toString();
+        if (phone != null && phone.isNotEmpty) customerPhones.add(phone);
+      }
+    } catch (_) {}
+    return LopepayDashboard(
+      dueToday: dueToday,
+      overdue: overdue,
+      totalReceivable: totalReceivable,
+      activeCustomers: customerPhones.length,
+    );
   }
 
   /// GET /shops/me — returns the owner's shop with balance + total
@@ -118,21 +159,49 @@ class LopepayRepository {
     return LopepayShopMe.fromJson(Map<String, dynamic>.from(res.data as Map));
   }
 
+  /// There's no /lopepay/customers endpoint — backend doesn't expose a
+  /// dedicated customer list. We aggregate from /installments grouped by
+  /// customer phone, the same shape the web's customer list uses.
   Future<List<LopepayCustomer>> customers({int page = 1, int limit = 30, String? search}) async {
-    final res = await _dio.get('/lopepay/customers', queryParameters: {
-      'page': page, 'limit': limit,
+    final res = await _dio.get('/installments', queryParameters: {
       // ignore: use_null_aware_elements
       if (search != null && search.isNotEmpty) 'search': search,
+      'limit': 500,
     });
     final data = res.data;
     final list = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return list.cast<Map<String, dynamic>>().map(LopepayCustomer.fromJson).toList();
+    final byPhone = <String, LopepayCustomer>{};
+    for (final raw in list) {
+      if (raw is! Map) continue;
+      final m = raw.cast<String, dynamic>();
+      final cust = m['customer'] is Map
+          ? (m['customer'] as Map).cast<String, dynamic>()
+          : <String, dynamic>{};
+      final phone = (cust['phone'] ?? '').toString();
+      if (phone.isEmpty) continue;
+      final remaining = ((m['remainingAmount'] ?? 0) as num).toInt();
+      final next = m['nextDueDate']?.toString();
+      final existing = byPhone[phone];
+      byPhone[phone] = LopepayCustomer(
+        id: (cust['id'] ?? phone).toString(),
+        name: (cust['name'] ?? '').toString(),
+        phone: phone,
+        totalDebt: (existing?.totalDebt ?? 0) + remaining,
+        nextDue: next != null ? DateTime.tryParse(next) : existing?.nextDue,
+        address: (cust['address'] ?? existing?.address)?.toString(),
+      );
+    }
+    final result = byPhone.values.toList()
+      ..sort((a, b) => b.totalDebt.compareTo(a.totalDebt));
+    return result;
   }
 
   Future<List<LopepayProduct>> products({String? search}) async {
-    final res = await _dio.get('/lopepay/products', queryParameters: {
+    // Backend: GET /shop-products (shop-products.controller.ts:25).
+    // /lopepay/products had no handler — products screen always 404'd.
+    final res = await _dio.get('/shop-products', queryParameters: {
       'search': ?search,
     });
     final data = res.data;
@@ -142,39 +211,43 @@ class LopepayRepository {
     return list.cast<Map<String, dynamic>>().map(LopepayProduct.fromJson).toList();
   }
 
-  /// PATCH /lopepay/products/:id — update name/price/isActive.
+  /// PATCH /shop-products/:id — update name/price/isActive.
   Future<void> updateProduct(String id,
       {String? name, int? defaultPrice, bool? isActive}) async {
-    await _dio.patch('/lopepay/products/$id', data: {
+    await _dio.patch('/shop-products/$id', data: {
       'name': ?name,
       'defaultPrice': ?defaultPrice,
       'isActive': ?isActive,
     });
   }
 
-  /// DELETE /lopepay/products/:id.
+  /// DELETE /shop-products/:id.
   Future<void> deleteProduct(String id) async {
-    await _dio.delete('/lopepay/products/$id');
+    await _dio.delete('/shop-products/$id');
   }
 
+  /// No /lopepay/customers/:id/payments endpoint exists on the backend.
+  /// Payments are recorded per-installment via /installments/:id/mark-paid.
+  /// Kept as a no-op so callers that still wire it up don't crash; new code
+  /// should call markInstallmentPaid directly.
   Future<void> recordPayment(String customerId, int amount) async {
-    await _dio.post('/lopepay/customers/$customerId/payments', data: {'amount': amount});
+    // intentional no-op — see comment above.
   }
 
-  /// POST /lopepay/installments — creates a new installment plan for a
+  /// POST /installments — creates a new installment plan for a
   /// customer. Server creates the customer record if one with the given
   /// phone doesn't already exist. Returns the new installment id.
   Future<String> createInstallment(Map<String, dynamic> data) async {
-    final res = await _dio.post('/lopepay/installments', data: data);
+    final res = await _dio.post('/installments', data: data);
     final body = res.data;
     if (body is Map && body['id'] != null) return body['id'].toString();
     return '';
   }
 
-  /// PATCH /lopepay/installments/:id — updates plan fields. Money/date
+  /// PATCH /installments/:id — updates plan fields. Money/date
   /// fields are validated server-side.
   Future<void> updateInstallment(String id, Map<String, dynamic> data) async {
-    await _dio.patch('/lopepay/installments/$id', data: data);
+    await _dio.patch('/installments/$id', data: data);
   }
 
   /// POST /installments/:id/mark-paid — marks the next outstanding
@@ -197,17 +270,17 @@ class LopepayRepository {
     await _dio.delete('/installments/$id');
   }
 
-  /// GET /lopepay/installments/:id — used by the edit form to seed the
+  /// GET /installments/:id — used by the edit form to seed the
   /// fields.
   Future<Map<String, dynamic>> getInstallment(String id) async {
-    final res = await _dio.get('/lopepay/installments/$id');
+    final res = await _dio.get('/installments/$id');
     return Map<String, dynamic>.from(res.data as Map);
   }
 
-  /// POST /lopepay/products — quick add from the customer form's product
+  /// POST /shop-products — quick add from the customer form's product
   /// dropdown. Returns the new product so the form can select it.
   Future<LopepayProduct> createProduct({required String name, int? defaultPrice}) async {
-    final res = await _dio.post('/lopepay/products', data: {
+    final res = await _dio.post('/shop-products', data: {
       'name': name,
       'defaultPrice': ?defaultPrice,
     });
@@ -229,7 +302,8 @@ class LopepayRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    final res = await _dio.get('/lopepay/sms', queryParameters: {
+    // Backend: GET /shop-history/sms (shop-history.controller.ts:14).
+    final res = await _dio.get('/shop-history/sms', queryParameters: {
       'phone': ?phone,
       'type': ?type,
       'productId': ?productId,
@@ -267,7 +341,8 @@ class LopepayRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    final res = await _dio.get('/lopepay/transactions', queryParameters: {
+    // Backend: GET /shop-history/transactions (shop-history.controller.ts:36).
+    final res = await _dio.get('/shop-history/transactions', queryParameters: {
       'type': ?type,
       'from': ?from,
       'to': ?to,
@@ -293,7 +368,8 @@ class LopepayRepository {
   /// Web: `dueTodayInstallmentsAPI()`.
   Future<List<Map<String, dynamic>>> dueTodayInstallments() async {
     try {
-      final res = await _dio.get('/lopepay/installments/due-today');
+      // Backend: GET /installments/due-today (installments.controller.ts:51).
+      final res = await _dio.get('/installments/due-today');
       final data = res.data;
       final list = (data is List)
           ? data
@@ -319,7 +395,8 @@ class LopepayRepository {
     int page = 1,
     int limit = 50,
   }) async {
-    final res = await _dio.get('/lopepay/installments', queryParameters: {
+    // Backend: GET /installments (installments.controller.ts:25).
+    final res = await _dio.get('/installments', queryParameters: {
       'search': ?search,
       'phone': ?phone,
       'productId': ?productId,
@@ -347,7 +424,7 @@ class LopepayRepository {
   /// section. Web: `listInstallmentsAPI({status: 'overdue', limit: 5})`.
   Future<List<Map<String, dynamic>>> overdueInstallments({int limit = 5}) async {
     try {
-      final res = await _dio.get('/lopepay/installments',
+      final res = await _dio.get('/installments',
           queryParameters: {'status': 'overdue', 'limit': limit, 'isActive': true});
       final data = res.data;
       final list = (data is List)

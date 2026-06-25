@@ -41,7 +41,12 @@ class SmsHistoryRepository {
     String? from,
     String? to,
   }) async {
-    final res = await _dio.get('/barbers/$barberId/sms-log', queryParameters: {
+    // Backend endpoint: GET /bookings/barber/:barberId/sms-log
+    // (bookings.controller.ts:115). The old /barbers/:id/sms-log
+    // route had no handler — the SMS history screen always rendered
+    // empty.
+    final res = await _dio.get('/bookings/barber/$barberId/sms-log',
+        queryParameters: {
       'page': page,
       'limit': limit,
       if (type != null && type.isNotEmpty && type != 'all') 'type': type,

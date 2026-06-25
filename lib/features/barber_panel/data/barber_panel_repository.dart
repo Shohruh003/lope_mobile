@@ -353,23 +353,34 @@ extension BarberBookingActions on BarberPanelRepository {
   /// Convenience helper for the schedule screen's "Mijoz qo'shish" sheet:
   /// fetches the barber's service catalogue so the sheet can render chips.
   Future<List<Map<String, dynamic>>> servicesForBarber(String barberId) async {
-    final res = await _dio.get('/barbers/$barberId/services');
+    // Services live inside /barbers/:id — there is no /barbers/:id/services
+    // route on the backend (used to return 404, so the manual-booking sheet
+    // showed an empty service list).
+    final res = await _dio.get('/barbers/$barberId');
     final data = res.data;
-    final list = (data is List)
-        ? data
-        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    final svcs = data is Map ? data['services'] : null;
+    final list = (svcs is List) ? svcs : <dynamic>[];
     return list.cast<Map<String, dynamic>>();
   }
 
   /// Voice booking — multipart audio blob to the parser endpoint.
+  /// Backend endpoint: POST /barbers/voice-booking (barbers.controller.ts:220).
+  /// The barberId param is kept for caller compatibility but the
+  /// endpoint resolves the barber from the JWT, so we no longer
+  /// embed it in the path (the old /barbers/:id/voice-booking 404'd
+  /// and the parser never ran).
   Future<Map<String, dynamic>> parseVoiceBooking({
     required String barberId,
     required String audioPath,
   }) async {
     final form = FormData.fromMap({
       'audio': await MultipartFile.fromFile(audioPath),
+      // Backend's parser uses today's date for relative phrasing
+      // ('ertaga', 'soat 3 da') — pass the local YYYY-MM-DD.
+      'today':
+          '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}',
     });
-    final res = await _dio.post('/barbers/$barberId/voice-booking', data: form);
+    final res = await _dio.post('/barbers/voice-booking', data: form);
     return Map<String, dynamic>.from(res.data as Map);
   }
 

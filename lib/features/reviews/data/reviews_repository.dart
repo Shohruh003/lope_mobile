@@ -25,7 +25,10 @@ class ReviewsRepository {
   final Dio _dio;
 
   Future<List<Review>> forBarber(String barberId) async {
-    final res = await _dio.get('/barbers/$barberId/reviews');
+    // Backend: GET /reviews/barber/:barberId (reviews.controller.ts:9).
+    // The old /barbers/:id/reviews path had no handler — barber detail
+    // page always loaded "no reviews".
+    final res = await _dio.get('/reviews/barber/$barberId');
     final data = res.data;
     final list = (data is List)
         ? data
@@ -34,7 +37,9 @@ class ReviewsRepository {
   }
 
   Future<void> submit({required String barberId, required int rating, required String comment, String? bookingId}) async {
-    await _dio.post('/barbers/$barberId/reviews', data: {
+    // Backend: POST /reviews (reviews.controller.ts:15) — barberId goes in body.
+    await _dio.post('/reviews', data: {
+      'barberId': barberId,
       'rating': rating,
       'comment': comment,
       // ignore: use_null_aware_elements

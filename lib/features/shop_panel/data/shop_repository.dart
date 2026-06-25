@@ -467,7 +467,9 @@ extension ShopRepoExtras on ShopRepository {
     int page = 1,
     int limit = 30,
   }) async {
-    final res = await _dio.get('/barbershop/sms', queryParameters: {
+    // Backend: GET /barbershop/sms-logs (barbershop.controller.ts:278).
+    // Old /barbershop/sms had no handler — shop SMS history always empty.
+    final res = await _dio.get('/barbershop/sms-logs', queryParameters: {
       'page': page,
       'limit': limit,
       'barberId': ?barberId,

@@ -31,7 +31,10 @@ class BarberClientsRepository {
   final Dio _dio;
 
   Future<List<BarberClient>> mine(String barberId) async {
-    final res = await _dio.get('/barbers/$barberId/clients');
+    // Backend endpoint: GET /bookings/barber/:barberId/clients
+    // (bookings.controller.ts:164). The old /barbers/:id/clients had
+    // no handler — barber's 'Mijozlarim' screen always loaded empty.
+    final res = await _dio.get('/bookings/barber/$barberId/clients');
     final data = res.data;
     final list = (data is List)
         ? data
