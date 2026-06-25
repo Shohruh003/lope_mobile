@@ -43,11 +43,12 @@ class BarberRepository {
     }
   }
 
-  /// HH:MM strings already booked.
+  /// HH:MM strings already booked. Backend endpoint:
+  /// GET /bookings/booked-slots?barberId&date (bookings.controller.ts:40)
   Future<List<String>> bookedTimes({required String barberId, required String date}) async {
     try {
-      final res = await _dio.get('/bookings/barber/$barberId/booked',
-          queryParameters: {'date': date});
+      final res = await _dio.get('/bookings/booked-slots',
+          queryParameters: {'barberId': barberId, 'date': date});
       final data = res.data;
       final list = (data is List)
           ? data

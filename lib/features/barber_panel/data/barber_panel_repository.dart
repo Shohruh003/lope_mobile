@@ -391,10 +391,11 @@ extension BarberBookingActions on BarberPanelRepository {
   }
 
   /// Returns the HH:MM strings of slots that already have a booking.
-  /// Web: `GET /schedule/:barberId/:date/booked`.
+  /// Backend endpoint: GET /bookings/booked-slots?barberId&date.
   Future<List<String>> getBookedSlots(String barberId, String date) async {
     try {
-      final res = await _dio.get('/bookings/barber/$barberId/booked', queryParameters: {'date': date});
+      final res = await _dio.get('/bookings/booked-slots',
+          queryParameters: {'barberId': barberId, 'date': date});
       final data = res.data;
       final list = (data is List)
           ? data

@@ -11,7 +11,9 @@ class BookingRepository {
 
   /// Booked slots for a barber on a date — used to grey-out unavailable times.
   Future<List<String>> bookedSlots({required String barberId, required String date}) async {
-    final res = await _dio.get('/bookings/booked-slots/$barberId', queryParameters: {'date': date});
+    // Backend uses query params (bookings.controller.ts:40): GET /bookings/booked-slots?barberId&date
+    final res = await _dio.get('/bookings/booked-slots',
+        queryParameters: {'barberId': barberId, 'date': date});
     final data = res.data;
     if (data is List) return data.cast<String>();
     if (data is Map<String, dynamic> && data['slots'] is List) {
@@ -21,9 +23,12 @@ class BookingRepository {
   }
 
   /// Free day-schedule for a barber on a date — slots barber offers.
+  /// Backend endpoint: GET /schedule/:barberId/:date (schedule.controller.ts:41).
+  /// Old /schedule/day/:barberId/:date had no handler → 404 → empty
+  /// slot list → customer step 2 always rendered "no times available".
   Future<List<String>> daySchedule({required String barberId, required String date}) async {
     try {
-      final res = await _dio.get('/schedule/day/$barberId/$date');
+      final res = await _dio.get('/schedule/$barberId/$date');
       final data = res.data;
       if (data is Map<String, dynamic> && data['slots'] is List) {
         return (data['slots'] as List).cast<String>();
