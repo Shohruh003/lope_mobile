@@ -1574,7 +1574,7 @@
         "hoursSuffix": " соат",
         "daysSuffix": " кун"
       },
-      "sms": { "title": "SMS тарихи", "empty": "SMS йўқ", "statusOk": "Етказилди", "statusFail": "Хато" },
+      "sms": { "title": "SMS тарихи", "empty": "SMS йўқ", "statusOk": "Етказилди", "statusFail": "Хато", "typeConfirm": "Тасдиқлаш", "typeReminder": "Эслатма", "typeRetention": "Қайта жалб" },
       "publicLink": {
         "title": "Оммавий ҳавола",
         "hint": "Мижозлар учун оммавий брон ҳаволаси. Telegram, SMS ёки ижтимоий тармоқларда улашинг.",

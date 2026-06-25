@@ -10,6 +10,7 @@ import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../favorites/data/favorites_repository.dart';
 import '../data/barber_repository.dart';
+import '../data/public_barbershop_repository.dart';
 import '../domain/barber.dart';
 
 /// Customer-facing barber discovery feed — mirrors the web's
@@ -159,7 +160,25 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                   default:
                     filtered.sort((a, b) => b.rating.compareTo(a.rating));
                 }
-                if (filtered.isEmpty) return const SliverToBoxAdapter(child: _EmptyState());
+                // Merge in public barbershops — the customer feed shows
+                // standalone barbers AND whole shops in one grid (mirrors
+                // web's CustomerBarbersScreen). Shops are hidden when the
+                // filter is 'favorites'.
+                final shops = ref.watch(publicBarbershopsProvider).asData?.value ?? const [];
+                final mergedShops = (_filter == 'favorites')
+                    ? const <PublicBarbershop>[]
+                    : (_query.isEmpty
+                        ? shops
+                        : shops
+                            .where((s) =>
+                                s.name.toLowerCase().contains(_query) ||
+                                s.address.toLowerCase().contains(_query))
+                            .toList());
+                final items = <_FeedItem>[
+                  ...filtered.map((b) => _FeedItem.barber(b)),
+                  ...mergedShops.map((s) => _FeedItem.shop(s)),
+                ];
+                if (items.isEmpty) return const SliverToBoxAdapter(child: _EmptyState());
                 return SliverPadding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
                   sliver: SliverGrid.builder(
@@ -169,11 +188,17 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                       crossAxisSpacing: 10,
                       childAspectRatio: 0.74,
                     ),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, i) => _BarberCard(
-                      barber: filtered[i],
-                      avatarUrl: _avatarUrl(filtered[i].avatar),
-                    ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms),
+                    itemCount: items.length,
+                    itemBuilder: (context, i) {
+                      final item = items[i];
+                      final child = item.shop != null
+                          ? _ShopCard(shop: item.shop!)
+                          : _BarberCard(
+                              barber: item.barber!,
+                              avatarUrl: _avatarUrl(item.barber!.avatar),
+                            );
+                      return child.animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);
+                    },
                   ),
                 );
               },
@@ -421,6 +446,111 @@ class _Sep extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         color: AppColors.border,
       );
+}
+
+/// Discriminator wrapper used by the merged barbers+shops grid. Exactly one
+/// of [barber] or [shop] is non-null.
+class _FeedItem {
+  _FeedItem.barber(Barber b)
+      : barber = b,
+        shop = null;
+  _FeedItem.shop(PublicBarbershop s)
+      : barber = null,
+        shop = s;
+  final Barber? barber;
+  final PublicBarbershop? shop;
+}
+
+/// Barbershop card — same dimensions as _BarberCard so the grid looks even.
+/// Header shows a building gradient; body shows shop name + barber count +
+/// address (or geoAddress). Tapping routes to /barbershop/:id.
+class _ShopCard extends StatelessWidget {
+  const _ShopCard({required this.shop});
+  final PublicBarbershop shop;
+
+  @override
+  Widget build(BuildContext context) {
+    final addr = shop.address.isEmpty ? (shop.geoAddress ?? '') : shop.address;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: InkWell(
+        onTap: () => context.push('/barbershop/${shop.id}'),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          SizedBox(
+            height: 96,
+            child: Stack(children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                      const Color(0xFF6366F1).withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Icons.storefront,
+                    size: 44, color: Color(0xFFA78BFA)),
+              ),
+              Positioned(
+                top: 6, right: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${shop.barberCount} 👤',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ]),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  shop.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 13),
+                ),
+                const SizedBox(height: 4),
+                Row(children: [
+                  const Icon(Icons.location_on,
+                      size: 11, color: AppColors.textMuted),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    child: Text(addr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppColors.textMuted, fontSize: 11)),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
 }
 
 /// Compact 2-column grid card matching the web exactly:

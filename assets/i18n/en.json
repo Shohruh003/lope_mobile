@@ -1573,7 +1573,7 @@
         "hoursSuffix": " h",
         "daysSuffix": " d"
       },
-      "sms": { "title": "SMS history", "empty": "No SMS", "statusOk": "Delivered", "statusFail": "Failed" },
+      "sms": { "title": "SMS history", "empty": "No SMS", "statusOk": "Delivered", "statusFail": "Failed", "typeConfirm": "Confirmation", "typeReminder": "Reminder", "typeRetention": "Retention" },
       "publicLink": {
         "title": "Public link",
         "hint": "Public booking link for customers. Share via Telegram, SMS or socials.",

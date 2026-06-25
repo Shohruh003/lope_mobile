@@ -1581,7 +1581,7 @@
         "hoursSuffix": " час",
         "daysSuffix": " дн"
       },
-      "sms": { "title": "История SMS", "empty": "Нет SMS", "statusOk": "Доставлено", "statusFail": "Ошибка" },
+      "sms": { "title": "История SMS", "empty": "Нет SMS", "statusOk": "Доставлено", "statusFail": "Ошибка", "typeConfirm": "Подтверждение", "typeReminder": "Напоминание", "typeRetention": "Возврат" },
       "publicLink": {
         "title": "Публичная ссылка",
         "hint": "Публичная ссылка на запись для клиентов. Делитесь в Telegram, SMS или соцсетях.",
