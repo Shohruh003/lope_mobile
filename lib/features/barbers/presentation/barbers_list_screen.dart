@@ -26,13 +26,34 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   String _filter = 'all'; // 'all' | 'favorites' | 'available'
-  String _sort = 'rating'; // 'rating' | 'name'
+  // 'rating' | 'name' | 'experience' | 'price' — matches web's CustomerBarbersScreen
+  // (mobile has no distance sort yet — needs geolocator package).
+  String _sort = 'rating';
   String _gender = 'ALL'; // 'ALL' | 'MALE' | 'FEMALE'
+  bool _filterDefaulted = false;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// Parse the loose `experience` field (server returns either an int year
+  /// count or a free-text string like "5 yil") into a sortable number.
+  int _parseExperience(dynamic raw) {
+    if (raw is num) return raw.toInt();
+    if (raw is String) {
+      final match = RegExp(r'\d+').firstMatch(raw);
+      if (match != null) return int.tryParse(match.group(0)!) ?? 0;
+    }
+    return 0;
+  }
+
+  /// Min service price across the barber's services. Returns a very large
+  /// number when there are no services so price-sort buckets them at the end.
+  int _minPrice(Barber b) {
+    if (b.services.isEmpty) return 1 << 30;
+    return b.services.map((s) => s.price).reduce((a, b) => a < b ? a : b);
   }
 
   String _avatarUrl(String avatar) {
@@ -61,9 +82,12 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 gender: _gender,
                 searchHint: '${tr(ref, 'common.search', 'Qidirish')}...',
                 allLabel: tr(ref, 'common.all', 'Hammasi'),
+                favoritesLabel: tr(ref, 'customerApp.favorites', "Sevimlilar"),
                 availableLabel: tr(ref, 'barbers.available', "Bo'sh"),
                 ratingLabel: tr(ref, 'barbers.rating', "Reyting"),
                 nameLabel: tr(ref, 'barbers.sortByName', "Ism"),
+                experienceLabel: tr(ref, 'barbers.experience', "Tajriba"),
+                priceLabel: tr(ref, 'booking.price', "Narx"),
                 maleLabel: tr(ref, 'barbers.genderMale', "Erkak"),
                 femaleLabel: tr(ref, 'barbers.genderFemale', "Ayol"),
                 onSearch: (v) => setState(() => _query = v.trim().toLowerCase()),
@@ -81,6 +105,15 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
               loading: () => const SliverToBoxAdapter(child: _LoadingGrid()),
               error: (e, _) => SliverToBoxAdapter(child: _ErrorBlock(message: e.toString())),
               data: (list) {
+                // Default the filter to 'favorites' on first load if the user
+                // has any — same default web's CustomerBarbersScreen uses.
+                if (!_filterDefaulted) {
+                  final favs = ref.read(favoritesProvider).asData?.value ?? const [];
+                  if (favs.isNotEmpty && _filter == 'all') {
+                    _filter = 'favorites';
+                  }
+                  _filterDefaulted = true;
+                }
                 var filtered = _query.isEmpty
                     ? list
                     : list
@@ -90,6 +123,10 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                         .toList();
                 if (_filter == 'available') {
                   filtered = filtered.where((b) => b.isAvailable).toList();
+                } else if (_filter == 'favorites') {
+                  final favs = ref.watch(favoritesProvider).asData?.value ?? const [];
+                  final favIds = favs.map((b) => b.id).toSet();
+                  filtered = filtered.where((b) => favIds.contains(b.id)).toList();
                 }
                 // Gender filter — barber.targetGender is 'MALE_ONLY' / 'FEMALE_ONLY'
                 // / null. A null (no preference) barber serves anyone, so they
@@ -107,10 +144,20 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                       .toList();
                 }
                 filtered = [...filtered];
-                if (_sort == 'rating') {
-                  filtered.sort((a, b) => b.rating.compareTo(a.rating));
-                } else {
-                  filtered.sort((a, b) => a.name.compareTo(b.name));
+                switch (_sort) {
+                  case 'name':
+                    filtered.sort((a, b) => a.name.compareTo(b.name));
+                    break;
+                  case 'experience':
+                    filtered.sort((a, b) =>
+                        _parseExperience(b.experience).compareTo(_parseExperience(a.experience)));
+                    break;
+                  case 'price':
+                    filtered.sort((a, b) => _minPrice(a).compareTo(_minPrice(b)));
+                    break;
+                  case 'rating':
+                  default:
+                    filtered.sort((a, b) => b.rating.compareTo(a.rating));
                 }
                 if (filtered.isEmpty) return const SliverToBoxAdapter(child: _EmptyState());
                 return SliverPadding(
@@ -147,9 +194,12 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
     required this.gender,
     required this.searchHint,
     required this.allLabel,
+    required this.favoritesLabel,
     required this.availableLabel,
     required this.ratingLabel,
     required this.nameLabel,
+    required this.experienceLabel,
+    required this.priceLabel,
     required this.maleLabel,
     required this.femaleLabel,
     required this.onSearch,
@@ -165,9 +215,12 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
   final String gender;
   final String searchHint;
   final String allLabel;
+  final String favoritesLabel;
   final String availableLabel;
   final String ratingLabel;
   final String nameLabel;
+  final String experienceLabel;
+  final String priceLabel;
   final String maleLabel;
   final String femaleLabel;
   final ValueChanged<String> onSearch;
@@ -225,6 +278,12 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
             scrollDirection: Axis.horizontal,
             children: [
               _Pill(
+                label: favoritesLabel,
+                on: filter == 'favorites',
+                onTap: () => onFilter('favorites'),
+                onColor: AppColors.danger,
+              ),
+              _Pill(
                 label: allLabel,
                 on: filter == 'all',
                 onTap: () => onFilter('all'),
@@ -248,6 +307,20 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
                 label: nameLabel,
                 on: sort == 'name',
                 onTap: () => onSort('name'),
+                onColor: const Color(0xFF3B82F6),
+                tintBg: true,
+              ),
+              _Pill(
+                label: experienceLabel,
+                on: sort == 'experience',
+                onTap: () => onSort('experience'),
+                onColor: const Color(0xFF3B82F6),
+                tintBg: true,
+              ),
+              _Pill(
+                label: priceLabel,
+                on: sort == 'price',
+                onTap: () => onSort('price'),
                 onColor: const Color(0xFF3B82F6),
                 tintBg: true,
               ),

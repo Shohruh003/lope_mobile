@@ -68,3 +68,19 @@ final smsHistoryRepositoryProvider = Provider<SmsHistoryRepository>(
 
 final smsHistoryProvider = FutureProvider.family<List<SmsLogEntry>, String>(
     (ref, barberId) async => ref.watch(smsHistoryRepositoryProvider).fetch(barberId: barberId));
+
+/// Filtered SMS history — matches web's BarberSmsHistoryScreen which lets the
+/// barber narrow by date range + SMS type (confirmation/reminder/retention).
+typedef SmsHistoryKey = ({
+  String barberId,
+  String? type,
+  String? from,
+  String? to,
+  int page,
+});
+
+final smsHistoryFilteredProvider =
+    FutureProvider.family<List<SmsLogEntry>, SmsHistoryKey>((ref, k) async {
+  return ref.watch(smsHistoryRepositoryProvider).fetch(
+      barberId: k.barberId, type: k.type, from: k.from, to: k.to, page: k.page);
+});
