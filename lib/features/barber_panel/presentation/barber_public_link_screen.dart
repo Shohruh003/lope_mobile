@@ -29,11 +29,18 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
     super.dispose();
   }
 
-  Future<void> _save(String barberId) async {
+  Future<void> _save(String barberId, {required bool shopManaged}) async {
     setState(() => _saving = true);
     try {
-      await ref.read(barberProfileRepositoryProvider).updateBarber(barberId, {
-        'notifyBookingsBySms': _notifyBySms,
+      final repo = ref.read(barberProfileRepositoryProvider);
+      // Shop-managed barbers can't toggle their own SMS — backend rejects it
+      // because the shop owns the balance. The web screen hides the switch
+      // entirely; we mirror that and only fire the dedicated endpoint for
+      // standalone barbers.
+      if (!shopManaged) {
+        await repo.updateNotifyBookingsBySms(barberId, _notifyBySms);
+      }
+      await repo.updateBarber(barberId, {
         'telegramBotUsername': _tgController.text.trim(),
       });
       ref.invalidate(barberProfileProvider(barberId));
@@ -73,6 +80,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
             _notifyBySms = b['notifyBookingsBySms'] == true;
             _tgController.text = (b['telegramBotUsername'] ?? '').toString();
           }
+          final shopManaged = (b['barbershopId'] ?? '').toString().isNotEmpty;
           final slug = (b['publicSlug'] ?? '').toString();
           final link = slug.isEmpty ? null : 'https://app.lopestyle.uz/b/$slug';
           return ListView(
@@ -142,20 +150,22 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                 }),
               ],
 
-              const SizedBox(height: 20),
-              SwitchListTile(
-                tileColor: AppColors.surface,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.border)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                value: _notifyBySms,
-                activeThumbColor: AppColors.primary,
-                onChanged: (v) => setState(() => _notifyBySms = v),
-                title: Text(tr(ref, 'mobile.barber.publicLink.notifyTitle', "Bron qabul qilinganda SMS")),
-                subtitle: Text(
-                    tr(ref, 'mobile.barber.publicLink.notifyHint',
-                        "Yangi bron tushganda telefoningizga SMS keladi"),
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-              ),
+              if (!shopManaged && link != null) ...[
+                const SizedBox(height: 20),
+                SwitchListTile(
+                  tileColor: AppColors.surface,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.border)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                  value: _notifyBySms,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) => setState(() => _notifyBySms = v),
+                  title: Text(tr(ref, 'mobile.barber.publicLink.notifyTitle', "Bron qabul qilinganda SMS")),
+                  subtitle: Text(
+                      tr(ref, 'mobile.barber.publicLink.notifyHint',
+                          "Yangi bron tushganda telefoningizga SMS keladi"),
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                ),
+              ],
 
               const SizedBox(height: 16),
               Text(tr(ref, 'mobile.barber.publicLink.tgLabel', "Telegram bot username"),
@@ -170,7 +180,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saving ? null : () => _save(user.id),
+                  onPressed: _saving ? null : () => _save(user.id, shopManaged: shopManaged),
                   child: _saving
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : Text(tr(ref, 'common.save', "Saqlash")),

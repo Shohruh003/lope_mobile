@@ -97,6 +97,30 @@ class BarberProfileRepository {
     await updateBarber(barberId, {'gallery': next});
   }
 
+  /// PATCH /barbers/:id/notify-bookings-sms (barbers.controller.ts:111).
+  /// Dedicated endpoint enforces the shop-managed guard — shop-owned
+  /// barbers can't toggle their own SMS flag because the shop owns the
+  /// balance. Using /profile would bypass that guard.
+  Future<bool> updateNotifyBookingsBySms(String barberId, bool enabled) async {
+    final res = await _dio.patch('/barbers/$barberId/notify-bookings-sms',
+        data: {'enabled': enabled});
+    if (res.data is Map && (res.data as Map)['notifyBookingsBySms'] is bool) {
+      return (res.data as Map)['notifyBookingsBySms'] as bool;
+    }
+    return enabled;
+  }
+
+  /// PATCH /barbers/:id/require-phone-otp (barbers.controller.ts:127).
+  /// Toggles whether phone-OTP is required for new bookings.
+  Future<bool> updateRequirePhoneOtp(String barberId, bool enabled) async {
+    final res = await _dio.patch('/barbers/$barberId/require-phone-otp',
+        data: {'enabled': enabled});
+    if (res.data is Map && (res.data as Map)['requirePhoneOtp'] is bool) {
+      return (res.data as Map)['requirePhoneOtp'] as bool;
+    }
+    return enabled;
+  }
+
   // Avatar
   Future<String> uploadAvatar(String userId, File file) async {
     // Backend field name is 'avatar' (users.controller.ts:79), not 'file'.
