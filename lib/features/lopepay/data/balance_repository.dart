@@ -94,7 +94,11 @@ class BalanceRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    final res = await _dio.get('/users/$userId/payment-history', queryParameters: {
+    // Backend endpoint is /balance/my-history (auth user resolved from JWT).
+    // The old /users/:id/payment-history call hit a non-existent route and
+    // returned 404 → empty list → customer transactions UI showed
+    // "Hech narsa topilmadi" even when the user had real history.
+    final res = await _dio.get('/balance/my-history', queryParameters: {
       if (direction != 'all') 'direction': direction,
       if (method != 'all') 'method': method,
       // ignore: use_null_aware_elements
