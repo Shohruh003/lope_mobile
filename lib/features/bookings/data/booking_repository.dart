@@ -61,12 +61,35 @@ class BookingRepository {
 
   /// My bookings (customer side, paginated).
   Future<List<Booking>> mine(String userId, {int page = 1, int limit = 20}) async {
-    final res = await _dio.get('/bookings/user/$userId', queryParameters: {'page': page, 'limit': limit});
+    final r = await minePaged(userId, page: page, limit: limit);
+    return r.data;
+  }
+
+  /// Paginated variant returning {data, hasMore} so the list screen can
+  /// load older history with infinite scroll. Mirrors web's
+  /// `loadMoreUserBookings` flow.
+  Future<({List<Booking> data, bool hasMore, int total})> minePaged(
+      String userId,
+      {int page = 1,
+      int limit = 20}) async {
+    final res = await _dio.get('/bookings/user/$userId',
+        queryParameters: {'page': page, 'limit': limit});
     final data = res.data;
     final raw = (data is List)
         ? data
         : (data is Map<String, dynamic> && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    return raw.cast<Map<String, dynamic>>().map(Booking.fromJson).toList();
+    final meta = data is Map && data['meta'] is Map
+        ? (data['meta'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    final list =
+        raw.cast<Map<String, dynamic>>().map(Booking.fromJson).toList();
+    return (
+      data: list,
+      hasMore: meta['hasMore'] == true ||
+          (((meta['page'] ?? page) as num) <
+              ((meta['totalPages'] ?? 1) as num)),
+      total: ((meta['total'] ?? list.length) as num).toInt(),
+    );
   }
 
   Future<void> cancel(String bookingId) async {
@@ -123,4 +146,14 @@ final myBookingsProvider = FutureProvider<List<Booking>>((ref) async {
   final user = ref.watch(authControllerProvider).user;
   if (user == null) return const [];
   return ref.watch(bookingRepositoryProvider).mine(user.id);
+});
+
+/// Paged variant — used by MyBookingsScreen for infinite scroll.
+final myBookingsPagedProvider = FutureProvider.family<
+    ({List<Booking> data, bool hasMore, int total}), int>((ref, page) async {
+  final user = ref.watch(authControllerProvider).user;
+  if (user == null) {
+    return (data: const <Booking>[], hasMore: false, total: 0);
+  }
+  return ref.watch(bookingRepositoryProvider).minePaged(user.id, page: page);
 });

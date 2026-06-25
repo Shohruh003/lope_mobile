@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../reviews/data/reviews_repository.dart';
 import '../data/booking_repository.dart';
 import '../domain/booking.dart';
@@ -24,16 +25,80 @@ class MyBookingsScreen extends ConsumerStatefulWidget {
 class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
   int _tab = 0; // 0 = upcoming, 1 = past, 2 = cancelled
 
+  // Accumulated infinite-scroll state — page 1 loads on first build,
+  // subsequent pages append when the user scrolls near the bottom.
+  final List<Booking> _all = [];
+  int _page = 1;
+  bool _hasMore = true;
+  bool _loading = false;
+  bool _initial = true;
+  String? _error;
+  final ScrollController _scroll = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadPage(1));
+  }
+
+  @override
+  void dispose() {
+    _scroll.removeListener(_onScroll);
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_loading || !_hasMore) return;
+    if (!_scroll.hasClients) return;
+    final pos = _scroll.position;
+    if (pos.pixels >= pos.maxScrollExtent - 300) {
+      _loadPage(_page + 1);
+    }
+  }
+
+  Future<void> _loadPage(int page) async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    try {
+      final res = await ref
+          .read(bookingRepositoryProvider)
+          .minePaged(
+              ref.read(authControllerProvider).user?.id ?? '',
+              page: page);
+      if (!mounted) return;
+      setState(() {
+        if (page == 1) _all.clear();
+        _all.addAll(res.data);
+        _page = page;
+        _hasMore = res.hasMore;
+        _initial = false;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _refresh() async {
+    _hasMore = true;
+    await _loadPage(1);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(myBookingsProvider);
     return Scaffold(
       body: SafeArea(
         top: false,
         child: RefreshIndicator(
           color: AppColors.primary,
-          onRefresh: () async => ref.refresh(myBookingsProvider.future),
+          onRefresh: _refresh,
           child: ListView(
+            controller: _scroll,
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
               Text(tr(ref, 'myBookings.title', "Bronlar"),
@@ -43,16 +108,21 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
                       color: AppColors.textBright)),
               const SizedBox(height: 14),
 
-              async.when(
-                loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
-                    child: Center(child: CircularProgressIndicator())),
-                error: (e, _) => Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
-                      style: const TextStyle(color: AppColors.textMuted)),
-                ),
-                data: (list) {
+              Builder(builder: (_) {
+                if (_initial && _loading) {
+                  return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Center(child: CircularProgressIndicator()));
+                }
+                if (_error != null && _all.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                        "${tr(ref, 'common.error', 'Xatolik')}: $_error",
+                        style: const TextStyle(color: AppColors.textMuted)),
+                  );
+                }
+                final list = _all;
                   final upcoming = list.where((b) => b.status == 'confirmed').toList();
                   final past = list.where((b) => b.status == 'completed').toList();
                   final cancelled = list.where((b) => b.status == 'cancelled').toList();
@@ -134,14 +204,24 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
                       ...visible.asMap().entries.map((e) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: _BookingCard(b: e.value)
+                          child: _BookingCard(
+                                  b: e.value, onChanged: _refresh)
                               .animate()
                               .fadeIn(duration: 200.ms, delay: (e.key * 25).ms),
                         );
                       }),
+                    if (_loading && !_initial)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                            child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2))),
+                      ),
                   ]);
-                },
-              ),
+              }),
             ],
           ),
         ),
@@ -151,8 +231,9 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
 }
 
 class _BookingCard extends ConsumerWidget {
-  const _BookingCard({required this.b});
+  const _BookingCard({required this.b, required this.onChanged});
   final Booking b;
+  final Future<void> Function() onChanged;
 
   Color get _statusColor {
     switch (b.status) {
@@ -342,6 +423,7 @@ class _BookingCard extends ConsumerWidget {
     try {
       await ref.read(bookingRepositoryProvider).complete(b.id);
       ref.invalidate(myBookingsProvider);
+      await onChanged();
       if (context.mounted) {
         // Web flow: after completing, prompt the customer to rate
         // the barber. They can also skip and just close.
@@ -486,6 +568,7 @@ class _BookingCard extends ConsumerWidget {
     try {
       await ref.read(bookingRepositoryProvider).cancel(b.id);
       ref.invalidate(myBookingsProvider);
+      await onChanged();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'myBookings.cancelled',
