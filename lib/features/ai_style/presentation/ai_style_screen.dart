@@ -11,6 +11,7 @@ import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/data/balance_repository.dart';
+import '../../lopepay/presentation/top_up_modal.dart';
 import '../data/ai_style_repository.dart';
 
 /// Mirrors `CustomerAIStyleScreen.tsx` 1:1:
@@ -91,7 +92,10 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       String msg = tr(ref, 'mobile.aiStyle.errorGeneric',
           "Generatsiya bajarilmadi");
       final s = e.toString();
-      if (s.contains('402') || s.contains('balance')) {
+      final isBalance = s.contains('402') ||
+          s.contains('balance') ||
+          s.contains('yetarli');
+      if (isBalance) {
         msg = tr(ref, 'mobile.aiStyle.errorBalance',
             "Balansingiz yetarli emas. Hisobni to'ldiring.");
       }
@@ -99,6 +103,11 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
         msg = tr(ref, 'mobile.aiStyle.errorInternet', "Internet bilan muammo");
       }
       setState(() => _error = msg);
+      if (isBalance && mounted) {
+        // Web pops the ClickTopUpModal on a 402; mirror that so the
+        // user can fund the wallet without leaving the AI Style flow.
+        await TopUpModal.show(context);
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
