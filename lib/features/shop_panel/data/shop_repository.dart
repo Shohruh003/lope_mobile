@@ -264,6 +264,13 @@ class ShopRepository {
     );
   }
 
+  /// Poll the blast job's current state. The progress modal calls this
+  /// on a 2-second interval while status == RUNNING.
+  Future<Map<String, dynamic>> blastJob(String jobId) async {
+    final res = await _dio.get('/blast-jobs/$jobId');
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
   /// Clients that booked with the given barber — used by the per-
   /// barber detail screen's Clients tab. The backend route returns
   /// a paginated `{data: [...]}` envelope; we unwrap to a flat list.

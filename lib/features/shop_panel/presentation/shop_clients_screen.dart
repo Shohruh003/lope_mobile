@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/shop_repository.dart';
+import 'bulk_send_progress_modal.dart';
 
 /// Shop-owner view of all clients. Mirrors the web BarbershopClients
 /// page: search bar, days-since-visit bucket filter, bulk-select
@@ -69,12 +70,20 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
     if (ok != true) return;
     setState(() => _sending = true);
     try {
-      final res = await ref.read(shopRepositoryProvider).sendRetentionSms(_selected.toList());
-      if (mounted) {
+      final res = await ref
+          .read(shopRepositoryProvider)
+          .sendRetentionSms(_selected.toList());
+      if (!mounted) return;
+      setState(() => _selected.clear());
+      // Open the progress modal — it polls /blast-jobs/:id until done
+      // and shows sent / skipped / out-of-balance + a failed-rows list.
+      if (res.jobId.isNotEmpty) {
+        await BulkSendProgressModal.show(context, jobId: res.jobId);
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'mobile.shop.clients.bulkSendQueued',
-                "{{n}} ta SMS navbatga qo'shildi", {'n': '${res.total}'}))));
-        setState(() => _selected.clear());
+                "{{n}} ta SMS navbatga qo'shildi",
+                {'n': '${res.total}'}))));
       }
     } catch (e) {
       if (mounted) {
