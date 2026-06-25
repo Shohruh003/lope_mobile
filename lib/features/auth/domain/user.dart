@@ -10,6 +10,7 @@ class AppUser {
     this.avatar,
     this.referralCode,
     this.referralsCount = 0,
+    this.gender,
   });
 
   final String id;
@@ -19,6 +20,7 @@ class AppUser {
   final String? avatar;
   final String? referralCode;
   final int referralsCount;
+  final String? gender; // 'MALE' | 'FEMALE' | null
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
         id: json['id'] as String,
@@ -29,6 +31,7 @@ class AppUser {
         referralCode: json['referralCode'] as String?,
         referralsCount:
             ((json['referralsCount'] ?? 0) as num).toInt(),
+        gender: json['gender'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -39,9 +42,12 @@ class AppUser {
         if (avatar != null) 'avatar': avatar,
         if (referralCode != null) 'referralCode': referralCode,
         'referralsCount': referralsCount,
+        if (gender != null) 'gender': gender,
       };
 
-  AppUser copyWith({String? referralCode, int? referralsCount}) => AppUser(
+  AppUser copyWith(
+          {String? referralCode, int? referralsCount, String? gender}) =>
+      AppUser(
         id: id,
         name: name,
         phone: phone,
@@ -49,5 +55,6 @@ class AppUser {
         avatar: avatar,
         referralCode: referralCode ?? this.referralCode,
         referralsCount: referralsCount ?? this.referralsCount,
+        gender: gender ?? this.gender,
       );
 }

@@ -126,6 +126,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       _seeded = true;
       _nameCtrl.text = user.name;
       _avatarUrl = user.avatar;
+      // Seed gender from the cached user record so the matching pill is
+      // pre-selected when the screen opens — was always null before.
+      _gender = user.gender;
     }
 
     return Scaffold(

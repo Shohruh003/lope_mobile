@@ -244,48 +244,116 @@ class _PasswordStep extends ConsumerStatefulWidget {
 
 class _PasswordStepState extends ConsumerState<_PasswordStep> {
   final _ctrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
   bool _obscure = true;
+  bool _obscureConfirm = true;
+  String? _localError;
+
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onSubmit() {
+    final pw = _ctrl.text;
+    final cf = _confirmCtrl.text;
+    if (pw.length < 6) {
+      setState(() => _localError =
+          tr(ref, 'auth.shortPassword', "Parol kamida 6 belgi"));
+      return;
+    }
+    if (pw != cf) {
+      setState(() => _localError = tr(ref, 'auth.passwordMismatch',
+          "Parollar mos kelmadi"));
+      return;
+    }
+    setState(() => _localError = null);
+    widget.onSubmit(pw);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final err = _localError ?? widget.error;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
         Text(tr(ref, 'auth.newPassword', "Yangi parol"),
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+            style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textBright)),
         const SizedBox(height: 12),
-        Text(tr(ref, 'auth.newPasswordHint', "Kamida 4 belgili yangi parol qo'ying"),
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
-        const SizedBox(height: 32),
+        Text(
+            tr(ref, 'auth.newPasswordHint',
+                "Kamida 6 belgili yangi parol qo'ying"),
+            style: const TextStyle(
+                color: AppColors.textSecondary, fontSize: 15)),
+        const SizedBox(height: 28),
         TextField(
           controller: _ctrl,
           autofocus: true,
           obscureText: _obscure,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textBright),
+          style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textBright),
           decoration: InputDecoration(
             hintText: tr(ref, 'auth.newPassword', "Yangi parol"),
             suffixIcon: IconButton(
-              icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: AppColors.textSecondary),
               onPressed: () => setState(() => _obscure = !_obscure),
             ),
           ),
         ),
-        if (widget.error != null) ...[
+        const SizedBox(height: 12),
+        TextField(
+          controller: _confirmCtrl,
+          obscureText: _obscureConfirm,
+          style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textBright),
+          decoration: InputDecoration(
+            hintText: tr(ref, 'auth.confirmPassword',
+                "Parolni qayta kiriting"),
+            suffixIcon: IconButton(
+              icon: Icon(
+                  _obscureConfirm
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: AppColors.textSecondary),
+              onPressed: () =>
+                  setState(() => _obscureConfirm = !_obscureConfirm),
+            ),
+          ),
+        ),
+        if (err != null) ...[
           const SizedBox(height: 12),
-          Text(widget.error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+          Text(err,
+              style: const TextStyle(color: AppColors.danger, fontSize: 13)),
         ],
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: widget.busy ? null : () => widget.onSubmit(_ctrl.text),
+            onPressed: widget.busy ? null : _onSubmit,
             child: widget.busy
-                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text(tr(ref, 'auth.updatePassword', "Parolni yangilash"),
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : Text(
+                    tr(ref, 'auth.updatePassword', "Parolni yangilash"),
+                    style: const TextStyle(
+                        fontSize: 17, fontWeight: FontWeight.w800)),
           ),
         ),
       ],
