@@ -23,9 +23,14 @@ class _PaymentCallbackScreenState extends ConsumerState<PaymentCallbackScreen> {
   @override
   void initState() {
     super.initState();
-    // Kick a balance refresh — server may have credited the funds already.
+    // Kick a balance + user refresh — server credited funds + may have
+    // toggled VIP / promoted the role. Both providers updated so the
+    // wallet card shows the new amount before the user even taps
+    // 'Hisobni ochish'.
     final user = ref.read(authControllerProvider).user;
     if (user != null) ref.invalidate(myBalanceProvider(user.id));
+    // ignore: unawaited_futures
+    ref.read(authControllerProvider.notifier).refreshFromServer();
   }
 
   @override
