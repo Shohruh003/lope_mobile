@@ -468,27 +468,48 @@ class _BookingCard extends ConsumerWidget {
       );
 
   Future<void> _complete(BuildContext context, WidgetRef ref) async {
+    int? overrideTotal;
+    final priceCtrl = TextEditingController(
+        text: b.totalPrice > 0 ? b.totalPrice.toString() : '');
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
         title: Text(tr(ref, 'myBookings.completeConfirmTitle',
             "Bronni yakunlash?")),
-        content: Text(tr(ref, 'myBookings.completeConfirmMsg',
-            "Bron yakunlangan deb belgilanadi.")),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(tr(ref, 'myBookings.completeConfirmMsg',
+              "Bron yakunlangan deb belgilanadi.")),
+          const SizedBox(height: 12),
+          TextField(
+            controller: priceCtrl,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: tr(ref, 'myBookings.totalPriceLabel',
+                  "Olingan summa (ixtiyoriy)"),
+              hintText: '0',
+              suffixText: tr(ref, 'common.currency', "so'm"),
+            ),
+          ),
+        ]),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dCtx, false),
               child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
-              onPressed: () => Navigator.pop(dCtx, true),
+              onPressed: () {
+                overrideTotal = int.tryParse(priceCtrl.text.trim());
+                Navigator.pop(dCtx, true);
+              },
               child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
         ],
       ),
     );
     if (ok != true) return;
     try {
-      await ref.read(bookingRepositoryProvider).complete(b.id);
+      await ref
+          .read(bookingRepositoryProvider)
+          .complete(b.id, totalPrice: overrideTotal);
       ref.invalidate(shopBookingsFilteredProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
