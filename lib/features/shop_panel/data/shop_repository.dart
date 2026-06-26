@@ -166,11 +166,17 @@ class ShopBooking {
                 json['guestName'] ??
                 'Mijoz')
             .toString(),
-        userPhone: ((json['clientPhone'] ?? json['userPhone']) as String?)
-                    ?.isEmpty ??
-                true
-            ? null
-            : (json['clientPhone'] ?? json['userPhone']) as String,
+        // Prefer guest* but fall through to user* — guest fields can be
+        // nulled by the registration claim flow (when a guest later
+        // signs up, the booking is linked to their userId + guest*
+        // cleared). Mirrors web's BarberScheduleScreen fallback.
+        userPhone: (() {
+          final raw = json['clientPhone'] ??
+              json['guestPhone'] ??
+              json['userPhone'];
+          if (raw is! String || raw.isEmpty) return null;
+          return raw;
+        })(),
         totalPrice: ((json['totalPrice'] ?? 0) as num).toInt(),
         totalDuration: ((json['totalDuration'] ?? 0) as num).toInt(),
         notes: (json['notes'] as String?)?.isEmpty ?? true
