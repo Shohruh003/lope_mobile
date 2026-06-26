@@ -100,6 +100,22 @@ class PushService {
     }
   }
 
+  /// Force a fresh register-device call. Use after login: the first run of
+  /// [initIfPossible] happens before the user signs in, so the dio call has
+  /// no Authorization header and the backend route (JwtAuthGuard) rejects
+  /// it. The token caching in [_registerToken] then short-circuits future
+  /// registration attempts. Resetting [_lastToken] forces a retry.
+  Future<void> registerCurrentToken() async {
+    if (kIsWeb) return;
+    try {
+      if (Firebase.apps.isEmpty) return;
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) return;
+      _lastToken = null;
+      await _registerToken(token);
+    } catch (_) {}
+  }
+
   /// Tear down on logout so the next user doesn't inherit pushes.
   Future<void> deregisterOnLogout() async {
     final token = _lastToken;

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/push_service.dart';
 import '../data/auth_repository.dart';
 import '../domain/user.dart';
 
@@ -59,9 +60,15 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> signedIn(AppUser user) async {
     state = AuthState(user: user, loading: false);
+    // PushService.initIfPossible ran before login so the first
+    // /auth/register-device call had no Authorization header. Retry now
+    // that we have a token so future pushes are routed to this device.
+    // ignore: unawaited_futures
+    ref.read(pushServiceProvider).registerCurrentToken();
   }
 
   Future<void> logout() async {
+    await ref.read(pushServiceProvider).deregisterOnLogout();
     await ref.read(authRepositoryProvider).logout();
     state = const AuthState(loading: false);
   }
