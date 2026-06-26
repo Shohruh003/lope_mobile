@@ -36,7 +36,6 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
   final _geoAddressCtrl = TextEditingController();
   final _latCtrl = TextEditingController();
   final _lngCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
   final _reminderDaysCtrl = TextEditingController(text: '20');
   final _reminderHoursCtrl = TextEditingController(text: '1');
   final _slotDurationCtrl = TextEditingController(text: '30');
@@ -67,7 +66,6 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     _geoAddressCtrl.dispose();
     _latCtrl.dispose();
     _lngCtrl.dispose();
-    _descCtrl.dispose();
     _reminderDaysCtrl.dispose();
     _reminderHoursCtrl.dispose();
     _slotDurationCtrl.dispose();
@@ -128,7 +126,6 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         'geoAddress': _geoAddressCtrl.text.trim(),
         'latitude': ?lat,
         'longitude': ?lng,
-        'description': _descCtrl.text.trim(),
         'reminderDays': reminderDays,
         'reminderHoursBefore': reminderHours,
         'slotDuration': slotDuration,
@@ -176,7 +173,6 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     final lng = m['longitude'];
     if (lat is num) _latCtrl.text = lat.toString();
     if (lng is num) _lngCtrl.text = lng.toString();
-    _descCtrl.text = (m['description'] ?? '').toString();
     _reminderDaysCtrl.text =
         ((m['reminderDays'] ?? 20) as num).toInt().toString();
     _reminderHoursCtrl.text =
@@ -282,11 +278,6 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                   onPressed: _openYandex,
                 ),
               ),
-              const SizedBox(height: 12),
-              _Label(tr(ref, 'mobile.shop.profile.description', "Tavsif")),
-              const SizedBox(height: 6),
-              TextField(controller: _descCtrl, maxLines: 3),
-
               const SizedBox(height: 22),
               _Section(tr(ref, 'profile.workingHours', "Ish soatlari")),
               const SizedBox(height: 8),
