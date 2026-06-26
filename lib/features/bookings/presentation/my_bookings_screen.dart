@@ -22,7 +22,8 @@ class MyBookingsScreen extends ConsumerStatefulWidget {
   ConsumerState<MyBookingsScreen> createState() => _MyBookingsScreenState();
 }
 
-class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
+class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
+    with WidgetsBindingObserver {
   int _tab = 0; // 0 = upcoming, 1 = past, 2 = cancelled
 
   // Accumulated infinite-scroll state — page 1 loads on first build,
@@ -39,14 +40,27 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadPage(1));
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// On app resume, refetch page 1 so a barber's confirm/reschedule/cancel
+  /// that happened while the app was backgrounded shows up immediately.
+  /// Push payloads land in the system tray but don't auto-trigger the
+  /// FutureProvider here.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadPage(1);
+    }
   }
 
   void _onScroll() {

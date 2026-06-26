@@ -27,7 +27,8 @@ class BarberScheduleScreen extends ConsumerStatefulWidget {
   ConsumerState<BarberScheduleScreen> createState() => _BarberScheduleScreenState();
 }
 
-class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
+class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
+    with WidgetsBindingObserver {
   late DateTime _selectedDate;
 
   // Voice recording state
@@ -48,12 +49,29 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen> {
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _recorder.dispose();
     super.dispose();
+  }
+
+  /// When the app returns to the foreground, refetch bookings + blocked
+  /// slots so a customer's cancel/reschedule that happened while we were
+  /// backgrounded shows up immediately. Mirrors web fix d080184 which
+  /// added the same visibilitychange listener for the WebView case.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    final user = ref.read(authControllerProvider).user;
+    if (user == null) return;
+    final key = (barberId: user.id, date: _dateStr(_selectedDate));
+    ref.invalidate(scheduleSlotsProvider(key));
+    ref.invalidate(bookedSlotsProvider(key));
+    ref.invalidate(blockedSlotsProvider(key));
   }
 
   String _dateStr(DateTime d) =>
