@@ -112,11 +112,19 @@ class BarberService {
     required this.price,
     required this.duration,
     required this.icon,
+    this.nameUz = '',
+    this.nameRu = '',
     this.priceMax,
   });
 
   final String id;
+  /// Localised display name — populated from `nameUz` when present so the
+  /// UI doesn't have to know which locale field came back.
   final String name;
+  /// Original `nameUz` / `nameRu` retained so the booking POST can ship
+  /// both — backend's bookings.service.create signature wants both.
+  final String nameUz;
+  final String nameRu;
   final int price;
   final int? priceMax; // when set, displayed as "min – max"
   final int duration; // minutes
@@ -124,9 +132,16 @@ class BarberService {
 
   factory BarberService.fromJson(Map<String, dynamic> json) {
     final raw = json['priceMax'];
+    final nameUz = (json['nameUz'] ?? '') as String;
+    final nameRu = (json['nameRu'] ?? '') as String;
+    final name = nameUz.isNotEmpty
+        ? nameUz
+        : (json['name'] ?? nameRu) as String;
     return BarberService(
       id: json['id'] as String,
-      name: (json['nameUz'] ?? json['name'] ?? '') as String,
+      name: name,
+      nameUz: nameUz,
+      nameRu: nameRu,
       price: ((json['price'] ?? 0) as num).toInt(),
       priceMax: raw is num ? raw.toInt() : null,
       duration: ((json['duration'] ?? 30) as num).toInt(),

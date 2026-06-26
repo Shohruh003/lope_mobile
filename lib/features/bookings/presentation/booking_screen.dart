@@ -692,11 +692,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             barberId: barber.id,
             date: _dateStr(_selectedDate!),
             time: _selectedTime!,
+            // Backend's create() signature requires nameUz + nameRu so the
+            // SMS / push body can render in either locale. Pass the originals
+            // we got from /barbers/:id verbatim — the previous payload was
+            // dropping nameRu, leaving Russian recipients with empty name in
+            // the SMS template.
             services: picked
                 .map((s) => {
                       'id': s.id,
-                      'nameUz': s.name,
                       'name': s.name,
+                      'nameUz': s.nameUz.isEmpty ? s.name : s.nameUz,
+                      'nameRu': s.nameRu,
                       'price': s.price,
                       'duration': s.duration,
                       'icon': s.icon,

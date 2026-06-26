@@ -42,19 +42,44 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
     final dio = ref.read(dioProvider);
     final d = '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
     try {
-      final res = await dio.get('/barbers/$barberId/schedule/$d');
-      final data = res.data;
-      if (data is Map && data['available'] is List) {
-        return (data['available'] as List).map((e) => e.toString()).toList();
-      }
-      if (data is List) return data.map((e) => e.toString()).toList();
-      return [];
+      // Web fetches BOTH the day-schedule and booked-slots and subtracts.
+      // No public-only routes exist — these endpoints are unauthenticated
+      // (no @UseGuards on either controller). Old /barbers/:id/schedule/:d
+      // had no handler so public booking never had a list of times to show.
+      final results = await Future.wait([
+        dio
+            .get('/schedule/$barberId/$d')
+            .then((r) {
+              final d = r.data;
+              if (d is Map && d['slots'] is List) {
+                return (d['slots'] as List).map((e) => e.toString()).toList();
+              }
+              return <String>[];
+            })
+            .catchError((_) => <String>[]),
+        dio
+            .get('/bookings/booked-slots',
+                queryParameters: {'barberId': barberId, 'date': d})
+            .then((r) {
+              final d = r.data;
+              if (d is List) return d.map((e) => e.toString()).toList();
+              if (d is Map && d['slots'] is List) {
+                return (d['slots'] as List).map((e) => e.toString()).toList();
+              }
+              return <String>[];
+            })
+            .catchError((_) => <String>[]),
+      ]);
+      final scheduleSlots = results[0];
+      final booked = results[1].toSet();
+      return scheduleSlots.where((s) => !booked.contains(s)).toList();
     } catch (_) {
       return [];
     }
   }
 
-  Future<void> _submit(String barberId) async {
+  Future<void> _submit(
+      String barberId, List<Map<String, dynamic>> allServices) async {
     if (_selected.isEmpty || _time == null) {
       setState(() => _error = tr(ref, 'mobile.publicBooking.pickServiceTime',
           "Xizmat va vaqt tanlang"));
@@ -72,11 +97,32 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
     });
     try {
       final d = '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
-      await ref.read(dioProvider).post('/bookings/public', data: {
-        'slug': widget.slug,
-        'serviceIds': _selected.toList(),
+      // Backend: POST /public/bookings/:slug (public-booking.controller.ts:43).
+      // Slug goes in URL, full services snapshot in body — same shape as
+      // /bookings/manual minus barberId. Old /bookings/public route had no
+      // handler so EVERY share-link booking was silently 404'ing.
+      final picked = allServices
+          .where((s) => _selected.contains((s['id'] ?? '').toString()))
+          .toList();
+      final services = picked.map((s) => {
+            'id': s['id'],
+            'name': (s['name'] ?? s['nameUz'] ?? '').toString(),
+            'nameUz': (s['nameUz'] ?? s['name'] ?? '').toString(),
+            'nameRu': (s['nameRu'] ?? '').toString(),
+            'price': ((s['price'] ?? 0) as num).toInt(),
+            'duration': ((s['duration'] ?? 30) as num).toInt(),
+            'icon': (s['icon'] ?? '✂️').toString(),
+          }).toList();
+      final totalPrice = picked.fold<int>(
+          0, (a, s) => a + ((s['price'] ?? 0) as num).toInt());
+      final totalDuration = picked.fold<int>(
+          0, (a, s) => a + ((s['duration'] ?? 30) as num).toInt());
+      await ref.read(dioProvider).post('/public/bookings/${widget.slug}', data: {
         'date': d,
         'time': _time,
+        'services': services,
+        'totalPrice': totalPrice,
+        'totalDuration': totalDuration,
         'guestName': _nameCtrl.text.trim(),
         'guestPhone': '+998$phone',
       });
@@ -275,7 +321,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _busy ? null : () => _submit(barberId),
+                  onPressed: _busy ? null : () => _submit(barberId, services),
                   child: _busy
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : Text(tr(ref, 'booking.title', "Yozilish"),
