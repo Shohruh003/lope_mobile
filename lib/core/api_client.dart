@@ -20,9 +20,13 @@ Dio buildDio(StorageService storage) {
       receiveTimeout: const Duration(seconds: 30),
       sendTimeout: const Duration(seconds: 30),
       headers: {'Content-Type': 'application/json'},
-      // Treat 5xx as exceptions; 4xx surface as DioException so callers can
-      // branch on response.statusCode.
-      validateStatus: (s) => s != null && s < 500,
+      // Only 2xx + 3xx are valid responses. 4xx + 5xx throw DioException
+      // (type=badResponse) so the on-401 refresh interceptor fires and the
+      // many `on DioException catch (e) { if (e.response?.statusCode == 404)
+      // ... }` branches in callers actually run. Prior code accepted 4xx as
+      // a normal response, which meant the refresh logic was dead code and
+      // every 404/409 fall-through was matching by accident on data shape.
+      validateStatus: (s) => s != null && s < 400,
     ),
   );
 
