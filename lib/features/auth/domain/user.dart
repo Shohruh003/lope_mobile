@@ -11,6 +11,7 @@ class AppUser {
     this.referralCode,
     this.referralsCount = 0,
     this.gender,
+    this.vipUntil,
   });
 
   final String id;
@@ -21,18 +22,35 @@ class AppUser {
   final String? referralCode;
   final int referralsCount;
   final String? gender; // 'MALE' | 'FEMALE' | null
+  /// VIP subscription expiry — pulled from the nested `barber` block in the
+  /// /auth/login + /auth/me responses (barber.vipUntil). null for non-barber
+  /// roles or when the barber has never had VIP. Drives the low-balance
+  /// modal short-circuit + the header crown badge.
+  final DateTime? vipUntil;
 
-  factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
-        id: json['id'] as String,
-        name: json['name'] as String? ?? '',
-        phone: json['phone'] as String? ?? '',
-        role: json['role'] as String? ?? 'user',
-        avatar: json['avatar'] as String?,
-        referralCode: json['referralCode'] as String?,
-        referralsCount:
-            ((json['referralsCount'] ?? 0) as num).toInt(),
-        gender: json['gender'] as String?,
-      );
+  bool get isVip {
+    final until = vipUntil;
+    return until != null && until.isAfter(DateTime.now());
+  }
+
+  factory AppUser.fromJson(Map<String, dynamic> json) {
+    // Backend nests barber-specific fields under user.barber on login.
+    // Look there first, then fall back to a top-level vipUntil for the
+    // /barbers/:id response we sometimes re-use.
+    final barber = json['barber'] is Map ? json['barber'] as Map : null;
+    final rawVip = barber?['vipUntil'] ?? json['vipUntil'];
+    return AppUser(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      role: json['role'] as String? ?? 'user',
+      avatar: json['avatar'] as String?,
+      referralCode: json['referralCode'] as String?,
+      referralsCount: ((json['referralsCount'] ?? 0) as num).toInt(),
+      gender: json['gender'] as String?,
+      vipUntil: rawVip is String ? DateTime.tryParse(rawVip) : null,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -43,6 +61,7 @@ class AppUser {
         if (referralCode != null) 'referralCode': referralCode,
         'referralsCount': referralsCount,
         if (gender != null) 'gender': gender,
+        if (vipUntil != null) 'vipUntil': vipUntil!.toIso8601String(),
       };
 
   AppUser copyWith(
@@ -56,5 +75,6 @@ class AppUser {
         referralCode: referralCode ?? this.referralCode,
         referralsCount: referralsCount ?? this.referralsCount,
         gender: gender ?? this.gender,
+        vipUntil: vipUntil,
       );
 }

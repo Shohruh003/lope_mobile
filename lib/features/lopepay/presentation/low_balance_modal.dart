@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../../barbers/data/barber_repository.dart';
 import '../data/balance_repository.dart';
 
 /// Mirrors the web's low-balance modal logic from `BarberLayout.tsx`:
@@ -27,17 +26,11 @@ class LowBalanceWatcher {
     if (user == null || user.role != 'barber') return;
 
     // VIP barbers are billed separately for SMS and shouldn't see the
-    // top-up modal at all. Web fix 71a0b33 added the same guard on
-    // BarberLayout. We still load the balance for the header chip in
-    // other screens, but here we just short-circuit.
-    try {
-      final barber =
-          await ref.read(barberRepositoryProvider).byId(user.id);
-      if (barber.isVip) return;
-    } catch (_) {
-      // If the barber lookup fails we conservatively continue and show
-      // the modal — better one extra prompt than a missed top-up nudge.
-    }
+    // top-up modal. Web fix 71a0b33 added the same guard on BarberLayout.
+    // AppUser.vipUntil is populated from the nested barber.vipUntil on the
+    // login + /auth/me responses so we can check it inline without an
+    // extra /barbers/:id round-trip.
+    if (user.isVip) return;
 
     // Already dismissed?
     final prefs = await SharedPreferences.getInstance();
