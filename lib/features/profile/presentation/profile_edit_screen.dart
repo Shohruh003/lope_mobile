@@ -72,17 +72,22 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     try {
       final dio = ref.read(dioProvider);
 
-      // 1) Upload avatar if changed
+      // 1) Upload avatar if changed. Backend FileInterceptor field name
+      // is 'avatar' (users.controller.ts:79), not 'file' — old name made
+      // every customer avatar upload 400.
       if (_avatarFile != null) {
         setState(() => _uploadingAvatar = true);
         final form = FormData.fromMap({
-          'file': await MultipartFile.fromFile(_avatarFile!.path),
+          'avatar': await MultipartFile.fromFile(_avatarFile!.path),
         });
         await dio.post('/users/$userId/avatar', data: form);
         setState(() => _uploadingAvatar = false);
       }
 
-      // 2) Patch profile
+      // 2) Patch profile. PATCH /users/:id is admin-only — regular users
+      // must hit /users/:id/profile (users.controller.ts:58), so the
+      // previous endpoint returned 403 for non-admins and the customer
+      // saw "Saqlanmadi" with no idea why.
       final payload = <String, dynamic>{
         'name': _nameCtrl.text.trim(),
         if (_gender != null) 'gender': _gender,
@@ -91,7 +96,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           'newPassword': _newPassCtrl.text,
         },
       };
-      await dio.patch('/users/$userId', data: payload);
+      await dio.patch('/users/$userId/profile', data: payload);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
