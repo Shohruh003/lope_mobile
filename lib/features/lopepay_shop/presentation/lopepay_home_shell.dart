@@ -395,12 +395,16 @@ class _InstallmentRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cust = (item['customer'] is Map)
-        ? item['customer'] as Map<String, dynamic>
-        : <String, dynamic>{};
-    final name = (cust['name'] ?? item['customerName'] ?? '').toString();
-    final phone = (cust['phone'] ?? item['customerPhone'] ?? '').toString();
-    final monthly = ((item['monthlyAmount'] ?? item['amount'] ?? item['nextAmount'] ?? 0) as num).toInt();
+    // Backend installments have no nested customer object — flat
+    // customerName / customerPhone live on the row itself, and the
+    // payable each month is monthlyPayment (see lopepay fix 8aa66e8).
+    final name = (item['customerName'] ?? '').toString();
+    final phone = (item['customerPhone'] ?? '').toString();
+    final monthly = ((item['monthlyPayment'] ??
+            item['monthlyAmount'] ??
+            item['amount'] ??
+            0) as num)
+        .toInt();
     final color = isOverdue ? AppColors.danger : AppColors.warning;
 
     return InkWell(
