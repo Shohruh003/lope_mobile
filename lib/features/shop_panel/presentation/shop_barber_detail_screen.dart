@@ -639,8 +639,7 @@ class _ClientsTab extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        if ((e.value['bookingsCount'] ?? 0) is num &&
-                            ((e.value['bookingsCount'] ?? 0) as num) > 0)
+                        if (((e.value['totalVisits'] ?? e.value['bookingsCount'] ?? 0) as num) > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
@@ -649,7 +648,7 @@ class _ClientsTab extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                                "${(e.value['bookingsCount'] as num).toInt()}",
+                                "${((e.value['totalVisits'] ?? e.value['bookingsCount'] ?? 0) as num).toInt()}",
                                 style: const TextStyle(
                                     color: AppColors.success,
                                     fontWeight: FontWeight.w800,

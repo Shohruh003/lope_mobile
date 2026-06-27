@@ -20,8 +20,15 @@ class BarberClient {
   factory BarberClient.fromJson(Map<String, dynamic> json) => BarberClient(
         name: (json['name'] ?? json['guestName'] ?? '').toString(),
         phone: (json['phone'] ?? json['guestPhone'] ?? '').toString(),
-        bookingsCount: ((json['bookingsCount'] ?? json['count'] ?? 0) as num).toInt(),
-        lastVisit: json['lastVisit'] != null ? DateTime.tryParse(json['lastVisit'].toString()) : null,
+        // Backend exposes `totalVisits` (bookings.service.ts:194); kept
+        // bookingsCount/count fallbacks so older cached responses don't
+        // suddenly read as 0.
+        bookingsCount: ((json['totalVisits'] ?? json['bookingsCount'] ?? json['count'] ?? 0) as num).toInt(),
+        lastVisit: json['lastVisit'] != null && (json['lastVisit'] as String).isNotEmpty
+            ? DateTime.tryParse(json['lastVisit'].toString())
+            : null,
+        // Backend doesn't currently return totalSpent — keep the read
+        // for forward compat but it will be 0 in production today.
         totalSpent: ((json['totalSpent'] ?? 0) as num).toInt(),
       );
 }

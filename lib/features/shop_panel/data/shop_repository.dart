@@ -419,8 +419,13 @@ class ShopClient {
   factory ShopClient.fromJson(Map<String, dynamic> json) => ShopClient(
         name: (json['name'] ?? '').toString(),
         phone: (json['phone'] ?? '').toString(),
-        lastVisit: json['lastVisit'] != null ? DateTime.tryParse(json['lastVisit'].toString()) : null,
-        bookingsCount: ((json['bookingsCount'] ?? json['count'] ?? 0) as num).toInt(),
+        lastVisit: json['lastVisit'] != null && (json['lastVisit'] as String).isNotEmpty
+            ? DateTime.tryParse(json['lastVisit'].toString())
+            : null,
+        // Backend uses `totalVisits` (barbershop.service.ts:873); kept the
+        // older `bookingsCount`/`count` fallbacks so a stray older payload
+        // doesn't suddenly show 0 visits across the board.
+        bookingsCount: ((json['totalVisits'] ?? json['bookingsCount'] ?? json['count'] ?? 0) as num).toInt(),
       );
 }
 
