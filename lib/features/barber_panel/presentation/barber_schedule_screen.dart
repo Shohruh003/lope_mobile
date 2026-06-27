@@ -633,6 +633,15 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(tr(ref, 'mobile.barber.schedule.clientAdded', "Mijoz qo'shildi"))));
       }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final body = e.response?.data;
+      final code = body is Map ? (body['code'] ?? '').toString() : '';
+      final msg = code == 'SLOT_TAKEN' || e.response?.statusCode == 409
+          ? tr(ref, 'booking.slotTaken', "Bu vaqt allaqachon band qilingan")
+          : tr(ref, 'common.error', 'Xatolik');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
