@@ -183,7 +183,6 @@ class BarberCardsScreen extends ConsumerWidget {
       {Map<String, dynamic>? existing}) async {
     final number = TextEditingController(text: (existing?['cardNumber'] ?? '').toString());
     final holder = TextEditingController(text: (existing?['holderName'] ?? '').toString());
-    final expiry = TextEditingController(text: (existing?['expiry'] ?? '').toString());
     final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -219,16 +218,6 @@ class BarberCardsScreen extends ConsumerWidget {
             style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w600),
             decoration: const InputDecoration(hintText: "AZIMOV SHOHRUH"),
           ),
-          const SizedBox(height: 10),
-          ShadLabel(tr(ref, 'mobile.barber.cards.expiry', "Amal qilish muddati")),
-          const SizedBox(height: 6),
-          TextField(
-            controller: expiry,
-            keyboardType: TextInputType.datetime,
-            inputFormatters: [LengthLimitingTextInputFormatter(5)],
-            style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w600),
-            decoration: const InputDecoration(hintText: "MM/YY"),
-          ),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
@@ -246,7 +235,6 @@ class BarberCardsScreen extends ConsumerWidget {
       final body = {
         'cardNumber': number.text.trim(),
         'holderName': holder.text.trim(),
-        'expiry': expiry.text.trim(),
       };
       final barberId = ref.read(authControllerProvider).user?.id;
       if (barberId == null) return;
