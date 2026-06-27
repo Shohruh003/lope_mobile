@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../barbers/domain/barber.dart';
 
 class FavoritesRepository {
@@ -29,5 +30,12 @@ class FavoritesRepository {
 final favoritesRepositoryProvider = Provider<FavoritesRepository>(
     (ref) => FavoritesRepository(ref.watch(dioProvider)));
 
-final favoritesProvider = FutureProvider<List<Barber>>(
-    (ref) => ref.watch(favoritesRepositoryProvider).list());
+/// Watches the auth state so a fresh login (or logout → re-login as a
+/// different account) re-fetches favourites instead of returning the
+/// previous user's cached list. The user.id is not actually used by the
+/// /favorites endpoint (the backend resolves it from the JWT) but reading
+/// it makes the provider's identity depend on the auth state.
+final favoritesProvider = FutureProvider<List<Barber>>((ref) {
+  final _ = ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(favoritesRepositoryProvider).list();
+});
