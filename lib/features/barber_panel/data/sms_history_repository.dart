@@ -19,14 +19,22 @@ class SmsLogEntry {
   final String? type;
   final DateTime createdAt;
 
-  factory SmsLogEntry.fromJson(Map<String, dynamic> json) => SmsLogEntry(
-        id: json['id']?.toString() ?? '',
-        phone: (json['phone'] ?? '').toString(),
-        message: (json['message'] ?? '').toString(),
-        status: (json['status'] ?? 'unknown').toString(),
-        type: json['type']?.toString(),
-        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
-      );
+  factory SmsLogEntry.fromJson(Map<String, dynamic> json) {
+    // Backend bookings.service.ts:494 returns {recipientPhone, sentAt, ...}
+    // — the older `phone` / `createdAt` keys never matched, so every row in
+    // the SMS history list showed an empty phone and 1970-01-01 timestamp.
+    // No `status` field either — surface 'sent' as a benign default.
+    return SmsLogEntry(
+      id: json['id']?.toString() ?? '',
+      phone: (json['recipientPhone'] ?? json['phone'] ?? '').toString(),
+      message: (json['message'] ?? '').toString(),
+      status: (json['status'] ?? 'sent').toString(),
+      type: json['type']?.toString(),
+      createdAt: DateTime.tryParse(
+              (json['sentAt'] ?? json['createdAt'])?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
 }
 
 class SmsHistoryRepository {

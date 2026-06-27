@@ -260,9 +260,19 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                     ...list.asMap().entries.map((entry) {
                       final i = entry.key;
                       final s = entry.value;
-                      final ok = s['status'] == 'delivered' ||
-                          s['status'] == 'sent';
+                      // Backend returns InstallmentSmsLog rows with the
+                      // installment nested (shop-history.service.ts:74).
+                      // No `status` field — all logged rows are SMS that
+                      // went out successfully (failures land in
+                      // SmsFailedAttempt instead).
                       final type = (s['type'] ?? '').toString();
+                      final inst = s['installment'] is Map
+                          ? (s['installment'] as Map).cast<String, dynamic>()
+                          : <String, dynamic>{};
+                      final phone = (inst['customerPhone'] ??
+                              s['phone'] ??
+                              '')
+                          .toString();
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Container(
@@ -277,33 +287,24 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                             children: [
                               Row(children: [
                                 Expanded(
-                                    child: Text(
-                                        (s['phone'] ?? '').toString(),
+                                    child: Text(phone,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w700))),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: (ok
-                                            ? AppColors.success
-                                            : AppColors.danger)
+                                    color: AppColors.success
                                         .withValues(alpha: 0.15),
                                     borderRadius:
                                         BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                      ok
-                                          ? tr(ref,
-                                              'mobile.barber.sms.statusOk',
-                                              'delivered')
-                                          : tr(ref,
-                                              'mobile.barber.sms.statusFail',
-                                              'failed'),
-                                      style: TextStyle(
-                                          color: ok
-                                              ? AppColors.success
-                                              : AppColors.danger,
+                                      tr(ref,
+                                          'mobile.barber.sms.statusOk',
+                                          'delivered'),
+                                      style: const TextStyle(
+                                          color: AppColors.success,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700)),
                                 ),
@@ -331,11 +332,13 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                                       color: AppColors.textSecondary,
                                       fontSize: 13,
                                       height: 1.4)),
-                              if (s['createdAt'] != null) ...[
+                              if ((s['sentAt'] ?? s['createdAt']) != null) ...[
                                 const SizedBox(height: 6),
                                 Text(
                                     _df.format(DateTime.parse(
-                                            s['createdAt'].toString())
+                                            (s['sentAt'] ??
+                                                    s['createdAt'])
+                                                .toString())
                                         .toLocal()),
                                     style: const TextStyle(
                                         color: AppColors.textMuted,

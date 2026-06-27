@@ -430,12 +430,19 @@ class ShopSmsLogEntry {
   final String message;
   final String status;
   final DateTime createdAt;
-  factory ShopSmsLogEntry.fromJson(Map<String, dynamic> json) => ShopSmsLogEntry(
-        phone: (json['phone'] ?? '').toString(),
-        message: (json['message'] ?? '').toString(),
-        status: (json['status'] ?? 'unknown').toString(),
-        createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
-      );
+  factory ShopSmsLogEntry.fromJson(Map<String, dynamic> json) {
+    // Backend's /barbershop/sms-logs response uses sentAt + recipientPhone
+    // (barbershop.service.ts SMS-logs handler). The old reads on `phone` /
+    // `createdAt` always returned empty + 1970 epoch.
+    return ShopSmsLogEntry(
+      phone: (json['recipientPhone'] ?? json['phone'] ?? '').toString(),
+      message: (json['message'] ?? '').toString(),
+      status: (json['status'] ?? 'sent').toString(),
+      createdAt: DateTime.tryParse(
+              (json['sentAt'] ?? json['createdAt'])?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
 }
 
 class ShopTxnEntry {
