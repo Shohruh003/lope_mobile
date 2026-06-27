@@ -113,13 +113,23 @@ class ShopBarber {
   final String? avatar;
   final String? phone;
 
-  factory ShopBarber.fromJson(Map<String, dynamic> json) => ShopBarber(
-        id: json['id'].toString(),
-        name: (json['name'] ?? '').toString(),
-        experience: (json['experience'] ?? '').toString(),
-        avatar: json['avatar']?.toString(),
-        phone: json['phone']?.toString(),
-      );
+  factory ShopBarber.fromJson(Map<String, dynamic> json) {
+    // Backend wraps the user fields under a nested `user` object
+    // (barbershop.service.ts:482 — includes user with name/phone/avatar).
+    // Reading json['name'] / json['avatar'] / json['phone'] directly
+    // returned null, so every barber card showed an empty name + no
+    // avatar + null phone.
+    final user = json['user'] is Map
+        ? (json['user'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
+    return ShopBarber(
+      id: json['id'].toString(),
+      name: (json['name'] ?? user['name'] ?? '').toString(),
+      experience: (json['experience'] ?? '').toString(),
+      avatar: (json['avatar'] ?? user['avatar'])?.toString(),
+      phone: (json['phone'] ?? user['phone'])?.toString(),
+    );
+  }
 }
 
 class ShopBooking {
