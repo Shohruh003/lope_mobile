@@ -43,10 +43,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       context.go('/login');
       return;
     }
+    // Route per role. 'shop' is the LopePay installments owner, not the
+    // barbershop owner — they have different home shells. Sending the
+    // shop role to /shop used to bounce through _homeFor in the router
+    // redirect; now we land them on /lopepay directly.
     switch (user.role) {
       case 'barber': context.go('/barber-app'); break;
-      case 'barbershop':
-      case 'shop': context.go('/shop'); break;
+      case 'barbershop': context.go('/shop'); break;
+      case 'shop': context.go('/lopepay'); break;
       case 'admin': context.go('/admin-blocked'); break;
       default: context.go('/home');
     }
