@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -714,6 +715,34 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             notes: _notes.trim().isEmpty ? null : _notes.trim(),
           );
       if (mounted) setState(() => _confirmed = true);
+    } on DioException catch (e) {
+      if (!mounted) return;
+      // Mirror web's CustomerBookingPage error mapping — surface a
+      // friendly message for the codes the backend ships explicitly.
+      final body = e.response?.data;
+      final code = body is Map ? (body['code'] ?? '').toString() : '';
+      final status = e.response?.statusCode;
+      String msg;
+      if (code == 'SLOT_TAKEN' || status == 409) {
+        msg = tr(ref, 'booking.slotTaken',
+            "Bu vaqt allaqachon band qilingan");
+      } else if (code == 'GENDER_REQUIRED') {
+        msg = tr(ref, 'booking.genderRequired',
+            "Avval profilingizda jinsni belgilang");
+      } else if (code == 'GENDER_RESTRICTED_MALE') {
+        msg = tr(ref, 'booking.genderRestrictionMale',
+            "Bu sartarosh faqat erkak mijozlarni qabul qiladi");
+      } else if (code == 'GENDER_RESTRICTED_FEMALE') {
+        msg = tr(ref, 'booking.genderRestrictionFemale',
+            "Bu sartarosh faqat ayol mijozlarni qabul qiladi");
+      } else if (status == 403) {
+        msg = tr(ref, 'booking.genderRestriction',
+            "Sartarosh sizni qabul qila olmaydi");
+      } else {
+        msg = tr(ref, 'common.error', 'Xatolik');
+      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
