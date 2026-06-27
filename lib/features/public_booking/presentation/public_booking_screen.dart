@@ -129,11 +129,21 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
       });
       setState(() => _success = true);
     } on DioException catch (e) {
+      // Backend codes (public-booking.service.ts:330+):
+      //   OTP_REQUIRED — barber.requirePhoneOtp=true and the customer
+      //     didn't include otpCode. Mobile doesn't have the OTP UI yet,
+      //     so surface a clear "ask the barber" message instead of the
+      //     generic "try again" toast.
+      //   SLOT_TAKEN — 409, same as everywhere.
       String msg = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring");
-      if (e.response?.statusCode == 409) {
+      final body = e.response?.data;
+      final code = body is Map ? (body['code'] ?? '').toString() : '';
+      if (code == 'OTP_REQUIRED') {
+        msg = tr(ref, 'mobile.publicBooking.otpRequired',
+            "Bu sartarosh telefon tasdiqlashni talab qiladi. Iltimos, sartarosh bilan to'g'ridan-to'g'ri bog'laning.");
+      } else if (e.response?.statusCode == 409 || code == 'SLOT_TAKEN') {
         msg = tr(ref, 'booking.slotTaken', "Bu vaqt allaqachon band qilingan");
-      }
-      if (e.response?.statusCode == 404) {
+      } else if (e.response?.statusCode == 404) {
         msg = tr(ref, 'mobile.publicBooking.invalidLink', "Bu havola eski yoki noto'g'ri");
       }
       setState(() => _error = msg);
