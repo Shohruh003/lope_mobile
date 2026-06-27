@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../barbers/data/barber_repository.dart';
@@ -56,7 +57,7 @@ class MapScreen extends ConsumerWidget {
                     child: Row(children: [
                       ClipOval(
                         child: b.avatar.isNotEmpty
-                            ? CachedNetworkImage(imageUrl: b.avatar, width: 56, height: 56, fit: BoxFit.cover)
+                            ? CachedNetworkImage(imageUrl: assetUrl(b.avatar), width: 56, height: 56, fit: BoxFit.cover)
                             : Container(width: 56, height: 56, color: AppColors.background, child: const Icon(Icons.person, color: AppColors.textMuted)),
                       ),
                       const SizedBox(width: 12),

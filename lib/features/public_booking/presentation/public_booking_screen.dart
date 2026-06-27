@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
@@ -173,7 +174,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               Row(children: [
                 ClipOval(
                   child: ((barber['avatar'] ?? '') as String).isNotEmpty
-                      ? CachedNetworkImage(imageUrl: barber['avatar'].toString(), width: 64, height: 64, fit: BoxFit.cover)
+                      ? CachedNetworkImage(imageUrl: assetUrl(barber['avatar']?.toString()), width: 64, height: 64, fit: BoxFit.cover)
                       : Container(width: 64, height: 64, color: AppColors.surface, child: const Icon(Icons.person, color: AppColors.textMuted)),
                 ),
                 const SizedBox(width: 14),

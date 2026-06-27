@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/asset_url.dart';
 import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -123,7 +124,7 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
                       onTap: () => PhotoLightbox.show(
                           context, gallery.cast<String>(), i),
                       child: CachedNetworkImage(
-                        imageUrl: url,
+                        imageUrl: assetUrl(url),
                         fit: BoxFit.cover,
                         placeholder: (context, _) => Container(color: AppColors.surface),
                         errorWidget: (context, _, _) =>

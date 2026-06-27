@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/asset_url.dart';
 import '../../../core/constants.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
@@ -65,7 +66,7 @@ class ProfileScreen extends ConsumerWidget {
                     ClipOval(
                       child: (user?.avatar?.isNotEmpty == true)
                           ? CachedNetworkImage(
-                              imageUrl: user!.avatar!,
+                              imageUrl: assetUrl(user!.avatar),
                               width: 96, height: 96,
                               fit: BoxFit.cover,
                               errorWidget: (context, url, err) => _Fallback(name: user.name),

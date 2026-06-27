@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 
@@ -114,7 +115,7 @@ class _ShopClientDetailScreenState
                   ClipOval(
                     child: avatar.isNotEmpty
                         ? CachedNetworkImage(
-                            imageUrl: avatar,
+                            imageUrl: assetUrl(avatar),
                             width: 76,
                             height: 76,
                             fit: BoxFit.cover,

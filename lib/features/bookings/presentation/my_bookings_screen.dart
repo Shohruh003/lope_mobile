@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -287,7 +288,7 @@ class _BookingCard extends ConsumerWidget {
           ClipOval(
             child: b.barberAvatar.isNotEmpty
                 ? CachedNetworkImage(
-                    imageUrl: b.barberAvatar,
+                    imageUrl: assetUrl(b.barberAvatar),
                     width: 44, height: 44,
                     fit: BoxFit.cover,
                     errorWidget: (context, url, err) => _AvatarFallback(name: b.barberName),

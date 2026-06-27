@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/favorites_repository.dart';
@@ -59,7 +60,7 @@ class FavoritesScreen extends ConsumerWidget {
                       children: [
                         ClipOval(
                           child: b.avatar.isNotEmpty
-                              ? CachedNetworkImage(imageUrl: b.avatar, width: 48, height: 48, fit: BoxFit.cover)
+                              ? CachedNetworkImage(imageUrl: assetUrl(b.avatar), width: 48, height: 48, fit: BoxFit.cover)
                               : Container(width: 48, height: 48, color: AppColors.surfaceElevated, child: const Icon(Icons.person, color: AppColors.textMuted)),
                         ),
                         const SizedBox(width: 12),

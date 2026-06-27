@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -173,7 +174,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           ? Image.file(_avatarFile!, width: 96, height: 96, fit: BoxFit.cover)
                           : (_avatarUrl?.isNotEmpty == true
                               ? CachedNetworkImage(
-                                  imageUrl: _avatarUrl!,
+                                  imageUrl: assetUrl(_avatarUrl),
                                   width: 96, height: 96,
                                   fit: BoxFit.cover,
                                   errorWidget: (context, url, err) => _Fallback(name: user.name),

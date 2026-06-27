@@ -11,12 +11,33 @@ class AiStyleResult {
   final int? balanceAfter;
   final int? aiFreeRemaining;
 
-  factory AiStyleResult.fromJson(Map<String, dynamic> json) => AiStyleResult(
-        imageUrl: (json['url'] ?? json['imageUrl'] ?? json['image'] ?? '').toString(),
-        balanceAfter: json['balanceAfter'] == null ? null : ((json['balanceAfter']) as num).toInt(),
-        aiFreeRemaining:
-            json['aiFreeRemaining'] == null ? null : ((json['aiFreeRemaining']) as num).toInt(),
-      );
+  factory AiStyleResult.fromJson(Map<String, dynamic> json) {
+    // Backend ai-style.service returns {images: [...], generatedImage}
+    // (ai-style.service.ts:113). The old key probes (url/imageUrl/image)
+    // never matched and the result image area always rendered blank.
+    String image = '';
+    final list = json['images'];
+    if (list is List && list.isNotEmpty) {
+      image = list.first.toString();
+    } else if (json['generatedImage'] is String) {
+      image = (json['generatedImage'] as String);
+    } else if (json['url'] is String) {
+      image = json['url'] as String;
+    } else if (json['imageUrl'] is String) {
+      image = json['imageUrl'] as String;
+    } else if (json['image'] is String) {
+      image = json['image'] as String;
+    }
+    return AiStyleResult(
+      imageUrl: image,
+      balanceAfter: json['balanceAfter'] == null
+          ? null
+          : ((json['balanceAfter']) as num).toInt(),
+      aiFreeRemaining: json['aiFreeRemaining'] == null
+          ? null
+          : ((json['aiFreeRemaining']) as num).toInt(),
+    );
+  }
 }
 
 class AiStyleRepository {

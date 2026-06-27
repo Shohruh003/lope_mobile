@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../barber_panel/data/barber_panel_repository.dart';
@@ -88,7 +89,7 @@ class _ShopBarberDetailScreenState
                   ClipOval(
                     child: (b.avatar?.isNotEmpty ?? false)
                         ? CachedNetworkImage(
-                            imageUrl: b.avatar!,
+                            imageUrl: assetUrl(b.avatar),
                             width: 64, height: 64, fit: BoxFit.cover)
                         : Container(
                             width: 64, height: 64,

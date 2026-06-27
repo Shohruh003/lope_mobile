@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -54,7 +55,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
                   flexibleSpace: FlexibleSpaceBar(
                     background: Stack(fit: StackFit.expand, children: [
                       if (cover.isNotEmpty)
-                        CachedNetworkImage(imageUrl: cover, fit: BoxFit.cover)
+                        CachedNetworkImage(imageUrl: assetUrl(cover), fit: BoxFit.cover)
                       else
                         Container(color: AppColors.surface,
                             child: const Center(
@@ -196,7 +197,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
                               ClipOval(
                                 child: avatar.isNotEmpty
                                     ? CachedNetworkImage(
-                                        imageUrl: avatar,
+                                        imageUrl: assetUrl(avatar),
                                         width: 56,
                                         height: 56,
                                         fit: BoxFit.cover)

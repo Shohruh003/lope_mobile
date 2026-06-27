@@ -614,7 +614,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: CachedNetworkImage(
-              imageUrl: b.gallery[i],
+              imageUrl: _avatarUrl(b.gallery[i]),
               fit: BoxFit.cover,
               placeholder: (context, _) =>
                   Container(color: AppColors.surfaceElevated),

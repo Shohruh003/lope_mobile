@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
@@ -483,7 +484,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             ClipOval(
               child: barber.avatar.isNotEmpty
                   ? CachedNetworkImage(
-                      imageUrl: barber.avatar,
+                      imageUrl: assetUrl(barber.avatar),
                       width: 40, height: 40,
                       fit: BoxFit.cover,
                     )
