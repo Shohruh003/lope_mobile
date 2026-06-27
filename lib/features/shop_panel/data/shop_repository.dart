@@ -400,10 +400,14 @@ final shopBarbersPagedProvider = FutureProvider.family<
       .watch(shopRepositoryProvider)
       .barbersPaged(page: k.page, search: k.search);
 });
-final shopBookingsProvider = FutureProvider<List<ShopBooking>>(
-    (ref) => ref.watch(shopRepositoryProvider).bookings());
-final shopBalanceProvider =
-    FutureProvider<int>((ref) => ref.watch(shopRepositoryProvider).balance());
+final shopBookingsProvider = FutureProvider<List<ShopBooking>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).bookings();
+});
+final shopBalanceProvider = FutureProvider<int>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).balance();
+});
 
 /// Shop clients (customers who booked at this salon).
 class ShopClient {
@@ -554,10 +558,14 @@ extension ShopRepoExtras on ShopRepository {
   }
 }
 
-final shopClientsProvider = FutureProvider<List<ShopClient>>(
-    (ref) => ref.watch(shopRepositoryProvider).clients());
-final shopSmsLogProvider = FutureProvider<List<ShopSmsLogEntry>>(
-    (ref) => ref.watch(shopRepositoryProvider).smsLog());
+final shopClientsProvider = FutureProvider<List<ShopClient>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).clients();
+});
+final shopSmsLogProvider = FutureProvider<List<ShopSmsLogEntry>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).smsLog();
+});
 
 typedef ShopSmsKey = ({
   String? barberId,
@@ -576,8 +584,10 @@ final shopSmsFilteredProvider = FutureProvider.family<
       to: k.to,
       page: k.page);
 });
-final shopTransactionsProvider = FutureProvider<List<ShopTxnEntry>>(
-    (ref) => ref.watch(shopRepositoryProvider).transactions());
+final shopTransactionsProvider = FutureProvider<List<ShopTxnEntry>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).transactions();
+});
 
 typedef ShopTxnKey = ({
   String? type,

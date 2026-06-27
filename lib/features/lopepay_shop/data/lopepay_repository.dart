@@ -430,10 +430,15 @@ class LopepayRepository {
   }
 }
 
-final lopepaySmsProvider = FutureProvider<List<Map<String, dynamic>>>(
-    (ref) => ref.watch(lopepayRepositoryProvider).sms());
-final lopepayTxnProvider = FutureProvider<List<Map<String, dynamic>>>(
-    (ref) => ref.watch(lopepayRepositoryProvider).transactions());
+final lopepaySmsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).sms();
+});
+final lopepayTxnProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).transactions();
+});
 
 typedef LopepaySmsKey = ({
   String? phone,
@@ -498,8 +503,14 @@ final lopepayProductsFilteredProvider =
         ref.watch(lopepayRepositoryProvider).products(
             search: search.isEmpty ? null : search));
 
-final lopepayDueTodayProvider = FutureProvider<List<Map<String, dynamic>>>(
-    (ref) => ref.watch(lopepayRepositoryProvider).dueTodayInstallments());
+final lopepayDueTodayProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).dueTodayInstallments();
+});
 
-final lopepayOverdueProvider = FutureProvider<List<Map<String, dynamic>>>(
-    (ref) => ref.watch(lopepayRepositoryProvider).overdueInstallments());
+final lopepayOverdueProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).overdueInstallments();
+});
