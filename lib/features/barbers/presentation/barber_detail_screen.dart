@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/constants.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/photo_lightbox.dart';
@@ -39,11 +39,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   bool? _favoritedOverride; // null = use server snapshot, true/false = optimistic
   bool _favoriteBusy = false;
 
-  String _avatarUrl(String a) {
-    if (a.isEmpty) return '';
-    if (a.startsWith('http')) return a;
-    return '${AppConfig.apiUrl}$a';
-  }
+  String _avatarUrl(String a) => assetUrl(a);
 
   Future<void> _toggleFavorite() async {
     if (_favoriteBusy) return;

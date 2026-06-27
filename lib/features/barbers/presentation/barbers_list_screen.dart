@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../core/constants.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/location_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -67,11 +67,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
     return haversineKm(me, LatLng(lat, lng));
   }
 
-  String _avatarUrl(String avatar) {
-    if (avatar.isEmpty) return '';
-    if (avatar.startsWith('http')) return avatar;
-    return '${AppConfig.apiUrl}$avatar';
-  }
+  String _avatarUrl(String avatar) => assetUrl(avatar);
 
   @override
   Widget build(BuildContext context) {
