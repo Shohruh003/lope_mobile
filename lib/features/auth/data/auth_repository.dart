@@ -139,6 +139,15 @@ class AuthRepository {
   /// Read-only token peek so callers can distinguish "401, storage cleared"
   /// from "transient network error, session may still be valid".
   Future<String?> peekToken() => _storage.readToken();
+
+  /// Update the authenticated user's display name. Hits the same
+  /// PATCH /users/:id/profile that customer profile edit uses — the Barber
+  /// Prisma model has no `name` column so the barber profile editor must
+  /// route name changes here instead of /barbers/:id/profile.
+  Future<void> updateMyName(String userId, String newName) async {
+    await _dio
+        .patch('/users/$userId/profile', data: {'name': newName});
+  }
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

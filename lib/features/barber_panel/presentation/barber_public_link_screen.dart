@@ -40,9 +40,10 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
       if (!shopManaged) {
         await repo.updateNotifyBookingsBySms(barberId, _notifyBySms);
       }
-      await repo.updateBarber(barberId, {
-        'telegramBotUsername': _tgController.text.trim(),
-      });
+      // We intentionally DON'T save telegramBotUsername anymore — the
+      // bot is provisioned by an admin via BotFather (see
+      // barber-bots.controller.ts) and the barber can only view it,
+      // exactly like web's BarberPublicLinkScreen.
       ref.invalidate(barberProfileProvider(barberId));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
     } catch (e) {
@@ -167,14 +168,38 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                 ),
               ],
 
-              const SizedBox(height: 16),
-              Text(tr(ref, 'mobile.barber.publicLink.tgLabel', "Telegram bot username"),
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _tgController,
-                decoration: const InputDecoration(hintText: "@username"),
-              ),
+              // Personal Telegram bot — read-only display, mirrors web.
+              // The bot is set up by an admin (BotFather token), barber
+              // can only see + copy the @username.
+              if (_tgController.text.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2AABEE).withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: const Color(0xFF2AABEE).withValues(alpha: 0.4)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.send, size: 18, color: Color(0xFF2AABEE)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text('@${_tgController.text}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: Color(0xFF2AABEE))),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.open_in_new,
+                          size: 18, color: Color(0xFF2AABEE)),
+                      onPressed: () =>
+                          _openUrl('https://t.me/${_tgController.text}'),
+                    ),
+                  ]),
+                ),
+              ],
 
               const SizedBox(height: 24),
               SizedBox(

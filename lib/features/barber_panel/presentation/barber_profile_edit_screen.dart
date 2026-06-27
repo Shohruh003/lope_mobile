@@ -9,6 +9,7 @@ import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
+import '../../auth/data/auth_repository.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart'
     show BarberBookingActions, barberPanelRepositoryProvider;
@@ -60,8 +61,17 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
   Future<void> _saveBio(String barberId) async {
     setState(() => _saving = true);
     try {
+      // The Barber Prisma model has no `name` column — the user's display
+      // name lives on the User model and is updated via /users/:id/profile.
+      // Sending it to /barbers/:id/profile would throw a Prisma validation
+      // error and roll back the whole save.
+      final newName = _nameCtrl.text.trim();
+      if (newName.isNotEmpty) {
+        await ref
+            .read(authRepositoryProvider)
+            .updateMyName(barberId, newName);
+      }
       await ref.read(barberProfileRepositoryProvider).updateBarber(barberId, {
-        'name': _nameCtrl.text.trim(),
         'bioUz': _bioCtrl.text.trim(),
         'bio': _bioCtrl.text.trim(),
         'bioRu': _bioRuCtrl.text.trim(),
