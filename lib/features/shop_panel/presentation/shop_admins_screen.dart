@@ -59,7 +59,11 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                 ...list.asMap().entries.map((entry) {
                   final i = entry.key;
                   final a = entry.value;
-                  final isOwner = a['role'] == 'owner';
+                  // Backend returns {isOwner: true} on the owner row
+                  // (barbershop.service.ts:694) — never a `role` key.
+                  // Reading 'role' meant the OWNER badge never lit up and
+                  // shop-admins always appeared as ADMIN.
+                  final isOwner = a['isOwner'] == true;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Container(
