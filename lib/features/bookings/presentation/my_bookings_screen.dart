@@ -444,10 +444,16 @@ class _BookingCard extends ConsumerWidget {
         // the barber. They can also skip and just close.
         await _maybePromptReview(context, ref);
       }
-    } catch (e) {
+    } catch (_) {
+      // Backend's /bookings/:id/complete is restricted to barber / admin /
+      // barbershop (bookings.controller.ts:276), so the customer-side
+      // complete tap always 403s. Keep parity with web (which renders the
+      // button regardless) but show a clean message instead of the raw
+      // DioException dump that validateStatus now lets through.
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text(tr(ref, 'common.errorRetry',
+                "Xatolik — qaytadan urinib ko'ring"))));
       }
     }
   }
@@ -589,10 +595,11 @@ class _BookingCard extends ConsumerWidget {
             content: Text(tr(ref, 'myBookings.cancelled',
                 "Bron bekor qilindi"))));
       }
-    } catch (e) {
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text(tr(ref, 'common.errorRetry',
+                "Xatolik — qaytadan urinib ko'ring"))));
       }
     }
   }
