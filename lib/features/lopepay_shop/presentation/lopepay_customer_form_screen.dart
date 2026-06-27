@@ -238,18 +238,19 @@ class _LopepayCustomerFormScreenState
         if (_notes.text.trim().isNotEmpty) 'notes': _notes.text.trim(),
       };
       final repo = ref.read(lopepayRepositoryProvider);
-      String navId;
       if (_isEdit) {
         await repo.updateInstallment(widget.installmentId!, body);
-        navId = widget.installmentId!;
       } else {
-        navId = await repo.createInstallment(body);
+        await repo.createInstallment(body);
       }
       ref.invalidate(lopepayCustomersProvider);
       ref.invalidate(lopepayDashboardProvider);
       if (!mounted) return;
-      if (navId.isNotEmpty) {
-        context.go('/lopepay/customers/$navId');
+      // The customer detail screen keys on customerPhone (we group by
+      // phone — there's no per-customer endpoint on the backend), so
+      // route there using the form's phone, not the installment id.
+      if (phone.isNotEmpty) {
+        context.go('/lopepay/customers/${Uri.encodeComponent(phone)}');
       } else {
         context.pop();
       }

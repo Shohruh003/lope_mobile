@@ -589,19 +589,21 @@ final _lopepayCustomerProvider = FutureProvider.family<Map<String, dynamic>, Str
   int totalDebt = 0;
   final installments = <Map<String, dynamic>>[];
   final payments = <Map<String, dynamic>>[];
+  // Backend's installment response uses flat customerName / customerPhone
+  // columns and a `debt` snapshot (installments.service.ts:67). The earlier
+  // m['customer']?.phone / m['remainingAmount'] reads always returned
+  // null + 0, so the detail header showed an empty name and 0 so'm debt
+  // even when the customer owed millions.
   for (final r in list) {
     if (r is! Map) continue;
     final m = r.cast<String, dynamic>();
-    final cust = m['customer'] is Map
-        ? (m['customer'] as Map).cast<String, dynamic>()
-        : <String, dynamic>{};
-    final custId = (cust['id'] ?? '').toString();
-    final custPhone = (cust['phone'] ?? '').toString();
-    if (custId != id && custPhone != id) continue;
-    name = (cust['name'] ?? name).toString();
-    phone = (cust['phone'] ?? phone).toString();
-    address = (cust['address'] ?? address).toString();
-    totalDebt += ((m['remainingAmount'] ?? 0) as num).toInt();
+    final custPhone = (m['customerPhone'] ?? '').toString();
+    if (custPhone != id) continue;
+    name = (m['customerName'] ?? name).toString();
+    phone = custPhone;
+    // No address column on Installment — keep an empty fallback so the
+    // detail card just hides the row.
+    totalDebt += ((m['debt'] ?? 0) as num).toInt();
     installments.add(m);
     final pays = m['payments'];
     if (pays is List) {

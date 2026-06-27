@@ -401,12 +401,16 @@ class _InstallmentRow extends ConsumerWidget {
     final name = (cust['name'] ?? item['customerName'] ?? '').toString();
     final phone = (cust['phone'] ?? item['customerPhone'] ?? '').toString();
     final monthly = ((item['monthlyAmount'] ?? item['amount'] ?? item['nextAmount'] ?? 0) as num).toInt();
-    final customerId = (cust['id'] ?? item['customerId'] ?? '').toString();
     final color = isOverdue ? AppColors.danger : AppColors.warning;
 
     return InkWell(
       borderRadius: BorderRadius.circular(10),
-      onTap: customerId.isEmpty ? null : () => context.push('/lopepay/customers/$customerId'),
+      // Detail screen aggregates by phone — backend has no per-customer
+      // endpoint and customer.id isn't on the installment response.
+      onTap: phone.isEmpty
+          ? null
+          : () => context.push(
+              '/lopepay/customers/${Uri.encodeComponent(phone)}'),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -599,7 +603,8 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                             c.nextDue!.isBefore(DateTime.now());
                   return InkWell(
                     borderRadius: BorderRadius.circular(14),
-                    onTap: () => context.push('/lopepay/customers/${c.id}'),
+                    onTap: () => context.push(
+                        '/lopepay/customers/${Uri.encodeComponent(c.id)}'),
                     child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(

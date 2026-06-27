@@ -136,13 +136,15 @@ class LopepayRepository {
       for (final raw in list) {
         if (raw is! Map) continue;
         final m = raw.cast<String, dynamic>();
-        final remaining = m['remainingAmount'] ?? m['totalPrice'] ?? 0;
+        // Backend exposes the calculated remaining as `debt` (installments.
+        // service.ts:67), not `remainingAmount`. Reading the wrong key made
+        // the 'Total receivable' tile read 0 for every active loan.
+        final remaining = m['debt'] ?? m['totalPrice'] ?? 0;
         totalReceivable += (remaining as num).toInt();
         final status = (m['status'] ?? '').toString();
         if (status == 'overdue') overdue += 1;
-        final phone = (m['customer'] is Map ? (m['customer'] as Map)['phone'] : null)
-            ?.toString();
-        if (phone != null && phone.isNotEmpty) customerPhones.add(phone);
+        final phone = (m['customerPhone'] ?? '').toString();
+        if (phone.isNotEmpty) customerPhones.add(phone);
       }
     } catch (_) {}
     return LopepayDashboard(
@@ -173,25 +175,27 @@ class LopepayRepository {
     final list = (data is List)
         ? data
         : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
+    // Backend's installment response has flat customerName / customerPhone
+    // columns + a `debt` snapshot (installments.service.ts:67) — there is
+    // NO nested `customer` object and no `remainingAmount` field. Reading
+    // those would silently return null + 0, so every customer card showed
+    // 0 so'm debt regardless of how much they owed.
     final byPhone = <String, LopepayCustomer>{};
     for (final raw in list) {
       if (raw is! Map) continue;
       final m = raw.cast<String, dynamic>();
-      final cust = m['customer'] is Map
-          ? (m['customer'] as Map).cast<String, dynamic>()
-          : <String, dynamic>{};
-      final phone = (cust['phone'] ?? '').toString();
+      final phone = (m['customerPhone'] ?? '').toString();
       if (phone.isEmpty) continue;
-      final remaining = ((m['remainingAmount'] ?? 0) as num).toInt();
+      final remaining = ((m['debt'] ?? m['remainingAmount'] ?? 0) as num).toInt();
       final next = m['nextDueDate']?.toString();
       final existing = byPhone[phone];
       byPhone[phone] = LopepayCustomer(
-        id: (cust['id'] ?? phone).toString(),
-        name: (cust['name'] ?? '').toString(),
+        id: phone,
+        name: (m['customerName'] ?? existing?.name ?? '').toString(),
         phone: phone,
         totalDebt: (existing?.totalDebt ?? 0) + remaining,
         nextDue: next != null ? DateTime.tryParse(next) : existing?.nextDue,
-        address: (cust['address'] ?? existing?.address)?.toString(),
+        address: existing?.address,
       );
     }
     final result = byPhone.values.toList()

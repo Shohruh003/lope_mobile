@@ -322,7 +322,6 @@ class _LopepayInstallmentsScreenState
                   separatorBuilder: (context, i) => const SizedBox(height: 8),
                   itemBuilder: (context, i) {
                     final inst = list[i];
-                    final id = (inst['id'] ?? '').toString();
                     final name = (inst['customerName'] ?? '').toString();
                     final phone = (inst['customerPhone'] ?? '').toString();
                     final productName = (inst['productName'] ?? '').toString();
@@ -340,9 +339,15 @@ class _LopepayInstallmentsScreenState
 
                     return InkWell(
                       borderRadius: BorderRadius.circular(10),
-                      onTap: id.isEmpty
+                      // The detail provider keys on customerPhone (we
+                      // aggregate installments by phone), not the
+                      // installment id. Routing on the installment id
+                      // would never match any installment in the detail
+                      // aggregation → blank screen.
+                      onTap: phone.isEmpty
                           ? null
-                          : () => context.push('/lopepay/customers/$id'),
+                          : () => context.push(
+                              '/lopepay/customers/${Uri.encodeComponent(phone)}'),
                       child: Opacity(
                         opacity: isPaidOff ? 0.6 : 1.0,
                         child: Container(
