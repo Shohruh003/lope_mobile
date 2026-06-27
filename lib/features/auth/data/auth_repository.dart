@@ -135,6 +135,10 @@ class AuthRepository {
   }
 
   Future<void> logout() async => _storage.clearAll();
+
+  /// Read-only token peek so callers can distinguish "401, storage cleared"
+  /// from "transient network error, session may still be valid".
+  Future<String?> peekToken() => _storage.readToken();
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

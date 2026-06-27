@@ -45,12 +45,17 @@ class AuthController extends Notifier<AuthState> {
     final fresh = await ref.read(authRepositoryProvider).refreshMe();
     if (fresh != null) {
       state = state.copyWith(user: fresh);
-    } else if (state.user != null) {
-      // refreshMe returned null AFTER a 401 — auth repo already cleared
-      // storage; reflect signed-out in memory so guards re-render.
-      // (Non-401 errors leave the cached user intact.)
-      // We can't easily distinguish 401 vs other errors here; rely on
-      // a subsequent guarded call to push the user back to /login.
+      return;
+    }
+    // refreshMe returned null — could be a 401 (auth repo already cleared
+    // storage) or a transient network error. Check storage: if the token
+    // is gone the session is definitively over and the in-memory user
+    // should follow so router guards bounce to /login on the next build.
+    // Transient errors leave the storage intact, so we keep the cached
+    // user and try again on the next /auth/me refresh.
+    final token = await ref.read(authRepositoryProvider).peekToken();
+    if (token == null || token.isEmpty) {
+      state = state.copyWith(loading: false, clearUser: true);
     }
   }
 
