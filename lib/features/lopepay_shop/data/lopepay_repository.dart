@@ -110,6 +110,11 @@ class LopepayRepository {
   /// There's no single dashboard endpoint on the backend — web composes
   /// these tiles from /installments and /installments/due-today client-side.
   /// We mirror that here so the LopePay shop home doesn't 404.
+  ///
+  /// The dashboard tiles render so'm amounts, NOT counts — `dueToday` is
+  /// the sum of monthly payments owed today and `overdue` is the sum of
+  /// outstanding monthly payments for overdue plans. Counting rows would
+  /// render '5 so'm' instead of '5,000,000 so'm'.
   Future<LopepayDashboard> dashboard() async {
     int dueToday = 0;
     int overdue = 0;
@@ -121,10 +126,14 @@ class LopepayRepository {
       final list = (data is List)
           ? data
           : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-      dueToday = list.length;
+      for (final raw in list) {
+        if (raw is! Map) continue;
+        final m = raw.cast<String, dynamic>();
+        dueToday += ((m['monthlyPayment'] ?? 0) as num).toInt();
+      }
     } catch (_) {}
     try {
-      // All active installments — sum of remainingAmount + customer set.
+      // All active installments — sum of debt + customer set + overdue sum.
       final res = await _dio.get('/installments', queryParameters: {
         'isActive': true,
         'limit': 500,
@@ -139,10 +148,14 @@ class LopepayRepository {
         // Backend exposes the calculated remaining as `debt` (installments.
         // service.ts:67), not `remainingAmount`. Reading the wrong key made
         // the 'Total receivable' tile read 0 for every active loan.
-        final remaining = m['debt'] ?? m['totalPrice'] ?? 0;
-        totalReceivable += (remaining as num).toInt();
+        final remaining = ((m['debt'] ?? m['totalPrice'] ?? 0) as num).toInt();
+        totalReceivable += remaining;
         final status = (m['status'] ?? '').toString();
-        if (status == 'overdue') overdue += 1;
+        // Overdue tile shows the OUTSTANDING amount on overdue plans, not
+        // the count. monthlyPayment is the natural per-month figure.
+        if (status == 'overdue') {
+          overdue += ((m['monthlyPayment'] ?? 0) as num).toInt();
+        }
         final phone = (m['customerPhone'] ?? '').toString();
         if (phone.isNotEmpty) customerPhones.add(phone);
       }
