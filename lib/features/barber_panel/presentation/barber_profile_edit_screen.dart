@@ -70,6 +70,10 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
         await ref
             .read(authRepositoryProvider)
             .updateMyName(barberId, newName);
+        // Refresh the in-memory user so the header avatar / drawer name
+        // pick up the change without waiting for the next /auth/me poll.
+        // ignore: unawaited_futures
+        ref.read(authControllerProvider.notifier).refreshFromServer();
       }
       await ref.read(barberProfileRepositoryProvider).updateBarber(barberId, {
         'bioUz': _bioCtrl.text.trim(),
@@ -104,6 +108,9 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
     try {
       await ref.read(barberProfileRepositoryProvider).uploadAvatar(userId, file);
       ref.invalidate(barberProfileProvider(userId));
+      // Refresh AppUser so the header avatar / drawer avatar update too,
+      // not just the in-screen preview.
+      await ref.read(authControllerProvider.notifier).refreshFromServer();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));

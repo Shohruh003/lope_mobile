@@ -99,6 +99,12 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       };
       await dio.patch('/users/$userId/profile', data: payload);
 
+      // Refresh in-memory user so the header chip / drawer name / VIP
+      // crown pick up the changes without waiting for the next /auth/me
+      // poll. Without this, the user saves and immediately sees the
+      // old name everywhere until they reopen the app.
+      await ref.read(authControllerProvider.notifier).refreshFromServer();
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'profile.profileUpdated', "Profil yangilandi"))));
