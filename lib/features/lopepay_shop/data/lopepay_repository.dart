@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 class LopepayCustomer {
   LopepayCustomer({
@@ -467,17 +468,29 @@ final lopepayTxnFilteredProvider = FutureProvider.family<
 final lopepayRepositoryProvider = Provider<LopepayRepository>(
     (ref) => LopepayRepository(ref.watch(dioProvider)));
 
-final lopepayDashboardProvider = FutureProvider<LopepayDashboard>(
-    (ref) => ref.watch(lopepayRepositoryProvider).dashboard());
+// Auth-watched so a logout + sign-in as a different shop owner triggers a
+// fresh fetch. Without this, the dashboard / shop-me / customers / products
+// would all return the previous user's cached snapshot until manually
+// refreshed.
+final lopepayDashboardProvider = FutureProvider<LopepayDashboard>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).dashboard();
+});
 
-final lopepayShopMeProvider = FutureProvider<LopepayShopMe>(
-    (ref) => ref.watch(lopepayRepositoryProvider).shopMe());
+final lopepayShopMeProvider = FutureProvider<LopepayShopMe>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).shopMe();
+});
 
-final lopepayCustomersProvider = FutureProvider<List<LopepayCustomer>>(
-    (ref) => ref.watch(lopepayRepositoryProvider).customers());
+final lopepayCustomersProvider = FutureProvider<List<LopepayCustomer>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).customers();
+});
 
-final lopepayProductsProvider = FutureProvider<List<LopepayProduct>>(
-    (ref) => ref.watch(lopepayRepositoryProvider).products());
+final lopepayProductsProvider = FutureProvider<List<LopepayProduct>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(lopepayRepositoryProvider).products();
+});
 
 /// Search-filtered variant — used by the products screen's search bar.
 final lopepayProductsFilteredProvider =

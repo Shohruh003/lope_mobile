@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 class ShopDailyPoint {
   ShopDailyPoint(
@@ -365,10 +366,17 @@ class ShopRepository {
 final shopRepositoryProvider =
     Provider<ShopRepository>((ref) => ShopRepository(ref.watch(dioProvider)));
 
-final shopMeProvider = FutureProvider<Map<String, dynamic>>(
-    (ref) => ref.watch(shopRepositoryProvider).me());
-final shopStatsProvider = FutureProvider<ShopStats>(
-    (ref) => ref.watch(shopRepositoryProvider).stats());
+/// Watching the auth state ensures a fresh /barbershop/me call after a
+/// logout + re-login as a different shop owner — otherwise the cached
+/// previous shop's name + balance would persist until manual refresh.
+final shopMeProvider = FutureProvider<Map<String, dynamic>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).me();
+});
+final shopStatsProvider = FutureProvider<ShopStats>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).stats();
+});
 
 /// Filtered stats keyed on (from, to) — used by the dashboard's date-range
 /// picker. Mirrors web's `getShopStatsAPI({from, to})`. Pass `null` for both
@@ -378,8 +386,10 @@ final shopStatsFilteredProvider =
     FutureProvider.family<ShopStats, ShopStatsKey>((ref, k) async {
   return ref.watch(shopRepositoryProvider).stats(from: k.from, to: k.to);
 });
-final shopBarbersProvider = FutureProvider<List<ShopBarber>>(
-    (ref) => ref.watch(shopRepositoryProvider).barbers(limit: 100));
+final shopBarbersProvider = FutureProvider<List<ShopBarber>>((ref) {
+  ref.watch(authControllerProvider.select((s) => s.user?.id));
+  return ref.watch(shopRepositoryProvider).barbers(limit: 100);
+});
 
 typedef ShopBarbersKey = ({String? search, int page});
 
