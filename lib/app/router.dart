@@ -68,7 +68,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final auth = ProviderScope.containerOf(context).read(authControllerProvider);
       final loc = state.matchedLocation;
-      const publicPaths = {'/', '/login', '/register-phone', '/register-otp', '/register-complete'};
+      const publicPaths = {'/', '/login', '/register-phone', '/register-otp', '/register-complete', '/forgot-password'};
       final isPublic = publicPaths.contains(loc) || loc.startsWith('/b/');
 
       // Unauthenticated → public-only.
