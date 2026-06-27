@@ -1673,7 +1673,8 @@
       "noServices": "This barber hasn't set up any services",
       "successTitle": "You're booked!",
       "successMsg": "{{name}} is waiting for you. A confirmation SMS will arrive.",
-      "pickServiceTime": "Pick a service and time"
+      "pickServiceTime": "Pick a service and time",
+      "otpRequired": "This barber requires phone verification. Please contact them directly."
     },
     "payment": {
       "successTitle": "Payment successful",

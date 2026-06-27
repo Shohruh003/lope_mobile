@@ -1674,7 +1674,8 @@
       "noServices": "Bu sartaroshda xizmat sozlanmagan",
       "successTitle": "Yozildingiz!",
       "successMsg": "{{name}} sizni kutadi. Tasdiqlash SMS keladi.",
-      "pickServiceTime": "Xizmat va vaqt tanlang"
+      "pickServiceTime": "Xizmat va vaqt tanlang",
+      "otpRequired": "Bu sartarosh telefon tasdiqlashni talab qiladi. Iltimos, sartarosh bilan to'g'ridan-to'g'ri bog'laning."
     },
     "payment": {
       "successTitle": "To'lov muvaffaqiyatli",
