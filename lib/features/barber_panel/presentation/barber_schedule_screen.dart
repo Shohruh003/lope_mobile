@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -381,6 +382,17 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+    } on DioException catch (e) {
+      if (!mounted) return;
+      // Backend reschedule throws ConflictException with
+      // {code: 'SLOT_TAKEN'} when the new slot is already booked.
+      final body = e.response?.data;
+      final code = body is Map ? (body['code'] ?? '').toString() : '';
+      final msg = code == 'SLOT_TAKEN' || e.response?.statusCode == 409
+          ? tr(ref, 'booking.slotTaken', "Bu vaqt allaqachon band qilingan")
+          : tr(ref, 'common.error', 'Xatolik');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -429,6 +441,28 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+    } on DioException catch (e) {
+      if (!mounted) return;
+      // Backend extend throws {code: 'MIN_DURATION', minMinutes: N} when
+      // the extra-minutes value would shrink the booking below the
+      // barber's slot duration (bookings.service.ts:1645). Surface the
+      // limit so the barber knows why the extend didn't apply.
+      final body = e.response?.data;
+      final code = body is Map ? (body['code'] ?? '').toString() : '';
+      final minMinutes = body is Map ? body['minMinutes'] : null;
+      String msg;
+      if (code == 'MIN_DURATION' && minMinutes is num) {
+        msg = tr(ref, 'barberApp.shrinkMinError',
+            'Davomiyligi {{min}} daqiqadan kam bo\'lmasligi kerak',
+            {'min': '${minMinutes.toInt()}'});
+      } else if (code == 'SLOT_TAKEN' || e.response?.statusCode == 409) {
+        msg = tr(ref, 'booking.slotTaken',
+            "Bu vaqt allaqachon band qilingan");
+      } else {
+        msg = tr(ref, 'common.error', 'Xatolik');
+      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
