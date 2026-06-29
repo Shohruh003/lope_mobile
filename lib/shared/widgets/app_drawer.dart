@@ -218,8 +218,8 @@ class AppDrawer extends ConsumerWidget {
         ];
       default: // 'user'
         return [
-          _DrawerItem(Icons.content_cut, tr(ref, 'mobile.tabs.discover', "Sartaroshlar"), '/home'),
-          _DrawerItem(Icons.calendar_month, tr(ref, 'mobile.tabs.bookings', "Bronlarim"), '/home'),
+          _DrawerItem(Icons.content_cut, tr(ref, 'mobile.tabs.discover', "Sartaroshlar"), '/home?tab=0'),
+          _DrawerItem(Icons.calendar_month, tr(ref, 'mobile.tabs.bookings', "Bronlarim"), '/home?tab=2'),
           _DrawerItem(Icons.auto_awesome, iAi, '/ai-style'),
           _DrawerItem(Icons.favorite, tr(ref, 'profile.favorites', "Sevimlilar"), '/favorites'),
           _DrawerItem(Icons.map, tr(ref, 'mobile.map.title', "Xarita"), '/map'),

@@ -104,7 +104,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // Roots
-      GoRoute(path: '/home', builder: (context, state) => const HomeShell()),
+      GoRoute(
+        path: '/home',
+        builder: (context, state) {
+          final t = int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0;
+          return HomeShell(initialTab: t);
+        },
+      ),
       GoRoute(
         path: '/barber-app',
         builder: (context, state) {

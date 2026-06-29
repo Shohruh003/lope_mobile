@@ -16,14 +16,15 @@ import '../../profile/presentation/profile_screen.dart';
 ///     tab gets a slightly bigger icon and bolder weight
 ///   - NO drawer (the web doesn't have one for the customer role)
 class HomeShell extends ConsumerStatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({super.key, this.initialTab = 0});
+  final int initialTab;
 
   @override
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
 class _HomeShellState extends ConsumerState<HomeShell> {
-  int _index = 0;
+  late int _index = widget.initialTab.clamp(0, 3);
 
   static const _tabs = [
     BarbersListScreen(),
