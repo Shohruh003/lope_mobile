@@ -9,6 +9,7 @@ import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/lopepay_repository.dart';
+import 'lopepay_installments_screen.dart' show lopepayInstallmentsListProvider;
 
 /// Full installment-customer detail with payment history. Owner can record
 /// a payment via the green FAB.
@@ -20,7 +21,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(_lopepayCustomerProvider(customerId));
+    final async = ref.watch(lopepayCustomerByPhoneProvider(customerId));
     // Backend has no per-customer "record payment" endpoint — payments are
     // applied per-installment. The FAB now routes to the next unpaid
     // installment's mark-paid sheet (the same flow as tapping that row).
@@ -59,7 +60,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.refresh(_lopepayCustomerProvider(customerId).future),
+            onRefresh: () async => ref.refresh(lopepayCustomerByPhoneProvider(customerId).future),
             child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
@@ -430,9 +431,14 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
               content: Text(tr(ref, 'common.deleted', "O'chirildi"))));
         }
       }
-      ref.invalidate(_lopepayCustomerProvider(customerId));
+      ref.invalidate(lopepayCustomerByPhoneProvider(customerId));
       ref.invalidate(lopepayDashboardProvider);
       ref.invalidate(lopepayCustomersProvider);
+      // The standalone installments-list screen caches its own copy keyed
+      // on the filter combo. Without invalidating it, marking-paid here
+      // leaves the list still showing the old paid-month count after the
+      // user navigates back.
+      ref.invalidate(lopepayInstallmentsListProvider);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -585,7 +591,7 @@ Widget _bannerRow(
 /// customer detail (name/phone/address/debt/installments/payments) by
 /// pulling /installments and grouping those whose customer matches `id`
 /// (which may be either Customer.id or a phone fallback).
-final _lopepayCustomerProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
+final lopepayCustomerByPhoneProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
   final Dio dio = ref.watch(dioProvider);
   final res = await dio.get('/installments', queryParameters: {'limit': 500});
   final raw = res.data;

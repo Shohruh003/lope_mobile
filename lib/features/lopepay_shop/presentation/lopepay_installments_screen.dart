@@ -112,7 +112,7 @@ class _LopepayInstallmentsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(_installmentsListProvider(_key));
+    final async = ref.watch(lopepayInstallmentsListProvider(_key));
     final productsAsync = ref.watch(lopepayProductsProvider);
     return Scaffold(
       appBar: AppBar(
@@ -313,8 +313,8 @@ class _LopepayInstallmentsScreenState
               return RefreshIndicator(
                 color: AppColors.primary,
                 onRefresh: () async {
-                  ref.invalidate(_installmentsListProvider);
-                  await ref.read(_installmentsListProvider(_key).future);
+                  ref.invalidate(lopepayInstallmentsListProvider);
+                  await ref.read(lopepayInstallmentsListProvider(_key).future);
                 },
                 child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -524,7 +524,7 @@ typedef _InstallmentsKey = ({
   String? to,
 });
 
-final _installmentsListProvider = FutureProvider.family<
+final lopepayInstallmentsListProvider = FutureProvider.family<
     ({List<Map<String, dynamic>> data, int total}),
     _InstallmentsKey>((ref, k) async {
   return ref.watch(lopepayRepositoryProvider).listInstallments(

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../data/lopepay_repository.dart';
+import 'lopepay_customer_detail_screen.dart' show lopepayCustomerByPhoneProvider;
+import 'lopepay_installments_screen.dart' show lopepayInstallmentsListProvider;
 
 /// Create or edit a LopePay installment plan. Mirrors the web's
 /// `ShopCustomerForm.tsx` — customer name/phone, product (pick from list
@@ -248,6 +250,13 @@ class _LopepayCustomerFormScreenState
       }
       ref.invalidate(lopepayCustomersProvider);
       ref.invalidate(lopepayDashboardProvider);
+      ref.invalidate(lopepayInstallmentsListProvider);
+      // The detail screen's per-customer aggregation caches per phone
+      // — without invalidating it the user returns to a stale name /
+      // debt / installments list right after editing.
+      if (phone.isNotEmpty) {
+        ref.invalidate(lopepayCustomerByPhoneProvider(phone));
+      }
       if (!mounted) return;
       // The customer detail screen keys on customerPhone (we group by
       // phone — there's no per-customer endpoint on the backend), so
