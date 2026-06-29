@@ -59,15 +59,24 @@ class Barber {
   }
 
   factory Barber.fromJson(Map<String, dynamic> json) {
+    // Backend's barber.findMany includes the related User under a nested
+    // `user` key (barbers.service.ts:findAll/findById). The Barber row
+    // itself has no name/phone/avatar — those live on Barber.user. Web's
+    // transformBarber() does the same unwrap (apiClient.ts:137-139); we
+    // mirror that shape here. Flat fallbacks keep the older /barbers/:id
+    // shape we sometimes re-use working.
+    final user = json['user'] is Map
+        ? (json['user'] as Map).cast<String, dynamic>()
+        : <String, dynamic>{};
     return Barber(
       id: json['id'] as String,
-      name: (json['name'] ?? '') as String,
-      avatar: (json['avatar'] ?? '') as String,
+      name: (json['name'] ?? user['name'] ?? '') as String,
+      avatar: (json['avatar'] ?? user['avatar'] ?? '') as String,
       rating: ((json['rating'] ?? 0) as num).toDouble(),
       reviewCount: ((json['reviewCount'] ?? 0) as num).toInt(),
       location: (json['locationUz'] ?? json['location'] ?? '') as String,
       bio: (json['bioUz'] ?? json['bio'] ?? '') as String,
-      phone: json['phone'] as String?,
+      phone: (json['phone'] ?? user['phone']) as String?,
       experience: json['experience'],
       isAvailable: json['isAvailable'] as bool? ?? true,
       barbershopId: json['barbershopId'] as String?,
