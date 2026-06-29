@@ -55,7 +55,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
   Future<void> _pickAvatar() async {
     final file = await ImagePickerService.instance.pickFromSheet(context, ref: ref);
-    if (file == null) return;
+    if (!mounted || file == null) return;
     setState(() {
       _avatarFile = file;
     });
