@@ -436,19 +436,20 @@ class _ShopTransactionsScreenState
                         ),
                         child: Row(children: [
                           Container(
-                            width: 38,
-                            height: 38,
+                            width: 40,
+                            height: 40,
                             decoration: BoxDecoration(
                               color: (inflow
                                       ? AppColors.success
                                       : AppColors.danger)
                                   .withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(10),
+                              shape: BoxShape.circle,
                             ),
                             child: Icon(
                                 inflow
                                     ? Icons.arrow_downward
                                     : Icons.arrow_upward,
+                                size: 18,
                                 color: inflow
                                     ? AppColors.success
                                     : AppColors.danger),
@@ -462,20 +463,21 @@ class _ShopTransactionsScreenState
                                     t.description ??
                                         _methodLabel(ref, t.method),
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w500,
                                         fontSize: 14)),
                                 const SizedBox(height: 2),
                                 Text(_df.format(t.createdAt.toLocal()),
                                     style: const TextStyle(
                                         color: AppColors.textMuted,
-                                        fontSize: 11)),
+                                        fontSize: 12)),
                               ],
                             ),
                           ),
                           Text(
                               "${inflow ? '+' : '−'}${_fmt(t.amount)} ${tr(ref, 'common.currency', "so'm")}",
                               style: TextStyle(
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
                                   color: inflow
                                       ? AppColors.success
                                       : AppColors.danger)),

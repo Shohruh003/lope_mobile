@@ -243,17 +243,17 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                                 Expanded(
                                     child: Text(s.phone,
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
+                                            fontWeight: FontWeight.w500,
                                             fontSize: 14))),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                      horizontal: 10, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: (ok
                                             ? AppColors.success
                                             : AppColors.danger)
                                         .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                       ok
@@ -267,21 +267,21 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                                           color: ok
                                               ? AppColors.success
                                               : AppColors.danger,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700)),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600)),
                                 ),
                               ]),
                               const SizedBox(height: 6),
                               Text(s.message,
                                   style: const TextStyle(
                                       color: AppColors.textSecondary,
-                                      fontSize: 13,
+                                      fontSize: 14,
                                       height: 1.4)),
                               const SizedBox(height: 8),
                               Text(_df.format(s.createdAt.toLocal()),
                                   style: const TextStyle(
                                       color: AppColors.textMuted,
-                                      fontSize: 11)),
+                                      fontSize: 12)),
                             ],
                           ),
                         ),

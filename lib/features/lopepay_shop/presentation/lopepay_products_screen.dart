@@ -101,7 +101,7 @@ class _LopepayProductsScreenState
                             ),
                             alignment: Alignment.center,
                             child: const Icon(Icons.shopping_bag_outlined,
-                                color: AppColors.primary),
+                                color: AppColors.primary, size: 22),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -114,19 +114,19 @@ class _LopepayProductsScreenState
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 15)),
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16)),
                                   ),
                                   if (!p.isActive) ...[
                                     const SizedBox(width: 6),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 6, vertical: 2),
+                                          horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: AppColors.textMuted
                                             .withValues(alpha: 0.15),
                                         borderRadius:
-                                            BorderRadius.circular(4),
+                                            BorderRadius.circular(20),
                                       ),
                                       child: Text(
                                           tr(ref,
@@ -145,7 +145,7 @@ class _LopepayProductsScreenState
                                       "${_fmt(p.price)} ${tr(ref, 'common.currency', "so'm")}",
                                       style: const TextStyle(
                                           color: AppColors.textMuted,
-                                          fontSize: 12)),
+                                          fontSize: 13)),
                                 ],
                                 Text(
                                     tr(ref,
@@ -155,7 +155,7 @@ class _LopepayProductsScreenState
                                     }),
                                     style: const TextStyle(
                                         color: AppColors.textMuted,
-                                        fontSize: 11)),
+                                        fontSize: 12)),
                               ],
                             ),
                           ),

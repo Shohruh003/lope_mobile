@@ -293,11 +293,11 @@ class _LopepayTransactionsScreenState
                                     Row(children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 2),
+                                            horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: AppColors.surface,
                                           borderRadius:
-                                              BorderRadius.circular(4),
+                                              BorderRadius.circular(20),
                                           border: Border.all(
                                               color: AppColors.border),
                                         ),
@@ -310,7 +310,7 @@ class _LopepayTransactionsScreenState
                                                 fontWeight: FontWeight.w600,
                                                 color: AppColors.textBright)),
                                       ),
-                                      const SizedBox(width: 6),
+                                      const SizedBox(width: 8),
                                       Flexible(
                                         child: Text(
                                             t['createdAt'] != null
@@ -323,7 +323,7 @@ class _LopepayTransactionsScreenState
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                                 color: AppColors.textMuted,
-                                                fontSize: 10)),
+                                                fontSize: 12)),
                                       ),
                                     ]),
                                     if (description.isNotEmpty) ...[
@@ -333,7 +333,7 @@ class _LopepayTransactionsScreenState
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                               color: AppColors.textMuted,
-                                              fontSize: 11)),
+                                              fontSize: 12)),
                                     ],
                                   ],
                                 ),
@@ -342,11 +342,11 @@ class _LopepayTransactionsScreenState
                               Text(
                                   "${inflow ? '+' : '−'}${_fmt(amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
                                   style: TextStyle(
-                                      fontWeight: FontWeight.w800,
+                                      fontWeight: FontWeight.w600,
                                       color: inflow
                                           ? AppColors.success
                                           : AppColors.danger,
-                                      fontSize: 13)),
+                                      fontSize: 14)),
                             ]),
                           ),
                         ).animate().fadeIn(duration: 200.ms, delay: (i * 20).ms);

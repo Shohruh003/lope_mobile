@@ -289,15 +289,16 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                                 Expanded(
                                     child: Text(phone,
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.w700))),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500))),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                      horizontal: 10, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: AppColors.success
                                         .withValues(alpha: 0.15),
                                     borderRadius:
-                                        BorderRadius.circular(8),
+                                        BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                       tr(ref,
@@ -305,19 +306,19 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                                           'delivered'),
                                       style: const TextStyle(
                                           color: AppColors.success,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700)),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600)),
                                 ),
                               ]),
                               if (type.isNotEmpty) ...[
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
+                                      horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: AppColors.primary
                                         .withValues(alpha: 0.10),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(_typeLabel(ref, type),
                                       style: const TextStyle(
@@ -330,7 +331,7 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                               Text((s['message'] ?? '').toString(),
                                   style: const TextStyle(
                                       color: AppColors.textSecondary,
-                                      fontSize: 13,
+                                      fontSize: 14,
                                       height: 1.4)),
                               if ((s['sentAt'] ?? s['createdAt']) != null) ...[
                                 const SizedBox(height: 6),
@@ -342,7 +343,7 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                                         .toLocal()),
                                     style: const TextStyle(
                                         color: AppColors.textMuted,
-                                        fontSize: 11)),
+                                        fontSize: 12)),
                               ],
                             ],
                           ),
