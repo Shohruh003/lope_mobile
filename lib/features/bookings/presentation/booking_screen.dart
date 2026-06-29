@@ -126,7 +126,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Text(tr(ref, 'booking.selectService', "Xizmatlarni tanlang"),
           style: const TextStyle(
-              fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+              fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textBright)),
       const SizedBox(height: 14),
 
       if (hasNoServices)
@@ -177,20 +177,20 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       color: on ? AppColors.primary : AppColors.border),
                 ),
                 child: Row(children: [
-                  Text(s.icon, style: const TextStyle(fontSize: 20)),
-                  const SizedBox(width: 10),
+                  Text(s.icon, style: const TextStyle(fontSize: 24)),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(s.name,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
                                 color: AppColors.textBright)),
                         Text("${s.duration} ${tr(ref, 'booking.duration', 'daq')}",
                             style: const TextStyle(
-                                color: AppColors.textMuted, fontSize: 11)),
+                                color: AppColors.textMuted, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -199,9 +199,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           ? "${_fmt(s.price)} – ${_fmt(s.priceMax!)} ${tr(ref, 'common.currency', "so'm")}"
                           : "${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.primary,
-                          fontSize: 13)),
+                          fontSize: 14)),
                   const SizedBox(width: 8),
                   Container(
                     width: 18, height: 18,
@@ -248,11 +248,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       // Date pick
       Row(children: [
-        const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textBright),
-        const SizedBox(width: 6),
+        const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.textBright),
+        const SizedBox(width: 8),
         Text(tr(ref, 'booking.selectDate', "Sanani tanlang"),
             style: const TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+                fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textBright)),
       ]),
       const SizedBox(height: 10),
 
@@ -293,22 +293,22 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   width: 64,
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                         color: isSelected ? AppColors.primary : AppColors.border),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.all(10),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(trList(ref, 'mobile.dates.weekDaysShort', _weekDays)[d.weekday - 1].toUpperCase(),
+                      Text(trList(ref, 'mobile.dates.weekDaysShort', _weekDays)[d.weekday - 1],
                           style: TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
                               color: isSelected
                                   ? Colors.white70
                                   : AppColors.textMuted)),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text("${d.day}",
                           style: TextStyle(
                               fontSize: 18,
@@ -339,11 +339,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       // Time grid (only if date selected)
       if (_selectedDate != null) ...[
         Row(children: [
-          const Icon(Icons.access_time, size: 18, color: AppColors.textBright),
-          const SizedBox(width: 6),
+          const Icon(Icons.access_time, size: 20, color: AppColors.textBright),
+          const SizedBox(width: 8),
           Text(tr(ref, 'booking.selectTime', "Vaqtni tanlang"),
               style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+                  fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textBright)),
         ]),
         const SizedBox(height: 10),
 
@@ -392,14 +392,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     final isOn = _selectedTime == t;
 
                     return InkWell(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                       onTap: disabled
                           ? null
                           : () => setState(() => _selectedTime = t),
                       child: Container(
                         decoration: BoxDecoration(
                           color: isOn ? AppColors.primary : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                               color: isOn
                                   ? AppColors.primary
@@ -409,8 +409,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           child: Text(
                             t,
                             style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
                               color: isOn
                                   ? Colors.white
                                   : disabled
@@ -785,14 +785,17 @@ class _StepIndicator extends StatelessWidget {
             alignment: Alignment.center,
             child: Text("$stepNum",
                 style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                     color: isActive ? Colors.white : AppColors.textMuted)),
           ),
           if (stepNum < 3)
-            Container(
-              width: 40, height: 2,
-              color: stepNum < current ? AppColors.primary : AppColors.border,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Container(
+                width: 40, height: 2,
+                color: stepNum < current ? AppColors.primary : AppColors.border,
+              ),
             ),
         ]);
       }),

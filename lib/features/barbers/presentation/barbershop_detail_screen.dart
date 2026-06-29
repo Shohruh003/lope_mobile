@@ -135,10 +135,10 @@ class BarbershopDetailScreen extends ConsumerWidget {
                         Text(
                             "${tr(ref, 'mobile.shop.home.masters', "Masterlar")} (${barbers.length})",
                             style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
                                 color: AppColors.textMuted,
-                                letterSpacing: 0.4)),
+                                letterSpacing: 0.6)),
                         const SizedBox(height: 10),
                       ],
                     ),
@@ -198,12 +198,12 @@ class BarbershopDetailScreen extends ConsumerWidget {
                                 child: avatar.isNotEmpty
                                     ? CachedNetworkImage(
                                         imageUrl: assetUrl(avatar),
-                                        width: 56,
-                                        height: 56,
+                                        width: 48,
+                                        height: 48,
                                         fit: BoxFit.cover)
                                     : Container(
-                                        width: 56,
-                                        height: 56,
+                                        width: 48,
+                                        height: 48,
                                         color: AppColors.background,
                                         child: const Icon(Icons.person,
                                             color: AppColors.textMuted),
@@ -216,42 +216,42 @@ class BarbershopDetailScreen extends ConsumerWidget {
                                   children: [
                                     Text(barberName,
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 15)),
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16)),
                                     const SizedBox(height: 4),
                                     Row(children: [
                                       const Icon(Icons.star,
-                                          size: 13, color: AppColors.warning),
-                                      const SizedBox(width: 3),
+                                          size: 12, color: AppColors.warning),
+                                      const SizedBox(width: 4),
                                       Text(rating.toStringAsFixed(1),
                                           style: const TextStyle(
                                               fontSize: 12,
-                                              fontWeight: FontWeight.w700)),
+                                              fontWeight: FontWeight.w500)),
                                       if (reviewCount > 0) ...[
                                         const SizedBox(width: 4),
                                         Text("($reviewCount)",
                                             style: const TextStyle(
-                                                fontSize: 11,
+                                                fontSize: 12,
                                                 color: AppColors.textMuted)),
                                       ],
                                       if (experience.isNotEmpty &&
                                           experience != '0') ...[
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: 6),
                                         Text(
                                             "• $experience ${_yearWord(lang)}",
                                             style: const TextStyle(
-                                                fontSize: 11,
+                                                fontSize: 12,
                                                 color: AppColors.textMuted)),
                                       ],
                                     ]),
                                     if (minPrice != null) ...[
-                                      const SizedBox(height: 3),
+                                      const SizedBox(height: 2),
                                       Text(
                                           "${_fmt(minPrice)} ${tr(ref, 'common.currency', "so'm")}${_fromWord(lang)}",
                                           style: const TextStyle(
                                               fontSize: 12,
                                               color: AppColors.primary,
-                                              fontWeight: FontWeight.w700)),
+                                              fontWeight: FontWeight.w500)),
                                     ],
                                   ],
                                 ),
@@ -259,16 +259,16 @@ class BarbershopDetailScreen extends ConsumerWidget {
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: isAvailable
-                                      ? AppColors.success.withValues(alpha: 0.15)
-                                      : AppColors.background,
-                                  borderRadius: BorderRadius.circular(6),
+                                      ? AppColors.success.withValues(alpha: 0.1)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
                                       color: isAvailable
                                           ? AppColors.success
-                                              .withValues(alpha: 0.4)
+                                              .withValues(alpha: 0.3)
                                           : AppColors.border),
                                 ),
                                 child: Text(
@@ -276,8 +276,8 @@ class BarbershopDetailScreen extends ConsumerWidget {
                                         ? tr(ref, 'barbers.available', 'Bo\'sh')
                                         : tr(ref, 'barbers.unavailable', 'Band'),
                                     style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
                                         color: isAvailable
                                             ? AppColors.success
                                             : AppColors.textMuted)),
