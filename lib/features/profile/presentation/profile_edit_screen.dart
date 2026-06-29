@@ -241,7 +241,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Text(tr(ref, 'auth.gender', "Jins"),
                         style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textBright)),
                     const SizedBox(height: 10),
@@ -287,12 +287,15 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 // ===== Save =====
                 SizedBox(
                   width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    icon: _saving
+                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.check, size: 16),
+                    label: Text(_saving
+                        ? tr(ref, 'common.loading', "Yuklanmoqda...")
+                        : tr(ref, 'common.save', "Saqlash")),
                     onPressed: _saving ? null : () => _save(user.id),
-                    child: _saving
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text(tr(ref, 'common.save', "Saqlash")),
                   ),
                 ),
               ],

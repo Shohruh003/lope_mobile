@@ -79,26 +79,26 @@ class ProfileScreen extends ConsumerWidget {
                             fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textBright)),
                     const SizedBox(height: 2),
                     Text(user?.phone ?? '',
-                        style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                    const SizedBox(height: 14),
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
+                    const SizedBox(height: 12),
                     // Balance pill
                     if (balance != null)
                       balance.when(
                         loading: () => const SizedBox.shrink(),
                         error: (e, _) => const SizedBox.shrink(),
                         data: (b) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             const Icon(Icons.account_balance_wallet, size: 16, color: AppColors.primary),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
                             Text("${_fmt(b.amount)} ${tr(ref, 'common.currency', "so'm")}",
                                 style: const TextStyle(
                                     color: AppColors.primary,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600)),
                             const SizedBox(width: 8),
                             InkWell(
@@ -106,7 +106,7 @@ class ProfileScreen extends ConsumerWidget {
                               child: Text(tr(ref, 'topUp.fill', "To'ldirish"),
                                   style: const TextStyle(
                                       color: Color(0xFF3B82F6),
-                                      fontSize: 11,
+                                      fontSize: 12,
                                       decoration: TextDecoration.underline,
                                       decorationColor: Color(0xFF3B82F6),
                                       fontWeight: FontWeight.w500)),
@@ -126,7 +126,7 @@ class ProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  const Icon(Icons.language, color: AppColors.primary, size: 18),
+                  const Icon(Icons.language, color: AppColors.primary, size: 20),
                   const SizedBox(width: 8),
                   Text(tr(ref, 'barberApp.language', "Til"),
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright)),

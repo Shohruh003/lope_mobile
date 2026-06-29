@@ -213,7 +213,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
               const SizedBox(height: 24),
               Text(tr(ref, 'profile.services', "Xizmatlar"),
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
               const SizedBox(height: 8),
               if (services.isEmpty)
                 Text(tr(ref, 'mobile.publicBooking.noServices',
@@ -243,7 +243,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
               const SizedBox(height: 22),
               Text(tr(ref, 'booking.date', "Sana"),
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
               const SizedBox(height: 8),
               SizedBox(
                 height: 70,
@@ -286,7 +286,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
               const SizedBox(height: 18),
               Text(tr(ref, 'booking.time', "Vaqt"),
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
               const SizedBox(height: 8),
               FutureBuilder<List<String>>(
                 key: ValueKey(_date.toIso8601String()),
@@ -315,7 +315,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
               const SizedBox(height: 22),
               Text(tr(ref, 'auth.yourInfo', "Ma'lumotlaringiz"),
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
               const SizedBox(height: 8),
               TextField(
                   controller: _nameCtrl,
