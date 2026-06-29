@@ -163,6 +163,7 @@ class ReviewsScreen extends ConsumerWidget {
         ),
       ),
     );
+    commentCtrl.dispose();
     if (result == true) {
       ref.invalidate(barberReviewsProvider(barberId));
     }

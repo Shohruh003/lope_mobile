@@ -462,6 +462,7 @@ class _BookingCard extends ConsumerWidget {
     var rating = 0;
     final commentCtrl = TextEditingController();
     var submitting = false;
+    try {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -563,6 +564,9 @@ class _BookingCard extends ConsumerWidget {
         );
       }),
     );
+    } finally {
+      commentCtrl.dispose();
+    }
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
