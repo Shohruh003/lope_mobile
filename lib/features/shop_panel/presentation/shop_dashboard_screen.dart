@@ -299,16 +299,16 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               color: AppColors.textMuted,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 2),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 4),
                       Text(k.value,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               color: AppColors.textBright,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15)),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18)),
                     ],
                   ),
                 ),
@@ -355,8 +355,8 @@ class _DatePill extends StatelessWidget {
           Text(label,
               style: const TextStyle(
                   color: AppColors.textBright,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500)),
         ]),
       ),
     );
@@ -395,15 +395,15 @@ class _TodayCashCard extends ConsumerWidget {
                       "BUGUNGI TUSHUM"),
                   style: const TextStyle(
                       color: AppColors.success,
-                      fontSize: 10,
-                      letterSpacing: 0.6,
-                      fontWeight: FontWeight.w800)),
-              const SizedBox(height: 4),
+                      fontSize: 12,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
               Text(
                   "${fmt.format(stats.todayRevenue)} ${tr(ref, 'common.currency', "so'm")}",
                   style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.textBright)),
               const SizedBox(height: 4),
               Text(

@@ -114,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 4),
                         Text(
                           tr(ref, 'auth.loginSub', "Hisobingizga kiring"),
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
                         ),
                       ],
                     ).animate().fadeIn(duration: 300.ms),
@@ -170,7 +170,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onTap: () => context.push('/forgot-password'),
                         child: Text(
                           tr(ref, 'auth.forgotPassword', "Parolni unutdingizmi?"),
-                          style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w500),
+                          style: const TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ),
@@ -203,15 +203,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Wrap(
                         children: [
                           Text("${tr(ref, 'auth.noAccount', "Hisobingiz yo'qmi?")} ",
-                              style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
                           GestureDetector(
                             onTap: () => context.push('/register-phone'),
                             child: Text(
                               tr(ref, 'auth.register', "Ro'yxatdan o'tish"),
                               style: const TextStyle(
                                 color: AppColors.primary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),

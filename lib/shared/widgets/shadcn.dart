@@ -27,7 +27,7 @@ class ShadCard extends StatelessWidget {
   }
 }
 
-/// `<Label>` — small (13px), medium (w500), secondary text color.
+/// `<Label>` — matches shadcn's `text-sm font-medium` = 14px / w500.
 class ShadLabel extends StatelessWidget {
   const ShadLabel(this.text, {super.key});
   final String text;
@@ -36,15 +36,16 @@ class ShadLabel extends StatelessWidget {
         text,
         style: const TextStyle(
           color: AppColors.textSecondary,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
       );
 }
 
-/// `<CardTitle>` — 18-22px, w700, bright text.
+/// `<CardTitle>` — matches shadcn's `text-2xl font-semibold` = 24px / w600.
+/// `fontSize` override lets callers shrink it for compact tiles.
 class ShadCardTitle extends StatelessWidget {
-  const ShadCardTitle(this.text, {super.key, this.fontSize = 20});
+  const ShadCardTitle(this.text, {super.key, this.fontSize = 24});
   final String text;
   final double fontSize;
   @override
@@ -53,20 +54,20 @@ class ShadCardTitle extends StatelessWidget {
         style: TextStyle(
           color: AppColors.textBright,
           fontSize: fontSize,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.3,
         ),
       );
 }
 
-/// `<CardDescription>` — muted, 13px.
+/// `<CardDescription>` — matches shadcn's `text-sm` = 14px muted.
 class ShadCardDescription extends StatelessWidget {
   const ShadCardDescription(this.text, {super.key});
   final String text;
   @override
   Widget build(BuildContext context) => Text(
         text,
-        style: const TextStyle(color: AppColors.textMuted, fontSize: 13, height: 1.5),
+        style: const TextStyle(color: AppColors.textMuted, fontSize: 14, height: 1.5),
       );
 }
 
@@ -120,8 +121,9 @@ class ShadField extends StatelessWidget {
   }
 }
 
-/// SECTION label — small caps tracked, muted-foreground. Sits above a
-/// `ShadTileGroup` to separate clusters of settings.
+/// SECTION label — matches the web sidebar's `text-xs uppercase tracking-wide
+/// font-semibold` = 12px / w600 / muted. Sits above a `ShadTileGroup` to
+/// separate clusters of settings.
 class ShadSectionLabel extends StatelessWidget {
   const ShadSectionLabel(this.text, {super.key});
   final String text;
@@ -130,8 +132,8 @@ class ShadSectionLabel extends StatelessWidget {
         padding: const EdgeInsets.only(left: 4),
         child: Text(text,
             style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
               color: AppColors.textMuted,
               letterSpacing: 1,
             )),
@@ -187,9 +189,9 @@ class ShadTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(children: [
-          Icon(icon, color: destructive ? AppColors.danger : AppColors.primary, size: 18),
+          Icon(icon, color: destructive ? AppColors.danger : AppColors.primary, size: 20),
           const SizedBox(width: 14),
           Expanded(
               child: Text(label,
@@ -199,7 +201,7 @@ class ShadTile extends StatelessWidget {
           if (onTap != null && !destructive)
             const Padding(
               padding: EdgeInsets.only(left: 6),
-              child: Icon(Icons.chevron_right, color: AppColors.textMuted, size: 16),
+              child: Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
             ),
         ]),
       ),
@@ -207,7 +209,8 @@ class ShadTile extends StatelessWidget {
   }
 }
 
-/// "OR" divider used between primary and secondary auth actions.
+/// "OR" divider — matches login page `text-xs uppercase tracking-wider` =
+/// 12px / w500 / muted between two horizontal lines.
 class ShadOrDivider extends StatelessWidget {
   const ShadOrDivider({super.key, this.label = 'YOKI'});
   final String label;
@@ -219,7 +222,7 @@ class ShadOrDivider extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Text(label,
             style: const TextStyle(
-                color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1)),
+                color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 1.2)),
       ),
       const Expanded(child: Divider(color: AppColors.border)),
     ]);
