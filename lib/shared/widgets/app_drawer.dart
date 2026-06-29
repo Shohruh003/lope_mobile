@@ -74,7 +74,19 @@ class AppDrawer extends ConsumerWidget {
                       InkWell(
                         onTap: () {
                           Navigator.of(context).pop();
-                          if (item.route != null) context.push(item.route!);
+                          final route = item.route;
+                          if (route == null) return;
+                          // Routes that point to a panel shell (/barber-app,
+                          // /shop, /lopepay) or the customer home (/home) must
+                          // replace the stack — pushing them stacks a fresh
+                          // shell on top of the live one and leaks the old
+                          // state (each tap from the drawer kept another
+                          // IndexedStack alive).
+                          if (_isShellRoute(route)) {
+                            context.go(route);
+                          } else {
+                            context.push(route);
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -128,6 +140,14 @@ class AppDrawer extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  bool _isShellRoute(String r) {
+    final path = r.split('?').first;
+    return path == '/barber-app' ||
+        path == '/shop' ||
+        path == '/lopepay' ||
+        path == '/home';
   }
 
   String _roleLabel(String role, WidgetRef ref) {

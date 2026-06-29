@@ -170,7 +170,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                           value:
                               "${s.barbersCount} ${tr(ref, 'common.pcs', 'ta')}",
                           color: AppColors.primary,
-                          onTap: () => context.push('/shop?tab=1')),
+                          onTap: () => context.go('/shop?tab=1')),
                       _Kpi(
                           icon: Icons.notifications_active_outlined,
                           label: tr(ref, 'shop.stats.dueForReminder',
@@ -237,12 +237,12 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                     icon: Icons.people_alt_outlined,
                     label: tr(ref, 'mobile.shop.dashboard.navMasters',
                         "Mastera (Barberlar)"),
-                    onTap: () => context.push('/shop?tab=1')),
+                    onTap: () => context.go('/shop?tab=1')),
                 ShadTile(
                     icon: Icons.event_note_outlined,
                     label: tr(ref, 'mobile.shop.dashboard.navBookings',
                         "Salon bronlari"),
-                    onTap: () => context.push('/shop?tab=2')),
+                    onTap: () => context.go('/shop?tab=2')),
                 ShadTile(
                     icon: Icons.people_outline,
                     label: tr(ref, 'shop.nav.clients', "Mijozlar"),

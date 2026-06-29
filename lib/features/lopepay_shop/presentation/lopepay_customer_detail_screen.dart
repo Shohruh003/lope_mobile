@@ -35,12 +35,6 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz")),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () => context.push('/lopepay/customers/$customerId/edit'),
-          ),
-        ],
       ),
       floatingActionButton: nextUnpaid.isEmpty
           ? null
@@ -304,6 +298,11 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
               onTap: () => Navigator.of(sheetCtx).pop('undo'),
             ),
           ListTile(
+            leading: const Icon(Icons.edit_outlined, color: AppColors.textSecondary),
+            title: Text(tr(ref, 'common.edit', "Tahrirlash")),
+            onTap: () => Navigator.of(sheetCtx).pop('edit'),
+          ),
+          ListTile(
             leading: const Icon(Icons.delete_outline, color: AppColors.danger),
             title: Text(tr(ref, 'mobile.lopepay.installment.delete',
                 "Rassrochkani o'chirish")),
@@ -319,6 +318,11 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
       ),
     );
     if (picked == null) return;
+    if (picked == 'edit') {
+      if (!context.mounted) return;
+      context.push('/lopepay/customers/$instId/edit');
+      return;
+    }
     final repo = ref.read(lopepayRepositoryProvider);
     try {
       if (picked == 'mark') {
