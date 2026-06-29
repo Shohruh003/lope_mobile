@@ -332,37 +332,42 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         final monthsTotal = ((inst['monthsTotal'] ?? 0) as num).toInt();
         final amountCtrl = TextEditingController(
             text: monthlyPayment > 0 ? monthlyPayment.toString() : '');
-        final markOk = await showDialog<int?>(
-          context: context,
-          builder: (dCtx) => AlertDialog(
-            backgroundColor: AppColors.background,
-            title: Text(nextMonth > 0
-                ? tr(ref, 'mobile.lopepay.installment.markPaidTitle',
-                    "Oyni to'langan deb belgilash ({{n}}/{{total}})",
-                    {'n': '$nextMonth', 'total': '$monthsTotal'})
-                : tr(ref, 'mobile.lopepay.installment.markPaid',
-                    "Oyni to'langan deb belgilash")),
-            content: TextField(
-              controller: amountCtrl,
-              autofocus: true,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: tr(ref,
-                    'mobile.customer.transactions.topUpAmount',
-                    "Summa (so'm)"),
+        final int? markOk;
+        try {
+          markOk = await showDialog<int?>(
+            context: context,
+            builder: (dCtx) => AlertDialog(
+              backgroundColor: AppColors.background,
+              title: Text(nextMonth > 0
+                  ? tr(ref, 'mobile.lopepay.installment.markPaidTitle',
+                      "Oyni to'langan deb belgilash ({{n}}/{{total}})",
+                      {'n': '$nextMonth', 'total': '$monthsTotal'})
+                  : tr(ref, 'mobile.lopepay.installment.markPaid',
+                      "Oyni to'langan deb belgilash")),
+              content: TextField(
+                controller: amountCtrl,
+                autofocus: true,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: tr(ref,
+                      'mobile.customer.transactions.topUpAmount',
+                      "Summa (so'm)"),
+                ),
               ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(dCtx),
+                    child: Text(tr(ref, 'common.cancel', "Bekor"))),
+                TextButton(
+                    onPressed: () => Navigator.pop(
+                        dCtx, int.tryParse(amountCtrl.text.trim())),
+                    child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+              ],
             ),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(dCtx),
-                  child: Text(tr(ref, 'common.cancel', "Bekor"))),
-              TextButton(
-                  onPressed: () => Navigator.pop(
-                      dCtx, int.tryParse(amountCtrl.text.trim())),
-                  child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
-            ],
-          ),
-        );
+          );
+        } finally {
+          amountCtrl.dispose();
+        }
         if (markOk == null) return;
         await repo.markInstallmentPaid(instId, amount: markOk);
         if (context.mounted) {

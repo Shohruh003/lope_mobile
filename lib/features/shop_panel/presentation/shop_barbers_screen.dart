@@ -227,8 +227,8 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
         ),
       ),
     );
-    if (result != true) return;
     try {
+      if (result != true) return;
       final repo = ref.read(shopRepositoryProvider);
       if (existing == null) {
         await repo.createBarber(name: name.text.trim(), experience: exp.text.trim(), phone: phone.text.trim());
@@ -245,6 +245,10 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    } finally {
+      name.dispose();
+      exp.dispose();
+      phone.dispose();
     }
   }
 

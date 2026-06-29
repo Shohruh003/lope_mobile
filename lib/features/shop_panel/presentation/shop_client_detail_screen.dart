@@ -438,11 +438,11 @@ class _ShopClientDetailScreenState
         ],
       ),
     );
-    if (ok != true) return;
-    final newName = nameCtrl.text.trim();
-    final newPhone = phoneCtrl.text.trim();
-    if (newName.isEmpty && newPhone.isEmpty) return;
     try {
+      if (ok != true) return;
+      final newName = nameCtrl.text.trim();
+      final newPhone = phoneCtrl.text.trim();
+      if (newName.isEmpty && newPhone.isEmpty) return;
       final body = <String, dynamic>{};
       if (newName.isNotEmpty && newName != name) body['name'] = newName;
       if (newPhone.isNotEmpty && newPhone != phone) body['phone'] = newPhone;
@@ -461,6 +461,9 @@ class _ShopClientDetailScreenState
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    } finally {
+      nameCtrl.dispose();
+      phoneCtrl.dispose();
     }
   }
 

@@ -178,11 +178,11 @@ class _LopepayCustomerFormScreenState
         ),
       ),
     );
-    if (ok != true) return;
-    final name = nameCtrl.text.trim();
-    if (name.isEmpty) return;
-    final price = int.tryParse(priceCtrl.text.trim());
     try {
+      if (ok != true) return;
+      final name = nameCtrl.text.trim();
+      if (name.isEmpty) return;
+      final price = int.tryParse(priceCtrl.text.trim());
       final created = await ref
           .read(lopepayRepositoryProvider)
           .createProduct(name: name, defaultPrice: price);
@@ -200,6 +200,9 @@ class _LopepayCustomerFormScreenState
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    } finally {
+      nameCtrl.dispose();
+      priceCtrl.dispose();
     }
   }
 

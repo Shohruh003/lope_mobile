@@ -328,8 +328,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
         ],
       ),
     );
-    if (ok != true) return;
     try {
+      if (ok != true) return;
       if (isComplete) {
         await repo.markComplete(booking.id, totalPrice: overrideTotal);
       } else {
@@ -348,6 +348,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    } finally {
+      priceCtrl.dispose();
     }
   }
 
@@ -595,8 +597,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
         ),
       ),
     );
-    if (saved != true) return;
     try {
+      if (saved != true) return;
       // Snapshot the FULL service rows the backend expects (price + duration
       // come from these, not from a lookup). Sending just IDs left
       // totalPrice/totalDuration at 0 and the booking with empty service rows.
@@ -646,6 +648,9 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    } finally {
+      nameCtrl.dispose();
+      phoneCtrl.dispose();
     }
   }
 

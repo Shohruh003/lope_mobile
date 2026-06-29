@@ -545,8 +545,8 @@ class _BookingTile extends ConsumerWidget {
         ],
       ),
     );
-    if (ok != true) return;
     try {
+      if (ok != true) return;
       await ref
           .read(bookingRepositoryProvider)
           .complete(b.id, totalPrice: overrideTotal);
@@ -560,6 +560,8 @@ class _BookingTile extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    } finally {
+      priceCtrl.dispose();
     }
   }
 
