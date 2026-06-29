@@ -174,7 +174,14 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
           ),
         ),
         data: (barber) {
-          if (_success) return _SuccessView(name: (barber['name'] ?? '').toString());
+          // public-booking.service.ts:192 includes the user under a nested
+          // `user` object — name/avatar/phone live there, not on the root.
+          final user = barber['user'] is Map
+              ? (barber['user'] as Map).cast<String, dynamic>()
+              : <String, dynamic>{};
+          final barberName = (barber['name'] ?? user['name'] ?? '').toString();
+          final barberAvatar = (barber['avatar'] ?? user['avatar'] ?? '').toString();
+          if (_success) return _SuccessView(name: barberName);
           final services = (barber['services'] as List? ?? []).cast<Map<String, dynamic>>();
           final barberId = barber['id'].toString();
           return ListView(
@@ -183,8 +190,8 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               // Barber hero
               Row(children: [
                 ClipOval(
-                  child: ((barber['avatar'] ?? '') as String).isNotEmpty
-                      ? CachedNetworkImage(imageUrl: assetUrl(barber['avatar']?.toString()), width: 64, height: 64, fit: BoxFit.cover)
+                  child: barberAvatar.isNotEmpty
+                      ? CachedNetworkImage(imageUrl: assetUrl(barberAvatar), width: 64, height: 64, fit: BoxFit.cover)
                       : Container(width: 64, height: 64, color: AppColors.surface, child: const Icon(Icons.person, color: AppColors.textMuted)),
                 ),
                 const SizedBox(width: 14),
@@ -192,7 +199,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text((barber['name'] ?? '').toString(),
+                      Text(barberName,
                           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textBright)),
                       const SizedBox(height: 4),
                       Text((barber['locationUz'] ?? barber['location'] ?? '').toString(),
