@@ -230,8 +230,8 @@ class BarberCardsScreen extends ConsumerWidget {
         ]),
       ),
     );
-    if (ok != true) return;
     try {
+      if (ok != true) return;
       final body = {
         'cardNumber': number.text.trim(),
         'holderName': holder.text.trim(),
@@ -252,6 +252,9 @@ class BarberCardsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    } finally {
+      number.dispose();
+      holder.dispose();
     }
   }
 

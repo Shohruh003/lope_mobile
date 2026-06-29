@@ -253,12 +253,12 @@ class _LopepayProductsScreenState
         );
       }),
     );
-    if (ok != true) return;
-    final trimmedName = name.text.trim();
-    if (trimmedName.isEmpty) return;
-    final parsedPrice = int.tryParse(price.text.trim());
-    final repo = ref.read(lopepayRepositoryProvider);
     try {
+      if (ok != true) return;
+      final trimmedName = name.text.trim();
+      if (trimmedName.isEmpty) return;
+      final parsedPrice = int.tryParse(price.text.trim());
+      final repo = ref.read(lopepayRepositoryProvider);
       if (isEdit) {
         await repo.updateProduct(edit.id,
             name: trimmedName, defaultPrice: parsedPrice, isActive: active);
@@ -272,6 +272,9 @@ class _LopepayProductsScreenState
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    } finally {
+      name.dispose();
+      price.dispose();
     }
   }
 

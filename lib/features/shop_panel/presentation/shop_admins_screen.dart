@@ -261,18 +261,25 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
             ]),
       ),
     );
-    if (ok != true) return;
+    if (ok != true) {
+      // Modal dismissed without saving — still clean up so we don't leak
+      // the three controllers on every cancel.
+      name.dispose();
+      phone.dispose();
+      password.dispose();
+      return;
+    }
     final n = name.text.trim();
     final p = phone.text.trim();
     final pw = password.text;
-    if (!isEdit && (n.isEmpty || p.isEmpty || pw.length < 6)) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(tr(ref, 'mobile.shop.admins.fillAll',
-              "Barcha maydonlar majburiy (parol ≥ 6 belgi)"))));
-      return;
-    }
     try {
+      if (!isEdit && (n.isEmpty || p.isEmpty || pw.length < 6)) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'mobile.shop.admins.fillAll',
+                "Barcha maydonlar majburiy (parol ≥ 6 belgi)"))));
+        return;
+      }
       final dio = ref.read(dioProvider);
       if (isEdit) {
         await dio.patch('/barbershop/admins/${existing['id']}', data: {
@@ -292,6 +299,12 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+    } finally {
+      // Always release the controllers after the save attempt — they
+      // were allocated locally in this method.
+      name.dispose();
+      phone.dispose();
+      password.dispose();
     }
   }
 

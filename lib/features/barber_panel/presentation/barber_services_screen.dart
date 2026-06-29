@@ -216,24 +216,24 @@ class BarberServicesScreen extends ConsumerWidget {
         ),
       ),
     );
-    if (result != true) return;
-    final pMax = int.tryParse(priceMax.text.trim());
-    final iconText = icon.text.trim();
-    final nameRuText = nameRu.text.trim();
-    final body = <String, dynamic>{
-      'nameUz': name.text.trim(),
-      'name': name.text.trim(),
-      // Send empty string when cleared so backend resets the field (avoids
-      // the 'never cleared once set' bug).
-      'nameRu': nameRuText,
-      'icon': iconText.isEmpty ? '✂️' : iconText,
-      'price': int.tryParse(price.text.trim()) ?? 0,
-      // Send priceMax only when it's set AND larger than price — null
-      // clears any previous range so the service goes back to single-price.
-      'priceMax': pMax != null && pMax > 0 ? pMax : null,
-      'duration': int.tryParse(dur.text.trim()) ?? 30,
-    };
     try {
+      if (result != true) return;
+      final pMax = int.tryParse(priceMax.text.trim());
+      final iconText = icon.text.trim();
+      final nameRuText = nameRu.text.trim();
+      final body = <String, dynamic>{
+        'nameUz': name.text.trim(),
+        'name': name.text.trim(),
+        // Send empty string when cleared so backend resets the field
+        // (avoids the 'never cleared once set' bug).
+        'nameRu': nameRuText,
+        'icon': iconText.isEmpty ? '✂️' : iconText,
+        'price': int.tryParse(price.text.trim()) ?? 0,
+        // Send priceMax only when it's set AND larger than price — null
+        // clears any previous range so the service goes back to single-price.
+        'priceMax': pMax != null && pMax > 0 ? pMax : null,
+        'duration': int.tryParse(dur.text.trim()) ?? 30,
+      };
       final repo = ref.read(barberProfileRepositoryProvider);
       if (existing == null) {
         await repo.createService(barberId, body);
@@ -245,6 +245,15 @@ class BarberServicesScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
       }
+    } finally {
+      // Release the six modal-local controllers — without this every open
+      // of the new/edit-service sheet leaks them until the GC catches up.
+      name.dispose();
+      nameRu.dispose();
+      icon.dispose();
+      price.dispose();
+      priceMax.dispose();
+      dur.dispose();
     }
   }
 
