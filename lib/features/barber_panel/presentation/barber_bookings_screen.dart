@@ -88,12 +88,12 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Row(children: [
-                      const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
+                      const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textMuted),
                       const SizedBox(width: 8),
                       Text(
                         _toDateStr(_selectedDate),
                         style: const TextStyle(
-                            fontSize: 13, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                            fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
                       ),
                     ]),
                   ),
@@ -119,7 +119,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       tr(ref, 'mobile.barber.bookingsAll.today', "Bugun"),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 14),
                     ),
                   ),
                 ),
@@ -136,8 +136,8 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                 style: const TextStyle(
                     fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 16),
-                  prefixIconConstraints: const BoxConstraints(minWidth: 36),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 18),
+                  prefixIconConstraints: const BoxConstraints(minWidth: 40),
                   hintText: tr(ref, 'mobile.barber.bookings.searchPlaceholder', "Mijoz nomi yoki telefon"),
                 ),
               ),
@@ -196,10 +196,10 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(children: [
-                      const Icon(Icons.people_outline, size: 14, color: AppColors.textMuted),
+                      const Icon(Icons.people_outline, size: 16, color: AppColors.textMuted),
                       const SizedBox(width: 6),
                       Text("${filtered.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
                     ]),
                   ),
                   ...filtered.asMap().entries.map((entry) {
@@ -346,17 +346,17 @@ class _BookingTile extends ConsumerWidget {
           alignment: Alignment.center,
           child: Text(
             (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-            style: const TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.w700),
+            style: const TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright)),
+                      fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textBright)),
               if (phone.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
@@ -378,18 +378,18 @@ class _BookingTile extends ConsumerWidget {
                   const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 5, vertical: 1),
+                        horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.warning.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                         tr(ref, 'mobile.shop.bookings.manualBadge',
                             "Qo'lda"),
                         style: const TextStyle(
                             color: AppColors.warning,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700)),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ]),

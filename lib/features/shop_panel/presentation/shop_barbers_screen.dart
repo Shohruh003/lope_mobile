@@ -116,14 +116,15 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(b.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                          Text(b.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                          const SizedBox(height: 2),
                           if (b.experience.isNotEmpty)
                             Text(tr(ref, 'mobile.shop.masters.experience',
                                 'Tajriba: {{value}}', {'value': b.experience}),
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                           if (b.phone?.isNotEmpty == true)
                             Text(b.phone!,
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                         ],
                       ),
                     ),

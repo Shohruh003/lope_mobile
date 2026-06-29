@@ -368,37 +368,37 @@ class _LopepayInstallmentsScreenState
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
+                                              fontWeight: FontWeight.w500,
                                               fontSize: 14)),
                                     ),
                                     if (status.isNotEmpty) ...[
                                       const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 2),
+                                            horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: color.withValues(alpha: 0.15),
                                           borderRadius:
-                                              BorderRadius.circular(6),
+                                              BorderRadius.circular(20),
                                         ),
                                         child: Text(
                                             _statusLabel(ref, status, daysLate),
                                             style: TextStyle(
                                                 color: color,
                                                 fontSize: 10,
-                                                fontWeight: FontWeight.w700)),
+                                                fontWeight: FontWeight.w600)),
                                       ),
                                     ],
                                   ]),
                                   if (phone.isNotEmpty)
                                     Row(children: [
                                       const Icon(Icons.phone_outlined,
-                                          size: 10, color: AppColors.textMuted),
+                                          size: 12, color: AppColors.textMuted),
                                       const SizedBox(width: 4),
                                       Text(phone,
                                           style: const TextStyle(
                                               color: AppColors.textMuted,
-                                              fontSize: 11)),
+                                              fontSize: 12)),
                                     ]),
                                   if (productName.isNotEmpty)
                                     Text(
@@ -407,7 +407,7 @@ class _LopepayInstallmentsScreenState
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
                                             color: AppColors.textMuted,
-                                            fontSize: 11)),
+                                            fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -418,8 +418,8 @@ class _LopepayInstallmentsScreenState
                                 Text(
                                     "${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 13)),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14)),
                                 if (nextDue != null && !isPaidOff) ...[
                                   const SizedBox(height: 2),
                                   Builder(builder: (_) {
@@ -430,7 +430,7 @@ class _LopepayInstallmentsScreenState
                                     return Text(_df.format(d.toLocal()),
                                         style: const TextStyle(
                                             color: AppColors.textMuted,
-                                            fontSize: 10));
+                                            fontSize: 11));
                                   }),
                                 ],
                               ],

@@ -100,23 +100,24 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                             children: [
                               Text((a['name'] ?? '').toString(),
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       fontSize: 14)),
+                              const SizedBox(height: 2),
                               Text((a['phone'] ?? '').toString(),
                                   style: const TextStyle(
-                                      color: AppColors.textMuted, fontSize: 12)),
+                                      color: AppColors.textMuted, fontSize: 13)),
                             ],
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                              horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
                             color: (isOwner
                                     ? AppColors.warning
                                     : AppColors.primary)
                                 .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(isOwner ? "OWNER" : "ADMIN",
                               style: TextStyle(
@@ -124,7 +125,8 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                                       ? AppColors.warning
                                       : AppColors.primary,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w800)),
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5)),
                         ),
                         if (!isOwner) ...[
                           const SizedBox(width: 4),

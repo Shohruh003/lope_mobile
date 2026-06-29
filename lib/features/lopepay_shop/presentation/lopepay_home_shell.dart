@@ -309,9 +309,9 @@ class _MetricTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(value,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.3, color: AppColors.textBright)),
-              const SizedBox(height: 2),
-              Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w500)),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, letterSpacing: -0.3, color: AppColors.textBright)),
+              const SizedBox(height: 4),
+              Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w500)),
             ],
           ),
         ],
@@ -336,13 +336,13 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      Icon(icon, color: iconColor, size: 18),
-      const SizedBox(width: 6),
+      Icon(icon, color: iconColor, size: 20),
+      const SizedBox(width: 8),
       Expanded(
         child: Text(label,
             style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
                 color: iconColor == AppColors.danger
                     ? AppColors.danger
                     : AppColors.textBright)),
@@ -360,8 +360,8 @@ class _SectionHeader extends StatelessWidget {
                       color: iconColor == AppColors.danger
                           ? AppColors.danger
                           : AppColors.primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700)),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500)),
               const SizedBox(width: 2),
               Icon(Icons.chevron_right,
                   size: 16,

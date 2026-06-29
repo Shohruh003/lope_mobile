@@ -319,7 +319,7 @@ class _BucketChip extends StatelessWidget {
           child: Text(label,
               style: TextStyle(
                   fontSize: 12,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: on ? FontWeight.w600 : FontWeight.w500,
                   color: on ? AppColors.primary : AppColors.textMuted)),
         ),
       ),
@@ -378,7 +378,7 @@ class _ClientRow extends StatelessWidget {
             width: 44, height: 44,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
             child: Text(
@@ -386,7 +386,7 @@ class _ClientRow extends StatelessWidget {
               style: const TextStyle(
                   color: AppColors.primary,
                   fontSize: 18,
-                  fontWeight: FontWeight.w800),
+                  fontWeight: FontWeight.w600),
             ),
           ),
           const SizedBox(width: 12),
@@ -397,18 +397,18 @@ class _ClientRow extends StatelessWidget {
                 Builder(builder: (context) {
                   return Text(c.name.isEmpty ? c.phone : c.name,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 14));
+                          fontWeight: FontWeight.w500, fontSize: 14));
                 }),
                 if (c.phone.isNotEmpty)
                   Text(c.phone,
                       style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 12)),
+                          color: AppColors.textMuted, fontSize: 13)),
                 Consumer(builder: (context, ref, _) {
                   if (c.lastVisit == null) return const SizedBox.shrink();
                   return Text(
                       "${tr(ref, 'barberMyClients.lastVisit', 'Oxirgi tashrif')}: ${df.format(c.lastVisit!.toLocal())}",
                       style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 11));
+                          color: AppColors.textMuted, fontSize: 12));
                 }),
               ],
             ),

@@ -130,9 +130,9 @@ class NotificationsScreen extends ConsumerWidget {
                           group.label.toUpperCase(),
                           style: const TextStyle(
                             color: AppColors.textMuted,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 10.5,
-                            letterSpacing: 1.1,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            letterSpacing: 1,
                           ),
                         ),
                       ),
@@ -265,14 +265,14 @@ class _NotifTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 32, height: 32,
+              width: 36, height: 36,
               decoration: BoxDecoration(
                 color: style.color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(style.icon, color: style.color, size: 17),
+              child: Icon(style.icon, color: style.color, size: 18),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,8 +284,8 @@ class _NotifTile extends StatelessWidget {
                         child: Text(
                           n.title,
                           style: TextStyle(
-                            fontWeight: n.read ? FontWeight.w600 : FontWeight.w700,
-                            fontSize: 13.5,
+                            fontWeight: n.read ? FontWeight.w500 : FontWeight.w600,
+                            fontSize: 14,
                             color: n.read ? AppColors.textSecondary : AppColors.textBright,
                             height: 1.25,
                           ),
@@ -295,7 +295,7 @@ class _NotifTile extends StatelessWidget {
                       Text(
                         _hhmm(n.createdAt),
                         style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 10.5),
+                            color: AppColors.textMuted, fontSize: 12),
                       ),
                     ],
                   ),
@@ -307,7 +307,7 @@ class _NotifTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                           color: AppColors.textMuted,
-                          fontSize: 12,
+                          fontSize: 13,
                           height: 1.4),
                     ),
                   ],
