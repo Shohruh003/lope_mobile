@@ -82,6 +82,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           'avatar': await MultipartFile.fromFile(_avatarFile!.path),
         });
         await dio.post('/users/$userId/avatar', data: form);
+        if (!mounted) return;
         setState(() => _uploadingAvatar = false);
       }
 

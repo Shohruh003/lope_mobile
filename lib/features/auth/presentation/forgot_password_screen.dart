@@ -37,15 +37,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       // Old /auth/forgot/* paths had no handler — entire "parolni unutdim"
       // flow was 404'ing silently.
       await ref.read(dioProvider).post('/auth/forgot-password/send-code', data: {'phone': phone});
+      if (!mounted) return;
       setState(() {
         _phone = phone;
         _step = 1;
       });
     } on DioException catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.response?.statusCode == 404
           ? tr(ref, 'auth.phoneNotRegistered', "Bu raqam ro'yxatda yo'q")
           : tr(ref, 'auth.tryAgain', "Xato — qaytadan urinib ko'ring"));
     } catch (_) {
+      if (!mounted) return;
       setState(() => _error = tr(ref, 'auth.tryAgain', "Xato — qaytadan urinib ko'ring"));
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -62,6 +65,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         '/auth/forgot-password/verify-code',
         data: {'phone': _phone, 'code': code},
       );
+      if (!mounted) return;
       if (res.statusCode == 200 || res.data == true) {
         setState(() {
           _otp = code;
@@ -71,6 +75,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         setState(() => _error = tr(ref, 'auth.codeWrong', "Kod noto'g'ri"));
       }
     } catch (_) {
+      if (!mounted) return;
       setState(() => _error = tr(ref, 'auth.codeWrongOrExpired',
           "Kod noto'g'ri yoki muddati tugagan"));
     } finally {
@@ -94,6 +99,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           content: Text(tr(ref, 'auth.passwordUpdated', "Parol yangilandi"))));
       context.go('/login');
     } catch (_) {
+      if (!mounted) return;
       setState(() => _error =
           tr(ref, 'auth.updateError', "Yangilashda xato. Qaytadan urinib ko'ring"));
     } finally {

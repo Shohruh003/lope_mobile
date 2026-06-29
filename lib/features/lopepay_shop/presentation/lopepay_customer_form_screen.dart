@@ -188,6 +188,7 @@ class _LopepayCustomerFormScreenState
       final created = await ref
           .read(lopepayRepositoryProvider)
           .createProduct(name: name, defaultPrice: price);
+      if (!mounted) return;
       setState(() {
         _products = [..._products, created];
         _productId = created.id;

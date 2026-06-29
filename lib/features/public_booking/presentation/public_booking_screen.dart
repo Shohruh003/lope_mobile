@@ -127,8 +127,10 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
         'guestName': _nameCtrl.text.trim(),
         'guestPhone': '+998$phone',
       });
+      if (!mounted) return;
       setState(() => _success = true);
     } on DioException catch (e) {
+      if (!mounted) return;
       // Backend codes (public-booking.service.ts:330+):
       //   OTP_REQUIRED — barber.requirePhoneOtp=true and the customer
       //     didn't include otpCode. Mobile doesn't have the OTP UI yet,

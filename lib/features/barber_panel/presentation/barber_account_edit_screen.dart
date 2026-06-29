@@ -56,6 +56,7 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
         'oldPassword': _currentCtrl.text,
         'newPassword': _newCtrl.text,
       });
+      if (!mounted) return;
       setState(() {
         _msg = tr(ref, 'auth.passwordUpdated', "Parol yangilandi");
         _ok = true;
@@ -63,6 +64,7 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
       _currentCtrl.clear();
       _newCtrl.clear();
     } on DioException catch (e) {
+      if (!mounted) return;
       String msg = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring");
       if (e.response?.statusCode == 401) {
         msg = tr(ref, 'backend.oldPasswordWrong', "Joriy parol noto'g'ri");

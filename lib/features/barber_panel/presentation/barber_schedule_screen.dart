@@ -107,6 +107,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           }
         }
       }
+      if (!mounted) return;
       setState(() => _voiceLoading = false);
       _refreshDay(barberId);
     } else {
@@ -120,6 +121,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       final dir = await getTemporaryDirectory();
       final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
+      if (!mounted) return;
       setState(() => _isRecording = true);
     }
   }

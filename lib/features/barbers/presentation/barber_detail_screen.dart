@@ -48,6 +48,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       final next = await ref
           .read(favoritesRepositoryProvider)
           .toggle(widget.barberId);
+      if (!mounted) return;
       setState(() => _favoritedOverride = next);
       ref.invalidate(favoritesProvider);
     } catch (e) {

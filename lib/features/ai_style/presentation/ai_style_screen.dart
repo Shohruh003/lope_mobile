@@ -86,10 +86,12 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
             styles: _selectedStyles.toList(),
             references: Map<String, File>.from(_refImages),
           );
+      if (!mounted) return;
       setState(() => _resultUrl = r.imageUrl);
       final user = ref.read(authControllerProvider).user;
       if (user != null) ref.invalidate(myBalanceProvider(user.id));
     } on Object catch (e) {
+      if (!mounted) return;
       String msg = tr(ref, 'mobile.aiStyle.errorGeneric',
           "Generatsiya bajarilmadi");
       final s = e.toString();
