@@ -569,7 +569,7 @@ class _ShopCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 13),
+                      fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Row(children: [
@@ -664,14 +664,14 @@ class _BarberCard extends ConsumerWidget {
                       } catch (_) {}
                     },
                     child: Container(
-                      width: 26, height: 26,
+                      width: 28, height: 28,
                       decoration: BoxDecoration(
                         color: AppColors.background.withValues(alpha: 0.7),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                           isFav ? Icons.favorite : Icons.favorite_border,
-                          size: 14,
+                          size: 16,
                           color: isFav ? AppColors.danger : AppColors.textPrimary),
                     ),
                   );
@@ -681,12 +681,12 @@ class _BarberCard extends ConsumerWidget {
               Positioned(
                 top: 6, right: 6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                   decoration: BoxDecoration(
                     color: barber.isAvailable
-                        ? AppColors.success.withValues(alpha: 0.85)
-                        : AppColors.surfaceElevated.withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(4),
+                        ? AppColors.success
+                        : AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     barber.isAvailable
@@ -694,7 +694,7 @@ class _BarberCard extends ConsumerWidget {
                         : tr(ref, 'barbers.unavailable', "Band"),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -736,17 +736,17 @@ class _BarberCard extends ConsumerWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textBright)),
+                            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright)),
                     const SizedBox(height: 4),
                     // Rating row (web shows this for barbers)
                     Row(children: [
                       const Icon(Icons.star, size: 12, color: Color(0xFFFBBF24)),
-                      const SizedBox(width: 3),
+                      const SizedBox(width: 4),
                       Text(barber.rating.toStringAsFixed(1),
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-                      const SizedBox(width: 3),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                      const SizedBox(width: 4),
                       Text("(${barber.reviewCount})",
-                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                          style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                     ]),
                     if (barber.location.isNotEmpty) ...[
                       const SizedBox(height: 2),

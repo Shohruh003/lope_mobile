@@ -106,7 +106,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                     : Icon(
                         isFav ? Icons.favorite : Icons.favorite_border,
                         color: isFav ? AppColors.danger : AppColors.textPrimary,
-                        size: 22),
+                        size: 20),
                 onPressed: _favoriteBusy ? null : _toggleFavorite,
               );
             }),
@@ -144,7 +144,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                             Expanded(
                               child: Text(b.name,
                                   style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 20,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.textBright)),
                             ),
@@ -197,11 +197,11 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                             const SizedBox(height: 6),
                             Row(children: [
                               const Icon(Icons.access_time,
-                                  size: 12, color: AppColors.textMuted),
-                              const SizedBox(width: 4),
+                                  size: 14, color: AppColors.textMuted),
+                              const SizedBox(width: 6),
                               Text("${b.experience} ${tr(ref, 'barbers.experience', 'yil tajriba')}",
                                   style: const TextStyle(
-                                      fontSize: 12, color: AppColors.textMuted)),
+                                      fontSize: 14, color: AppColors.textMuted)),
                             ]),
                           ],
                           const SizedBox(height: 6),
@@ -219,13 +219,13 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                             const SizedBox(width: 4),
                             Text(b.rating.toStringAsFixed(1),
                                 style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                     color: AppColors.textBright)),
                             const SizedBox(width: 4),
                             Text("(${b.reviewCount})",
                                 style: const TextStyle(
-                                    fontSize: 11, color: AppColors.textMuted)),
+                                    fontSize: 12, color: AppColors.textMuted)),
                           ]),
                         ],
                       ),
@@ -235,12 +235,12 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
               ),
 
               if (b.bio.isNotEmpty) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(b.bio,
                       style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: AppColors.textMuted,
                           height: 1.5)),
                 ),
@@ -298,7 +298,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                             child: Text(
                               labels[i],
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: on ? FontWeight.w700 : FontWeight.w500,
                                 color: on ? AppColors.textBright : AppColors.textMuted,
                               ),
@@ -340,18 +340,18 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Icon(Icons.access_time, size: 16, color: AppColors.primary),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(tr(ref, 'barbers.workingHours', "Ish soatlari"),
                 style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textBright)),
           ]),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           ..._workingHoursRows(b.workingHours),
         ]),
       ),
-      const SizedBox(height: 10),
+      const SizedBox(height: 12),
 
       // Location card
       ShadCard(
@@ -360,13 +360,13 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Icon(Icons.location_on_outlined,
                 size: 16, color: AppColors.primary),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(b.location.isEmpty
                       ? tr(ref, 'barbers.locationNotSet', "Manzil ko'rsatilmagan")
                       : b.location,
                   style: const TextStyle(
-                      fontSize: 13, color: AppColors.textBright)),
+                      fontSize: 14, color: AppColors.textBright)),
             ),
           ]),
           if (b.lat != null && b.lng != null) ...[
@@ -383,21 +383,21 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
             Row(children: [
               Expanded(
                 child: SizedBox(
-                  height: 36,
+                  height: 40,
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.navigation, size: 14),
+                    icon: const Icon(Icons.navigation, size: 16),
                     label: Text(tr(ref, 'barberApp.route', "Yo'l"),
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     onPressed: () => _openRoute(b),
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Expanded(
                 child: SizedBox(
-                  height: 36,
+                  height: 40,
                   child: OutlinedButton.icon(
-                    icon: const Icon(Icons.open_in_new, size: 14),
+                    icon: const Icon(Icons.open_in_new, size: 16),
                     label: Text(tr(ref, 'barberApp.viewOnMap', "Xaritada"),
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     onPressed: () => _openMap(b),
@@ -488,18 +488,18 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       onTap: onTap,
       child: Row(children: [
         Container(
-          width: 32, height: 32,
+          width: 36, height: 36,
           decoration: BoxDecoration(
             color: bgColor.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: bgColor, size: 16),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Text(handle,
             style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textBright)),
       ]),
     );
@@ -551,21 +551,21 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                 child: ShadCard(
                   padding: const EdgeInsets.all(12),
                   child: Row(children: [
-                    Text(s.icon, style: const TextStyle(fontSize: 20)),
-                    const SizedBox(width: 10),
+                    Text(s.icon, style: const TextStyle(fontSize: 24)),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(s.name,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
                                   color: AppColors.textBright)),
                           const SizedBox(height: 2),
                           Text("${s.duration} ${tr(ref, 'booking.duration', 'daq')}",
                               style: const TextStyle(
-                                  color: AppColors.textMuted, fontSize: 11)),
+                                  color: AppColors.textMuted, fontSize: 12)),
                         ],
                       ),
                     ),
@@ -574,9 +574,9 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                             ? "${_fmt(s.price)} – ${_fmt(s.priceMax!)} ${tr(ref, 'common.currency', "so'm")}"
                             : "${_fmt(s.price)} ${tr(ref, 'common.currency', "so'm")}",
                         style: const TextStyle(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.primary,
-                            fontSize: 13)),
+                            fontSize: 14)),
                   ]),
                 ),
               ))
@@ -599,9 +599,9 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 6,
-        crossAxisSpacing: 6,
+        crossAxisCount: 2,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
       ),
       itemCount: b.gallery.length,
       itemBuilder: (context, i) {
@@ -664,8 +664,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                                 child: Text(
                                     r.userName.isEmpty ? 'Mijoz' : r.userName,
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
                                         color: AppColors.textBright)),
                               ),
                               Row(
