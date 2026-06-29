@@ -159,9 +159,18 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
               error: (e, _) => Center(
                   child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
               data: (b) {
+                // /barbers/:id nests user.name + user.avatar (see backend
+                // barbers.service.ts findById). Reading b['name'] /
+                // b['avatar'] directly was always falling back to the
+                // AppUser stub — making the avatar appear empty on
+                // refresh.
+                final nestedUser = b['user'] is Map
+                    ? (b['user'] as Map).cast<String, dynamic>()
+                    : const <String, dynamic>{};
                 if (_seedKey != b['id']) {
                   _seedKey = b['id']?.toString();
-                  _nameCtrl.text = (b['name'] ?? user.name).toString();
+                  _nameCtrl.text =
+                      (b['name'] ?? nestedUser['name'] ?? user.name).toString();
                   _bioCtrl.text = (b['bioUz'] ?? b['bio'] ?? '').toString();
                   _bioRuCtrl.text = (b['bioRu'] ?? '').toString();
                   _locationCtrl.text = (b['locationUz'] ?? b['location'] ?? '').toString();
@@ -172,7 +181,8 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                   _telegramCtrl.text = (b['telegram'] ?? '').toString();
                   _facebookCtrl.text = (b['facebook'] ?? '').toString();
                 }
-                final avatarUrl = (b['avatar'] ?? '').toString();
+                final avatarUrl =
+                    (b['avatar'] ?? nestedUser['avatar'] ?? '').toString();
 
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -212,7 +222,9 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                     ),
                     const SizedBox(height: 8),
                     Center(
-                      child: Text((b['name'] ?? user.name).toString(),
+                      child: Text(
+                          (b['name'] ?? nestedUser['name'] ?? user.name)
+                              .toString(),
                           style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
