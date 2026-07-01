@@ -109,15 +109,16 @@ class _LowBalanceDialogState extends ConsumerState<_LowBalanceDialog> {
             const SizedBox(height: 14),
             Text(tr(ref, 'topUp.lowBalanceTitle', "Hisobingizni to'ldiring"),
                 style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textBright)),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textBright,
+                    letterSpacing: -0.3)),
             const SizedBox(height: 6),
             Text(
               "${tr(ref, 'topUp.currentBalance', 'Joriy balans')}: ${_fmt(widget.balance)} ${tr(ref, 'common.currency', "so'm")}.\n${tr(ref, 'topUp.lowBalanceHint', "Balans yetarli bo'lmasa mijozlarga SMS eslatmalar yuborilmaydi.")}",
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: AppColors.textMuted, fontSize: 12, height: 1.5),
+                  color: AppColors.textMuted, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 16),
 
@@ -132,7 +133,7 @@ class _LowBalanceDialogState extends ConsumerState<_LowBalanceDialog> {
               Expanded(
                 child: Text(
                   tr(ref, 'topUp.dontShowAgain', "Endi 1 yil ko'rsatma"),
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
               ),
             ]),

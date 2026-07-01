@@ -90,10 +90,10 @@ class BarberServicesScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(name,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
                             const SizedBox(height: 2),
                             Text("${_fmt(price)} ${tr(ref, 'common.currency', "so'm")}  •  $dur ${tr(ref, 'booking.duration', 'daq')}",
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                           ],
                         ),
                       ),

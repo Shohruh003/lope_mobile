@@ -441,10 +441,10 @@ class _InstallmentRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(name.isEmpty ? tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz") : name,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textBright)),
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textBright)),
                 if (phone.isNotEmpty)
                   Text(phone,
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
               ],
             ),
           ),
@@ -452,12 +452,12 @@ class _InstallmentRow extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text("${_fmt(monthly)} ${tr(ref, 'common.currency', "so'm")}",
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color)),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: color)),
               if (isOverdue)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(tr(ref, 'mobile.lopepay.home.overdueShort', "o'tib ketgan"),
-                      style: const TextStyle(fontSize: 10, color: AppColors.danger, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(fontSize: 11, color: AppColors.danger, fontWeight: FontWeight.w500)),
                 ),
             ],
           ),
@@ -621,11 +621,11 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                         width: 44, height: 44,
                         decoration: BoxDecoration(
                           color: (overdue ? AppColors.danger : AppColors.primary).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
+                          shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
                         child: Text((c.name.isNotEmpty ? c.name[0] : '?').toUpperCase(),
-                            style: TextStyle(color: overdue ? AppColors.danger : AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800)),
+                            style: TextStyle(color: overdue ? AppColors.danger : AppColors.primary, fontSize: 18, fontWeight: FontWeight.w600)),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -633,16 +633,16 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(c.name.isEmpty ? c.phone : c.name,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
                             if (c.phone.isNotEmpty)
-                              Text(c.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                              Text(c.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                             const SizedBox(height: 4),
                             Row(children: [
                               Text("${_fmt(c.totalDebt)} ${tr(ref, 'common.currency', "so'm")}",
-                                  style: TextStyle(color: overdue ? AppColors.danger : AppColors.warning, fontWeight: FontWeight.w800, fontSize: 13)),
+                                  style: TextStyle(color: overdue ? AppColors.danger : AppColors.warning, fontWeight: FontWeight.w600, fontSize: 14)),
                               if (c.nextDue != null) ...[
                                 const SizedBox(width: 8),
-                                Text("• ${_df.format(c.nextDue!)}", style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                Text("• ${_df.format(c.nextDue!)}", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                               ],
                             ]),
                           ],
@@ -704,7 +704,7 @@ class _FilterChip extends StatelessWidget {
           child: Text(label,
               style: TextStyle(
                   fontSize: 12,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: on ? FontWeight.w600 : FontWeight.w500,
                   color: on ? AppColors.primary : AppColors.textMuted)),
         ),
       ),
