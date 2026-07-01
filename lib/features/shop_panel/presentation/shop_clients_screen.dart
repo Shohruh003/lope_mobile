@@ -277,7 +277,7 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                           "{{n}} ta mijozga SMS",
                           {'n': '${_selected.length}'}),
                       style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 14)),
+                          fontWeight: FontWeight.w500, fontSize: 15)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -415,15 +415,15 @@ class _ClientRow extends StatelessWidget {
           ),
           if (c.bookingsCount > 0)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
                 color: AppColors.success.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text("${c.bookingsCount}",
                   style: const TextStyle(
                       color: AppColors.success,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       fontSize: 12)),
             ),
           const SizedBox(width: 6),

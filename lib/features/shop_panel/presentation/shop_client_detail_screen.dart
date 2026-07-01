@@ -225,9 +225,10 @@ class _ShopClientDetailScreenState
                     tr(ref, 'mobile.shop.client.visitsHistory',
                         "Tashriflar tarixi"),
                     style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                        color: AppColors.textBright)),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        color: AppColors.textBright,
+                        letterSpacing: -0.3)),
                 const SizedBox(height: 10),
                 if (visits.isEmpty)
                   Padding(
@@ -326,15 +327,16 @@ class _ShopClientDetailScreenState
                   const SizedBox(height: 22),
                   Row(children: [
                     const Icon(Icons.message_outlined,
-                        size: 18, color: AppColors.textBright),
-                    const SizedBox(width: 6),
+                        size: 20, color: AppColors.textBright),
+                    const SizedBox(width: 8),
                     Text(
                         tr(ref, 'mobile.shop.client.smsHistory',
                             "SMS tarixi"),
                         style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                            color: AppColors.textBright)),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                            color: AppColors.textBright,
+                            letterSpacing: -0.3)),
                   ]),
                   const SizedBox(height: 10),
                   ...smsLogs.map((s) {

@@ -402,7 +402,7 @@ class _CardItem extends ConsumerWidget {
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 11,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                               letterSpacing: 1.5,
                             )),
                         if (isDefault) ...[
@@ -419,8 +419,8 @@ class _CardItem extends ConsumerWidget {
                               Text(tr(ref, 'mobile.barber.cards.primary', "Asosiy"),
                                   style: const TextStyle(
                                     color: Color(0xFFA16207),
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
                                   )),
                             ]),
                           ),

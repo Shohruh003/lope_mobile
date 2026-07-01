@@ -148,7 +148,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             child: Text(time,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textBright)),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textBright, letterSpacing: -0.3)),
           ),
           const Divider(height: 1, color: AppColors.border),
           if (status == 'available')
@@ -963,7 +963,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                               child: Text(
                                   tr(ref, 'mobile.barber.schedule.legendBooked', "Band").toUpperCase(),
                                   style: TextStyle(
-                                      fontSize: 8, fontWeight: FontWeight.w800, color: color)),
+                                      fontSize: 9, fontWeight: FontWeight.w600, color: color, letterSpacing: 0.5)),
                             ),
                         ]),
                       ),

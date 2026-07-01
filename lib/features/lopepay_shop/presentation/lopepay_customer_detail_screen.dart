@@ -227,7 +227,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
 
               const SizedBox(height: 22),
               Text(tr(ref, 'mobile.lopepay.customer.paymentsHistory', "To'lovlar tarixi"),
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, letterSpacing: -0.3)),
               const SizedBox(height: 10),
               if (payments.isEmpty)
                 Text(tr(ref, 'mobile.lopepay.customer.noPayments', "Hali to'lov yo'q"),
@@ -481,7 +481,7 @@ class _RowCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(badge,
-              style: TextStyle(color: badgeColor, fontSize: 11, fontWeight: FontWeight.w800)),
+              style: TextStyle(color: badgeColor, fontSize: 11, fontWeight: FontWeight.w600)),
         ),
       ]),
     );

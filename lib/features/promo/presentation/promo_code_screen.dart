@@ -126,9 +126,9 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
                   ],
                   style: const TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 2,
-                      fontSize: 18),
+                      fontSize: 20),
                   decoration: const InputDecoration(
                     hintText: 'PROMO20',
                     hintStyle: TextStyle(color: Colors.white54),

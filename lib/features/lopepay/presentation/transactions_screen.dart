@@ -482,8 +482,8 @@ class _StatTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                   color: AppColors.textBright,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14)),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15)),
         ],
       ),
     );
@@ -530,15 +530,15 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
                   "Joriy balans"),
               style: const TextStyle(
                   color: Colors.white70,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500)),
           const SizedBox(height: 6),
           Text(
               "${_fmt(widget.amount)} ${tr(ref, 'common.currency', "so'm")}",
               style: const TextStyle(
                   color: Colors.white,
                   fontSize: 30,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: -0.5)),
           if (widget.aiFree != null) ...[
             const SizedBox(height: 8),

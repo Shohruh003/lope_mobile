@@ -95,7 +95,7 @@ class _CustomerHeader extends ConsumerWidget {
                 style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: -0.3)),
           ]),
           const Spacer(),

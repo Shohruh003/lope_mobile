@@ -207,19 +207,22 @@ class _ShopTransactionsScreenState
                         loading: () => const Text("…",
                             style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800)),
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.3)),
                         error: (_, _) => const Text("—",
                             style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800)),
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.3)),
                         data: (b) => Text(
                             "${_fmt(b)} ${tr(ref, 'common.currency', "so'm")}",
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800)),
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.3)),
                       ),
                     ],
                   ),

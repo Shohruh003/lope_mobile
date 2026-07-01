@@ -560,9 +560,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                   ? tr(ref, 'booking.agreedOnSite', "Sartarosh bilan kelishasiz")
                   : "${_fmt(totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
               style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                  letterSpacing: -0.3),
             ),
           ]),
         ]),
@@ -845,13 +846,14 @@ class _ConfirmedView extends ConsumerWidget {
         const SizedBox(height: 14),
         Text(tr(ref, 'booking.bookingConfirmed', "Bron tasdiqlandi"),
             style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textBright)),
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textBright,
+                letterSpacing: -0.3)),
         const SizedBox(height: 4),
         Text(tr(ref, 'booking.barberAwaits', "{{name}} sizni kutadi",
                 {'name': barber.name}),
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
         const SizedBox(height: 22),
         SizedBox(
           width: double.infinity,

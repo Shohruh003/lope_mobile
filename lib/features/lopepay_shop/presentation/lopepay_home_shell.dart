@@ -78,7 +78,7 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
             Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 24),
             SizedBox(width: 6),
             Text("Lope Pay",
-                style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
           ]),
           const Spacer(),
           const NotificationBell(),
@@ -149,7 +149,7 @@ class _LopepayDashboard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(s.name.isEmpty ? "Lope Pay" : s.name,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textBright)),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textBright, letterSpacing: -0.3)),
                     if (s.address.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(s.address,

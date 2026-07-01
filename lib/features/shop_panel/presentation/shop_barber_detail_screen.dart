@@ -619,10 +619,11 @@ class _ClientsTab extends ConsumerWidget {
                                 .toUpperCase(),
                             style: const TextStyle(
                                 color: AppColors.primary,
-                                fontWeight: FontWeight.w800),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,28 +632,28 @@ class _ClientsTab extends ConsumerWidget {
                                       ? (e.value['phone'] ?? '').toString()
                                       : (e.value['name'] ?? '').toString(),
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13)),
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14)),
                               if ((e.value['phone'] ?? '').toString().isNotEmpty)
                                 Text((e.value['phone'] ?? '').toString(),
                                     style: const TextStyle(
-                                        color: AppColors.textMuted, fontSize: 11)),
+                                        color: AppColors.textMuted, fontSize: 13)),
                             ],
                           ),
                         ),
                         if (((e.value['totalVisits'] ?? e.value['bookingsCount'] ?? 0) as num) > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                                horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(
                               color: AppColors.success.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                                 "${((e.value['totalVisits'] ?? e.value['bookingsCount'] ?? 0) as num).toInt()}",
                                 style: const TextStyle(
                                     color: AppColors.success,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w600,
                                     fontSize: 11)),
                           ),
                       ]),

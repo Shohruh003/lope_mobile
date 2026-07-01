@@ -75,7 +75,7 @@ class _Header extends StatelessWidget {
             Icon(Icons.storefront, color: AppColors.primary, size: 24),
             SizedBox(width: 6),
             Text("Lope Style",
-                style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
           ]),
           const Spacer(),
           const NotificationBell(),

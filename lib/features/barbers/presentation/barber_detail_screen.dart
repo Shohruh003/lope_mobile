@@ -167,7 +167,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                                       style: TextStyle(
                                           color: Color(0xFFA16207),
                                           fontSize: 10,
-                                          fontWeight: FontWeight.w800,
+                                          fontWeight: FontWeight.w700,
                                           letterSpacing: 0.5)),
                                 ]),
                               ),

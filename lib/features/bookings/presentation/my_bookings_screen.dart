@@ -509,14 +509,14 @@ class _BookingCard extends ConsumerWidget {
             children: [
               Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish"),
                   style:
-                      const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
               const SizedBox(height: 4),
               Text(
                   tr(ref, 'mobile.reviews.rateHint',
                       "{{name}}'ning ishini baholang",
                       {'name': b.barberName}),
                   style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 13)),
+                      color: AppColors.textMuted, fontSize: 14)),
               const SizedBox(height: 16),
               Center(
                 child: Row(
