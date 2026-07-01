@@ -542,17 +542,17 @@ class _ShopCard extends StatelessWidget {
               Positioned(
                 top: 6, right: 6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(4),
+                    color: const Color(0xFF8B5CF6),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     '${shop.barberCount} 👤',
                     style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
               ),

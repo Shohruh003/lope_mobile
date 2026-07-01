@@ -464,28 +464,28 @@ class _TopServiceRow extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-                color: AppColors.textBright, fontSize: 13)),
+                color: AppColors.textBright, fontSize: 14, fontWeight: FontWeight.w500)),
       ),
       const SizedBox(width: 8),
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.border),
         ),
         child: Text("${count}x",
             style: const TextStyle(
                 color: AppColors.textBright,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 11)),
       ),
       const SizedBox(width: 8),
       Text("${fmt(revenue)} $currency",
           style: const TextStyle(
               color: AppColors.textMuted,
-              fontSize: 11,
-              fontWeight: FontWeight.w600)),
+              fontSize: 12,
+              fontWeight: FontWeight.w500)),
     ]);
   }
 }
