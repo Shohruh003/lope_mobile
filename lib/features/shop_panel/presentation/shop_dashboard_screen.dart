@@ -440,13 +440,14 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      Icon(icon, color: AppColors.primary, size: 18),
-      const SizedBox(width: 6),
+      Icon(icon, color: AppColors.primary, size: 20),
+      const SizedBox(width: 8),
       Text(label,
           style: const TextStyle(
               color: AppColors.textBright,
-              fontSize: 14,
-              fontWeight: FontWeight.w700)),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.3)),
     ]);
   }
 }

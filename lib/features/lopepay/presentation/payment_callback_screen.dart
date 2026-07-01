@@ -58,7 +58,7 @@ class _PaymentCallbackScreenState extends ConsumerState<PaymentCallbackScreen> {
                     ok
                         ? tr(ref, 'mobile.payment.successTitle', "To'lov muvaffaqiyatli")
                         : tr(ref, 'mobile.payment.failTitle', "To'lov bekor qilindi"),
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textBright),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.textBright, letterSpacing: -0.3),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 10),
                 Text(

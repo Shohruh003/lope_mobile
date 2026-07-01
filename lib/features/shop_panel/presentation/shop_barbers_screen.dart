@@ -72,9 +72,10 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                     _query = v;
                     _page = 1;
                   }),
-                  style: const TextStyle(color: AppColors.textBright),
+                  style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 22),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 18),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 40),
                     hintText: tr(ref, 'mobile.lopepay.customers.searchHint', "Ism yoki telefon"),
                     isDense: true,
                   ),

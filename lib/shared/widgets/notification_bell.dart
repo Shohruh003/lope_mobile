@@ -36,11 +36,11 @@ class NotificationBell extends ConsumerWidget {
           right: 4,
           child: IgnorePointer(
             child: Container(
-              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
                 color: AppColors.danger,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: AppColors.background, width: 1.5),
               ),
               alignment: Alignment.center,
@@ -48,8 +48,8 @@ class NotificationBell extends ConsumerWidget {
                 unread > 99 ? '99+' : '$unread',
                 style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
                     height: 1),
               ),
             ),
