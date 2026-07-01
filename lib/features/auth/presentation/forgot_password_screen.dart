@@ -177,7 +177,7 @@ class _PhoneStepState extends ConsumerState<_PhoneStep> {
             child: widget.busy
                 ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : Text(tr(ref, 'auth.sendCode', "Kod yuborish"),
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           ),
         ),
       ],
@@ -234,7 +234,7 @@ class _OtpStepState extends ConsumerState<_OtpStep> {
             child: widget.busy
                 ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : Text(tr(ref, 'auth.verify', "Tasdiqlash"),
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           ),
         ),
       ],
@@ -362,7 +362,7 @@ class _PasswordStepState extends ConsumerState<_PasswordStep> {
                 : Text(
                     tr(ref, 'auth.updatePassword', "Parolni yangilash"),
                     style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w800)),
+                        fontSize: 15, fontWeight: FontWeight.w500)),
           ),
         ),
       ],

@@ -202,7 +202,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(barberName,
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.textBright)),
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: AppColors.textBright, letterSpacing: -0.3)),
                       const SizedBox(height: 4),
                       Text((barber['locationUz'] ?? barber['location'] ?? '').toString(),
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
@@ -271,7 +271,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text("${d.day}",
-                                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18,
+                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18,
                                     color: on ? Colors.white : AppColors.textPrimary)),
                             Text(_monthShort(d.month),
                                 style: TextStyle(fontSize: 11,
@@ -345,7 +345,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                   child: _busy
                       ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : Text(tr(ref, 'booking.title', "Yozilish"),
-                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                 ),
               ),
             ],
