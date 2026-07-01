@@ -187,8 +187,8 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
                     Expanded(
                       child: Text('@${_tgController.text}',
                           style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
                               color: Color(0xFF2AABEE))),
                     ),
                     IconButton(
@@ -247,20 +247,20 @@ class _LinkCard extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Icon(icon, size: 16, color: iconColor),
-          const SizedBox(width: 6),
+          Icon(icon, size: 18, color: iconColor),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(title,
                 style: const TextStyle(
-                    fontWeight: FontWeight.w700, fontSize: 14)),
+                    fontWeight: FontWeight.w600, fontSize: 16)),
           ),
         ]),
         const SizedBox(height: 4),
         Text(subtitle,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
         const SizedBox(height: 10),
         Text(url,
-            style: TextStyle(color: iconColor, fontSize: 12),
+            style: TextStyle(color: iconColor, fontSize: 13, fontFamily: 'monospace'),
             maxLines: 2,
             overflow: TextOverflow.ellipsis),
         const SizedBox(height: 12),

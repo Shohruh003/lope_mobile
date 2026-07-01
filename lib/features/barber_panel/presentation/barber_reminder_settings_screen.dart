@@ -81,15 +81,15 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
                       children: [
                         Row(children: [
                           const Icon(Icons.info_outline,
-                              size: 18, color: AppColors.primary),
-                          const SizedBox(width: 6),
+                              size: 20, color: AppColors.primary),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                                 tr(ref,
                                     'reminderSettings.shopManagedTitle',
                                     "Salon eslatma sozlamalarini boshqaradi"),
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                     color: AppColors.textBright)),
                           ),
@@ -101,7 +101,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
                                 "Siz salonga biriktirilgansiz. Eslatmalar vaqti va davri salon profilida belgilanadi."),
                             style: const TextStyle(
                                 color: AppColors.textSecondary,
-                                fontSize: 12,
+                                fontSize: 13,
                                 height: 1.5)),
                       ]),
                 ),
@@ -156,7 +156,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
 // ignore: non_constant_identifier_names
 Widget _SectionLabel(String text) => Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+      child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
     );
 
 class _Stepper extends StatelessWidget {
@@ -191,7 +191,7 @@ class _Stepper extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text("$value$suffix",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
             ),
           ),
           IconButton(

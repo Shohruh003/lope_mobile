@@ -133,7 +133,7 @@ class _ShopClientDetailScreenState
                                 style: const TextStyle(
                                     color: AppColors.primary,
                                     fontSize: 30,
-                                    fontWeight: FontWeight.w900)),
+                                    fontWeight: FontWeight.w600)),
                           ),
                   ),
                   const SizedBox(width: 14),
@@ -143,22 +143,23 @@ class _ShopClientDetailScreenState
                       children: [
                         Text(name.isEmpty ? phone : name,
                             style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textBright)),
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textBright,
+                                letterSpacing: -0.3)),
                         if (phone.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Text(phone,
                               style: const TextStyle(
-                                  color: AppColors.textMuted, fontSize: 13)),
+                                  color: AppColors.textMuted, fontSize: 14)),
                         ],
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                              horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                                 color: AppColors.primary
                                     .withValues(alpha: 0.3)),
@@ -169,8 +170,8 @@ class _ShopClientDetailScreenState
                                   {'n': '$totalVisits'}),
                               style: const TextStyle(
                                   color: AppColors.primary,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700)),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600)),
                         ),
                       ],
                     ),

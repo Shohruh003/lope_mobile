@@ -273,7 +273,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
       ),
       child: Row(children: [
         Text("$label:",
-            style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+            style: const TextStyle(fontSize: 13, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
         const SizedBox(width: 6),
         Expanded(
           child: DropdownButtonHideUnderline(
@@ -283,8 +283,8 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
               items: items,
               onChanged: onChanged,
               style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.textBright),
               dropdownColor: AppColors.background,
               icon: const Icon(Icons.expand_more, size: 18, color: AppColors.textMuted),
@@ -342,8 +342,8 @@ class _BookingCard extends ConsumerWidget {
           child: Text(b.time,
               style: const TextStyle(
                   fontFamily: 'monospace',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.textBright)),
         ),
         const SizedBox(width: 10),
@@ -409,18 +409,18 @@ class _BookingCard extends ConsumerWidget {
                   const SizedBox(width: 6),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.warning.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                         tr(ref, 'mobile.shop.bookings.manualBadge',
                             "Qo'lda"),
                         style: const TextStyle(
                             color: AppColors.warning,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700)),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ]),
@@ -444,14 +444,14 @@ class _BookingCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Row(children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
+                    color: _statusColor,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(_statusText(ref),
-                      style: TextStyle(
-                          color: _statusColor,
+                      style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w600)),
                 ),
@@ -460,8 +460,8 @@ class _BookingCard extends ConsumerWidget {
                   Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
                       style: const TextStyle(
                           color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12)),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14)),
               ]),
               if (b.status == 'confirmed') ...[
                 const SizedBox(height: 8),
