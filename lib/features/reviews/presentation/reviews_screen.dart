@@ -112,7 +112,7 @@ class ReviewsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish"),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
               const SizedBox(height: 16),
               Center(
                 child: Row(mainAxisSize: MainAxisSize.min, children: List.generate(5, (i) {

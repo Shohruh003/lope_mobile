@@ -148,7 +148,7 @@ class BarberServicesScreen extends ConsumerWidget {
                 existing == null
                     ? tr(ref, 'mobile.barber.services.newTitle', "Yangi xizmat")
                     : tr(ref, 'mobile.barber.services.editTitle', "Xizmatni tahrirlash"),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
             const SizedBox(height: 14),
             Row(children: [
               SizedBox(

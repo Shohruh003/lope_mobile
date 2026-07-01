@@ -199,7 +199,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                 existing == null
                     ? tr(ref, 'mobile.shop.masters.newTitle', "Yangi master")
                     : tr(ref, 'mobile.shop.masters.editTitle', "Tahrirlash"),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
             const SizedBox(height: 14),
             TextField(
                 controller: name,

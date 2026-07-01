@@ -213,7 +213,7 @@ class _LopepayProductsScreenState
                         : tr(ref, 'mobile.lopepay.products.newProduct',
                             "Yangi mahsulot"),
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w800)),
+                        fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
                 const SizedBox(height: 14),
                 TextField(
                     controller: name,

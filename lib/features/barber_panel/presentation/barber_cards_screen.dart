@@ -198,7 +198,7 @@ class BarberCardsScreen extends ConsumerWidget {
               existing == null
                   ? tr(ref, 'mobile.barber.cards.newCard', "Yangi karta")
                   : tr(ref, 'common.edit', "Tahrirlash"),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textBright, letterSpacing: -0.3)),
           const SizedBox(height: 14),
           ShadLabel(tr(ref, 'mobile.barber.cards.cardNumber', "Karta raqami")),
           const SizedBox(height: 6),

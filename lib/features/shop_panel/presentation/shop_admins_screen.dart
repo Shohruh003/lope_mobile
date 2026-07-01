@@ -215,7 +215,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                       : tr(ref, 'mobile.shop.admins.addBtn',
                           "Admin qo'shish"),
                   style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w800)),
+                      fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
               const SizedBox(height: 14),
               TextField(
                 controller: name,
