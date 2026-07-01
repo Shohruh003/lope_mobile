@@ -143,36 +143,36 @@ class _BarberSmsHistoryScreenState
                                 Expanded(
                                   child: Text(s.phone,
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w500,
                                           fontSize: 14)),
                                 ),
                                 if ((s.type ?? '').isNotEmpty) ...[
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
+                                        horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: AppColors.primary
                                           .withValues(alpha: 0.15),
                                       borderRadius:
-                                          BorderRadius.circular(6),
+                                          BorderRadius.circular(20),
                                     ),
                                     child: Text(s.type!.toLowerCase(),
                                         style: const TextStyle(
                                             color: AppColors.primary,
                                             fontSize: 10,
-                                            fontWeight: FontWeight.w700)),
+                                            fontWeight: FontWeight.w600)),
                                   ),
                                   const SizedBox(width: 6),
                                 ],
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                      horizontal: 10, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: (ok
                                             ? AppColors.success
                                             : AppColors.danger)
                                         .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                       ok
@@ -186,8 +186,8 @@ class _BarberSmsHistoryScreenState
                                           color: ok
                                               ? AppColors.success
                                               : AppColors.danger,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700)),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600)),
                                 ),
                               ],
                             ),
@@ -195,13 +195,13 @@ class _BarberSmsHistoryScreenState
                             Text(s.message,
                                 style: const TextStyle(
                                     color: AppColors.textSecondary,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     height: 1.4)),
                             const SizedBox(height: 8),
                             Text(_df.format(s.createdAt.toLocal()),
                                 style: const TextStyle(
                                     color: AppColors.textMuted,
-                                    fontSize: 11)),
+                                    fontSize: 12)),
                           ],
                         ),
                       )

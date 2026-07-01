@@ -130,7 +130,8 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                                               .toUpperCase(),
                                           style: const TextStyle(
                                               color: AppColors.primary,
-                                              fontWeight: FontWeight.w800)),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600)),
                                     ),
                             ),
                             const SizedBox(width: 12),
@@ -140,13 +141,13 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                                 children: [
                                   Text(c.name.isEmpty ? c.phone : c.name,
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w500,
                                           fontSize: 14)),
                                   if (c.phone.isNotEmpty)
                                     Text(c.phone,
                                         style: const TextStyle(
                                             color: AppColors.textMuted,
-                                            fontSize: 12)),
+                                            fontSize: 13)),
                                 ],
                               ),
                             ),
@@ -155,13 +156,13 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
+                                      horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: (c.daysSince >= days + 7
                                             ? AppColors.danger
                                             : AppColors.warning)
                                         .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                       tr(
@@ -173,19 +174,19 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                                           color: c.daysSince >= days + 7
                                               ? AppColors.danger
                                               : AppColors.warning,
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w600,
                                           fontSize: 10)),
                                 ),
                                 if (c.smsSentRecently) ...[
                                   const SizedBox(height: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
+                                        horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: AppColors.success
                                           .withValues(alpha: 0.15),
                                       borderRadius:
-                                          BorderRadius.circular(4),
+                                          BorderRadius.circular(20),
                                     ),
                                     child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -201,9 +202,9 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                                                   "SMS yuborilgan"),
                                               style: const TextStyle(
                                                   color: AppColors.success,
-                                                  fontSize: 9,
+                                                  fontSize: 10,
                                                   fontWeight:
-                                                      FontWeight.w700)),
+                                                      FontWeight.w600)),
                                         ]),
                                   ),
                                 ],
@@ -212,7 +213,7 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                                   Text(_df.format(c.lastVisit!.toLocal()),
                                       style: const TextStyle(
                                           color: AppColors.textMuted,
-                                          fontSize: 10)),
+                                          fontSize: 11)),
                                 ],
                                 if (c.lastBarberName.isNotEmpty)
                                   Text(c.lastBarberName,
@@ -220,7 +221,7 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                           color: AppColors.textMuted,
-                                          fontSize: 10)),
+                                          fontSize: 11)),
                               ],
                             ),
                           ]),

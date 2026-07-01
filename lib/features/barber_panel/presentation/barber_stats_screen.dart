@@ -33,9 +33,10 @@ class BarberStatsScreen extends ConsumerWidget {
               Text(
                 tr(ref, 'mobile.barber.stats.title', "Statistika"),
                 style: const TextStyle(
-                    fontSize: 17,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textBright),
+                    color: AppColors.textBright,
+                    letterSpacing: -0.3),
               ),
               const SizedBox(height: 14),
               async.when(
@@ -161,8 +162,8 @@ class BarberStatsScreen extends ConsumerWidget {
                           children: [
                             Text(tr(ref, 'mobile.barber.stats.weeklyBookings', "Haftalik bronlar"),
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
                                     color: AppColors.textBright)),
                             const SizedBox(height: 8),
                             WeeklyBookingsBarChart(
@@ -189,8 +190,8 @@ class BarberStatsScreen extends ConsumerWidget {
                           children: [
                             Text(tr(ref, 'mobile.barber.stats.summary', "Umumiy hisob"),
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
                                     color: AppColors.textBright)),
                             const SizedBox(height: 10),
                             _SummaryRow(
@@ -224,8 +225,8 @@ class BarberStatsScreen extends ConsumerWidget {
                                 tr(ref, 'barberApp.bookingsByStatus',
                                     "Bronlar holati bo'yicha"),
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
                                     color: AppColors.textBright)),
                             const SizedBox(height: 12),
                             _StatusRow(
@@ -338,12 +339,12 @@ class _StatTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            width: 32, height: 32,
+            width: 36, height: 36,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: Icon(icon, color: color, size: 20),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,15 +354,15 @@ class _StatTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
                       letterSpacing: -0.3,
                       color: AppColors.textBright)),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(label,
                   style: const TextStyle(
                       color: AppColors.textMuted,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500)),
             ],
           ),
@@ -381,13 +382,13 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Expanded(
           child: Text(label,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
         ),
         Text(value,
             style: const TextStyle(
                 color: AppColors.textBright,
-                fontSize: 13,
-                fontWeight: FontWeight.w600)),
+                fontSize: 14,
+                fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -411,19 +412,19 @@ class _StatusRow extends StatelessWidget {
       Expanded(
         child: Text(label,
             style: const TextStyle(
-                color: AppColors.textBright, fontSize: 13)),
+                color: AppColors.textBright, fontSize: 14)),
       ),
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.border),
         ),
         child: Text("$count",
             style: const TextStyle(
                 color: AppColors.textBright,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 12)),
       ),
     ]);

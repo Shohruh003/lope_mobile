@@ -123,9 +123,10 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
                                     "Xatolik bilan tugadi")
                                 : tr(ref, 'common.loading', 'Yuklanmoqda…'),
                     style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textBright)),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textBright,
+                        letterSpacing: -0.3)),
               ),
               if (!isRunning)
                 IconButton(

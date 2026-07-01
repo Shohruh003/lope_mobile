@@ -122,12 +122,12 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                               width: 44, height: 44,
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
+                                shape: BoxShape.circle,
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 (c.name.isNotEmpty ? c.name[0] : (c.phone.isNotEmpty ? c.phone[c.phone.length - 1] : '?')).toUpperCase(),
-                                style: const TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w800),
+                                style: const TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w600),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -136,29 +136,29 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(c.name.isEmpty ? c.phone : c.name,
-                                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
                                   if (c.phone.isNotEmpty)
-                                    Text(c.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                    Text(c.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                                   const SizedBox(height: 4),
                                   Row(children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: AppColors.success.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(6),
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text("${c.bookingsCount} ${tr(ref, 'barberMyClients.bookingsShort', 'bron')}",
-                                          style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w700, fontSize: 10)),
+                                          style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w600, fontSize: 10)),
                                     ),
                                     if (c.lastVisit != null) ...[
                                       const SizedBox(width: 6),
                                       Text("• ${_df.format(c.lastVisit!.toLocal())}",
-                                          style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+                                          style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
                                     ],
                                     if (c.totalSpent > 0) ...[
                                       const SizedBox(width: 6),
                                       Text("• ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
-                                          style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w700, fontSize: 10)),
+                                          style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w600, fontSize: 11)),
                                     ],
                                   ]),
                                 ],
