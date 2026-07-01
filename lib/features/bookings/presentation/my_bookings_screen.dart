@@ -379,7 +379,7 @@ class _BookingCard extends ConsumerWidget {
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
+                              borderRadius: BorderRadius.circular(8)),
                         ),
                         onPressed: () => _complete(context, ref),
                       ),
@@ -400,7 +400,7 @@ class _BookingCard extends ConsumerWidget {
                               color: AppColors.danger.withValues(alpha: 0.5)),
                           backgroundColor: AppColors.danger.withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
+                              borderRadius: BorderRadius.circular(8)),
                         ),
                         onPressed: () => _cancel(context, ref),
                       ),

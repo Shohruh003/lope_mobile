@@ -230,20 +230,20 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
                                   child: Text(
                                       (f['name'] ?? '—').toString(),
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 12)),
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13)),
                                 ),
                                 Text((f['phone'] ?? '').toString(),
                                     style: const TextStyle(
                                         color: AppColors.textMuted,
-                                        fontSize: 11)),
+                                        fontSize: 12)),
                               ]),
                               if (f['errorMessage'] != null) ...[
                                 const SizedBox(height: 2),
                                 Text(f['errorMessage'].toString(),
                                     style: const TextStyle(
                                         color: AppColors.danger,
-                                        fontSize: 11)),
+                                        fontSize: 12)),
                               ],
                             ]),
                       );
