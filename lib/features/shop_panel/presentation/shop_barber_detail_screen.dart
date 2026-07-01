@@ -102,26 +102,27 @@ class _ShopBarberDetailScreenState
                               (b.name.isNotEmpty ? b.name[0] : '?').toUpperCase(),
                               style: const TextStyle(
                                   color: AppColors.primary,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900),
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w600),
                             ),
                           ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(b.name,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 18,
-                                color: AppColors.textBright)),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 20,
+                                color: AppColors.textBright,
+                                letterSpacing: -0.3)),
                         if (b.experience.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(b.experience,
                               style: const TextStyle(
-                                  color: AppColors.textMuted, fontSize: 13)),
+                                  color: AppColors.textMuted, fontSize: 14)),
                         ],
                         if (showPhone) ...[
                           const SizedBox(height: 4),
@@ -133,7 +134,7 @@ class _ShopBarberDetailScreenState
                               const SizedBox(width: 4),
                               Text(phone,
                                   style: const TextStyle(
-                                      color: AppColors.primary, fontSize: 13)),
+                                      color: AppColors.primary, fontSize: 14)),
                             ]),
                           ),
                         ],
@@ -206,7 +207,7 @@ class _TabBtn extends StatelessWidget {
           child: Text(label,
               style: TextStyle(
                   fontSize: 13,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: on ? FontWeight.w600 : FontWeight.w500,
                   color: on ? AppColors.textBright : AppColors.textMuted)),
         ),
       ),

@@ -121,7 +121,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
 
               const SizedBox(height: 22),
               Text(tr(ref, 'mobile.lopepay.customer.installments', "Rassrochkalar"),
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, letterSpacing: -0.3)),
               const SizedBox(height: 10),
               if (installments.isEmpty)
                 Text(tr(ref, 'mobile.lopepay.customer.noActiveInstallments', "Faol rassrochka yo'q"),
@@ -174,7 +174,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                                                         'Mahsulot'))
                                                 .toString(),
                                             style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
+                                                fontWeight: FontWeight.w500,
                                                 fontSize: 14)),
                                         const SizedBox(height: 2),
                                         Text(
@@ -189,8 +189,8 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                                         ? "0 ${tr(ref, 'common.currency', "so'm")}"
                                         : "${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
                                     style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
                                         color: isPaidOff
                                             ? AppColors.success
                                             : (daysLate > 0
@@ -508,16 +508,16 @@ class _MiniStat extends StatelessWidget {
             Text(label,
                 style: const TextStyle(
                     color: AppColors.textMuted,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600)),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500)),
             const SizedBox(height: 2),
             Text(value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                     color: AppColors.textBright,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800)),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600)),
           ]),
     );
   }

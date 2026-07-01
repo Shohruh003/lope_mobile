@@ -814,7 +814,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primary
@@ -826,10 +826,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            weekDays[d.weekday - 1].toUpperCase(),
+                            weekDays[d.weekday - 1],
                             style: TextStyle(
                                 fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 color: isSelected ? Colors.white70 : AppColors.textMuted),
                           ),
                           const SizedBox(height: 2),
@@ -861,7 +861,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           // ===== Day header =====
           Text(dateHeader,
               style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textBright)),
+                  fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textBright, letterSpacing: -0.3)),
           const SizedBox(height: 10),
 
           // ===== Slot grid OR empty state =====

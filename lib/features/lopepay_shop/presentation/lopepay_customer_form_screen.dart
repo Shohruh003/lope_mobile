@@ -153,7 +153,7 @@ class _LopepayCustomerFormScreenState
             Text(
                 tr(ref, 'mobile.lopepay.products.newProduct', "Yangi mahsulot"),
                 style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
             const SizedBox(height: 14),
             TextField(
                 controller: nameCtrl,
@@ -413,7 +413,7 @@ class _LopepayCustomerFormScreenState
                           )
                         : const Icon(Icons.save, size: 16),
                     label: Text(tr(ref, 'common.save', "Saqlash"),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                     onPressed: _saving ? null : _submit,
                   ),
                 ),
