@@ -68,17 +68,17 @@ class FavoritesScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(b.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                              Text(b.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
                               const SizedBox(height: 4),
                               Row(children: [
-                                const Icon(Icons.star, size: 14, color: AppColors.warning),
+                                const Icon(Icons.star, size: 12, color: Color(0xFFFBBF24)),
                                 const SizedBox(width: 4),
-                                Text(b.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12)),
+                                Text(b.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(b.location,
                                       maxLines: 1, overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                      style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
                                 ),
                               ]),
                             ],

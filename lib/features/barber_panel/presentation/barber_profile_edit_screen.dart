@@ -226,13 +226,14 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                           (b['name'] ?? nestedUser['name'] ?? user.name)
                               .toString(),
                           style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textBright)),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textBright,
+                              letterSpacing: -0.3)),
                     ),
                     Center(
                       child: Text(user.phone,
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
                     ),
 
                     const SizedBox(height: 16),
@@ -261,14 +262,14 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                         },
                         title: Text(tr(ref, 'mobile.barber.profileEdit.acceptClients', "Mijozlar qabul qilaman"),
                             style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
                                 color: AppColors.textBright)),
                         subtitle: Text(
                           b['isAvailable'] != false
                               ? tr(ref, 'mobile.barber.profileEdit.availableHint', "Yangi bronlar tushishi mumkin")
                               : tr(ref, 'mobile.barber.profileEdit.unavailableHint', "Bron qabul qilmayapsiz — profil yashirin"),
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                         ),
                       ),
                     ),
@@ -306,8 +307,8 @@ class _BarberProfileEditScreenState extends ConsumerState<BarberProfileEditScree
                                 child: Text(
                                   labels[i],
                                   style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                                    fontSize: 12,
+                                    fontWeight: on ? FontWeight.w600 : FontWeight.w500,
                                     color: on ? AppColors.textBright : AppColors.textMuted,
                                   ),
                                 ),

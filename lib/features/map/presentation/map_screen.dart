@@ -57,22 +57,22 @@ class MapScreen extends ConsumerWidget {
                     child: Row(children: [
                       ClipOval(
                         child: b.avatar.isNotEmpty
-                            ? CachedNetworkImage(imageUrl: assetUrl(b.avatar), width: 56, height: 56, fit: BoxFit.cover)
-                            : Container(width: 56, height: 56, color: AppColors.background, child: const Icon(Icons.person, color: AppColors.textMuted)),
+                            ? CachedNetworkImage(imageUrl: assetUrl(b.avatar), width: 48, height: 48, fit: BoxFit.cover)
+                            : Container(width: 48, height: 48, color: AppColors.background, child: const Icon(Icons.person, color: AppColors.textMuted)),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(b.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                            Text(b.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
                             const SizedBox(height: 4),
                             Row(children: [
                               const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textMuted),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(b.location.isEmpty ? "—" : b.location,
-                                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                                    style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
                                     maxLines: 1, overflow: TextOverflow.ellipsis),
                               ),
                             ]),

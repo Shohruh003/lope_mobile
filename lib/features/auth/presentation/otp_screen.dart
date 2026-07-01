@@ -152,7 +152,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     child: _resendIn > 0
                         ? Text(
                             "${tr(ref, 'auth.resendIn', 'Qayta yuborish')}: $_resendIn ${tr(ref, 'auth.secondsShort', 's')}",
-                            style: const TextStyle(color: AppColors.textMuted, fontSize: 13))
+                            style: const TextStyle(color: AppColors.textMuted, fontSize: 14))
                         : TextButton(
                             onPressed: _resend,
                             child: Text(tr(ref, 'auth.resendCode', "Kodni qayta yuborish"))),

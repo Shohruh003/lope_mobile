@@ -68,19 +68,19 @@ class ReviewsScreen extends ConsumerWidget {
                             r.userName.isEmpty
                                 ? tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz')
                                 : r.userName,
-                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14))),
                         Row(children: List.generate(5, (idx) => Icon(
                               idx < r.rating ? Icons.star : Icons.star_border,
-                              color: AppColors.warning, size: 14,
+                              color: const Color(0xFFFBBF24), size: 14,
                             ))),
                       ]),
                       if (r.comment.isNotEmpty) ...[
                         const SizedBox(height: 6),
-                        Text(r.comment, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
+                        Text(r.comment, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4)),
                       ],
                       const SizedBox(height: 6),
                       Text(_df.format(r.createdAt.toLocal()),
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                     ],
                   ),
                 ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms).slideY(begin: 0.1, end: 0);

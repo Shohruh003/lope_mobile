@@ -322,15 +322,15 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: on ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: on ? AppColors.primary : AppColors.border, width: 2),
         ),
         alignment: Alignment.center,
         child: Text(label,
             style: TextStyle(
                 color: on ? Colors.white : AppColors.textMuted,
-                fontSize: 13,
-                fontWeight: on ? FontWeight.w700 : FontWeight.w500)),
+                fontSize: 14,
+                fontWeight: on ? FontWeight.w600 : FontWeight.w500)),
       ),
     );
   }
@@ -349,26 +349,26 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
         ),
         child: Row(children: [
           Container(
-            width: 32, height: 32,
+            width: 36, height: 36,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: AppColors.primary, size: 16),
+            child: Icon(icon, color: AppColors.primary, size: 18),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
                     style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: on ? FontWeight.w700 : FontWeight.w600,
+                        fontSize: 14,
+                        fontWeight: on ? FontWeight.w600 : FontWeight.w500,
                         color: on ? AppColors.primary : AppColors.textBright)),
                 const SizedBox(height: 2),
                 Text(subtitle,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
               ],
             ),
           ),

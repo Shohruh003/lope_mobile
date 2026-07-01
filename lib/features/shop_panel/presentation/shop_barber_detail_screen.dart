@@ -249,9 +249,9 @@ class _ScheduleTab extends ConsumerWidget {
               const SizedBox(width: 8),
               Text(_df.format(date),
                   style: const TextStyle(
-                      color: AppColors.textBright, fontWeight: FontWeight.w700)),
+                      color: AppColors.textBright, fontWeight: FontWeight.w500, fontSize: 14)),
               const Spacer(),
-              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+              const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
             ]),
           ),
         ),
@@ -358,7 +358,7 @@ class _BookingRow extends ConsumerWidget {
           alignment: Alignment.center,
           child: Text(b.time,
               style: TextStyle(
-                  color: color, fontWeight: FontWeight.w800, fontSize: 14)),
+                  color: color, fontWeight: FontWeight.w600, fontSize: 14)),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -367,21 +367,21 @@ class _BookingRow extends ConsumerWidget {
             children: [
               Text(b.userName,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 14)),
+                      fontWeight: FontWeight.w500, fontSize: 14)),
               const SizedBox(height: 4),
               Row(children: [
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(_statusLabel(ref),
                       style: TextStyle(
                           color: color,
                           fontSize: 10,
-                          fontWeight: FontWeight.w700)),
+                          fontWeight: FontWeight.w600)),
                 ),
                 if (b.totalPrice > 0) ...[
                   const SizedBox(width: 6),
@@ -389,8 +389,8 @@ class _BookingRow extends ConsumerWidget {
                       "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
                       style: const TextStyle(
                           color: AppColors.warning,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11)),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12)),
                 ],
               ]),
             ],
