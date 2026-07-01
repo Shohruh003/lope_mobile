@@ -200,7 +200,7 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
                         'slots': '$slotsPerDay',
                         'total': '$total',
                       }),
-                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
+                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w500, fontSize: 13, height: 1.4),
                 ),
               ),
             ]),
@@ -214,7 +214,7 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
               child: _busy
                   ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : Text(tr(ref, 'mobile.barber.scheduleGen.generate', "Jadval yaratish"),
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
             ),
           ),
         ],
@@ -258,9 +258,9 @@ class _Picker extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 2),
-                Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textBright)),
+                Text(value, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textBright)),
               ],
             ),
           ),

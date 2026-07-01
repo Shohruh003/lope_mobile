@@ -401,9 +401,9 @@ class _Section extends StatelessWidget {
   Widget build(BuildContext context) => Text(text.toUpperCase(),
       style: const TextStyle(
           color: AppColors.primary,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.5));
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1));
 }
 
 class _Label extends StatelessWidget {
@@ -412,9 +412,9 @@ class _Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(text,
       style: const TextStyle(
-          fontSize: 12,
+          fontSize: 14,
           color: AppColors.textSecondary,
-          fontWeight: FontWeight.w600));
+          fontWeight: FontWeight.w500));
 }
 
 class _TimePill extends StatelessWidget {
@@ -442,7 +442,8 @@ class _TimePill extends StatelessWidget {
         ),
         child: Text(label,
             style: TextStyle(
-                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
                 color: enabled ? AppColors.primary : AppColors.textMuted)),
       ),
     );

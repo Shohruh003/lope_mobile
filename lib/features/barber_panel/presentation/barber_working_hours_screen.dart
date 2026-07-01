@@ -310,8 +310,10 @@ class _TimeChip extends StatelessWidget {
         ),
         child: Text(label,
             style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: enabled ? AppColors.primary : AppColors.textMuted)),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: enabled ? AppColors.primary : AppColors.textMuted,
+                fontFeatures: const [FontFeature.tabularFigures()])),
       ),
     );
   }
