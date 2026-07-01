@@ -124,7 +124,7 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
           if (_msg != null) ...[
             const SizedBox(height: 14),
             Text(_msg!,
-                style: TextStyle(color: _ok ? AppColors.success : AppColors.danger, fontSize: 13)),
+                style: TextStyle(color: _ok ? AppColors.success : AppColors.danger, fontSize: 14)),
           ],
           const SizedBox(height: 22),
           SizedBox(
@@ -143,5 +143,5 @@ class _BarberAccountEditScreenState extends ConsumerState<BarberAccountEditScree
 
   // ignore: non_constant_identifier_names
   Widget _Label(String text) => Text(text,
-      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600));
+      style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w500));
 }

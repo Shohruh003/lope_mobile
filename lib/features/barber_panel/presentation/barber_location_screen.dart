@@ -206,13 +206,13 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
                       const SizedBox(height: 14),
                       SizedBox(
                         width: double.infinity,
-                        height: 40,
+                        height: 44,
                         child: OutlinedButton.icon(
-                          icon: const Icon(Icons.open_in_new, size: 14),
+                          icon: const Icon(Icons.open_in_new, size: 16),
                           label: Text(
                               tr(ref, 'mobile.barber.location.openYandex',
                                   "Yandex Maps'dan koordinata olish"),
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                           onPressed: _openYandex,
                         ),
                       ),

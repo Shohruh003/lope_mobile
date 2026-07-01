@@ -105,12 +105,12 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(children: [
-            const Icon(Icons.card_giftcard, color: Colors.white, size: 22),
+            const Icon(Icons.card_giftcard, color: Colors.white, size: 24),
             const SizedBox(width: 8),
             Text(
                 tr(ref, 'mobile.promo.myCodeTitle', "Sizning referral kodingiz"),
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w700)),
+                    color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16)),
           ]),
           const SizedBox(height: 12),
           if (_editing)
@@ -164,8 +164,8 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
                 child: Text(code.isEmpty ? '—' : code,
                     style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 24,
                         letterSpacing: 2)),
               ),
               if (code.isNotEmpty)

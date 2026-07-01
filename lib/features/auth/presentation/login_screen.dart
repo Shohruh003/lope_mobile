@@ -279,7 +279,7 @@ class _Label extends StatelessWidget {
         text,
         style: const TextStyle(
           color: AppColors.textSecondary,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
       );

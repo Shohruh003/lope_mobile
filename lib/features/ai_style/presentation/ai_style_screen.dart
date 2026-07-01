@@ -141,9 +141,10 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
             // ===== Title + free-quota line =====
             Text(tr(ref, 'aiStyle.title', "AI Stil"),
                 style: const TextStyle(
-                    fontSize: 17,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textBright)),
+                    color: AppColors.textBright,
+                    letterSpacing: -0.3)),
             const SizedBox(height: 4),
             balance == null
                 ? const SizedBox.shrink()
@@ -207,9 +208,9 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
             if (_resultUrl == null) ...[
               Text(tr(ref, 'aiStyle.styleQuestion', "Qaysi qismni o'zgartirmoqchisiz?"),
                   style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textMuted)),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary)),
               const SizedBox(height: 8),
               SizedBox(
                 height: 144,
@@ -264,8 +265,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                                         opt.label),
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
                                             color: on
                                                 ? AppColors.primary
                                                 : AppColors.textBright)),

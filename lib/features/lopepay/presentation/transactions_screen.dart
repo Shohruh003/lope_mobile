@@ -215,8 +215,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 tr(ref, 'mobile.customer.transactions.history',
                     "Tranzaktsiyalar"),
                 style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
                     letterSpacing: -0.3)),
             const SizedBox(height: 10),
 
