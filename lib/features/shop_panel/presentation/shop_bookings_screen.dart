@@ -375,35 +375,35 @@ class _BookingCard extends ConsumerWidget {
               const SizedBox(height: 2),
               Row(children: [
                 const Icon(Icons.person_outline,
-                    size: 11, color: AppColors.textMuted),
-                const SizedBox(width: 3),
+                    size: 12, color: AppColors.textMuted),
+                const SizedBox(width: 4),
                 Flexible(
                   child: Text(b.barberName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 11)),
+                          color: AppColors.textMuted, fontSize: 12)),
                 ),
                 if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
                   const Text("  •  ",
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                   Flexible(
                     child: Text(b.userPhone!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 11)),
+                            color: AppColors.textMuted, fontSize: 12)),
                   ),
                 ],
                 if (b.totalDuration > 0) ...[
                   const Text("  •  ",
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                   const Icon(Icons.access_time,
-                      size: 11, color: AppColors.textMuted),
+                      size: 12, color: AppColors.textMuted),
                   const SizedBox(width: 3),
                   Text("${b.totalDuration}m",
                       style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 11)),
+                          color: AppColors.textMuted, fontSize: 12)),
                 ],
                 if (b.isManual) ...[
                   const SizedBox(width: 6),
@@ -428,7 +428,7 @@ class _BookingCard extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Icon(Icons.notes,
-                      size: 11, color: AppColors.textMuted),
+                      size: 12, color: AppColors.textMuted),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(b.notes!,
@@ -436,7 +436,7 @@ class _BookingCard extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             color: AppColors.textSecondary,
-                            fontSize: 11,
+                            fontSize: 12,
                             fontStyle: FontStyle.italic)),
                   ),
                 ]),
@@ -467,31 +467,31 @@ class _BookingCard extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Row(children: [
                   SizedBox(
-                    height: 28,
+                    height: 32,
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.check_circle_outline, size: 11),
+                      icon: const Icon(Icons.check_circle_outline, size: 12),
                       label: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
                           style: const TextStyle(
-                              fontSize: 10, fontWeight: FontWeight.w600)),
+                              fontSize: 12, fontWeight: FontWeight.w500)),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(6)),
                       ),
                       onPressed: () => _complete(context, ref),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   SizedBox(
-                    height: 28,
+                    height: 32,
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.close,
-                          size: 11, color: AppColors.danger),
+                          size: 12, color: AppColors.danger),
                       label: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
                           style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 12,
                               color: AppColors.danger,
-                              fontWeight: FontWeight.w600)),
+                              fontWeight: FontWeight.w500)),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         side: BorderSide(

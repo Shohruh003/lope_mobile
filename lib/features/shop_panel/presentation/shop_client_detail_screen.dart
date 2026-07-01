@@ -264,13 +264,13 @@ class _ShopClientDetailScreenState
                                               'Master'))
                                       .toString(),
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w500,
                                       fontSize: 14)),
                               const SizedBox(height: 4),
                               Row(children: [
                                 const Icon(Icons.event_outlined,
-                                    size: 11, color: AppColors.textMuted),
-                                const SizedBox(width: 3),
+                                    size: 12, color: AppColors.textMuted),
+                                const SizedBox(width: 4),
                                 Text(_fmtDate(v['date']?.toString() ?? ''),
                                     style: const TextStyle(
                                         color: AppColors.textMuted,
@@ -281,9 +281,9 @@ class _ShopClientDetailScreenState
                                           color: AppColors.textMuted,
                                           fontSize: 12)),
                                   const Icon(Icons.access_time,
-                                      size: 11,
+                                      size: 12,
                                       color: AppColors.textMuted),
-                                  const SizedBox(width: 3),
+                                  const SizedBox(width: 4),
                                   Text((v['time']).toString(),
                                       style: const TextStyle(
                                           color: AppColors.textMuted,
@@ -298,7 +298,7 @@ class _ShopClientDetailScreenState
                                       "${_fmt(total)} ${tr(ref, 'common.currency', "so'm")}",
                                       style: const TextStyle(
                                           color: AppColors.warning,
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w600,
                                           fontSize: 12)),
                                 ],
                               ]),

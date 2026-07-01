@@ -574,14 +574,14 @@ class _ShopCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(children: [
                   const Icon(Icons.location_on,
-                      size: 11, color: AppColors.textMuted),
-                  const SizedBox(width: 2),
+                      size: 12, color: AppColors.textMuted),
+                  const SizedBox(width: 4),
                   Expanded(
                     child: Text(addr,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 11)),
+                            color: AppColors.textMuted, fontSize: 12)),
                   ),
                 ]),
               ],
@@ -654,7 +654,7 @@ class _BarberCard extends ConsumerWidget {
                       data: (l) => l.any((b) => b.id == barber.id),
                       orElse: () => false);
                   return InkWell(
-                    borderRadius: BorderRadius.circular(13),
+                    borderRadius: BorderRadius.circular(14),
                     onTap: () async {
                       try {
                         await ref
@@ -751,12 +751,12 @@ class _BarberCard extends ConsumerWidget {
                     if (barber.location.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Row(children: [
-                        const Icon(Icons.location_on_outlined, size: 11, color: AppColors.textMuted),
-                        const SizedBox(width: 2),
+                        const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textMuted),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(barber.location,
                               maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                         ),
                       ]),
                     ],

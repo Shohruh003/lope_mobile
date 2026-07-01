@@ -397,7 +397,7 @@ class _BookingTile extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Icon(Icons.notes,
-                      size: 11, color: AppColors.textMuted),
+                      size: 12, color: AppColors.textMuted),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(b.notes!,
@@ -405,7 +405,7 @@ class _BookingTile extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             color: AppColors.textSecondary,
-                            fontSize: 11,
+                            fontSize: 12,
                             fontStyle: FontStyle.italic)),
                   ),
                 ]),
@@ -417,7 +417,7 @@ class _BookingTile extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: 4, right: 6),
             child: Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
-                style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w700)),
+                style: const TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.w600)),
           ),
         if (phone.isNotEmpty)
           IconButton(
@@ -433,31 +433,31 @@ class _BookingTile extends ConsumerWidget {
           const SizedBox(height: 8),
           Row(children: [
             SizedBox(
-              height: 28,
+              height: 32,
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.check_circle_outline, size: 11),
+                icon: const Icon(Icons.check_circle_outline, size: 12),
                 label: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
                     style: const TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.w600)),
+                        fontSize: 12, fontWeight: FontWeight.w500)),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6)),
                 ),
                 onPressed: () => _complete(context, ref),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             SizedBox(
-              height: 28,
+              height: 32,
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.close,
-                    size: 11, color: AppColors.danger),
+                    size: 12, color: AppColors.danger),
                 label: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
                     style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         color: AppColors.danger,
-                        fontWeight: FontWeight.w600)),
+                        fontWeight: FontWeight.w500)),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   side: BorderSide(
