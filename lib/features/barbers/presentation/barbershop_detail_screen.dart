@@ -81,9 +81,9 @@ class BarbershopDetailScreen extends ConsumerWidget {
                       children: [
                         Text(name,
                             style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.5,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.3,
                                 color: AppColors.textBright)),
                         if (address.isNotEmpty) ...[
                           const SizedBox(height: 6),

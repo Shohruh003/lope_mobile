@@ -395,7 +395,7 @@ class _SuccessView extends ConsumerWidget {
             ).animate().scale(duration: 500.ms, begin: const Offset(0.4, 0.4), end: const Offset(1, 1), curve: Curves.easeOutBack),
             const SizedBox(height: 20),
             Text(tr(ref, 'mobile.publicBooking.successTitle', "Yozildingiz!"),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textBright, letterSpacing: -0.3)),
             const SizedBox(height: 8),
             Text(
                 tr(ref, 'mobile.publicBooking.successMsg',

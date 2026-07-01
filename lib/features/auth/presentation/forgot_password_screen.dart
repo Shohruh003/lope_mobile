@@ -145,7 +145,7 @@ class _PhoneStepState extends ConsumerState<_PhoneStep> {
       children: [
         const SizedBox(height: 16),
         Text(tr(ref, 'auth.forgotPassword', "Parolni unutdingizmi?"),
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, height: 1.1, color: AppColors.textBright))
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, height: 1.1, color: AppColors.textBright, letterSpacing: -0.3))
             .animate().fadeIn(duration: 400.ms).slideY(begin: 0.2, end: 0),
         const SizedBox(height: 12),
         Text(tr(ref, 'auth.forgotPasswordHint', "Telefon raqamingizga 4 raqamli tasdiqlash kodi yuboramiz"),
@@ -206,7 +206,7 @@ class _OtpStepState extends ConsumerState<_OtpStep> {
       children: [
         const SizedBox(height: 16),
         Text(tr(ref, 'auth.enterCode', "Kodni kiriting"),
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.textBright)),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textBright, letterSpacing: -0.3)),
         const SizedBox(height: 12),
         Text(tr(ref, 'auth.codeSentTo4', '{{phone}} raqamiga 4 raqamli kod yubordik',
                 {'phone': widget.phone}),
@@ -219,7 +219,7 @@ class _OtpStepState extends ConsumerState<_OtpStep> {
           textAlign: TextAlign.center,
           maxLength: 4,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.textBright, letterSpacing: 12),
+          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.textBright, letterSpacing: 12),
           decoration: const InputDecoration(counterText: '', hintText: '0000'),
         ),
         if (widget.error != null) ...[
@@ -292,8 +292,9 @@ class _PasswordStepState extends ConsumerState<_PasswordStep> {
         Text(tr(ref, 'auth.newPassword', "Yangi parol"),
             style: const TextStyle(
                 fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textBright)),
+                fontWeight: FontWeight.w700,
+                color: AppColors.textBright,
+                letterSpacing: -0.3)),
         const SizedBox(height: 12),
         Text(
             tr(ref, 'auth.newPasswordHint',

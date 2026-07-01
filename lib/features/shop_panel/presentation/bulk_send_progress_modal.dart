@@ -290,8 +290,9 @@ class _Counter extends StatelessWidget {
         Text("$value",
             style: TextStyle(
                 color: color,
-                fontWeight: FontWeight.w900,
-                fontSize: 18)),
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                letterSpacing: -0.3)),
         const SizedBox(height: 2),
         Text(label,
             textAlign: TextAlign.center,

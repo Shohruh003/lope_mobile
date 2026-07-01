@@ -75,7 +75,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(name.isEmpty ? phone : name,
-                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+                        style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
                     if (phone.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(phone, style: const TextStyle(color: Colors.white70, fontSize: 14)),
@@ -88,7 +88,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                     Text(tr(ref, 'mobile.lopepay.customer.debt', "Qarz"),
                         style: const TextStyle(color: Colors.white70, fontSize: 12)),
                     Text("${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
-                        style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+                        style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
                   ],
                 ),
               ),
