@@ -170,7 +170,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                 const Icon(Icons.link_off, size: 56, color: AppColors.textMuted),
                 const SizedBox(height: 12),
                 Text(tr(ref, 'mobile.publicBooking.invalidLink', "Bu havola eski yoki noto'g'ri"),
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                    style: const TextStyle(color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
               ],
             ),
           ),

@@ -231,8 +231,10 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                                         : tr(ref, 'common.noResults',
                                             "Hech narsa topilmadi"),
                                     style: const TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 15)),
+                                        color: AppColors.textBright,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: -0.3)),
                               ],
                             ),
                           ),

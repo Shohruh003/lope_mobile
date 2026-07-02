@@ -31,7 +31,7 @@ class FavoritesScreen extends ConsumerWidget {
                     const Icon(Icons.favorite_border, size: 56, color: AppColors.textMuted),
                     const SizedBox(height: 14),
                     Text(tr(ref, 'mobile.customer.favorites.empty', "Sevimlilar ro'yxati bo'sh"),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                        style: const TextStyle(color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
                   ],
                 ),
               ),

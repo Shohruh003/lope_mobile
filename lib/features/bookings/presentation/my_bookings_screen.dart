@@ -207,12 +207,13 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
                           Text(tr(ref, 'myBookings.empty', "Bron yo'q"),
                               style: const TextStyle(
                                   color: AppColors.textBright,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 4),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.3)),
+                          const SizedBox(height: 6),
                           Text(tr(ref, 'myBookings.emptyHint',
                               "Sartaroshingizni tanlab, bron qiling"),
-                              style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
                         ]),
                       )
                     else

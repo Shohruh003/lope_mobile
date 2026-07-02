@@ -186,7 +186,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                       const SizedBox(height: 12),
                       Text(tr(ref, 'myBookings.empty', "Bron yo'q"),
                           style: const TextStyle(
-                              color: AppColors.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
+                              color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
                     ]),
                   );
                 }

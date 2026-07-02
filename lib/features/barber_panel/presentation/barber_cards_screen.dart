@@ -98,11 +98,11 @@ class BarberCardsScreen extends ConsumerWidget {
                       child: Column(
                         children: [
                           const Icon(Icons.credit_card_off,
-                              size: 40, color: AppColors.textMuted),
-                          const SizedBox(height: 8),
+                              size: 48, color: AppColors.textMuted),
+                          const SizedBox(height: 12),
                           Text(tr(ref, 'mobile.barber.cards.empty', "Hali karta qo'shilmagan"),
                               style: const TextStyle(
-                                  color: AppColors.textMuted, fontSize: 13)),
+                                  color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
                         ],
                       ),
                     )

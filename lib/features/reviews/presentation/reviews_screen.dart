@@ -38,7 +38,7 @@ class ReviewsScreen extends ConsumerWidget {
                     const Icon(Icons.rate_review_outlined, size: 56, color: AppColors.textMuted),
                     const SizedBox(height: 14),
                     Text(tr(ref, 'mobile.reviews.empty', "Hali sharhlar yo'q"),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+                        style: const TextStyle(color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
                   ],
                 ),
               ),
