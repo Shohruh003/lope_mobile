@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -169,6 +170,7 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
             onChanged: _busy
                 ? null
                 : (_) async {
+                    HapticFeedback.mediumImpact();
                     setState(() => _busy = true);
                     try {
                       await ref
@@ -177,6 +179,7 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
                       ref.invalidate(barberProfileProvider(widget.userId));
                     } catch (e) {
                       if (!context.mounted) return;
+                      HapticFeedback.heavyImpact();
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(
                               "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));

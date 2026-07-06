@@ -28,7 +28,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (user == null) return const Scaffold(body: AppListSkeleton());
     final async = ref.watch(barberClientsProvider(user.id));
 
     return Scaffold(
@@ -93,12 +93,24 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
 
               if (filtered.isEmpty)
                 Expanded(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text(tr(ref, 'common.noResults', "Filterga mos mijoz topilmadi"),
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
-                    ),
+                  child: AppEmptyState(
+                    icon: Icons.people_outline_rounded,
+                    title: list.isEmpty
+                        ? tr(ref, 'mobile.barber.clients.empty',
+                            "Hali mijoz yo'q")
+                        : tr(ref, 'common.noResults',
+                            "Filterga mos mijoz topilmadi"),
+                    message: list.isEmpty
+                        ? tr(
+                            ref,
+                            'mobile.barber.clients.emptyHint',
+                            "Mijozlar sizga bir marta yozilganidan keyin bu yerda paydo bo'ladi.",
+                          )
+                        : tr(
+                            ref,
+                            'common.noResultsHint',
+                            "Qidiruvni tozalab yoki filtrni o'zgartirib ko'ring.",
+                          ),
                   ),
                 )
               else

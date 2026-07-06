@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -66,12 +67,15 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
   }
 
   Future<void> _generate() async {
+    HapticFeedback.lightImpact();
     if (_selfie == null) {
+      HapticFeedback.heavyImpact();
       setState(() => _error = tr(ref, 'mobile.aiStyle.selfieMissing',
           "Avval o'zingizning rasmingizni yuklang"));
       return;
     }
     if (_selectedStyles.isEmpty) {
+      HapticFeedback.heavyImpact();
       setState(() => _error = tr(ref, 'mobile.aiStyle.errorPickStyle',
           "Kamida bitta stil tanlang"));
       return;
@@ -89,11 +93,13 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
             references: Map<String, File>.from(_refImages),
           );
       if (!mounted) return;
+      HapticFeedback.mediumImpact();
       setState(() => _resultUrl = r.imageUrl);
       final user = ref.read(authControllerProvider).user;
       if (user != null) ref.invalidate(myBalanceProvider(user.id));
     } on Object catch (e) {
       if (!mounted) return;
+      HapticFeedback.heavyImpact();
       String msg = tr(ref, 'mobile.aiStyle.errorGeneric',
           "Generatsiya bajarilmadi");
       final s = e.toString();
