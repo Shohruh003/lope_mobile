@@ -28,26 +28,15 @@ class BarberServicesScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (list) {
           if (list.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.content_cut, size: 64, color: AppColors.textMuted),
-                    const SizedBox(height: 16),
-                    Text(tr(ref, 'mobile.barber.services.empty', "Hali xizmat qo'shilmagan"),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 6),
-                    Text(tr(ref, 'mobile.barber.services.emptyHint', "Pastdagi tugma orqali qo'shing"),
-                        style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                  ],
-                ),
-              ),
+            return AppEmptyState(
+              icon: Icons.content_cut_rounded,
+              title: tr(ref, 'mobile.barber.services.empty',
+                  "Hali xizmat qo'shilmagan"),
+              message: tr(ref, 'mobile.barber.services.emptyHint',
+                  "Pastdagi tugma orqali qo'shing"),
             );
           }
           return RefreshIndicator(

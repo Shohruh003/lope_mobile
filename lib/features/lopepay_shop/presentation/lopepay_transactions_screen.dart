@@ -174,9 +174,13 @@ class _LopepayTransactionsScreenState
         Expanded(
           child: async.when(
             loading: () => const AppListSkeleton(),
-            error: (e, _) => Center(
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                    style: const TextStyle(color: AppColors.textMuted))),
+            error: (e, _) => AppErrorState(
+              message: humanize(e),
+              onRetry: () {
+                ref.invalidate(lopepayTxnFilteredProvider);
+                ref.invalidate(lopepayTxnProvider);
+              },
+            ),
             data: (res) {
               final list = res.data;
               final pages = (res.total / _pageSize).ceil();

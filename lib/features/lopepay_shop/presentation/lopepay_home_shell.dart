@@ -168,8 +168,28 @@ class _LopepayDashboard extends ConsumerWidget {
 
               // ===== 4 stat tiles (mirrors web: Balance / DueToday / Overdue / AllCustomers) =====
               async.when(
-                loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator())),
-                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
+                loading: () => const Column(
+                  children: [
+                    Row(children: [
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      SizedBox(width: 8),
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                    ]),
+                    SizedBox(height: 8),
+                    Row(children: [
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      SizedBox(width: 8),
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                    ]),
+                  ],
+                ),
+                error: (e, _) => SizedBox(
+                  height: 240,
+                  child: AppErrorState(
+                    message: humanize(e),
+                    onRetry: () => ref.invalidate(lopepayDashboardProvider),
+                  ),
+                ),
                 data: (d) => GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -215,8 +235,16 @@ class _LopepayDashboard extends ConsumerWidget {
                       context.push('/lopepay/installments?status=due_today')),
               const SizedBox(height: 8),
               dueTodayAsync.when(
-                loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                loading: () => const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppSkeleton(height: 52, borderRadius: 10),
+                    SizedBox(height: 6),
+                    AppSkeleton(height: 52, borderRadius: 10),
+                  ],
+                ),
+                error: (e, _) => Text(humanize(e),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 data: (list) {
                   if (list.isEmpty) {
                     return Container(

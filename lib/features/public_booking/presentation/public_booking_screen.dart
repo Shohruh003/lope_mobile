@@ -82,13 +82,16 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
   Future<void> _submit(
       String barberId, List<Map<String, dynamic>> allServices) async {
+    HapticFeedback.lightImpact();
     if (_selected.isEmpty || _time == null) {
+      HapticFeedback.heavyImpact();
       setState(() => _error = tr(ref, 'mobile.publicBooking.pickServiceTime',
           "Xizmat va vaqt tanlang"));
       return;
     }
     final phone = _phoneCtrl.text.replaceAll(RegExp(r'\D'), '');
     if (phone.length != 9) {
+      HapticFeedback.heavyImpact();
       setState(() => _error = tr(ref, 'common.validation.invalidPhone',
           "Telefon raqami noto'g'ri"));
       return;
@@ -129,9 +132,11 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
         'guestPhone': '+998$phone',
       });
       if (!mounted) return;
+      HapticFeedback.mediumImpact();
       setState(() => _success = true);
     } on DioException catch (e) {
       if (!mounted) return;
+      HapticFeedback.heavyImpact();
       // Backend codes (public-booking.service.ts:330+):
       //   OTP_REQUIRED — barber.requirePhoneOtp=true and the customer
       //     didn't include otpCode. Mobile doesn't have the OTP UI yet,
@@ -162,18 +167,14 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
       appBar: AppBar(title: Text(tr(ref, 'booking.title', "Yozilish"))),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.link_off, size: 56, color: AppColors.textMuted),
-                const SizedBox(height: 12),
-                Text(tr(ref, 'mobile.publicBooking.invalidLink', "Bu havola eski yoki noto'g'ri"),
-                    style: const TextStyle(color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-              ],
-            ),
+        error: (e, _) => AppEmptyState(
+          icon: Icons.link_off_rounded,
+          title: tr(ref, 'mobile.publicBooking.invalidLink',
+              "Bu havola eski yoki noto'g'ri"),
+          message: tr(
+            ref,
+            'mobile.publicBooking.invalidLinkHint',
+            "Sartaroshdan yangi havola so'rang yoki ilovadan qidiring.",
           ),
         ),
         data: (barber) {
@@ -295,13 +296,46 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                 builder: (context, snap) {
                   if (!snap.hasData) {
                     return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Center(child: CircularProgressIndicator()));
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
+                        ],
+                      ),
+                    );
                   }
                   final slots = snap.data!;
                   if (slots.isEmpty) {
-                    return Text(tr(ref, 'common.noSlots', "Bu kunda bo'sh vaqt yo'q"),
-                        style: const TextStyle(color: AppColors.textMuted));
+                    return Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceElevated,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.event_busy_rounded,
+                              color: AppColors.textMuted, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              tr(ref, 'common.noSlots',
+                                  "Bu kunda bo'sh vaqt yo'q"),
+                              style: const TextStyle(
+                                  color: AppColors.textSecondary, fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
                   return Wrap(
                     spacing: 8, runSpacing: 8,

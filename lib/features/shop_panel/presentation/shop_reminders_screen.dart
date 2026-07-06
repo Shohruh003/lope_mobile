@@ -35,9 +35,10 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(_dueForReminderProvider),
+        ),
         data: (data) {
           final clients = data.clients;
           final days = data.reminderDays;
@@ -88,14 +89,17 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                 const SizedBox(height: 12),
 
                 if (clients.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Center(
-                      child: Text(
-                          tr(ref, 'mobile.shop.reminders.empty',
-                              "Bu kun uchun eslatma kutayotgan mijozlar yo'q"),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppColors.textMuted)),
+                  SizedBox(
+                    height: 280,
+                    child: AppEmptyState(
+                      icon: Icons.check_circle_outline_rounded,
+                      title: tr(ref, 'mobile.shop.reminders.empty',
+                          "Bu kun uchun eslatma kutayotgan mijozlar yo'q"),
+                      message: tr(
+                        ref,
+                        'mobile.shop.reminders.emptyHint',
+                        "Ajoyib! Barcha mijozlar so'nggi paytda tashrif buyurishgan.",
+                      ),
                     ),
                   )
                 else

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/shop_repository.dart';
 
 /// Mirrors web `BarbershopTransactions.tsx`:
@@ -401,27 +402,26 @@ class _ShopTransactionsScreenState
 
             // ===== List =====
             async.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (e, _) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                    child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                        style: const TextStyle(color: AppColors.textMuted))),
+              loading: () => const AppListSkeleton(itemCount: 5),
+              error: (e, _) => SizedBox(
+                height: 260,
+                child: AppErrorState(message: humanize(e)),
               ),
               data: (res) {
                 final list = res.data;
                 final pages = (res.total / _pageSize).ceil();
                 if (list.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32),
-                    child: Center(
-                      child: Text(
-                          tr(ref, 'mobile.customer.transactions.empty',
-                              "Tranzaktsiya yo'q"),
-                          style: const TextStyle(color: AppColors.textMuted)),
+                  return SizedBox(
+                    height: 260,
+                    child: AppEmptyState(
+                      icon: Icons.receipt_long_rounded,
+                      title: tr(ref, 'mobile.customer.transactions.empty',
+                          "Tranzaktsiya yo'q"),
+                      message: tr(
+                        ref,
+                        'mobile.customer.transactions.emptyHint',
+                        "Hisobingizga to'lov qilinganda yoki xarid qilganingizda bu yerda ko'rinadi.",
+                      ),
                     ),
                   );
                 }

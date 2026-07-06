@@ -296,19 +296,21 @@ class _LopepayInstallmentsScreenState
         Expanded(
           child: async.when(
             loading: () => const AppListSkeleton(),
-            error: (e, _) => Center(
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                    style: const TextStyle(color: AppColors.textMuted))),
+            error: (e, _) => AppErrorState(
+              message: humanize(e),
+              onRetry: () => ref.invalidate(lopepayInstallmentsListProvider),
+            ),
             data: (res) {
               final list = res.data;
               if (list.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                        tr(ref, 'mobile.lopepay.installments.empty',
-                            "Rassrochka topilmadi"),
-                        style: const TextStyle(color: AppColors.textMuted)),
+                return AppEmptyState(
+                  icon: Icons.credit_card_off_outlined,
+                  title: tr(ref, 'mobile.lopepay.installments.empty',
+                      "Rassrochka topilmadi"),
+                  message: tr(
+                    ref,
+                    'mobile.lopepay.installments.emptyHint',
+                    "Yangi mijoz uchun rassrochka rasmiylashtirsangiz shu yerda ko'rinadi.",
                   ),
                 );
               }

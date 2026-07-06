@@ -56,18 +56,23 @@ class _LopepayProductsScreenState
         Expanded(
           child: async.when(
             loading: () => const AppListSkeleton(),
-            error: (e, _) => Center(
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                    style: const TextStyle(color: AppColors.textMuted))),
+            error: (e, _) => AppErrorState(
+              message: humanize(e),
+              onRetry: () {
+                ref.invalidate(lopepayProductsFilteredProvider);
+                ref.invalidate(lopepayProductsProvider);
+              },
+            ),
             data: (list) {
               if (list.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                        tr(ref, 'mobile.lopepay.products.empty',
-                            "Hali mahsulot yo'q"),
-                        style: const TextStyle(color: AppColors.textMuted)),
+                return AppEmptyState(
+                  icon: Icons.inventory_2_outlined,
+                  title: tr(ref, 'mobile.lopepay.products.empty',
+                      "Hali mahsulot yo'q"),
+                  message: tr(
+                    ref,
+                    'mobile.lopepay.products.emptyHint',
+                    "Rassrochka uchun mahsulot qo'shsangiz — mijozlarga tanlash imkoniyati beriladi.",
                   ),
                 );
               }

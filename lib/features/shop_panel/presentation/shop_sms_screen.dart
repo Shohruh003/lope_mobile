@@ -197,19 +197,24 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
         Expanded(
           child: async.when(
             loading: () => const AppListSkeleton(),
-            error: (e, _) => Center(
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                    style: const TextStyle(color: AppColors.textMuted))),
+            error: (e, _) => AppErrorState(
+              message: humanize(e),
+              onRetry: () {
+                ref.invalidate(shopSmsFilteredProvider);
+                ref.invalidate(shopSmsLogProvider);
+              },
+            ),
             data: (res) {
               final list = res.data;
               final pages = (res.total / _pageSize).ceil();
               if (list.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                        tr(ref, 'mobile.barber.sms.empty', "SMS yo'q"),
-                        style: const TextStyle(color: AppColors.textMuted)),
+                return AppEmptyState(
+                  icon: Icons.sms_outlined,
+                  title: tr(ref, 'mobile.barber.sms.empty', "SMS yo'q"),
+                  message: tr(
+                    ref,
+                    'mobile.barber.sms.emptyHint',
+                    "Yuborilgan SMS'lar shu yerda ko'rinadi.",
                   ),
                 );
               }

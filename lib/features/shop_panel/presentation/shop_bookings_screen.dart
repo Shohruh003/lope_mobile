@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../barber_panel/data/barber_panel_repository.dart';
 import '../../bookings/data/booking_repository.dart';
@@ -190,23 +191,26 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
 
             // ===== Bookings list =====
             bookingsAsync.when(
-              loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: CircularProgressIndicator())),
-              error: (e, _) => Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
+              loading: () => const AppListSkeleton(itemCount: 5),
+              error: (e, _) => SizedBox(
+                height: 280,
+                child: AppErrorState(message: humanize(e)),
               ),
               data: (res) {
                 final list = res.data;
                 final totalPages = res.totalPages;
                 if (list.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Center(
-                      child: Text(tr(ref, 'mobile.shop.bookings.emptyForDay',
+                  return SizedBox(
+                    height: 280,
+                    child: AppEmptyState(
+                      icon: Icons.event_available_rounded,
+                      title: tr(ref, 'mobile.shop.bookings.emptyForDay',
                           "Bu sanada bronlar yo'q"),
-                          style: const TextStyle(color: AppColors.textMuted)),
+                      message: tr(
+                        ref,
+                        'mobile.shop.bookings.emptyForDayHint',
+                        "Mijozlar yozilishi bilan barcha barberlarning bronlari shu yerda ko'rinadi.",
+                      ),
                     ),
                   );
                 }

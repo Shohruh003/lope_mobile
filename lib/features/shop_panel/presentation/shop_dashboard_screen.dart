@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../data/shop_repository.dart';
 
@@ -123,12 +124,31 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
 
               // ===== Today's cash card (independent of period) =====
               stats.when(
-                loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(child: CircularProgressIndicator())),
-                error: (e, _) => Text(
-                    "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                    style: const TextStyle(color: AppColors.textMuted)),
+                loading: () => const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppSkeleton(height: 110, borderRadius: 12),
+                    SizedBox(height: 12),
+                    Row(children: [
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      SizedBox(width: 8),
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                    ]),
+                    SizedBox(height: 8),
+                    Row(children: [
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      SizedBox(width: 8),
+                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                    ]),
+                  ],
+                ),
+                error: (e, _) => SizedBox(
+                  height: 320,
+                  child: AppErrorState(
+                    message: humanize(e),
+                    onRetry: () => ref.invalidate(shopStatsFilteredProvider),
+                  ),
+                ),
                 data: (s) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

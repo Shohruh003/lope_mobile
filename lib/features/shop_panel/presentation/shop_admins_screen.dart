@@ -34,20 +34,22 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(_adminsProvider),
+        ),
         data: (res) {
           final list = res.data;
           final pages = res.totalPages;
           if (list.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Text(
-                    tr(ref, 'mobile.shop.admins.empty',
-                        "Hali admin qo'shilmagan"),
-                    style: const TextStyle(color: AppColors.textMuted)),
+            return AppEmptyState(
+              icon: Icons.admin_panel_settings_outlined,
+              title: tr(ref, 'mobile.shop.admins.empty',
+                  "Hali admin qo'shilmagan"),
+              message: tr(
+                ref,
+                'mobile.shop.admins.emptyHint',
+                "Yordamchi admin qo'shsangiz — u ham salon bilan boshqara oladi.",
               ),
             );
           }

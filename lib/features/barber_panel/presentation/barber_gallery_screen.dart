@@ -92,22 +92,11 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
               .where((u) => u.isNotEmpty)
               .toList();
           if (gallery.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.photo_library_outlined, size: 64, color: AppColors.textMuted),
-                    const SizedBox(height: 16),
-                    Text(tr(ref, 'mobile.barber.gallery.empty', "Portfolio bo'sh"),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-                    const SizedBox(height: 6),
-                    Text(tr(ref, 'mobile.barber.gallery.emptyHint', "Ishlaringizdan rasm yuklang"),
-                        style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
-                  ],
-                ),
-              ),
+            return AppEmptyState(
+              icon: Icons.photo_library_outlined,
+              title: tr(ref, 'mobile.barber.gallery.empty', "Portfolio bo'sh"),
+              message: tr(ref, 'mobile.barber.gallery.emptyHint',
+                  "Ishlaringizdan rasm yuklang — mijozlar sizni tanlashda yordam beradi."),
             );
           }
           return GridView.builder(
