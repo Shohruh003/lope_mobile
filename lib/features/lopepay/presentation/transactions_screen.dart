@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/balance_repository.dart';
 import 'top_up_modal.dart';
@@ -167,16 +169,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           children: [
             // ===== Balance hero =====
             balance.when(
-              loading: () => Container(
-                  height: 130,
-                  decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(20)),
-                  child:
-                      const Center(child: CircularProgressIndicator())),
-              error: (e, _) => Text(
-                  "${tr(ref, 'common.error', 'Xatolik')}: $e",
-                  style: const TextStyle(color: AppColors.textMuted)),
+              loading: () => const AppSkeleton(height: 130, borderRadius: 20),
+              error: (e, _) => SizedBox(
+                height: 180,
+                child: AppErrorState(
+                  message: humanize(e),
+                  onRetry: () => ref.invalidate(myBalanceProvider(user.id)),
+                ),
+              ),
               data: (b) => _BalanceCard(
                   amount: b.amount, aiFree: b.aiFreeRemaining),
             ),
@@ -326,24 +326,41 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             const SizedBox(height: 12),
             async.when(
               loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: CircularProgressIndicator())),
-              error: (e, _) => Text(
-                  "${tr(ref, 'common.error', 'Xatolik')}: $e",
-                  style: const TextStyle(color: AppColors.textMuted)),
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppSkeleton(height: 62, borderRadius: 12),
+                    SizedBox(height: 8),
+                    AppSkeleton(height: 62, borderRadius: 12),
+                    SizedBox(height: 8),
+                    AppSkeleton(height: 62, borderRadius: 12),
+                  ],
+                ),
+              ),
+              error: (e, _) => SizedBox(
+                height: 300,
+                child: AppErrorState(
+                  message: humanize(e),
+                  onRetry: () => ref.invalidate(paymentHistoryFilteredProvider),
+                ),
+              ),
               data: (res) {
                 final list = res.data;
                 final pages = res.totalPages;
                 if (list.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                        child: Text(
-                            tr(ref,
-                                'mobile.customer.transactions.empty',
-                                "Hali tranzaktsiya yo'q"),
-                            style:
-                                const TextStyle(color: AppColors.textMuted))),
+                  return SizedBox(
+                    height: 260,
+                    child: AppEmptyState(
+                      icon: Icons.receipt_long_rounded,
+                      title: tr(ref, 'mobile.customer.transactions.empty',
+                          "Hali tranzaktsiya yo'q"),
+                      message: tr(
+                        ref,
+                        'mobile.customer.transactions.emptyHint',
+                        "Hisobingizga to'lov qilinganda yoki xarid qilganingizda bu yerda ko'rinadi.",
+                      ),
+                    ),
                   );
                 }
                 return Column(children: [

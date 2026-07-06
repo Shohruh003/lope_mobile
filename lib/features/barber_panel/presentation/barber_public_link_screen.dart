@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -47,7 +48,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
       ref.invalidate(barberProfileProvider(barberId));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -74,7 +75,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
       appBar: AppBar(title: Text(tr(ref, 'mobile.barber.publicLink.title', "Ommaviy havola"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (b) {
           if (!_seeded) {
             _seeded = true;

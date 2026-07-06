@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -67,13 +69,8 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
         child: Row(children: [
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.menu, color: AppColors.textPrimary, size: 22),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
           Row(children: const [
             Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 24),
             SizedBox(width: 6),
@@ -82,6 +79,14 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
           ]),
           const Spacer(),
           const NotificationBell(),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 24),
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              Scaffold.of(context).openDrawer();
+            },
+          ),
         ]),
       ),
     );
@@ -163,7 +168,7 @@ class _LopepayDashboard extends ConsumerWidget {
               // ===== 4 stat tiles (mirrors web: Balance / DueToday / Overdue / AllCustomers) =====
               async.when(
                 loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator())),
-                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
+                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
                 data: (d) => GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -210,7 +215,7 @@ class _LopepayDashboard extends ConsumerWidget {
               const SizedBox(height: 8),
               dueTodayAsync.when(
                 loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 data: (list) {
                   if (list.isEmpty) {
                     return Container(
@@ -514,7 +519,7 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
       body: SafeArea(
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
+          error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
           data: (rawList) {
             final now = DateTime.now();
             final list = rawList.where((c) {

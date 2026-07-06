@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -226,7 +227,7 @@ class SettingsScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
       return;
     }

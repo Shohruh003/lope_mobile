@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -139,7 +140,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -205,7 +206,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                 style: const TextStyle(color: AppColors.textMuted))),
         data: (m) {
           _seed(m);

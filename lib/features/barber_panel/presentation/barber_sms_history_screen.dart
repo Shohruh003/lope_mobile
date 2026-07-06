@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -99,7 +100,7 @@ class _BarberSmsHistoryScreenState
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
                   child: Text(
-                      "${tr(ref, 'common.error', 'Xatolik')}: $e",
+                      "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                       style:
                           const TextStyle(color: AppColors.textMuted))),
               data: (list) {

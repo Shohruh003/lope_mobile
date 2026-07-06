@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -126,7 +127,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(child: CircularProgressIndicator())),
                 error: (e, _) => Text(
-                    "${tr(ref, 'common.error', 'Xatolik')}: $e",
+                    "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                     style: const TextStyle(color: AppColors.textMuted)),
                 data: (s) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

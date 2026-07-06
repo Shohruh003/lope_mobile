@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -26,7 +27,7 @@ class ReviewsScreen extends ConsumerWidget {
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (list) {
           if (list.isEmpty) {
             return Center(
@@ -147,7 +148,7 @@ class ReviewsScreen extends ConsumerWidget {
                     } catch (e) {
                       if (sheetCtx.mounted) {
                         ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(
-                            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+                            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
                       }
                     } finally {
                       setSheet(() => busy = false);

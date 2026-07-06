@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -178,7 +179,7 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(
-                              "${tr(ref, 'common.error', 'Xatolik')}: $e")));
+                              "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
                     } finally {
                       if (mounted) setState(() => _busy = false);
                     }

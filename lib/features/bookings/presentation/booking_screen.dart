@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/errors.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -71,7 +72,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           error: (e, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
+              child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
             ),
           ),
           data: (barber) {
@@ -351,7 +352,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Center(child: CircularProgressIndicator())),
-              error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+              error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                   style: const TextStyle(color: AppColors.textMuted)),
               data: (slots) {
                 if (slots.isEmpty) {
@@ -747,7 +748,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       if (mounted) setState(() => _submitting = false);

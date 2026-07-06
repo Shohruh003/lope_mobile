@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/errors.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,7 +88,7 @@ class _ShopClientDetailScreenState
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
+            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (data) {
           final name = (data['name'] ?? '').toString();
           final phone = (data['phone'] ?? '').toString();
@@ -463,7 +464,7 @@ class _ShopClientDetailScreenState
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     } finally {
       nameCtrl.dispose();
       phoneCtrl.dispose();

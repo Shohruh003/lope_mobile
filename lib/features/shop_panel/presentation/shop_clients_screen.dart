@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/shop_repository.dart';
 import 'bulk_send_progress_modal.dart';
 
@@ -88,7 +90,7 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -116,10 +118,11 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'shop.nav.clients', "Mijozlar"))),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
-                style: const TextStyle(color: AppColors.textMuted))),
+        loading: () => const AppListSkeleton(),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(shopClientsProvider),
+        ),
         data: (rawList) {
           final now = DateTime.now();
           final filtered = rawList.where((c) {
@@ -215,29 +218,24 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                   ),
                 Expanded(
                   child: filtered.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.people_outline,
-                                    size: 56, color: AppColors.textMuted),
-                                const SizedBox(height: 14),
-                                Text(
-                                    rawList.isEmpty
-                                        ? tr(ref, 'mobile.shop.clients.empty',
-                                            "Mijozlar ro'yxati bo'sh")
-                                        : tr(ref, 'common.noResults',
-                                            "Hech narsa topilmadi"),
-                                    style: const TextStyle(
-                                        color: AppColors.textBright,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: -0.3)),
-                              ],
-                            ),
-                          ),
+                      ? AppEmptyState(
+                          icon: Icons.people_outline_rounded,
+                          title: rawList.isEmpty
+                              ? tr(ref, 'mobile.shop.clients.empty',
+                                  "Mijozlar ro'yxati bo'sh")
+                              : tr(ref, 'common.noResults',
+                                  "Hech narsa topilmadi"),
+                          message: rawList.isEmpty
+                              ? tr(
+                                  ref,
+                                  'mobile.shop.clients.emptyHint',
+                                  "Barcha mijozlar bu yerda paydo bo'ladi. Import qilib qo'shish yoki barberlar tashrif qabul qilishi bilan to'ldiriladi.",
+                                )
+                              : tr(
+                                  ref,
+                                  'mobile.shop.clients.noResultsHint',
+                                  "Qidiruv shartlarini o'zgartirib ko'ring.",
+                                ),
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),

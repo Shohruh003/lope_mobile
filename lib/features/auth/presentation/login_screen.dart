@@ -38,11 +38,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    HapticFeedback.lightImpact();
     if (!_isValidPhone(_phoneController.text)) {
+      HapticFeedback.heavyImpact();
       setState(() => _error = tr(ref, 'common.validation.invalidPhone', "Telefon raqam noto'g'ri"));
       return;
     }
     if (_passwordController.text.length < 4) {
+      HapticFeedback.heavyImpact();
       setState(() => _error = tr(ref, 'auth.shortPassword', "Parol kamida 4 belgi"));
       return;
     }
@@ -57,8 +60,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .login(phone: phone, password: _passwordController.text);
       await ref.read(authControllerProvider.notifier).signedIn(user);
       if (!mounted) return;
+      HapticFeedback.mediumImpact();
       routeToRoleHome(context, user);
     } on Object catch (e) {
+      HapticFeedback.heavyImpact();
       String msg = tr(ref, 'auth.invalidCredentials', "Telefon yoki parol noto'g'ri");
       if (e.toString().contains('SocketException')) {
         msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");

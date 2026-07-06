@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -103,7 +104,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           }
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
           }
         }
       }
@@ -242,7 +243,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       }
       _refreshDay(barberId);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 
@@ -348,7 +349,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       priceCtrl.dispose();
@@ -400,7 +401,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 
@@ -470,7 +471,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 
@@ -648,7 +649,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           .showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       nameCtrl.dispose();
@@ -705,7 +706,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             .saveDaySchedule(barberId: barberId, date: dateStr, slots: updated);
         _refreshDay(barberId);
       } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } else if (choice == 'generator') {
       if (mounted) context.push('/barber/schedule-generator');
@@ -871,7 +872,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                 child: Center(child: CircularProgressIndicator())),
             error: (e, _) => Padding(
               padding: const EdgeInsets.all(20),
-              child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
+              child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
             ),
             data: (slots) {
               if (slots.isEmpty) {
@@ -1006,7 +1007,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'mobile.barber.schedule.contactReadError', "Kontaktni o'qib bo'lmadi")}: $e")));
+            content: Text("${tr(ref, 'mobile.barber.schedule.contactReadError', "Kontaktni o'qib bo'lmadi")}: ${humanize(e)}")));
       }
       return null;
     }

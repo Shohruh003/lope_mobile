@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -54,7 +55,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       if (mounted) setState(() => _favoriteBusy = false);
@@ -68,7 +69,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) =>
-            Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted))),
+            Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
         data: (b) => _content(b),
       ),
     );
@@ -637,7 +638,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
       ),
       error: (e, _) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+        child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
             style: const TextStyle(color: AppColors.textMuted)),
       ),
       data: (list) {

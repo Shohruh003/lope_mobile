@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -194,7 +195,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                   child: Center(child: CircularProgressIndicator())),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e", style: const TextStyle(color: AppColors.textMuted)),
+                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
               ),
               data: (res) {
                 final list = res.data;
@@ -613,7 +614,7 @@ class _BookingCard extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       priceCtrl.dispose();
@@ -652,7 +653,7 @@ class _BookingCard extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     }
   }
@@ -689,7 +690,7 @@ class _BookingCard extends ConsumerWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 
@@ -736,7 +737,7 @@ class _BookingCard extends ConsumerWidget {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 

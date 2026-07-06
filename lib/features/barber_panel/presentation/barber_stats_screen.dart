@@ -1,9 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/stat_charts.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart';
@@ -40,12 +42,27 @@ class BarberStatsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               async.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: CircularProgressIndicator()),
+                loading: () => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: const [
+                    Row(children: [
+                      Expanded(child: AppSkeleton(height: 96, borderRadius: 12)),
+                      SizedBox(width: 12),
+                      Expanded(child: AppSkeleton(height: 96, borderRadius: 12)),
+                    ]),
+                    SizedBox(height: 12),
+                    AppSkeleton(height: 220, borderRadius: 12),
+                    SizedBox(height: 12),
+                    AppSkeleton(height: 220, borderRadius: 12),
+                  ],
                 ),
-                error: (e, _) => Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
-                    style: const TextStyle(color: AppColors.textMuted)),
+                error: (e, _) => SizedBox(
+                  height: 320,
+                  child: AppErrorState(
+                    message: humanize(e),
+                    onRetry: () => ref.invalidate(barberAllBookingsProvider(barberId)),
+                  ),
+                ),
                 data: (list) {
                   final now = DateTime.now();
                   final weekAgo = now.subtract(const Duration(days: 7));
@@ -616,7 +633,7 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
             ),
             error: (e, _) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+              child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                   style:
                       const TextStyle(color: AppColors.textMuted, fontSize: 11)),
             ),

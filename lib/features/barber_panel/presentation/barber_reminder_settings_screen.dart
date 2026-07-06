@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -36,7 +37,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -51,7 +52,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
       appBar: AppBar(title: Text(tr(ref, 'mobile.barber.reminders.title', "Eslatma sozlamalari"))),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")),
+        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (b) {
           if (!_seeded) {
             _seeded = true;

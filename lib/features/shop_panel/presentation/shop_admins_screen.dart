@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,7 +34,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                 style: const TextStyle(color: AppColors.textMuted))),
         data: (res) {
           final list = res.data;
@@ -300,7 +301,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     } finally {
       // Always release the controllers after the save attempt — they
       // were allocated locally in this method.
@@ -337,7 +338,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 }

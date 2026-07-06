@@ -135,9 +135,19 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
     return Scaffold(
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async {
+            if (user != null) ref.invalidate(myBalanceProvider(user.id));
+            setState(() {
+              _error = null;
+              _resultUrl = null;
+            });
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
             // ===== Title + free-quota line =====
             Text(tr(ref, 'aiStyle.title', "AI Stil"),
                 style: const TextStyle(
@@ -416,6 +426,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
               ),
             ],
           ],
+          ),
         ),
       ),
     );

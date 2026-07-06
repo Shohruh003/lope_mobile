@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -492,7 +493,7 @@ class _BookingCard extends ConsumerWidget {
           } catch (e) {
             if (sheetCtx.mounted) {
               ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(
-                  content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+                  content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
             }
           } finally {
             setSheet(() => submitting = false);

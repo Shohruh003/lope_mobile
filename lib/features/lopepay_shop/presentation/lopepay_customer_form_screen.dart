@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -201,7 +202,7 @@ class _LopepayCustomerFormScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       nameCtrl.dispose();
@@ -269,7 +270,7 @@ class _LopepayCustomerFormScreenState
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _error = "${tr(ref, 'common.error', 'Xatolik')}: $e");
+        setState(() => _error = "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}");
       }
     } finally {
       if (mounted) setState(() => _saving = false);

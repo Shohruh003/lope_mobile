@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -64,7 +65,7 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -130,7 +131,7 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
             child: async.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
-                  child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+                  child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                       style: const TextStyle(color: AppColors.textMuted))),
               data: (b) {
                 if (!_seeded) {

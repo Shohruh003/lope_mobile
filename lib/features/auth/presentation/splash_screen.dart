@@ -70,36 +70,118 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
+      body: Stack(
+        children: [
+          // Fon gradient — Click/Payme uslubidagi yumshoq atmosfera.
+          Positioned.fill(
+            child: DecoratedBox(
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.2,
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.10),
+                    AppColors.background,
+                  ],
+                ),
               ),
-              child: const Icon(Icons.content_cut, color: AppColors.primary, size: 28),
-            ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.8, 0.8)),
-            const SizedBox(height: 14),
-            const Text(
-              'Lope Style',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
-                color: AppColors.textBright,
+            ),
+          ),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.18),
+                        AppColors.primary.withValues(alpha: 0.06),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.24),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(Icons.content_cut, color: AppColors.primary, size: 40),
+                )
+                    .animate()
+                    .scale(
+                      begin: const Offset(0.6, 0.6),
+                      end: const Offset(1.0, 1.0),
+                      duration: 700.ms,
+                      curve: Curves.easeOutBack,
+                    )
+                    .fadeIn(duration: 500.ms),
+                const SizedBox(height: 20),
+                const Text(
+                  'Lope Style',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.6,
+                    color: AppColors.textBright,
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: 500.ms, delay: 200.ms)
+                    .moveY(begin: 8, end: 0, duration: 500.ms, delay: 200.ms, curve: Curves.easeOutCubic),
+                const SizedBox(height: 8),
+                Text(
+                  "Sartaroshingiz — bir bosishda",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textMuted,
+                    letterSpacing: 0.1,
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: 500.ms, delay: 350.ms),
+              ],
+            ),
+          ),
+          // Pastda loading dot animatsiyasi (spinner emas — yumshoqroq).
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 48,
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(3, (i) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                        .animate(
+                          onPlay: (c) => c.repeat(reverse: true),
+                        )
+                        .fadeIn(duration: 400.ms, delay: (500 + i * 120).ms)
+                        .scale(
+                          begin: const Offset(0.6, 0.6),
+                          end: const Offset(1.0, 1.0),
+                          duration: 600.ms,
+                          delay: (i * 120).ms,
+                          curve: Curves.easeInOut,
+                        ),
+                  );
+                }),
               ),
-            ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
-            const SizedBox(height: 18),
-            const SizedBox(
-              width: 18, height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-            ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

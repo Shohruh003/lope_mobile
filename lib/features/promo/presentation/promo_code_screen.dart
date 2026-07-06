@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -83,7 +84,7 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
       if (mounted) {
         final msg = e.toString().contains('409')
             ? tr(ref, 'promoCode.taken', "Bu kod allaqachon olingan")
-            : "${tr(ref, 'common.error', 'Xatolik')}: $e";
+            : "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}";
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(msg)));
       }

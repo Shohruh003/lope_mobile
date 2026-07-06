@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/errors.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
@@ -87,7 +88,7 @@ class _ScheduleGeneratorScreenState extends ConsumerState<ScheduleGeneratorScree
         Navigator.of(context).pop();
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

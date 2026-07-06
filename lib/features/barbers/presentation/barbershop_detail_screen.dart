@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/errors.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -29,7 +30,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                 style: const TextStyle(color: AppColors.textMuted))),
         data: (shop) {
           final barbers =

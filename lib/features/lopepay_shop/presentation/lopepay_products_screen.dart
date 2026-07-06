@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,7 +56,7 @@ class _LopepayProductsScreenState
           child: async.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                     style: const TextStyle(color: AppColors.textMuted))),
             data: (list) {
               if (list.isEmpty) {
@@ -271,7 +272,7 @@ class _LopepayProductsScreenState
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     } finally {
       name.dispose();
       price.dispose();
@@ -306,7 +307,7 @@ class _LopepayProductsScreenState
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: $e")));
+          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 

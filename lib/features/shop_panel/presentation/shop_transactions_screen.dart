@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -407,7 +408,7 @@ class _ShopTransactionsScreenState
               error: (e, _) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 child: Center(
-                    child: Text("${tr(ref, 'common.error', 'Xatolik')}: $e",
+                    child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                         style: const TextStyle(color: AppColors.textMuted))),
               ),
               data: (res) {
