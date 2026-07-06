@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/barber_profile_repository.dart';
 
 /// Services CRUD: list + add/edit/delete. Each service has a name, price (so'm),
@@ -26,7 +27,7 @@ class BarberServicesScreen extends ConsumerWidget {
         label: Text(tr(ref, 'mobile.barber.services.addBtn', "Yangi xizmat")),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(
             child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {

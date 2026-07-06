@@ -6,9 +6,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter/services.dart';
+
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../barbers/data/barber_repository.dart';
@@ -68,12 +71,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     return Scaffold(
       body: SafeArea(
         child: barberAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
-            ),
+          loading: () => const AppListSkeleton(itemCount: 5),
+          error: (e, _) => AppErrorState(
+            message: humanize(e),
+            onRetry: () => ref.invalidate(barberDetailProvider(widget.barberId)),
           ),
           data: (barber) {
             if (_confirmed) return _ConfirmedView(barber: barber);
@@ -645,6 +646,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   }
 
   Future<void> _submit(Barber barber) async {
+    HapticFeedback.lightImpact();
     final user = ref.read(authControllerProvider).user;
     if (user == null) return;
 
@@ -716,9 +718,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             totalDuration: totalDuration,
             notes: _notes.trim().isEmpty ? null : _notes.trim(),
           );
-      if (mounted) setState(() => _confirmed = true);
+      if (mounted) {
+        HapticFeedback.mediumImpact();
+        setState(() => _confirmed = true);
+      }
     } on DioException catch (e) {
       if (!mounted) return;
+      HapticFeedback.heavyImpact();
       // Mirror web's CustomerBookingPage error mapping — surface a
       // friendly message for the codes the backend ships explicitly.
       final body = e.response?.data;
@@ -747,6 +753,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           .showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (mounted) {
+        HapticFeedback.heavyImpact();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }

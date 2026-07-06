@@ -4,6 +4,7 @@ import '../../../core/errors.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_profile_repository.dart';
 
@@ -51,7 +52,7 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'mobile.barber.reminders.title', "Eslatma sozlamalari"))),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (b) {
           if (!_seeded) {

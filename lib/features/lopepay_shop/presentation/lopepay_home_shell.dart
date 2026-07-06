@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../profile/presentation/profile_screen.dart';
@@ -518,7 +519,7 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
       ),
       body: SafeArea(
         child: async.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppListSkeleton(),
           error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
           data: (rawList) {
             final now = DateTime.now();

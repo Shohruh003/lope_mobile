@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 
 /// Mirrors web `BarbershopAdmins.tsx` — owner can create new admin
 /// accounts (name + phone + password), edit existing ones (incl.
@@ -32,7 +33,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
         label: Text(tr(ref, 'mobile.shop.admins.addBtn', "Admin qo'shish")),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(
             child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                 style: const TextStyle(color: AppColors.textMuted))),

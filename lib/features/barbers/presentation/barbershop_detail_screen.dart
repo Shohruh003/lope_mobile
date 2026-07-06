@@ -12,6 +12,7 @@ import '../../../core/asset_url.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 
 /// Customer-facing barbershop profile. Mirrors web's
 /// `CustomerBarbershopDetailScreen` 1:1 — hero, name, address, phone, route
@@ -28,7 +29,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
     final lang = ref.watch(localeProvider).asData?.value.locale ?? 'uz';
     return Scaffold(
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(
             child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                 style: const TextStyle(color: AppColors.textMuted))),

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/sms_history_repository.dart';
 
@@ -97,7 +98,7 @@ class _BarberSmsHistoryScreenState
           ),
           Expanded(
             child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const AppListSkeleton(),
               error: (e, _) => Center(
                   child: Text(
                       "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",

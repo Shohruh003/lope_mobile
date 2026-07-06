@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/barber_panel_repository.dart';
@@ -162,13 +163,10 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
 
             // ===== List =====
             async.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (e, _) => Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
+              loading: () => const AppListSkeleton(itemCount: 5),
+              error: (e, _) => SizedBox(
+                height: 280,
+                child: AppErrorState(message: humanize(e)),
               ),
               data: (list) {
                 final filtered = list.where((b) {
@@ -180,15 +178,19 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                 }).toList();
 
                 if (filtered.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: Column(children: [
-                      const Icon(Icons.people_outline, size: 48, color: AppColors.textMuted),
-                      const SizedBox(height: 12),
-                      Text(tr(ref, 'myBookings.empty', "Bron yo'q"),
-                          style: const TextStyle(
-                              color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-                    ]),
+                  return SizedBox(
+                    height: 280,
+                    child: AppEmptyState(
+                      icon: Icons.event_available_rounded,
+                      title: tr(ref, 'myBookings.empty', "Bron yo'q"),
+                      message: _search.isNotEmpty
+                          ? tr(ref, 'common.noResults', "Hech narsa topilmadi")
+                          : tr(
+                              ref,
+                              'mobile.barber.bookings.emptyHint',
+                              "Bu sanada bron yo'q. Mijozlar yozilishi bilan bu yerda ko'rinadi.",
+                            ),
+                    ),
                   );
                 }
 

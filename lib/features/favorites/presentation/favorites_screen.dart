@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/favorites_repository.dart';
 
 class FavoritesScreen extends ConsumerWidget {
@@ -19,22 +20,20 @@ class FavoritesScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'mobile.customer.favorites.title', "Sevimlilar"))),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+        loading: () => const AppListSkeleton(itemCount: 5),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(favoritesProvider),
+        ),
         data: (list) {
           if (list.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.favorite_border, size: 56, color: AppColors.textMuted),
-                    const SizedBox(height: 14),
-                    Text(tr(ref, 'mobile.customer.favorites.empty', "Sevimlilar ro'yxati bo'sh"),
-                        style: const TextStyle(color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-                  ],
-                ),
+            return AppEmptyState(
+              icon: Icons.favorite_border_rounded,
+              title: tr(ref, 'mobile.customer.favorites.empty', "Sevimlilar ro'yxati bo'sh"),
+              message: tr(
+                ref,
+                'mobile.customer.favorites.emptyHint',
+                "Sartaroshni sevimliga qo'shish uchun uning profilida yurak belgisini bosing.",
               ),
             );
           }

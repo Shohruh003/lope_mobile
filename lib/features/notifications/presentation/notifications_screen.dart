@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notifications_repository.dart';
 
@@ -66,45 +67,18 @@ class NotificationsScreen extends ConsumerWidget {
         ],
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
+        loading: () => const AppListSkeleton(itemCount: 6),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(notificationsProvider(user.role)),
         ),
         data: (list) {
           if (list.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 80, height: 80,
-                      decoration: BoxDecoration(
-                        color: AppColors.textMuted.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.notifications_off_outlined,
-                          size: 40, color: AppColors.textMuted),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      tr(ref, 'mobile.notifications.empty', "Bildirishnomalar yo'q"),
-                      style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      tr(ref, 'barberApp.noNotificationsHint',
-                          "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz"),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
+            return AppEmptyState(
+              icon: Icons.notifications_off_rounded,
+              title: tr(ref, 'mobile.notifications.empty', "Bildirishnomalar yo'q"),
+              message: tr(ref, 'barberApp.noNotificationsHint',
+                  "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz"),
             );
           }
 

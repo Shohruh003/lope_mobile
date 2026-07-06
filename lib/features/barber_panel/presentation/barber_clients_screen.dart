@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_clients_repository.dart';
 
@@ -33,7 +34,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'barberMyClients.title', "Mijozlarim"))),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           final now = DateTime.now();

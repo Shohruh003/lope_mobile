@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../barber_panel/data/barber_panel_repository.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/shop_repository.dart';
@@ -67,7 +68,7 @@ class _ShopBarberDetailScreenState
         title: Text(tr(ref, 'mobile.shop.barberDetail.title', "Sartarosh")),
       ),
       body: barberAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(
             child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                 style: const TextStyle(color: AppColors.textMuted))),

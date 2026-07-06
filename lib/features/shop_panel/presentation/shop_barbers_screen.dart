@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/shop_repository.dart';
 
 class ShopBarbersScreen extends ConsumerStatefulWidget {
@@ -38,7 +39,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
         label: Text(tr(ref, 'mobile.shop.masters.addBtn', "Qo'shish")),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
         data: (res) {
           final list = res.data;

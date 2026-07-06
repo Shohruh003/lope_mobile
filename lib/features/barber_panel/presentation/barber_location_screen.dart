@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_profile_repository.dart';
@@ -129,7 +130,7 @@ class _BarberLocationScreenState extends ConsumerState<BarberLocationScreen> {
 
           Expanded(
             child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const AppListSkeleton(),
               error: (e, _) => Center(
                   child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                       style: const TextStyle(color: AppColors.textMuted))),

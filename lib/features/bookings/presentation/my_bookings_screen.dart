@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../reviews/data/reviews_repository.dart';
 import '../data/booking_repository.dart';
@@ -126,16 +127,15 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
 
               Builder(builder: (_) {
                 if (_initial && _loading) {
-                  return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
-                      child: Center(child: CircularProgressIndicator()));
+                  return const AppListSkeleton(itemCount: 5);
                 }
                 if (_error != null && _all.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                        "${tr(ref, 'common.error', 'Xatolik')}: $_error",
-                        style: const TextStyle(color: AppColors.textMuted)),
+                  return SizedBox(
+                    height: 300,
+                    child: AppErrorState(
+                      message: _error!,
+                      onRetry: _refresh,
+                    ),
                   );
                 }
                 final list = _all;
@@ -192,30 +192,24 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
 
                     // ===== Body =====
                     if (visible.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Column(children: [
-                          Container(
-                            width: 56, height: 56,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.event_busy_outlined,
-                                color: AppColors.primary, size: 28),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(tr(ref, 'myBookings.empty', "Bron yo'q"),
-                              style: const TextStyle(
-                                  color: AppColors.textBright,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: -0.3)),
-                          const SizedBox(height: 6),
-                          Text(tr(ref, 'myBookings.emptyHint',
-                              "Sartaroshingizni tanlab, bron qiling"),
-                              style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
-                        ]),
+                      SizedBox(
+                        height: 320,
+                        child: AppEmptyState(
+                          icon: _tab == 2
+                              ? Icons.event_busy_rounded
+                              : (_tab == 1
+                                  ? Icons.history_rounded
+                                  : Icons.event_available_rounded),
+                          title: tr(ref, 'myBookings.empty', "Bron yo'q"),
+                          message: _tab == 0
+                              ? tr(ref, 'myBookings.emptyHint',
+                                  "Sartaroshingizni tanlab, bron qiling")
+                              : (_tab == 1
+                                  ? tr(ref, 'myBookings.emptyPastHint',
+                                      "Yakunlangan bronlar bu yerda ko'rinadi")
+                                  : tr(ref, 'myBookings.emptyCancelledHint',
+                                      "Bekor qilingan bronlar bu yerda saqlanadi")),
+                        ),
                       )
                     else
                       ...visible.asMap().entries.map((e) {

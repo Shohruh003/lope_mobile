@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/photo_lightbox.dart';
 import '../../../shared/widgets/shadcn.dart';
 import '../../favorites/data/favorites_repository.dart';
@@ -67,7 +68,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
     final async = ref.watch(barberDetailProvider(widget.barberId));
     return Scaffold(
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) =>
             Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
         data: (b) => _content(b),

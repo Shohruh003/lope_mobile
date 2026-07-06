@@ -31,7 +31,9 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
   }
 
   Future<void> _submit() async {
+    HapticFeedback.lightImpact();
     if (!_isValidPhone(_phoneController.text)) {
+      HapticFeedback.heavyImpact();
       setState(() => _error = tr(ref, 'common.validation.invalidPhone', "Telefon raqam noto'g'ri"));
       return;
     }
@@ -43,8 +45,10 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
     try {
       await ref.read(authRepositoryProvider).sendRegistrationCode(phone);
       if (!mounted) return;
+      HapticFeedback.mediumImpact();
       context.push('/register-otp?phone=${Uri.encodeComponent(phone)}');
     } on Object catch (e) {
+      HapticFeedback.heavyImpact();
       String msg = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring");
       if (e.toString().contains('SocketException')) {
         msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");

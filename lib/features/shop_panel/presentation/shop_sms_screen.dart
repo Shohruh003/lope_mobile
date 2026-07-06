@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/shop_repository.dart';
 
 /// Mirrors web `BarbershopSmsHistory.tsx`:
@@ -195,7 +196,7 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
 
         Expanded(
           child: async.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const AppListSkeleton(),
             error: (e, _) => Center(
                 child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                     style: const TextStyle(color: AppColors.textMuted))),

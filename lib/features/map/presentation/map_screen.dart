@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../barbers/data/barber_repository.dart';
 
 /// Lightweight "near me" screen: shows every barber with their location and
@@ -24,7 +25,7 @@ class MapScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'mobile.map.title', "Yaqin atrofda"))),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
         data: (list) {
           if (list.isEmpty) {

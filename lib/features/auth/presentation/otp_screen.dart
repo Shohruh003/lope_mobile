@@ -49,7 +49,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   String get _code => _controllers.map((c) => c.text).join();
 
   Future<void> _submit() async {
+    HapticFeedback.lightImpact();
     if (_code.length != 4) {
+      HapticFeedback.heavyImpact();
       setState(() =>
           _error = tr(ref, 'auth.codeMustBe4', "Kod 4 raqamli bo'lishi kerak"));
       return;
@@ -64,8 +66,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           .verifyRegistrationCode(phone: widget.phone, code: _code);
       if (!ok) throw Exception('Invalid OTP');
       if (!mounted) return;
+      HapticFeedback.mediumImpact();
       context.push('/register-complete?phone=${Uri.encodeComponent(widget.phone)}&code=$_code');
     } on Object catch (_) {
+      HapticFeedback.heavyImpact();
       setState(() =>
           _error = tr(ref, 'auth.codeWrongOrExpired', "Kod noto'g'ri yoki muddati tugagan"));
       for (final c in _controllers) {

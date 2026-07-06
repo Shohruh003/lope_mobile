@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/barber_profile_repository.dart';
 
 /// 7-day schedule + slot-duration picker.
@@ -143,7 +144,7 @@ class _BarberWorkingHoursScreenState
       appBar:
           AppBar(title: Text(tr(ref, 'mobile.barber.hours.title', "Ish soatlari"))),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) =>
             Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (barber) {

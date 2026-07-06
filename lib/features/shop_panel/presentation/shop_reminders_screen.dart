@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 
 /// Clients who haven't visited the salon for `reminderDays` days or more.
 /// Mirrors the web's BarbershopReminders page exactly — taps open the
@@ -33,7 +34,7 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
         title: Text(tr(ref, 'mobile.shop.reminders.title', "Eslatma kutmoqda")),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(
             child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                 style: const TextStyle(color: AppColors.textMuted))),

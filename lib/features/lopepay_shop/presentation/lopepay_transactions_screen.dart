@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/lopepay_repository.dart';
 
 /// Mirrors web `ShopTransactions.tsx`:
@@ -172,7 +173,7 @@ class _LopepayTransactionsScreenState
 
         Expanded(
           child: async.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const AppListSkeleton(),
             error: (e, _) => Center(
                 child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
                     style: const TextStyle(color: AppColors.textMuted))),

@@ -10,6 +10,7 @@ import '../../../core/api_client.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 
 /// Detail view for one shop client. Mirrors web BarbershopClientDetail:
 ///   - Avatar + name + phone + totalVisits badge
@@ -86,7 +87,7 @@ class _ShopClientDetailScreenState
         title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz")),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(
             child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (data) {

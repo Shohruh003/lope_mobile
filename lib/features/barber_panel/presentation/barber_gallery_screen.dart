@@ -8,6 +8,7 @@ import '../../../core/asset_url.dart';
 import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/photo_lightbox.dart';
 import '../data/barber_profile_repository.dart';
 
@@ -83,7 +84,7 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
         label: Text(tr(ref, 'mobile.barber.gallery.addBtn', "Qo'shish")),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (barber) {
           final gallery = ((barber['gallery'] as List?) ?? [])

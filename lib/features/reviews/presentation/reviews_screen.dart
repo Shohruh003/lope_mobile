@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/reviews_repository.dart';
 
 class ReviewsScreen extends ConsumerWidget {
@@ -26,22 +27,20 @@ class ReviewsScreen extends ConsumerWidget {
         label: Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish")),
       ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+        loading: () => const AppListSkeleton(itemCount: 5),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(barberReviewsProvider(barberId)),
+        ),
         data: (list) {
           if (list.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.rate_review_outlined, size: 56, color: AppColors.textMuted),
-                    const SizedBox(height: 14),
-                    Text(tr(ref, 'mobile.reviews.empty', "Hali sharhlar yo'q"),
-                        style: const TextStyle(color: AppColors.textBright, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-                  ],
-                ),
+            return AppEmptyState(
+              icon: Icons.rate_review_outlined,
+              title: tr(ref, 'mobile.reviews.empty', "Hali sharhlar yo'q"),
+              message: tr(
+                ref,
+                'mobile.reviews.emptyHint',
+                "Birinchi bo'lib sharh qoldiring — boshqa mijozlarga tanlashda yordam beradi.",
               ),
             );
           }

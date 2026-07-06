@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../data/lopepay_repository.dart';
 import 'lopepay_installments_screen.dart' show lopepayInstallmentsListProvider;
 
@@ -49,7 +50,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                   "To'lov qabul qilish")),
             ),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
         data: (data) {
           final name = (data['name'] ?? '').toString();

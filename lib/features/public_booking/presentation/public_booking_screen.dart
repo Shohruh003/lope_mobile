@@ -9,6 +9,7 @@ import '../../../core/api_client.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 
 /// Public, no-auth booking page reached via a shared link like
 /// `app.lopestyle.uz/b/:slug`. The slug resolves to a barber server-side; the
@@ -160,7 +161,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(tr(ref, 'booking.title', "Yozilish"))),
       body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppListSkeleton(),
         error: (e, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
