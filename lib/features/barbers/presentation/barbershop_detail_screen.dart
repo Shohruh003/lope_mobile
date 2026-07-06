@@ -30,9 +30,10 @@ class BarbershopDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(_shopByIdProvider(shopId)),
+        ),
         data: (shop) {
           final barbers =
               ((shop['barbers'] ?? const []) as List).cast<Map<String, dynamic>>();

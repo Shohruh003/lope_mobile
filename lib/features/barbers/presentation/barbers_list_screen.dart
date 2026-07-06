@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/asset_url.dart';
+import '../../../core/errors.dart';
 import '../../../core/location_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../favorites/data/favorites_repository.dart';
 import '../data/barber_repository.dart';
 import '../data/public_barbershop_repository.dart';
@@ -111,7 +113,15 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
 
             async.when(
               loading: () => const SliverToBoxAdapter(child: _LoadingGrid()),
-              error: (e, _) => SliverToBoxAdapter(child: _ErrorBlock(message: e.toString())),
+              error: (e, _) => SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 380,
+                  child: AppErrorState(
+                    message: humanize(e),
+                    onRetry: () => ref.invalidate(barbersListProvider),
+                  ),
+                ),
+              ),
               data: (list) {
                 // Default the filter to 'favorites' on first load if the user
                 // has any — same default web's CustomerBarbersScreen uses.
@@ -830,38 +840,21 @@ class _LoadingGrid extends StatelessWidget {
   }
 }
 
-class _ErrorBlock extends StatelessWidget {
-  const _ErrorBlock({required this.message});
-  final String message;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-          const Icon(Icons.error_outline, color: AppColors.danger, size: 40),
-          const SizedBox(height: 8),
-          Text(message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textMuted)),
-        ],
-      ),
-    );
-  }
-}
-
 class _EmptyState extends ConsumerWidget {
   const _EmptyState();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.all(48),
-      child: Column(children: [
-        const Icon(Icons.content_cut, size: 40, color: AppColors.textMuted),
-        const SizedBox(height: 12),
-        Text(tr(ref, 'barbers.noBarbers', "Sartarosh topilmadi"),
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-      ]),
+    return SizedBox(
+      height: 380,
+      child: AppEmptyState(
+        icon: Icons.content_cut_rounded,
+        title: tr(ref, 'barbers.noBarbers', "Sartarosh topilmadi"),
+        message: tr(
+          ref,
+          'barbers.noBarbersHint',
+          "Filtrni o'zgartirib ko'ring yoki qidiruvni tozalang.",
+        ),
+      ),
     );
   }
 }

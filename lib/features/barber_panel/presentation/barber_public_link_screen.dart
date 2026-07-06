@@ -76,7 +76,7 @@ class _BarberPublicLinkScreenState extends ConsumerState<BarberPublicLinkScreen>
       appBar: AppBar(title: Text(tr(ref, 'mobile.barber.publicLink.title', "Ommaviy havola"))),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (b) {
           if (!_seeded) {
             _seeded = true;

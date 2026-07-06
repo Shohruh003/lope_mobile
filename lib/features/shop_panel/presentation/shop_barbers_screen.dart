@@ -40,7 +40,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (res) {
           final list = res.data;
           final totalPages = res.totalPages;

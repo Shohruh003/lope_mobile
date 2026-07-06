@@ -35,7 +35,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
       appBar: AppBar(title: Text(tr(ref, 'barberMyClients.title', "Mijozlarim"))),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (list) {
           final now = DateTime.now();
           final filtered = list.where((c) {

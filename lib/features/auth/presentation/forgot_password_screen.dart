@@ -266,14 +266,17 @@ class _PasswordStepState extends ConsumerState<_PasswordStep> {
   }
 
   void _onSubmit() {
+    HapticFeedback.lightImpact();
     final pw = _ctrl.text;
     final cf = _confirmCtrl.text;
     if (pw.length < 6) {
+      HapticFeedback.heavyImpact();
       setState(() => _localError =
           tr(ref, 'auth.shortPassword', "Parol kamida 6 belgi"));
       return;
     }
     if (pw != cf) {
+      HapticFeedback.heavyImpact();
       setState(() => _localError = tr(ref, 'auth.passwordMismatch',
           "Parollar mos kelmadi"));
       return;

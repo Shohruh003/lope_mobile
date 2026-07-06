@@ -51,7 +51,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
             ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (data) {
           final name = (data['name'] ?? '').toString();
           final phone = (data['phone'] ?? '').toString();

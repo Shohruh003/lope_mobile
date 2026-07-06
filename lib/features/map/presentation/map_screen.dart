@@ -26,7 +26,7 @@ class MapScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(tr(ref, 'mobile.map.title', "Yaqin atrofda"))),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (list) {
           if (list.isEmpty) {
             return Center(

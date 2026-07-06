@@ -98,7 +98,7 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() => _index = i),
+        onTap: () { HapticFeedback.selectionClick(); setState(() => _index = i); },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
@@ -520,7 +520,7 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
       body: SafeArea(
         child: async.when(
           loading: () => const AppListSkeleton(),
-          error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+          error: (e, _) => AppErrorState(message: humanize(e)),
           data: (rawList) {
             final now = DateTime.now();
             final list = rawList.where((c) {

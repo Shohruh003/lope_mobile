@@ -69,8 +69,10 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
     return Scaffold(
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) =>
-            Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(
+          message: humanize(e),
+          onRetry: () => ref.invalidate(barberDetailProvider(widget.barberId)),
+        ),
         data: (b) => _content(b),
       ),
     );
@@ -634,13 +636,24 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   Widget _reviewsTab(AsyncValue<List<Review>> async) {
     return async.when(
       loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
-        child: Center(child: CircularProgressIndicator()),
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppSkeleton(height: 68, borderRadius: 10),
+            SizedBox(height: 10),
+            AppSkeleton(height: 68, borderRadius: 10),
+            SizedBox(height: 10),
+            AppSkeleton(height: 68, borderRadius: 10),
+          ],
+        ),
       ),
       error: (e, _) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-            style: const TextStyle(color: AppColors.textMuted)),
+        child: SizedBox(
+          height: 200,
+          child: AppErrorState(message: humanize(e)),
+        ),
       ),
       data: (list) {
         if (list.isEmpty) {

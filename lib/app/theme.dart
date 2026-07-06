@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -122,5 +123,16 @@ ThemeData buildAppTheme() {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     ),
     dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1, space: 1),
+    // Barcha sahifalar orasidagi o'tishlar bir xil — yumshoq zoom (iOS-uslub)
+    // Android'ning "sekin slide" default'ini almashtiradi. Har bir push
+    // yumshoq va bir xilda his qilinadi.
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      },
+    ),
+    // Ripple effekti radiusi standart tugma radiusiga mos.
+    splashFactory: InkRipple.splashFactory,
   );
 }

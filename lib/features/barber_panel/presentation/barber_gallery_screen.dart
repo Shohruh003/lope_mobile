@@ -85,7 +85,7 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (barber) {
           final gallery = ((barber['gallery'] as List?) ?? [])
               .map((e) => e.toString())

@@ -146,7 +146,7 @@ class _BarberWorkingHoursScreenState
       body: async.when(
         loading: () => const AppListSkeleton(),
         error: (e, _) =>
-            Center(child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+            AppErrorState(message: humanize(e)),
         data: (barber) {
           _seedFromBarber(barber);
           final days = trList(ref, 'mobile.dates.weekDaysShort', _days);

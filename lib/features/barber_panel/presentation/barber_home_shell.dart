@@ -138,7 +138,7 @@ class _BottomBar extends StatelessWidget {
             final item = items[i];
             return Expanded(
               child: InkWell(
-                onTap: () => onSelect(i),
+                onTap: () { HapticFeedback.selectionClick(); onSelect(i); },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

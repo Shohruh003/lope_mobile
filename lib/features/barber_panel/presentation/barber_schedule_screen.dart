@@ -10,6 +10,7 @@ import 'package:record/record.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
+import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/barber_panel_repository.dart';
@@ -716,7 +717,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (user == null) return const Scaffold(body: AppListSkeleton());
     final barberId = user.id;
     final dateStr = _dateStr(_selectedDate);
     final key = (barberId: barberId, date: dateStr);
@@ -868,11 +869,21 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           // ===== Slot grid OR empty state =====
           slotsAsync.when(
             loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: CircularProgressIndicator())),
-            error: (e, _) => Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}", style: const TextStyle(color: AppColors.textMuted)),
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppSkeleton(height: 56, borderRadius: 10),
+                  SizedBox(height: 8),
+                  AppSkeleton(height: 56, borderRadius: 10),
+                  SizedBox(height: 8),
+                  AppSkeleton(height: 56, borderRadius: 10),
+                ],
+              ),
+            ),
+            error: (e, _) => SizedBox(
+              height: 240,
+              child: AppErrorState(message: humanize(e)),
             ),
             data: (slots) {
               if (slots.isEmpty) {

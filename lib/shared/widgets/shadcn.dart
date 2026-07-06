@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/colors.dart';
 
@@ -187,7 +188,12 @@ class ShadTile extends StatelessWidget {
     final color = destructive ? AppColors.danger : AppColors.textPrimary;
     return InkWell(
       borderRadius: BorderRadius.circular(10),
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              onTap!();
+            },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(children: [
