@@ -175,11 +175,14 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                         const SizedBox(width: 4),
                         Text(
                           b.aiFreeRemaining != null && b.aiFreeRemaining! > 0
-                              ? tr(ref, 'aiStyle.todayFree',
-                                  "Bugun {{count}} ta bepul · 1000 so'm",
-                                  {'count': '${b.aiFreeRemaining}'})
+                              ? tr(
+                                  ref,
+                                  'aiStyle.todayFree',
+                                  "Bugun {{count}} ta bepul · keyingisi 1000 so'm",
+                                  {'count': '${b.aiFreeRemaining}'},
+                                )
                               : tr(ref, 'aiStyle.perGen',
-                                  "1000 so'm har generatsiya"),
+                                  "Har generatsiya 1000 so'm"),
                           style: const TextStyle(
                               fontSize: 12, color: AppColors.textMuted),
                         ),
