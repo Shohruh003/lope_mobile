@@ -466,6 +466,21 @@ extension BarberBookingActions on BarberPanelRepository {
       'time': time,
     });
   }
+
+  /// Close an entire day — cancels every confirmed booking for that day
+  /// (SMS + push notifications go out) and empties the schedule slots.
+  /// Returns the number of bookings that were cancelled.
+  Future<int> closeDay({required String barberId, required String date}) async {
+    final res = await _dio.post('/schedule/close-day', data: {
+      'barberId': barberId,
+      'date': date,
+    });
+    final data = res.data;
+    if (data is Map && data['cancelledBookings'] is int) {
+      return data['cancelledBookings'] as int;
+    }
+    return 0;
+  }
 }
 
 /// FutureProviders for the schedule view to consume directly. Day schedule,

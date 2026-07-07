@@ -658,6 +658,81 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
   }
 
+  /// "Kunni yopish" tugmasi bosilganda ishga tushadi. Aktiv bronlar sonini
+  /// hisoblab, barberga aniqlik bilan tasdiqlash ("N ta bron bekor bo'ladi")
+  /// ko'rsatadi. Tasdiqlangach backend endpoint bir bosishda hammasini
+  /// bekor qiladi + jadvalni bo'shatadi.
+  Future<void> _confirmCloseDay(String barberId) async {
+    final dateStr = _dateStr(_selectedDate);
+    final repo = ref.read(barberPanelRepositoryProvider);
+
+    int activeBookings = 0;
+    try {
+      final bookings = await repo.byDay(barberId: barberId, date: dateStr);
+      activeBookings = bookings.where((b) => b.status == 'confirmed').length;
+    } catch (_) {
+      // ignore — dialogda faqat "kunni yopamizmi" so'raymiz.
+    }
+
+    if (!mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(tr(ref, 'mobile.barber.schedule.closeDayTitle', "Kunni yopamizmi?")),
+        content: Text(
+          activeBookings > 0
+              ? tr(
+                  ref,
+                  'mobile.barber.schedule.closeDayWithBookings',
+                  "Bu kunda {{count}} ta bron bor. Ular bekor qilinadi va mijozlarga SMS/xabar boradi. Davom etamizmi?",
+                  {'count': '$activeBookings'},
+                )
+              : tr(
+                  ref,
+                  'mobile.barber.schedule.closeDayNoBookings',
+                  "Bu kundagi barcha slotlar o'chiriladi. Davom etamizmi?",
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dCtx).pop(false),
+            child: Text(tr(ref, 'common.cancel', "Bekor")),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(dCtx).pop(true),
+            child: Text(tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish")),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      final cancelled = await repo.closeDay(barberId: barberId, date: dateStr);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          cancelled > 0
+              ? tr(
+                  ref,
+                  'mobile.barber.schedule.closedWithCancels',
+                  "Kun yopildi. {{count}} ta bron bekor qilindi.",
+                  {'count': '$cancelled'},
+                )
+              : tr(ref, 'mobile.barber.schedule.closed', "Kun yopildi"),
+        ),
+      ));
+      _refreshDay(barberId);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}"),
+      ));
+    }
+  }
+
   Future<void> _openAddSchedule(String barberId) async {
     // Pick: generator or single slot
     final choice = await showModalBottomSheet<String>(
@@ -895,7 +970,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               final blocked = blockedAsync.maybeWhen(data: (v) => v, orElse: () => <String>[]);
 
               return Column(children: [
-                // Legend + Add button
+                // Legend + Close-day + Add buttons
                 Row(children: [
                   Expanded(
                     child: Wrap(
@@ -911,6 +986,21 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                             color: const Color(0xFFEF4444),
                             label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
                       ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => _confirmCloseDay(barberId),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.event_busy_outlined, size: 14, color: AppColors.danger),
+                        const SizedBox(width: 2),
+                        Text(
+                          tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
+                          style: const TextStyle(
+                              color: AppColors.danger, fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
+                      ]),
                     ),
                   ),
                   InkWell(
