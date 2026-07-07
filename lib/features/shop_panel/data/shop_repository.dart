@@ -106,12 +106,14 @@ class ShopBarber {
     required this.experience,
     this.avatar,
     this.phone,
+    this.gender,
   });
   final String id;
   final String name;
   final String experience;
   final String? avatar;
   final String? phone;
+  final String? gender; // 'MALE' | 'FEMALE' | null
 
   factory ShopBarber.fromJson(Map<String, dynamic> json) {
     // Backend wraps the user fields under a nested `user` object
@@ -128,6 +130,7 @@ class ShopBarber {
       experience: (json['experience'] ?? '').toString(),
       avatar: (json['avatar'] ?? user['avatar'])?.toString(),
       phone: (json['phone'] ?? user['phone'])?.toString(),
+      gender: (json['gender'] ?? user['gender'])?.toString(),
     );
   }
 }
@@ -249,11 +252,17 @@ class ShopRepository {
     );
   }
 
-  Future<void> createBarber({required String name, required String experience, String? phone}) async {
+  Future<void> createBarber({
+    required String name,
+    required String experience,
+    String? phone,
+    String? gender, // 'MALE' | 'FEMALE' | null
+  }) async {
     await _dio.post('/barbershop/barbers', data: {
       'name': name,
       'experience': experience,
       if (phone != null && phone.isNotEmpty) 'phone': phone,
+      if (gender == 'MALE' || gender == 'FEMALE') 'gender': gender,
     });
   }
 

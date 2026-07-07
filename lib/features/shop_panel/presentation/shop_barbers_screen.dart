@@ -183,51 +183,109 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     final name = TextEditingController(text: existing?.name ?? '');
     final exp = TextEditingController(text: existing?.experience ?? '');
     final phone = TextEditingController(text: existing?.phone ?? '');
+    // Jinsi: null (tanlanmagan) / 'MALE' / 'FEMALE'. StatefulBuilder ichida
+    // qayta chizishi uchun mahalliy o'zgaruvchi.
+    String? gender = (existing?.gender == 'MALE' || existing?.gender == 'FEMALE')
+        ? existing!.gender
+        : null;
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20, right: 20, top: 18,
-          bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-                existing == null
-                    ? tr(ref, 'mobile.shop.masters.newTitle', "Yangi master")
-                    : tr(ref, 'mobile.shop.masters.editTitle', "Tahrirlash"),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-            const SizedBox(height: 14),
-            TextField(
-                controller: name,
-                decoration: InputDecoration(hintText: tr(ref, 'mobile.shop.masters.namePh', "Ism"))),
-            const SizedBox(height: 10),
-            TextField(
-                controller: exp,
-                decoration: InputDecoration(
-                    hintText: tr(ref, 'mobile.shop.masters.expPh',
-                        "Tajriba (masalan: 3 yil)"))),
-            const SizedBox(height: 10),
-            TextField(
-                controller: phone,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                    hintText: tr(ref, 'mobile.shop.masters.phonePh',
-                        "Telefon (ixtiyoriy)"))),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(sheetCtx).pop(true),
-                child: Text(tr(ref, 'common.save', "Saqlash")),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 18,
+            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                  existing == null
+                      ? tr(ref, 'mobile.shop.masters.newTitle', "Yangi master")
+                      : tr(ref, 'mobile.shop.masters.editTitle', "Tahrirlash"),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
+              const SizedBox(height: 14),
+              TextField(
+                  controller: name,
+                  decoration: InputDecoration(hintText: tr(ref, 'mobile.shop.masters.namePh', "Ism"))),
+              const SizedBox(height: 10),
+              TextField(
+                  controller: exp,
+                  decoration: InputDecoration(
+                      hintText: tr(ref, 'mobile.shop.masters.expPh',
+                          "Tajriba (masalan: 3 yil)"))),
+              const SizedBox(height: 10),
+              TextField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                      hintText: tr(ref, 'mobile.shop.masters.phonePh',
+                          "Telefon (ixtiyoriy)"))),
+              const SizedBox(height: 12),
+              Text(
+                tr(ref, 'mobile.shop.masters.gender', "Jinsi"),
+                style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Text('👨', style: TextStyle(fontSize: 14)),
+                    label: Text(tr(ref, 'admin.filterGenderMale', "Erkak")),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: gender == 'MALE'
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : null,
+                      side: BorderSide(
+                        color: gender == 'MALE'
+                            ? AppColors.primary
+                            : AppColors.border,
+                      ),
+                      foregroundColor: gender == 'MALE'
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
+                    ),
+                    onPressed: () => setSheetState(
+                        () => gender = gender == 'MALE' ? null : 'MALE'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Text('👩', style: TextStyle(fontSize: 14)),
+                    label: Text(tr(ref, 'admin.filterGenderFemale', "Ayol")),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: gender == 'FEMALE'
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : null,
+                      side: BorderSide(
+                        color: gender == 'FEMALE'
+                            ? AppColors.primary
+                            : AppColors.border,
+                      ),
+                      foregroundColor: gender == 'FEMALE'
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
+                    ),
+                    onPressed: () => setSheetState(
+                        () => gender = gender == 'FEMALE' ? null : 'FEMALE'),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(sheetCtx).pop(true),
+                  child: Text(tr(ref, 'common.save', "Saqlash")),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -235,12 +293,18 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
       if (result != true) return;
       final repo = ref.read(shopRepositoryProvider);
       if (existing == null) {
-        await repo.createBarber(name: name.text.trim(), experience: exp.text.trim(), phone: phone.text.trim());
+        await repo.createBarber(
+          name: name.text.trim(),
+          experience: exp.text.trim(),
+          phone: phone.text.trim(),
+          gender: gender,
+        );
       } else {
         await repo.updateBarber(existing.id, {
           'name': name.text.trim(),
           'experience': exp.text.trim(),
           if (phone.text.trim().isNotEmpty) 'phone': phone.text.trim(),
+          if (gender == 'MALE' || gender == 'FEMALE') 'gender': gender,
         });
       }
       ref.invalidate(shopBarbersProvider);
