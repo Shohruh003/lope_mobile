@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/roles.dart';
 import '../core/tr.dart';
 import '../features/ai_style/presentation/ai_style_screen.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
@@ -76,7 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Role gating for the panel roots.
       final role = auth.user?.role;
-      if (loc.startsWith('/barber-app') && role != 'barber') return _homeFor(role);
+      if (loc.startsWith('/barber-app') && !isBarberRole(role)) return _homeFor(role);
       if (loc.startsWith('/shop') && role != 'barbershop') return _homeFor(role);
       if (loc.startsWith('/lopepay') && role != 'shop') return _homeFor(role);
       if (loc.startsWith('/home') && role != null && role != 'user') return _homeFor(role);
@@ -295,7 +296,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
 String _homeFor(String? role) {
   switch (role) {
-    case 'barber': return '/barber-app';
+    // Sartarosh, stilist, kosmetolog — bir xil barber ilovasi.
+    case 'barber':
+    case 'stylist':
+    case 'cosmetologist':
+      return '/barber-app';
     case 'barbershop': return '/shop';
     case 'shop': return '/lopepay';
     case 'admin': return '/admin-blocked';

@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/constants.dart';
 import '../../../core/l10n.dart';
+import '../../../core/roles.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
@@ -47,7 +48,7 @@ class ProfileScreen extends ConsumerWidget {
                 Positioned(
                   top: 0, right: 0,
                   child: InkWell(
-                    onTap: () => context.push(user?.role == 'barber' ? '/barber/profile' : '/profile-edit'),
+                    onTap: () => context.push(isBarberRole(user?.role) ? '/barber/profile' : '/profile-edit'),
                     borderRadius: BorderRadius.circular(999),
                     child: Container(
                       width: 36, height: 36,

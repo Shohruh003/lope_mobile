@@ -107,6 +107,7 @@ class ShopBarber {
     this.avatar,
     this.phone,
     this.gender,
+    this.role,
   });
   final String id;
   final String name;
@@ -114,6 +115,9 @@ class ShopBarber {
   final String? avatar;
   final String? phone;
   final String? gender; // 'MALE' | 'FEMALE' | null
+  // Kasb — 'barber' (sartarosh) | 'stylist' | 'cosmetologist'. SMS shabloniga
+  // shu bo'yicha "sartarosh"/"stilist"/"kosmetolog" so'zi tushadi.
+  final String? role;
 
   factory ShopBarber.fromJson(Map<String, dynamic> json) {
     // Backend wraps the user fields under a nested `user` object
@@ -131,6 +135,7 @@ class ShopBarber {
       avatar: (json['avatar'] ?? user['avatar'])?.toString(),
       phone: (json['phone'] ?? user['phone'])?.toString(),
       gender: (json['gender'] ?? user['gender'])?.toString(),
+      role: (json['role'] ?? user['role'])?.toString(),
     );
   }
 }
@@ -257,12 +262,15 @@ class ShopRepository {
     required String experience,
     String? phone,
     String? gender, // 'MALE' | 'FEMALE' | null
+    String? role, // 'barber' | 'stylist' | 'cosmetologist'
   }) async {
     await _dio.post('/barbershop/barbers', data: {
       'name': name,
       'experience': experience,
       if (phone != null && phone.isNotEmpty) 'phone': phone,
       if (gender == 'MALE' || gender == 'FEMALE') 'gender': gender,
+      if (role == 'barber' || role == 'stylist' || role == 'cosmetologist')
+        'role': role,
     });
   }
 

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/roles.dart';
 import '../../auth/presentation/auth_controller.dart';
 
 class AppNotification {
@@ -42,7 +43,7 @@ class NotificationsRepository {
   /// The old code probed `/notifications/me` then `/notifications/:role/me`
   /// — neither route exists, so the inbox always rendered empty.
   Future<List<AppNotification>> mine(String role, String userId) async {
-    if (role == 'barber') {
+    if (isBarberRole(role)) {
       final res = await _dio.get('/notifications/barber/$userId');
       return _parse(res.data);
     }
@@ -60,12 +61,12 @@ class NotificationsRepository {
   }
 
   Future<void> markRead(String id, {required String role}) async {
-    final base = role == 'barber' ? '/notifications' : '/user-notifications';
+    final base = isBarberRole(role) ? '/notifications' : '/user-notifications';
     await _dio.patch('$base/$id/read');
   }
 
   Future<void> markAllRead({required String role, required String userId}) async {
-    if (role == 'barber') {
+    if (isBarberRole(role)) {
       await _dio.patch('/notifications/barber/$userId/read-all');
     } else {
       await _dio.patch('/user-notifications/read-all');

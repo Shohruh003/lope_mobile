@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/roles.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -23,7 +24,7 @@ class LowBalanceWatcher {
   /// Decide whether to pop the modal and if so, show it.
   static Future<void> maybeShow(BuildContext context, WidgetRef ref) async {
     final user = ref.read(authControllerProvider).user;
-    if (user == null || user.role != 'barber') return;
+    if (user == null || !isBarberRole(user.role)) return;
 
     // VIP barbers are billed separately for SMS and shouldn't see the
     // top-up modal. Web fix 71a0b33 added the same guard on BarberLayout.

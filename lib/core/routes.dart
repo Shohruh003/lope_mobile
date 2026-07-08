@@ -12,7 +12,11 @@ void routeToRoleHome(BuildContext context, AppUser user) {
   // are TWO DIFFERENT roles even though the words sound similar — see
   // _homeFor in app/router.dart.
   switch (user.role) {
+    // Sartarosh, stilist va kosmetolog — bir xil barber ilovasiga tushadi.
+    // Farq faqat SMS shablonidagi kasb so'zi ("sartarosh"/"stilist"/"kosmetolog").
     case 'barber':
+    case 'stylist':
+    case 'cosmetologist':
       context.go('/barber-app');
       break;
     case 'barbershop':

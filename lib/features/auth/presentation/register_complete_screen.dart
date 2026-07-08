@@ -271,20 +271,49 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
                     ),
                   const SizedBox(height: 14),
 
-                  // ===== Role select =====
+                  // ===== Role select — dropdown 5 varianti bilan =====
                   ShadLabel(tr(ref, 'auth.accountType', "Hisob turi")),
                   const SizedBox(height: 6),
-                  _roleBtn('user', Icons.person,
-                      tr(ref, 'auth.roleCustomer', "Mijoz"),
-                      tr(ref, 'auth.roleCustomerDesc', "Sartarosh xizmatlari bron qilish")),
-                  const SizedBox(height: 6),
-                  _roleBtn('barber', Icons.content_cut,
-                      tr(ref, 'auth.roleBarber', "Sartarosh"),
-                      tr(ref, 'auth.roleBarberDesc', "Mijoz qabul qiluvchi sartarosh")),
-                  const SizedBox(height: 6),
-                  _roleBtn('barbershop', Icons.storefront,
-                      tr(ref, 'auth.roleShop', "Salon"),
-                      tr(ref, 'auth.roleShopDesc', "Sartaroshxonani boshqarish")),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _role,
+                        isExpanded: true,
+                        icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
+                        onChanged: (v) {
+                          if (v != null) setState(() => _role = v);
+                        },
+                        items: [
+                          DropdownMenuItem(
+                            value: 'user',
+                            child: Text(tr(ref, 'auth.roleCustomer', "Mijoz")),
+                          ),
+                          DropdownMenuItem(
+                            value: 'barber',
+                            child: Text(tr(ref, 'auth.roleBarber', "Sartarosh")),
+                          ),
+                          DropdownMenuItem(
+                            value: 'stylist',
+                            child: Text(tr(ref, 'auth.roleStylist', "Stilist")),
+                          ),
+                          DropdownMenuItem(
+                            value: 'cosmetologist',
+                            child: Text(tr(ref, 'auth.roleCosmetologist', "Kosmetolog")),
+                          ),
+                          DropdownMenuItem(
+                            value: 'barbershop',
+                            child: Text(tr(ref, 'auth.roleShop', "Salon")),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                   if (_error != null) ...[
                     const SizedBox(height: 14),
@@ -335,54 +364,4 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
     );
   }
 
-  Widget _roleBtn(String value, IconData icon, String title, String subtitle) {
-    final on = _role == value;
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: () => setState(() => _role = value),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: on ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: on ? AppColors.primary : AppColors.border, width: on ? 2 : 1),
-        ),
-        child: Row(children: [
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: on ? FontWeight.w600 : FontWeight.w500,
-                        color: on ? AppColors.primary : AppColors.textBright)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-              ],
-            ),
-          ),
-          Container(
-            width: 18, height: 18,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: on ? AppColors.primary : Colors.transparent,
-              border: Border.all(color: on ? AppColors.primary : AppColors.border, width: 1.5),
-            ),
-            child: on ? const Icon(Icons.check, color: Colors.white, size: 12) : null,
-          ),
-        ]),
-      ),
-    );
-  }
 }

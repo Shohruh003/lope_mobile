@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/l10n.dart';
+import '../../../core/roles.dart';
 import '../../../core/tr.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../shared/widgets/shadcn.dart';
@@ -31,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
             ShadTile(
               icon: Icons.edit_outlined,
               label: tr(ref, 'profile.editProfile', "Profilni tahrirlash"),
-              onTap: () => context.push(user?.role == 'barber' ? '/barber/profile' : '/profile-edit'),
+              onTap: () => context.push(isBarberRole(user?.role) ? '/barber/profile' : '/profile-edit'),
             ),
             ShadTile(
               icon: Icons.account_balance_wallet_outlined,

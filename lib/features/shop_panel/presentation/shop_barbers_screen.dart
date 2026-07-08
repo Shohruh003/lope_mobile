@@ -188,6 +188,12 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     String? gender = (existing?.gender == 'MALE' || existing?.gender == 'FEMALE')
         ? existing!.gender
         : null;
+    // Kasb: existing barberda role bo'lsa o'shani ol, aks holda default sartarosh.
+    String role = existing?.role == 'stylist'
+        ? 'stylist'
+        : existing?.role == 'cosmetologist'
+            ? 'cosmetologist'
+            : 'barber';
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -276,6 +282,73 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                   ),
                 ),
               ]),
+              const SizedBox(height: 14),
+              Text(
+                tr(ref, 'mobile.shop.masters.role', "Kasbi"),
+                style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 6),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: role == 'barber'
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : null,
+                      side: BorderSide(
+                        color: role == 'barber' ? AppColors.primary : AppColors.border,
+                      ),
+                      foregroundColor: role == 'barber'
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
+                    ),
+                    onPressed: () => setSheetState(() => role = 'barber'),
+                    child: Text(tr(ref, 'auth.roleBarber', "Sartarosh")),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: role == 'stylist'
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : null,
+                      side: BorderSide(
+                        color: role == 'stylist' ? AppColors.primary : AppColors.border,
+                      ),
+                      foregroundColor: role == 'stylist'
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
+                    ),
+                    onPressed: () => setSheetState(() => role = 'stylist'),
+                    child: Text(tr(ref, 'auth.roleStylist', "Stilist")),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: role == 'cosmetologist'
+                          ? AppColors.primary.withValues(alpha: 0.15)
+                          : null,
+                      side: BorderSide(
+                        color: role == 'cosmetologist' ? AppColors.primary : AppColors.border,
+                      ),
+                      foregroundColor: role == 'cosmetologist'
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
+                    ),
+                    onPressed: () => setSheetState(() => role = 'cosmetologist'),
+                    child: Text(tr(ref, 'auth.roleCosmetologist', "Kosmetolog")),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 6),
+              Text(
+                tr(ref, 'mobile.shop.masters.roleHint',
+                    "Mijozlarga yuboriladigan SMS'da shu so'z ishlatiladi."),
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              ),
               const SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,
@@ -298,6 +371,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
           experience: exp.text.trim(),
           phone: phone.text.trim(),
           gender: gender,
+          role: role,
         );
       } else {
         await repo.updateBarber(existing.id, {
@@ -305,6 +379,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
           'experience': exp.text.trim(),
           if (phone.text.trim().isNotEmpty) 'phone': phone.text.trim(),
           if (gender == 'MALE' || gender == 'FEMALE') 'gender': gender,
+          'role': role,
         });
       }
       ref.invalidate(shopBarbersProvider);
