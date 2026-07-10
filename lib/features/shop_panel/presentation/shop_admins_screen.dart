@@ -6,12 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 
-/// Mirrors web `BarbershopAdmins.tsx` — owner can create new admin
-/// accounts (name + phone + password), edit existing ones (incl.
-/// password reset), and remove non-owner admins.
 class ShopAdminsScreen extends ConsumerStatefulWidget {
   const ShopAdminsScreen({super.key});
   @override
@@ -25,12 +22,18 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(_adminsProvider(_page));
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'shop.nav.admins', "Adminlar"))),
+      appBar: AppBar(
+          title: Text(tr(ref, 'shop.nav.admins', "Adminlar"),
+              style: AppText.titleMd)),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => _openForm(context, ref),
-        icon: const Icon(Icons.person_add_alt_1),
-        label: Text(tr(ref, 'mobile.shop.admins.addBtn', "Admin qo'shish")),
+        onPressed: () {
+          AppHaptics.medium();
+          _openForm(context, ref);
+        },
+        icon: const Icon(Icons.person_add_alt_1, color: Colors.white),
+        label: Text(tr(ref, 'mobile.shop.admins.addBtn', "Admin qo'shish"),
+            style: AppText.button.copyWith(color: Colors.white)),
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
@@ -57,35 +60,34 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
             color: AppColors.primary,
             onRefresh: () async => ref.refresh(_adminsProvider(_page).future),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, 96),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 ...list.asMap().entries.map((entry) {
                   final i = entry.key;
                   final a = entry.value;
-                  // Backend returns {isOwner: true} on the owner row
-                  // (barbershop.service.ts:694) — never a `role` key.
-                  // Reading 'role' meant the OWNER badge never lit up and
-                  // shop-admins always appeared as ADMIN.
                   final isOwner = a['isOwner'] == true;
+                  final tint =
+                      isOwner ? AppColors.warning : AppColors.primary;
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
-                      ),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: AppCard(
+                      variant: AppCardVariant.flat,
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Row(children: [
                         Container(
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: (isOwner
-                                    ? AppColors.warning
-                                    : AppColors.primary)
-                                .withValues(alpha: 0.12),
+                            gradient: LinearGradient(
+                              colors: [
+                                tint.withValues(alpha: 0.25),
+                                tint.withValues(alpha: 0.08),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
@@ -93,57 +95,42 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                               isOwner
                                   ? Icons.workspace_premium
                                   : Icons.admin_panel_settings,
-                              color: isOwner
-                                  ? AppColors.warning
-                                  : AppColors.primary),
+                              color: tint,
+                              size: 20),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text((a['name'] ?? '').toString(),
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14)),
+                                  style: AppText.titleSm
+                                      .copyWith(fontSize: 14)),
                               const SizedBox(height: 2),
                               Text((a['phone'] ?? '').toString(),
-                                  style: const TextStyle(
-                                      color: AppColors.textMuted, fontSize: 13)),
+                                  style: AppText.caption),
                             ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: (isOwner
-                                    ? AppColors.warning
-                                    : AppColors.primary)
-                                .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(isOwner ? "OWNER" : "ADMIN",
-                              style: TextStyle(
-                                  color: isOwner
-                                      ? AppColors.warning
-                                      : AppColors.primary,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5)),
+                        AppBadge(
+                          label: isOwner ? "OWNER" : "ADMIN",
+                          variant: isOwner
+                              ? AppBadgeVariant.warning
+                              : AppBadgeVariant.info,
                         ),
                         if (!isOwner) ...[
-                          const SizedBox(width: 4),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined,
-                                color: AppColors.textSecondary, size: 20),
-                            onPressed: () =>
+                          const SizedBox(width: AppSpacing.xs),
+                          _RoundBtn(
+                            icon: Icons.edit_outlined,
+                            color: AppColors.textSecondary,
+                            onTap: () =>
                                 _openForm(context, ref, existing: a),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline,
-                                color: AppColors.danger, size: 20),
-                            onPressed: () =>
+                          const SizedBox(width: AppSpacing.xs),
+                          _RoundBtn(
+                            icon: Icons.delete_outline,
+                            color: AppColors.danger,
+                            onTap: () =>
                                 _remove(context, ref, a['id'].toString()),
                           ),
                         ],
@@ -153,27 +140,41 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                       duration: 200.ms, delay: (i * 20).ms);
                 }),
                 if (pages > 1) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      OutlinedButton(
+                      AppButton(
+                        label: tr(ref, 'common.prev', "Oldingi"),
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.sm,
+                        leadingIcon: Icons.chevron_left,
                         onPressed: _page <= 1
                             ? null
                             : () => setState(() => _page--),
-                        child: Text(tr(ref, 'common.prev', "Oldingi")),
                       ),
-                      const SizedBox(width: 12),
-                      Text("$_page / $pages",
-                          style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(width: 12),
-                      OutlinedButton(
+                      const SizedBox(width: AppSpacing.md),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.xs),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: AppRadius.rPill,
+                        ),
+                        child: Text("$_page / $pages",
+                            style: AppText.button
+                                .copyWith(color: AppColors.primary)),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      AppButton(
+                        label: tr(ref, 'common.next', "Keyingi"),
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.sm,
+                        trailingIcon: Icons.chevron_right,
                         onPressed: _page >= pages
                             ? null
                             : () => setState(() => _page++),
-                        child: Text(tr(ref, 'common.next', "Keyingi")),
                       ),
                     ],
                   ),
@@ -200,35 +201,59 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => Padding(
         padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 18,
-          bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          left: AppSpacing.xl,
+          right: AppSpacing.xl,
+          top: AppSpacing.lg,
+          bottom: AppSpacing.xl + MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                  isEdit
-                      ? tr(ref, 'mobile.shop.admins.editTitle',
-                          "Adminni tahrirlash")
-                      : tr(ref, 'mobile.shop.admins.addBtn',
-                          "Admin qo'shish"),
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-              const SizedBox(height: 14),
+              Center(
+                child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(2))),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: AppRadius.rMd,
+                  ),
+                  child: Icon(
+                      isEdit ? Icons.edit_outlined : Icons.person_add_alt_1,
+                      color: AppColors.primary,
+                      size: 20),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                      isEdit
+                          ? tr(ref, 'mobile.shop.admins.editTitle',
+                              "Adminni tahrirlash")
+                          : tr(ref, 'mobile.shop.admins.addBtn',
+                              "Admin qo'shish"),
+                      style: AppText.titleMd),
+                ),
+              ]),
+              const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: name,
                 decoration: InputDecoration(
-                    labelText:
-                        tr(ref, 'shop.client.name', "Ism"),
+                    labelText: tr(ref, 'shop.client.name', "Ism"),
                     hintText: "Shohruh Azimov"),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: phone,
                 keyboardType: TextInputType.phone,
@@ -236,7 +261,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                     labelText: tr(ref, 'shop.client.phone', "Telefon"),
                     hintText: '+998 90 123 45 67'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: password,
                 obscureText: true,
@@ -249,27 +274,22 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
               ),
               if (!isEdit)
                 Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.only(top: AppSpacing.xs),
                   child: Text(
                       tr(ref, 'auth.shortPassword',
                           "Parol kamida 6 belgi"),
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 11)),
+                      style: AppText.caption),
                 ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(sheetCtx).pop(true),
-                  child: Text(tr(ref, 'common.save', "Saqlash")),
-                ),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                label: tr(ref, 'common.save', "Saqlash"),
+                onPressed: () => Navigator.of(sheetCtx).pop(true),
+                fullWidth: true,
               ),
             ]),
       ),
     );
     if (ok != true) {
-      // Modal dismissed without saving — still clean up so we don't leak
-      // the three controllers on every cancel.
       name.dispose();
       phone.dispose();
       password.dispose();
@@ -306,8 +326,6 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     } finally {
-      // Always release the controllers after the save attempt — they
-      // were allocated locally in this method.
       name.dispose();
       phone.dispose();
       password.dispose();
@@ -319,8 +337,12 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(tr(ref, 'mobile.shop.admins.removeTitle',
-            "Adminni olib tashlash?")),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'mobile.shop.admins.removeTitle',
+                "Adminni olib tashlash?"),
+            style: AppText.titleMd),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(dCtx).pop(false),
@@ -343,6 +365,30 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
+  }
+}
+
+class _RoundBtn extends StatelessWidget {
+  const _RoundBtn(
+      {required this.icon, required this.color, required this.onTap});
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.light,
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: AppRadius.rSm,
+        ),
+        child: Icon(icon, color: color, size: 16),
+      ),
+    );
   }
 }
 
