@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/errors.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,15 +10,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api_client.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 
-/// Detail view for one shop client. Mirrors web BarbershopClientDetail:
-///   - Avatar + name + phone + totalVisits badge
-///   - Edit pencil → dialog to update name/phone
-///   - Call / SMS action buttons
-///   - Visits history with status badge (confirmed/completed/cancelled)
-///   - SMS history with type badge (CONFIRMATION/REMINDER/RETENTION)
 class ShopClientDetailScreen extends ConsumerStatefulWidget {
   const ShopClientDetailScreen({super.key, required this.clientKey});
   final String clientKey;
@@ -33,14 +28,14 @@ class _ShopClientDetailScreenState
 
   late String _key = widget.clientKey;
 
-  Color _statusColor(String status) {
+  AppBadgeVariant _statusVariant(String status) {
     switch (status) {
       case 'completed':
-        return AppColors.success;
+        return AppBadgeVariant.success;
       case 'cancelled':
-        return AppColors.danger;
+        return AppBadgeVariant.danger;
       default:
-        return AppColors.primary;
+        return AppBadgeVariant.info;
     }
   }
 
@@ -57,25 +52,25 @@ class _ShopClientDetailScreenState
     }
   }
 
-  ({String label, Color color}) _smsTypeBadge(String type) {
+  ({String label, AppBadgeVariant variant}) _smsTypeBadge(String type) {
     switch (type) {
       case 'CONFIRMATION':
         return (
           label: tr(ref, 'shop.smsTypes.confirmation', 'Tasdiqlash'),
-          color: const Color(0xFF3B82F6),
+          variant: AppBadgeVariant.info,
         );
       case 'REMINDER':
         return (
           label: tr(ref, 'shop.smsTypes.reminder', 'Eslatma'),
-          color: const Color(0xFFF97316),
+          variant: AppBadgeVariant.warning,
         );
       case 'RETENTION':
         return (
           label: tr(ref, 'shop.smsTypes.retention', 'Qaytarish'),
-          color: const Color(0xFF8B5CF6),
+          variant: AppBadgeVariant.primary,
         );
       default:
-        return (label: type, color: AppColors.textMuted);
+        return (label: type, variant: AppBadgeVariant.neutral);
     }
   }
 
@@ -84,12 +79,12 @@ class _ShopClientDetailScreenState
     final async = ref.watch(_clientDetailProvider(_key));
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz")),
+        title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz"),
+            style: AppText.titleMd),
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (data) {
           final name = (data['name'] ?? '').toString();
           final phone = (data['phone'] ?? '').toString();
@@ -110,90 +105,25 @@ class _ShopClientDetailScreenState
             onRefresh: () async => ref.refresh(_clientDetailProvider(_key).future),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
               children: [
-                // Avatar + name + phone + edit
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  ClipOval(
-                    child: avatar.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: assetUrl(avatar),
-                            width: 76,
-                            height: 76,
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                                (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-                                style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w600)),
-                          ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(name.isEmpty ? phone : name,
-                            style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textBright,
-                                letterSpacing: -0.3)),
-                        if (phone.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(phone,
-                              style: const TextStyle(
-                                  color: AppColors.textMuted, fontSize: 14)),
-                        ],
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: AppColors.primary
-                                    .withValues(alpha: 0.3)),
-                          ),
-                          child: Text(
-                              tr(ref, 'shop.client.visits',
-                                  "{{n}} ta tashrif",
-                                  {'n': '$totalVisits'}),
-                              style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined,
-                        color: AppColors.textSecondary),
-                    onPressed: () =>
-                        _openEdit(context, name: name, phone: phone),
-                  ),
-                ]),
-                const SizedBox(height: 18),
-
-                // Call / SMS actions
+                _HeroCard(
+                  name: name,
+                  phone: phone,
+                  avatar: avatar,
+                  totalVisits: totalVisits,
+                  onEdit: () => _openEdit(context, name: name, phone: phone),
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 Row(children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.phone),
-                      label: Text(tr(ref, 'mobile.lopepay.customer.call',
-                          "Qo'ng'iroq")),
+                    child: AppButton(
+                      label: tr(ref, 'mobile.lopepay.customer.call',
+                          "Qo'ng'iroq"),
+                      leadingIcon: Icons.phone,
+                      variant: AppButtonVariant.secondary,
+                      fullWidth: true,
                       onPressed: phone.isEmpty
                           ? null
                           : () async {
@@ -204,11 +134,13 @@ class _ShopClientDetailScreenState
                             },
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.sms),
-                      label: const Text("SMS"),
+                    child: AppButton(
+                      label: "SMS",
+                      leadingIcon: Icons.sms,
+                      variant: AppButtonVariant.secondary,
+                      fullWidth: true,
                       onPressed: phone.isEmpty
                           ? null
                           : () async {
@@ -220,181 +152,158 @@ class _ShopClientDetailScreenState
                     ),
                   ),
                 ]),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xxl),
 
-                // Visits history
-                Text(
-                    tr(ref, 'mobile.shop.client.visitsHistory',
-                        "Tashriflar tarixi"),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
-                        color: AppColors.textBright,
-                        letterSpacing: -0.3)),
-                const SizedBox(height: 10),
+                _SectionHeader(
+                  icon: Icons.history,
+                  title: tr(ref, 'mobile.shop.client.visitsHistory',
+                      "Tashriflar tarixi"),
+                ),
+                const SizedBox(height: AppSpacing.md),
                 if (visits.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                        tr(ref, 'mobile.shop.client.noVisits',
-                            "Tashriflar yo'q"),
-                        style: const TextStyle(color: AppColors.textMuted)),
+                  AppCard(
+                    variant: AppCardVariant.flat,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        child: Text(
+                            tr(ref, 'mobile.shop.client.noVisits',
+                                "Tashriflar yo'q"),
+                            style: AppText.bodySm),
+                      ),
+                    ),
                   )
                 else
-                  ...visits.map((v) {
+                  ...visits.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final v = entry.value;
                     final status = (v['status'] ?? '').toString();
-                    final c = _statusColor(status);
-                    final total =
-                        ((v['totalPrice'] ?? 0) as num).toInt();
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+                    final total = ((v['totalPrice'] ?? 0) as num).toInt();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Row(children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              borderRadius: AppRadius.rMd,
+                            ),
+                            child: const Icon(Icons.event_note,
+                                color: AppColors.primary, size: 20),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    (v['barberName'] ??
+                                            tr(ref,
+                                                'mobile.shop.masters.singular',
+                                                'Master'))
+                                        .toString(),
+                                    style: AppText.titleSm.copyWith(fontSize: 14)),
+                                const SizedBox(height: 3),
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    const Icon(Icons.event_outlined,
+                                        size: 11,
+                                        color: AppColors.textMuted),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                        _fmtDate(
+                                            v['date']?.toString() ?? ''),
+                                        style: AppText.caption
+                                            .copyWith(fontSize: 11)),
+                                    if ((v['time'] ?? '').toString().isNotEmpty) ...[
+                                      Text("  •  ",
+                                          style: AppText.caption
+                                              .copyWith(fontSize: 11)),
+                                      const Icon(Icons.access_time,
+                                          size: 11,
+                                          color: AppColors.textMuted),
+                                      const SizedBox(width: 3),
+                                      Text((v['time']).toString(),
+                                          style: AppText.caption
+                                              .copyWith(fontSize: 11)),
+                                    ],
+                                    if (total > 0) ...[
+                                      Text("  •  ",
+                                          style: AppText.caption
+                                              .copyWith(fontSize: 11)),
+                                      Text(
+                                          "${_fmt(total)} ${tr(ref, 'common.currency', "so'm")}",
+                                          style: AppText.caption.copyWith(
+                                              color: AppColors.warning,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 11)),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          AppBadge(
+                            label: _statusLabel(status),
+                            variant: _statusVariant(status),
+                          ),
+                        ]),
                       ),
-                      child: Row(children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  (v['barberName'] ??
-                                          tr(ref,
-                                              'mobile.shop.masters.singular',
-                                              'Master'))
-                                      .toString(),
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14)),
-                              const SizedBox(height: 4),
-                              Row(children: [
-                                const Icon(Icons.event_outlined,
-                                    size: 12, color: AppColors.textMuted),
-                                const SizedBox(width: 4),
-                                Text(_fmtDate(v['date']?.toString() ?? ''),
-                                    style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 12)),
-                                if ((v['time'] ?? '').toString().isNotEmpty) ...[
-                                  const Text("  •  ",
-                                      style: TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 12)),
-                                  const Icon(Icons.access_time,
-                                      size: 12,
-                                      color: AppColors.textMuted),
-                                  const SizedBox(width: 4),
-                                  Text((v['time']).toString(),
-                                      style: const TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 12)),
-                                ],
-                                if (total > 0) ...[
-                                  const Text("  •  ",
-                                      style: TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 12)),
-                                  Text(
-                                      "${_fmt(total)} ${tr(ref, 'common.currency', "so'm")}",
-                                      style: const TextStyle(
-                                          color: AppColors.warning,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 12)),
-                                ],
-                              ]),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: c.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(_statusLabel(status),
-                              style: TextStyle(
-                                  color: c,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700)),
-                        ),
-                      ]),
-                    );
+                    ).animate().fadeIn(duration: 200.ms, delay: (i * 20).ms);
                   }),
 
                 if (smsLogs.isNotEmpty) ...[
-                  const SizedBox(height: 22),
-                  Row(children: [
-                    const Icon(Icons.message_outlined,
-                        size: 20, color: AppColors.textBright),
-                    const SizedBox(width: 8),
-                    Text(
-                        tr(ref, 'mobile.shop.client.smsHistory',
-                            "SMS tarixi"),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: AppColors.textBright,
-                            letterSpacing: -0.3)),
-                  ]),
-                  const SizedBox(height: 10),
-                  ...smsLogs.map((s) {
+                  const SizedBox(height: AppSpacing.xl),
+                  _SectionHeader(
+                    icon: Icons.message_outlined,
+                    title: tr(ref, 'mobile.shop.client.smsHistory',
+                        "SMS tarixi"),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  ...smsLogs.asMap().entries.map((entry) {
+                    final i = entry.key;
+                    final s = entry.value;
                     final type = (s['type'] ?? '').toString();
                     final badge = _smsTypeBadge(type);
                     final sentAt = s['sentAt']?.toString() ?? '';
                     final barberName = (s['barberName'] ?? '').toString();
                     final message = (s['message'] ?? '').toString();
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: badge.color.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(badge.label,
-                                    style: TextStyle(
-                                        color: badge.color,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700)),
-                              ),
-                              if (barberName.isNotEmpty) ...[
-                                const SizedBox(width: 8),
-                                Text(barberName,
-                                    style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 11)),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(children: [
+                                AppBadge(
+                                    label: badge.label,
+                                    variant: badge.variant),
+                                if (barberName.isNotEmpty) ...[
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Text(barberName,
+                                      style: AppText.caption
+                                          .copyWith(fontSize: 11)),
+                                ],
+                                const Spacer(),
+                                Text(_fmtDateTime(sentAt),
+                                    style: AppText.caption
+                                        .copyWith(fontSize: 10)),
+                              ]),
+                              if (message.isNotEmpty) ...[
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(message, style: AppText.bodySm),
                               ],
-                              const Spacer(),
-                              Text(_fmtDateTime(sentAt),
-                                  style: const TextStyle(
-                                      color: AppColors.textMuted,
-                                      fontSize: 10)),
                             ]),
-                            if (message.isNotEmpty) ...[
-                              const SizedBox(height: 6),
-                              Text(message,
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 13,
-                                      height: 1.4)),
-                            ],
-                          ]),
-                    );
+                      ),
+                    ).animate().fadeIn(duration: 200.ms, delay: (i * 20).ms);
                   }),
                 ],
               ],
@@ -413,7 +322,10 @@ class _ShopClientDetailScreenState
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(tr(ref, 'shop.client.editTitle', "Mijozni tahrirlash")),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(tr(ref, 'shop.client.editTitle', "Mijozni tahrirlash"),
+            style: AppText.titleMd),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -423,7 +335,7 @@ class _ShopClientDetailScreenState
               decoration: InputDecoration(
                   labelText: tr(ref, 'shop.client.name', "Ism")),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: phoneCtrl,
               keyboardType: TextInputType.phone,
@@ -455,8 +367,6 @@ class _ShopClientDetailScreenState
       await ref
           .read(dioProvider)
           .patch('/barbershop/clients/$_key', data: body);
-      // If phone changed the lookup key changes too — switch keys so
-      // refetch hits the right endpoint.
       if (newPhone.isNotEmpty && newPhone != phone) {
         setState(() => _key = newPhone);
       } else {
@@ -491,6 +401,124 @@ class _ShopClientDetailScreenState
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
+  }
+}
+
+class _HeroCard extends ConsumerWidget {
+  const _HeroCard({
+    required this.name,
+    required this.phone,
+    required this.avatar,
+    required this.totalVisits,
+    required this.onEdit,
+  });
+  final String name;
+  final String phone;
+  final String avatar;
+  final int totalVisits;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AppCard(
+      gradient: LinearGradient(
+        colors: [
+          AppColors.primary.withValues(alpha: 0.16),
+          AppColors.primary.withValues(alpha: 0.04),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderColor: AppColors.primary.withValues(alpha: 0.2),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            shape: BoxShape.circle,
+          ),
+          child: ClipOval(
+            child: avatar.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: assetUrl(avatar),
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    width: 72,
+                    height: 72,
+                    color: AppColors.surface,
+                    alignment: Alignment.center,
+                    child: Text(
+                        (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+                        style: AppText.titleLg
+                            .copyWith(color: AppColors.primary)),
+                  ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name.isEmpty ? phone : name,
+                  style: AppText.titleMd,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
+              if (phone.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(phone, style: AppText.bodySm),
+              ],
+              const SizedBox(height: AppSpacing.sm),
+              AppBadge(
+                label: tr(ref, 'shop.client.visits',
+                    "{{n}} ta tashrif", {'n': '$totalVisits'}),
+                variant: AppBadgeVariant.primary,
+                icon: Icons.event_available,
+              ),
+            ],
+          ),
+        ),
+        TapScale(
+          onTap: onEdit,
+          haptic: HapticStrength.light,
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: AppColors.surface.withValues(alpha: 0.6),
+              borderRadius: AppRadius.rMd,
+            ),
+            child: const Icon(Icons.edit_outlined,
+                color: AppColors.textSecondary, size: 18),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.title});
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.12),
+          borderRadius: AppRadius.rSm,
+        ),
+        child: Icon(icon, size: 16, color: AppColors.primary),
+      ),
+      const SizedBox(width: AppSpacing.sm),
+      Text(title, style: AppText.titleMd.copyWith(fontSize: 16)),
+    ]);
   }
 }
 
