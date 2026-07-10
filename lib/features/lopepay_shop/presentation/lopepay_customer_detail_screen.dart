@@ -8,13 +8,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/lopepay_repository.dart';
 import 'lopepay_installments_screen.dart' show lopepayInstallmentsListProvider;
 
-/// Full installment-customer detail with payment history. Owner can record
-/// a payment via the green FAB.
 class LopepayCustomerDetailScreen extends ConsumerWidget {
   const LopepayCustomerDetailScreen({super.key, required this.customerId});
   final String customerId;
@@ -24,11 +22,9 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(lopepayCustomerByPhoneProvider(customerId));
-    // Backend has no per-customer "record payment" endpoint — payments are
-    // applied per-installment. The FAB now routes to the next unpaid
-    // installment's mark-paid sheet (the same flow as tapping that row).
     final installments = async.maybeWhen(
-      data: (d) => (d['installments'] as List? ?? const []).cast<Map<String, dynamic>>(),
+      data: (d) =>
+          (d['installments'] as List? ?? const []).cast<Map<String, dynamic>>(),
       orElse: () => const <Map<String, dynamic>>[],
     );
     final nextUnpaid = installments.firstWhere(
@@ -37,17 +33,22 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
     );
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz")),
+        title: Text(tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz"),
+            style: AppText.titleMd),
       ),
       floatingActionButton: nextUnpaid.isEmpty
           ? null
           : FloatingActionButton.extended(
               backgroundColor: AppColors.success,
-              onPressed: () =>
-                  _openInstallmentActions(context, ref, nextUnpaid),
-              icon: const Icon(Icons.payments),
-              label: Text(tr(ref, 'mobile.lopepay.customer.recordPayment',
-                  "To'lov qabul qilish")),
+              onPressed: () {
+                AppHaptics.medium();
+                _openInstallmentActions(context, ref, nextUnpaid);
+              },
+              icon: const Icon(Icons.payments, color: Colors.white),
+              label: Text(
+                  tr(ref, 'mobile.lopepay.customer.recordPayment',
+                      "To'lov qabul qilish"),
+                  style: AppText.button.copyWith(color: Colors.white)),
             ),
       body: async.when(
         loading: () => const AppListSkeleton(),
@@ -57,112 +58,147 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           final phone = (data['phone'] ?? '').toString();
           final address = (data['address'] ?? '').toString();
           final debt = ((data['totalDebt'] ?? 0) as num).toInt();
-          final payments = (data['payments'] as List? ?? []).cast<Map<String, dynamic>>();
-          final installments = (data['installments'] as List? ?? []).cast<Map<String, dynamic>>();
+          final payments =
+              (data['payments'] as List? ?? []).cast<Map<String, dynamic>>();
+          final installments = (data['installments'] as List? ?? [])
+              .cast<Map<String, dynamic>>();
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.refresh(lopepayCustomerByPhoneProvider(customerId).future),
+            onRefresh: () async => ref
+                .refresh(lopepayCustomerByPhoneProvider(customerId).future),
             child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name.isEmpty ? phone : name,
-                        style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
-                    if (phone.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(phone, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 96),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: AppRadius.rXl,
+                    boxShadow: AppShadows.primaryGlow(AppColors.primary),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name.isEmpty ? phone : name,
+                          style: AppText.titleLg
+                              .copyWith(color: Colors.white)),
+                      if (phone.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(phone,
+                            style: AppText.bodySm
+                                .copyWith(color: Colors.white70)),
+                      ],
+                      if (address.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(address,
+                            style: AppText.caption
+                                .copyWith(color: Colors.white70)),
+                      ],
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                          tr(ref, 'mobile.lopepay.customer.debt', "Qarz"),
+                          style: AppText.overline
+                              .copyWith(color: Colors.white70)),
+                      const SizedBox(height: 2),
+                      Text(
+                          "${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
+                          style: AppText.display
+                              .copyWith(color: Colors.white, fontSize: 30)),
                     ],
-                    if (address.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(address, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                    ],
-                    const SizedBox(height: 12),
-                    Text(tr(ref, 'mobile.lopepay.customer.debt', "Qarz"),
-                        style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    Text("${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
-                        style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.phone),
-                    label: Text(tr(ref, 'mobile.lopepay.customer.call', "Qo'ng'iroq")),
-                    onPressed: phone.isEmpty ? null : () async {
-                      final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
-                      final uri = Uri(scheme: 'tel', path: clean);
-                      if (await canLaunchUrl(uri)) await launchUrl(uri);
-                    },
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.sms),
-                    label: const Text("SMS"),  // brand name
-                    onPressed: phone.isEmpty ? null : () async {
-                      final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
-                      final uri = Uri(scheme: 'sms', path: clean);
-                      if (await canLaunchUrl(uri)) await launchUrl(uri);
-                    },
+                const SizedBox(height: AppSpacing.md),
+                Row(children: [
+                  Expanded(
+                    child: AppButton(
+                      label: tr(ref, 'mobile.lopepay.customer.call',
+                          "Qo'ng'iroq"),
+                      leadingIcon: Icons.phone,
+                      variant: AppButtonVariant.secondary,
+                      fullWidth: true,
+                      onPressed: phone.isEmpty
+                          ? null
+                          : () async {
+                              final clean =
+                                  phone.replaceAll(RegExp(r'[^\d+]'), '');
+                              final uri = Uri(scheme: 'tel', path: clean);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              }
+                            },
+                    ),
                   ),
-                ),
-              ]),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: AppButton(
+                      label: "SMS",
+                      leadingIcon: Icons.sms,
+                      variant: AppButtonVariant.secondary,
+                      fullWidth: true,
+                      onPressed: phone.isEmpty
+                          ? null
+                          : () async {
+                              final clean =
+                                  phone.replaceAll(RegExp(r'[^\d+]'), '');
+                              final uri = Uri(scheme: 'sms', path: clean);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              }
+                            },
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: AppSpacing.xl),
 
-              const SizedBox(height: 22),
-              Text(tr(ref, 'mobile.lopepay.customer.installments', "Rassrochkalar"),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, letterSpacing: -0.3)),
-              const SizedBox(height: 10),
-              if (installments.isEmpty)
-                Text(tr(ref, 'mobile.lopepay.customer.noActiveInstallments', "Faol rassrochka yo'q"),
-                    style: const TextStyle(color: AppColors.textMuted))
-              else
-                ...installments.map((i) {
-                  final daysLate = ((i['daysLate'] ?? 0) as num).toInt();
-                  final monthsPaid = ((i['monthsPaid'] ?? 0) as num).toInt();
-                  final monthsTotal = ((i['monthsTotal'] ?? 0) as num).toInt();
-                  final isPaidOff = i['isPaidOff'] == true;
-                  final totalPrice = ((i['totalPrice'] ?? 0) as num).toInt();
-                  final monthlyPayment =
-                      ((i['monthlyPayment'] ?? 0) as num).toInt();
-                  final debt = ((i['debt'] ??
-                          (isPaidOff ? 0 : monthlyPayment)) as num)
-                      .toInt();
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
+                _SectionHeader(
+                  icon: Icons.credit_card,
+                  title: tr(ref, 'mobile.lopepay.customer.installments',
+                      "Rassrochkalar"),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                if (installments.isEmpty)
+                  Text(
+                      tr(ref, 'mobile.lopepay.customer.noActiveInstallments',
+                          "Faol rassrochka yo'q"),
+                      style: AppText.bodySm)
+                else
+                  ...installments.map((i) {
+                    final daysLate = ((i['daysLate'] ?? 0) as num).toInt();
+                    final monthsPaid =
+                        ((i['monthsPaid'] ?? 0) as num).toInt();
+                    final monthsTotal =
+                        ((i['monthsTotal'] ?? 0) as num).toInt();
+                    final isPaidOff = i['isPaidOff'] == true;
+                    final totalPrice =
+                        ((i['totalPrice'] ?? 0) as num).toInt();
+                    final monthlyPayment =
+                        ((i['monthlyPayment'] ?? 0) as num).toInt();
+                    final debt = ((i['debt'] ??
+                            (isPaidOff ? 0 : monthlyPayment)) as num)
+                        .toInt();
+                    final color = isPaidOff
+                        ? AppColors.success
+                        : (daysLate > 0
+                            ? AppColors.danger
+                            : AppColors.primary);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         onTap: () =>
                             _openInstallmentActions(context, ref, i),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Status banner — mirrors web's StatusBanner
                               _installmentStatusBanner(ref,
                                   isPaidOff: isPaidOff,
                                   daysLate: daysLate,
-                                  nextDueDate:
-                                      i['nextDueDate']?.toString()),
-                              const SizedBox(height: 8),
+                                  nextDueDate: i['nextDueDate']?.toString()),
+                              const SizedBox(height: AppSpacing.sm),
                               Row(children: [
                                 Expanded(
                                   child: Column(
@@ -175,33 +211,36 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                                                         'mobile.lopepay.products.newProduct',
                                                         'Mahsulot'))
                                                 .toString(),
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 14)),
+                                            style: AppText.titleSm
+                                                .copyWith(fontSize: 14)),
                                         const SizedBox(height: 2),
                                         Text(
                                             "$monthsPaid / $monthsTotal ${tr(ref, 'lopePay.shop.monthsPaid', "oy")}",
-                                            style: const TextStyle(
-                                                color: AppColors.textMuted,
-                                                fontSize: 12)),
+                                            style: AppText.caption),
                                       ]),
                                 ),
                                 Text(
                                     isPaidOff
                                         ? "0 ${tr(ref, 'common.currency', "so'm")}"
                                         : "${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                        color: isPaidOff
-                                            ? AppColors.success
-                                            : (daysLate > 0
-                                                ? AppColors.danger
-                                                : AppColors.primary))),
+                                    style: AppText.titleSm
+                                        .copyWith(color: color, fontSize: 14)),
                               ]),
-                              const SizedBox(height: 8),
-                              // 2x2 mini-stats grid — totalPrice / monthly /
-                              // monthsPaid / debt
+                              const SizedBox(height: AppSpacing.sm),
+                              if (monthsTotal > 0) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: monthsPaid / monthsTotal,
+                                    minHeight: 6,
+                                    backgroundColor:
+                                        color.withValues(alpha: 0.12),
+                                    valueColor:
+                                        AlwaysStoppedAnimation(color),
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                              ],
                               Row(children: [
                                 Expanded(
                                   child: _MiniStat(
@@ -211,7 +250,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                                       value:
                                           "${_fmt(totalPrice)} ${tr(ref, 'common.currency', "so'm")}"),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: AppSpacing.sm),
                                 Expanded(
                                   child: _MiniStat(
                                       label: tr(ref,
@@ -223,28 +262,71 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                               ]),
                             ]),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
 
-              const SizedBox(height: 22),
-              Text(tr(ref, 'mobile.lopepay.customer.paymentsHistory', "To'lovlar tarixi"),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, letterSpacing: -0.3)),
-              const SizedBox(height: 10),
-              if (payments.isEmpty)
-                Text(tr(ref, 'mobile.lopepay.customer.noPayments', "Hali to'lov yo'q"),
-                    style: const TextStyle(color: AppColors.textMuted))
-              else
-                ...payments.map((p) {
-                  final at = DateTime.tryParse(p['paidAt']?.toString() ?? '');
-                  return _RowCard(
-                    title: "${_fmt(((p['amount'] ?? 0) as num).toInt())} ${tr(ref, 'common.currency', "so'm")}",
-                    subtitle: at == null ? '' : _df.format(at.toLocal()),
-                    badge: '+',
-                    badgeColor: AppColors.success,
-                  );
-                }),
-            ],
+                const SizedBox(height: AppSpacing.xl),
+                _SectionHeader(
+                  icon: Icons.history,
+                  title: tr(ref, 'mobile.lopepay.customer.paymentsHistory',
+                      "To'lovlar tarixi"),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                if (payments.isEmpty)
+                  Text(
+                      tr(ref, 'mobile.lopepay.customer.noPayments',
+                          "Hali to'lov yo'q"),
+                      style: AppText.bodySm)
+                else
+                  ...payments.map((p) {
+                    final at =
+                        DateTime.tryParse(p['paidAt']?.toString() ?? '');
+                    final amount = ((p['amount'] ?? 0) as num).toInt();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Row(children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.success.withValues(alpha: 0.22),
+                                  AppColors.success.withValues(alpha: 0.08),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.arrow_downward,
+                                size: 18, color: AppColors.success),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    "+ ${_fmt(amount)} ${tr(ref, 'common.currency', "so'm")}",
+                                    style: AppText.titleSm.copyWith(
+                                        fontSize: 14,
+                                        color: AppColors.success)),
+                                if (at != null)
+                                  Text(_df.format(at.toLocal()),
+                                      style: AppText.caption),
+                              ],
+                            ),
+                          ),
+                        ]),
+                      ),
+                    );
+                  }),
+              ],
             ),
           );
         },
@@ -263,60 +345,63 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
     return buf.toString();
   }
 
-
-  /// Per-installment action sheet: mark next month paid, undo last
-  /// payment (when at least one is logged), delete entire plan.
   Future<void> _openInstallmentActions(
       BuildContext context, WidgetRef ref, Map<String, dynamic> inst) async {
     final instId = (inst['id'] ?? '').toString();
     if (instId.isEmpty) return;
+    AppHaptics.selection();
     final monthsPaid = ((inst['monthsPaid'] ?? 0) as num).toInt();
     final isPaidOff = inst['isPaidOff'] == true;
     final picked = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Container(
-              width: 36, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                   color: AppColors.border,
                   borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           if (!isPaidOff)
-            ListTile(
-              leading: const Icon(Icons.check_circle_outline, color: AppColors.success),
-              title: Text(tr(ref, 'mobile.lopepay.installment.markPaid',
-                  "Oyni to'langan deb belgilash")),
+            _SheetAction(
+              icon: Icons.check_circle_outline,
+              tint: AppColors.success,
+              title: tr(ref, 'mobile.lopepay.installment.markPaid',
+                  "Oyni to'langan deb belgilash"),
               onTap: () => Navigator.of(sheetCtx).pop('mark'),
             ),
           if (monthsPaid > 0)
-            ListTile(
-              leading: const Icon(Icons.undo, color: AppColors.warning),
-              title: Text(tr(ref, 'mobile.lopepay.installment.undoLast',
-                  "Oxirgi to'lovni bekor qilish")),
+            _SheetAction(
+              icon: Icons.undo,
+              tint: AppColors.warning,
+              title: tr(ref, 'mobile.lopepay.installment.undoLast',
+                  "Oxirgi to'lovni bekor qilish"),
               onTap: () => Navigator.of(sheetCtx).pop('undo'),
             ),
-          ListTile(
-            leading: const Icon(Icons.edit_outlined, color: AppColors.textSecondary),
-            title: Text(tr(ref, 'common.edit', "Tahrirlash")),
+          _SheetAction(
+            icon: Icons.edit_outlined,
+            tint: AppColors.textSecondary,
+            title: tr(ref, 'common.edit', "Tahrirlash"),
             onTap: () => Navigator.of(sheetCtx).pop('edit'),
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline, color: AppColors.danger),
-            title: Text(tr(ref, 'mobile.lopepay.installment.delete',
-                "Rassrochkani o'chirish")),
+          _SheetAction(
+            icon: Icons.delete_outline,
+            tint: AppColors.danger,
+            title: tr(ref, 'mobile.lopepay.installment.delete',
+                "Rassrochkani o'chirish"),
             onTap: () => Navigator.of(sheetCtx).pop('delete'),
           ),
-          ListTile(
-            leading: const Icon(Icons.close, color: AppColors.textMuted),
-            title: Text(tr(ref, 'common.close', "Yopish")),
+          _SheetAction(
+            icon: Icons.close,
+            tint: AppColors.textMuted,
+            title: tr(ref, 'common.close', "Yopish"),
             onTap: () => Navigator.of(sheetCtx).pop(null),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
         ]),
       ),
     );
@@ -329,14 +414,13 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
     final repo = ref.read(lopepayRepositoryProvider);
     try {
       if (picked == 'mark') {
-        // Mirror web MarkPaidDialog — prefill the monthly payment so the
-        // owner just confirms unless they took a different cash amount
-        // (early partial / late penalty surcharge etc).
         if (!context.mounted) return;
         final monthlyPayment =
             ((inst['monthlyPayment'] ?? 0) as num).toInt();
-        final nextMonth = ((inst['nextMonthNumber'] ?? 0) as num).toInt();
-        final monthsTotal = ((inst['monthsTotal'] ?? 0) as num).toInt();
+        final nextMonth =
+            ((inst['nextMonthNumber'] ?? 0) as num).toInt();
+        final monthsTotal =
+            ((inst['monthsTotal'] ?? 0) as num).toInt();
         final amountCtrl = TextEditingController(
             text: monthlyPayment > 0 ? monthlyPayment.toString() : '');
         final int? markOk;
@@ -345,12 +429,21 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
             context: context,
             builder: (dCtx) => AlertDialog(
               backgroundColor: AppColors.background,
-              title: Text(nextMonth > 0
-                  ? tr(ref, 'mobile.lopepay.installment.markPaidTitle',
-                      "Oyni to'langan deb belgilash ({{n}}/{{total}})",
-                      {'n': '$nextMonth', 'total': '$monthsTotal'})
-                  : tr(ref, 'mobile.lopepay.installment.markPaid',
-                      "Oyni to'langan deb belgilash")),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.lg)),
+              title: Text(
+                  nextMonth > 0
+                      ? tr(
+                          ref,
+                          'mobile.lopepay.installment.markPaidTitle',
+                          "Oyni to'langan deb belgilash ({{n}}/{{total}})",
+                          {
+                              'n': '$nextMonth',
+                              'total': '$monthsTotal'
+                            })
+                      : tr(ref, 'mobile.lopepay.installment.markPaid',
+                          "Oyni to'langan deb belgilash"),
+                  style: AppText.titleMd),
               content: TextField(
                 controller: amountCtrl,
                 autofocus: true,
@@ -378,6 +471,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         if (markOk == null) return;
         await repo.markInstallmentPaid(instId, amount: markOk);
         if (context.mounted) {
+          AppHaptics.success();
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(tr(ref, 'common.saved', "Saqlandi"))));
         }
@@ -387,15 +481,20 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           context: context,
           builder: (dCtx) => AlertDialog(
             backgroundColor: AppColors.background,
-            title: Text(tr(ref, 'mobile.lopepay.installment.undoConfirmTitle',
-                "Oxirgi to'lov bekor qilinsinmi?")),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.lg)),
+            title: Text(
+                tr(ref, 'mobile.lopepay.installment.undoConfirmTitle',
+                    "Oxirgi to'lov bekor qilinsinmi?"),
+                style: AppText.titleMd),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(dCtx, false),
                   child: Text(tr(ref, 'common.cancel', "Bekor"))),
               TextButton(
                   onPressed: () => Navigator.pop(dCtx, true),
-                  child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
+                  child:
+                      Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
             ],
           ),
         );
@@ -411,16 +510,23 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           context: context,
           builder: (dCtx) => AlertDialog(
             backgroundColor: AppColors.background,
-            title: Text(tr(ref, 'mobile.lopepay.installment.deleteConfirmTitle',
-                "Rassrochka o'chirilsinmi?")),
-            content: Text(tr(ref, 'mobile.lopepay.installment.deleteConfirmMsg',
-                "Rassrochka va uning barcha to'lovlari o'chiriladi.")),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.lg)),
+            title: Text(
+                tr(ref, 'mobile.lopepay.installment.deleteConfirmTitle',
+                    "Rassrochka o'chirilsinmi?"),
+                style: AppText.titleMd),
+            content: Text(
+                tr(ref, 'mobile.lopepay.installment.deleteConfirmMsg',
+                    "Rassrochka va uning barcha to'lovlari o'chiriladi."),
+                style: AppText.body),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(dCtx, false),
                   child: Text(tr(ref, 'common.cancel', "Bekor"))),
               TextButton(
-                  style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+                  style: TextButton.styleFrom(
+                      foregroundColor: AppColors.danger),
                   onPressed: () => Navigator.pop(dCtx, true),
                   child: Text(tr(ref, 'common.delete', "O'chirish"))),
             ],
@@ -430,67 +536,47 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         await repo.deleteInstallment(instId);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(tr(ref, 'common.deleted', "O'chirildi"))));
+              content:
+                  Text(tr(ref, 'common.deleted', "O'chirildi"))));
         }
       }
       ref.invalidate(lopepayCustomerByPhoneProvider(customerId));
       ref.invalidate(lopepayDashboardProvider);
       ref.invalidate(lopepayCustomersProvider);
-      // The standalone installments-list screen caches its own copy keyed
-      // on the filter combo. Without invalidating it, marking-paid here
-      // leaves the list still showing the old paid-month count after the
-      // user navigates back.
       ref.invalidate(lopepayInstallmentsListProvider);
     } catch (e) {
       if (context.mounted) {
+        AppHaptics.error();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     }
   }
 }
 
-class _RowCard extends StatelessWidget {
-  const _RowCard({required this.title, required this.subtitle, required this.badge, required this.badgeColor});
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.title});
+  final IconData icon;
   final String title;
-  final String subtitle;
-  final String badge;
-  final Color badgeColor;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+    return Row(children: [
+      Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.12),
+          borderRadius: AppRadius.rSm,
+        ),
+        child: Icon(icon, size: 16, color: AppColors.primary),
       ),
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-            if (subtitle.isNotEmpty) ...[
-              const SizedBox(height: 2),
-              Text(subtitle, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-            ],
-          ]),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: badgeColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(badge,
-              style: TextStyle(color: badgeColor, fontSize: 11, fontWeight: FontWeight.w600)),
-        ),
-      ]),
-    );
+      const SizedBox(width: AppSpacing.sm),
+      Text(title, style: AppText.titleMd.copyWith(fontSize: 16)),
+    ]);
   }
 }
 
-/// Compact stat used inside the per-installment 2×2 mini grid.
 class _MiniStat extends StatelessWidget {
   const _MiniStat({required this.label, required this.value});
   final String label;
@@ -498,35 +584,69 @@ class _MiniStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.rSm,
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
-                style: const TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500)),
+                style: AppText.overline
+                    .copyWith(color: AppColors.textMuted, fontSize: 10)),
             const SizedBox(height: 2),
             Text(value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: AppColors.textBright,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600)),
+                style: AppText.button.copyWith(fontSize: 13)),
           ]),
     );
   }
 }
 
-/// Status banner shown above each installment card — matches web's
-/// StatusBanner colour scheme (success / due-today / overdue / next-due).
+class _SheetAction extends StatelessWidget {
+  const _SheetAction(
+      {required this.icon,
+      required this.tint,
+      required this.title,
+      required this.onTap});
+  final IconData icon;
+  final Color tint;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.selection,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
+        child: Row(children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: tint.withValues(alpha: 0.12),
+              borderRadius: AppRadius.rMd,
+            ),
+            child: Icon(icon, color: tint, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(title,
+                style: AppText.titleSm.copyWith(fontSize: 15)),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
 Widget _installmentStatusBanner(WidgetRef ref,
     {required bool isPaidOff,
     required int daysLate,
@@ -535,8 +655,8 @@ Widget _installmentStatusBanner(WidgetRef ref,
     return _bannerRow(
         icon: Icons.check_circle,
         color: AppColors.success,
-        label: tr(ref, 'lopePay.shop.bannerPaidOff',
-            "To'liq to'langan"));
+        label:
+            tr(ref, 'lopePay.shop.bannerPaidOff', "To'liq to'langan"));
   }
   if (daysLate > 0) {
     return _bannerRow(
@@ -549,7 +669,8 @@ Widget _installmentStatusBanner(WidgetRef ref,
     return _bannerRow(
         icon: Icons.access_time,
         color: AppColors.warning,
-        label: tr(ref, 'lopePay.shop.bannerDueToday', "Bugun to'lov kuni"));
+        label:
+            tr(ref, 'lopePay.shop.bannerDueToday', "Bugun to'lov kuni"));
   }
   if (nextDueDate != null && nextDueDate.isNotEmpty) {
     final d = DateTime.tryParse(nextDueDate);
@@ -571,10 +692,18 @@ Widget _bannerRow(
     required Color color,
     required String label}) {
   return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm, vertical: 6),
     decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.12),
-      borderRadius: BorderRadius.circular(8),
+      gradient: LinearGradient(
+        colors: [
+          color.withValues(alpha: 0.16),
+          color.withValues(alpha: 0.06),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: AppRadius.rSm,
       border: Border.all(color: color.withValues(alpha: 0.3)),
     ),
     child: Row(children: [
@@ -582,18 +711,14 @@ Widget _bannerRow(
       const SizedBox(width: 6),
       Expanded(
         child: Text(label,
-            style: TextStyle(
-                color: color, fontSize: 12, fontWeight: FontWeight.w700)),
+            style: AppText.button.copyWith(color: color, fontSize: 12)),
       ),
     ]),
   );
 }
 
-/// There's no /lopepay/customers/:id endpoint on the backend. We build the
-/// customer detail (name/phone/address/debt/installments/payments) by
-/// pulling /installments and grouping those whose customer matches `id`
-/// (which may be either Customer.id or a phone fallback).
-final lopepayCustomerByPhoneProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
+final lopepayCustomerByPhoneProvider =
+    FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
   final Dio dio = ref.watch(dioProvider);
   final res = await dio.get('/installments', queryParameters: {'limit': 500});
   final raw = res.data;
@@ -606,11 +731,6 @@ final lopepayCustomerByPhoneProvider = FutureProvider.family<Map<String, dynamic
   int totalDebt = 0;
   final installments = <Map<String, dynamic>>[];
   final payments = <Map<String, dynamic>>[];
-  // Backend's installment response uses flat customerName / customerPhone
-  // columns and a `debt` snapshot (installments.service.ts:67). The earlier
-  // m['customer']?.phone / m['remainingAmount'] reads always returned
-  // null + 0, so the detail header showed an empty name and 0 so'm debt
-  // even when the customer owed millions.
   for (final r in list) {
     if (r is! Map) continue;
     final m = r.cast<String, dynamic>();
@@ -618,8 +738,6 @@ final lopepayCustomerByPhoneProvider = FutureProvider.family<Map<String, dynamic
     if (custPhone != id) continue;
     name = (m['customerName'] ?? name).toString();
     phone = custPhone;
-    // No address column on Installment — keep an empty fallback so the
-    // detail card just hides the row.
     totalDebt += ((m['debt'] ?? 0) as num).toInt();
     installments.add(m);
     final pays = m['payments'];
@@ -630,8 +748,10 @@ final lopepayCustomerByPhoneProvider = FutureProvider.family<Map<String, dynamic
     }
   }
   payments.sort((a, b) {
-    final ax = DateTime.tryParse(a['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
-    final bx = DateTime.tryParse(b['createdAt']?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+    final ax = DateTime.tryParse(a['createdAt']?.toString() ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0);
+    final bx = DateTime.tryParse(b['createdAt']?.toString() ?? '') ??
+        DateTime.fromMillisecondsSinceEpoch(0);
     return bx.compareTo(ax);
   });
   return {
