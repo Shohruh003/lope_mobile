@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,17 +8,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../data/lopepay_repository.dart';
 
-/// Bottom-nav shell for the LOPE PAY role (`shop`). Three tabs:
-///   - Dashboard (due today, overdue, total receivable)
-///   - Customers (list of installment debtors)
-///   - Profile (shared with other roles)
 class LopepayHomeShell extends ConsumerStatefulWidget {
   const LopepayHomeShell({super.key, this.initialTab = 0});
   final int initialTab;
@@ -50,11 +45,14 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
         child: SafeArea(
           top: false,
           child: SizedBox(
-            height: 64,
+            height: 68,
             child: Row(children: [
-              _tab(0, Icons.dashboard_outlined, Icons.dashboard, "Boshqaruv"),
-              _tab(1, Icons.people_outline, Icons.people, "Mijozlar"),
-              _tab(2, Icons.person_outline, Icons.person, "Profil"),
+              _tab(0, Icons.dashboard_outlined, Icons.dashboard,
+                  tr(ref, 'mobile.lopepay.tabs.dashboard', "Boshqaruv")),
+              _tab(1, Icons.people_outline, Icons.people,
+                  tr(ref, 'mobile.lopepay.tabs.customers', "Mijozlar")),
+              _tab(2, Icons.person_outline, Icons.person,
+                  tr(ref, 'mobile.lopepay.tabs.profile', "Profil")),
             ]),
           ),
         ),
@@ -70,21 +68,31 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.sm, AppSpacing.xs, AppSpacing.sm),
         child: Row(children: [
-          Row(children: const [
-            Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 24),
-            SizedBox(width: 6),
-            Text("Lope Pay",
-                style: TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: -0.3)),
-          ]),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: AppRadius.rSm,
+              boxShadow: AppShadows.primaryGlow(AppColors.primary),
+            ),
+            child: const Icon(Icons.account_balance_wallet,
+                color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text("Lope Pay",
+              style: AppText.titleMd.copyWith(color: AppColors.primary)),
           const Spacer(),
           const NotificationBell(),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 24),
+            icon: const Icon(Icons.menu_rounded,
+                color: AppColors.textPrimary, size: 24),
             onPressed: () {
-              HapticFeedback.selectionClick();
+              AppHaptics.selection();
               Scaffold.of(context).openDrawer();
             },
           ),
@@ -96,24 +104,43 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
   Widget _tab(int i, IconData off, IconData on, String label) {
     final active = _index == i;
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () { HapticFeedback.selectionClick(); setState(() => _index = i); },
+      child: TapScale(
+        onTap: () {
+          AppHaptics.selection();
+          setState(() => _index = i);
+        },
+        haptic: HapticStrength.none,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(active ? on : off,
-                  color: active ? AppColors.primary : AppColors.textMuted,
-                  size: active ? 24 : 20),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: 4),
+                decoration: BoxDecoration(
+                  color: active
+                      ? AppColors.primary.withValues(alpha: 0.12)
+                      : Colors.transparent,
+                  borderRadius: AppRadius.rPill,
+                ),
+                child: Icon(active ? on : off,
+                    color:
+                        active ? AppColors.primary : AppColors.textMuted,
+                    size: 22),
+              ),
               const SizedBox(height: 2),
               Text(label,
-                  style: TextStyle(
+                  style: AppText.caption.copyWith(
                     fontSize: 10,
-                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                    color: active ? AppColors.primary : AppColors.textMuted,
+                    fontWeight:
+                        active ? FontWeight.w700 : FontWeight.w500,
+                    color: active
+                        ? AppColors.primary
+                        : AppColors.textMuted,
                   )),
             ],
           ),
@@ -145,9 +172,9 @@ class _LopepayDashboard extends ConsumerWidget {
             ref.invalidate(lopepayOverdueProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
             children: [
-              // ===== Header: shop name + address (mirrors web's h1) =====
               shopMeAsync.when(
                 loading: () => const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
@@ -155,31 +182,29 @@ class _LopepayDashboard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(s.name.isEmpty ? "Lope Pay" : s.name,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textBright, letterSpacing: -0.3)),
+                        style: AppText.titleLg),
                     if (s.address.isNotEmpty) ...[
                       const SizedBox(height: 2),
-                      Text(s.address,
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                      Text(s.address, style: AppText.bodySm),
                     ],
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: AppSpacing.lg),
 
-              // ===== 4 stat tiles (mirrors web: Balance / DueToday / Overdue / AllCustomers) =====
               async.when(
                 loading: () => const Column(
                   children: [
                     Row(children: [
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      Expanded(child: AppSkeleton(height: 96, borderRadius: 14)),
                       SizedBox(width: 8),
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      Expanded(child: AppSkeleton(height: 96, borderRadius: 14)),
                     ]),
                     SizedBox(height: 8),
                     Row(children: [
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      Expanded(child: AppSkeleton(height: 96, borderRadius: 14)),
                       SizedBox(width: 8),
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      Expanded(child: AppSkeleton(height: 96, borderRadius: 14)),
                     ]),
                   ],
                 ),
@@ -194,101 +219,131 @@ class _LopepayDashboard extends ConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 2,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 1.45,
+                  mainAxisSpacing: AppSpacing.sm,
+                  crossAxisSpacing: AppSpacing.sm,
+                  childAspectRatio: 1.4,
                   children: [
                     _MetricTile(
-                        label: tr(ref, 'mobile.lopepay.home.balance', "Balans"),
-                        value: shopMeAsync.maybeWhen(
-                          data: (s) => "${_fmt(s.ownerBalance)} ${tr(ref, 'common.currency', "so'm")}",
-                          orElse: () => "—",
-                        ),
-                        color: AppColors.primary, icon: Icons.account_balance_wallet_outlined),
+                      label: tr(ref, 'mobile.lopepay.home.balance', "Balans"),
+                      value: shopMeAsync.maybeWhen(
+                        data: (s) =>
+                            "${_fmt(s.ownerBalance)} ${tr(ref, 'common.currency', "so'm")}",
+                        orElse: () => "—",
+                      ),
+                      color: AppColors.primary,
+                      icon: Icons.account_balance_wallet_outlined,
+                    ),
                     _MetricTile(
-                        label: tr(ref, 'mobile.lopepay.home.dueToday', "Bugun tushishi kerak"),
-                        value: "${_fmt(d.dueToday)} ${tr(ref, 'common.currency', "so'm")}",
-                        color: AppColors.warning, icon: Icons.event_available),
+                      label: tr(ref, 'mobile.lopepay.home.dueToday',
+                          "Bugun tushishi kerak"),
+                      value:
+                          "${_fmt(d.dueToday)} ${tr(ref, 'common.currency', "so'm")}",
+                      color: AppColors.warning,
+                      icon: Icons.event_available,
+                    ),
                     _MetricTile(
-                        label: tr(ref, 'mobile.lopepay.home.overdue', "Muddati o'tgan"),
-                        value: "${_fmt(d.overdue)} ${tr(ref, 'common.currency', "so'm")}",
-                        color: AppColors.danger, icon: Icons.warning_amber_rounded),
+                      label: tr(ref, 'mobile.lopepay.home.overdue',
+                          "Muddati o'tgan"),
+                      value:
+                          "${_fmt(d.overdue)} ${tr(ref, 'common.currency', "so'm")}",
+                      color: AppColors.danger,
+                      icon: Icons.warning_amber_rounded,
+                    ),
                     _MetricTile(
-                        label: tr(ref, 'mobile.lopepay.home.allCustomers', "Hammasi"),
-                        value: shopMeAsync.maybeWhen(
-                          data: (s) => "${s.totalInstallments}",
-                          orElse: () => "${d.activeCustomers}",
-                        ),
-                        color: AppColors.success, icon: Icons.people_outline),
+                      label: tr(ref, 'mobile.lopepay.home.allCustomers', "Hammasi"),
+                      value: shopMeAsync.maybeWhen(
+                        data: (s) => "${s.totalInstallments}",
+                        orElse: () => "${d.activeCustomers}",
+                      ),
+                      color: AppColors.success,
+                      icon: Icons.people_outline,
+                    ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: AppSpacing.xl),
 
-              // ===== Due today list =====
               _SectionHeader(
-                  icon: Icons.event_available,
-                  label: tr(ref, 'mobile.lopepay.home.dueTodayTitle', "Bugun to'lov kuni"),
-                  iconColor: AppColors.warning,
-                  onViewAll: () =>
-                      context.push('/lopepay/installments?status=due_today')),
-              const SizedBox(height: 8),
+                icon: Icons.event_available,
+                label: tr(ref, 'mobile.lopepay.home.dueTodayTitle',
+                    "Bugun to'lov kuni"),
+                iconColor: AppColors.warning,
+                viewAllLabel: tr(ref, 'common.all', "Hammasi"),
+                onViewAll: () =>
+                    context.push('/lopepay/installments?status=due_today'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               dueTodayAsync.when(
                 loading: () => const Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AppSkeleton(height: 52, borderRadius: 10),
+                    AppSkeleton(height: 56, borderRadius: 10),
                     SizedBox(height: 6),
-                    AppSkeleton(height: 52, borderRadius: 10),
+                    AppSkeleton(height: 56, borderRadius: 10),
                   ],
                 ),
-                error: (e, _) => Text(humanize(e),
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                error: (e, _) => Text(humanize(e), style: AppText.caption),
                 data: (list) {
                   if (list.isEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
-                      ),
+                    return AppCard(
+                      variant: AppCardVariant.flat,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.lg),
                       child: Center(
-                        child: Text(tr(ref, 'mobile.lopepay.home.noDueToday',
-                            "Bugun to'lov kerak emas"),
-                            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                        child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.celebration,
+                                  size: 16, color: AppColors.success),
+                              const SizedBox(width: 6),
+                              Text(
+                                  tr(ref,
+                                      'mobile.lopepay.home.noDueToday',
+                                      "Bugun to'lov kerak emas"),
+                                  style: AppText.bodySm),
+                            ]),
                       ),
                     );
                   }
                   return Column(
-                    children: list.take(5).map((inst) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: _InstallmentRow(item: inst, isOverdue: false),
-                    )).toList(),
+                    children: list
+                        .take(5)
+                        .map((inst) => Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: 6),
+                              child: _InstallmentRow(
+                                  item: inst, isOverdue: false),
+                            ))
+                        .toList(),
                   );
                 },
               ),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: AppSpacing.xl),
 
-              // ===== Overdue list =====
               overdueAsync.maybeWhen(
                 data: (list) {
                   if (list.isEmpty) return const SizedBox.shrink();
-                  return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    _SectionHeader(
-                        icon: Icons.warning_amber,
-                        label: tr(ref, 'mobile.lopepay.home.overdue', "Muddati o'tgan"),
-                        iconColor: AppColors.danger,
-                        onViewAll: () => context
-                            .push('/lopepay/installments?status=overdue')),
-                    const SizedBox(height: 8),
-                    ...list.take(5).map((inst) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: _InstallmentRow(item: inst, isOverdue: true),
-                    )),
-                  ]);
+                  return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _SectionHeader(
+                          icon: Icons.warning_amber,
+                          label: tr(ref, 'mobile.lopepay.home.overdue',
+                              "Muddati o'tgan"),
+                          iconColor: AppColors.danger,
+                          viewAllLabel: tr(ref, 'common.all', "Hammasi"),
+                          onViewAll: () => context
+                              .push('/lopepay/installments?status=overdue'),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        ...list.take(5).map((inst) => Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: _InstallmentRow(
+                                  item: inst, isOverdue: true),
+                            )),
+                      ]);
                 },
                 orElse: () => const SizedBox.shrink(),
               ),
@@ -312,29 +367,39 @@ class _LopepayDashboard extends ConsumerWidget {
 }
 
 class _MetricTile extends StatelessWidget {
-  const _MetricTile({required this.label, required this.value, required this.color, required this.icon});
+  const _MetricTile(
+      {required this.label,
+      required this.value,
+      required this.color,
+      required this.icon});
   final String label;
   final String value;
   final Color color;
   final IconData icon;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
+    return AppCard(
+      variant: AppCardVariant.flat,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      color: color.withValues(alpha: 0.05),
+      borderColor: color.withValues(alpha: 0.2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            width: 32, height: 32,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.28),
+                  color.withValues(alpha: 0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: AppRadius.rSm,
             ),
             child: Icon(icon, color: color, size: 18),
           ),
@@ -343,9 +408,13 @@ class _MetricTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(value,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, letterSpacing: -0.3, color: AppColors.textBright)),
-              const SizedBox(height: 4),
-              Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12, fontWeight: FontWeight.w500)),
+                  style: AppText.titleMd
+                      .copyWith(fontSize: 17, letterSpacing: -0.3)),
+              const SizedBox(height: 2),
+              Text(label,
+                  style: AppText.caption.copyWith(fontSize: 11),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
             ],
           ),
         ],
@@ -354,54 +423,49 @@ class _MetricTile extends StatelessWidget {
   }
 }
 
-/// Section header inside the dashboard — used for "Bugun to'lov kuni" and
-/// "Muddati o'tgan" groups. Matches the web's `h2` rows with the colored
-/// leading icon.
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader(
       {required this.icon,
       required this.label,
       required this.iconColor,
+      required this.viewAllLabel,
       this.onViewAll});
   final IconData icon;
   final String label;
   final Color iconColor;
+  final String viewAllLabel;
   final VoidCallback? onViewAll;
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      Icon(icon, color: iconColor, size: 20),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: iconColor == AppColors.danger
-                    ? AppColors.danger
-                    : AppColors.textBright)),
+      Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.12),
+          borderRadius: AppRadius.rSm,
+        ),
+        child: Icon(icon, color: iconColor, size: 16),
       ),
+      const SizedBox(width: AppSpacing.sm),
+      Expanded(child: Text(label, style: AppText.titleSm)),
       if (onViewAll != null)
-        InkWell(
-          borderRadius: BorderRadius.circular(6),
+        TapScale(
           onTap: onViewAll,
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          haptic: HapticStrength.light,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: AppRadius.rSm,
+            ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text("Hammasi",
-                  style: TextStyle(
-                      color: iconColor == AppColors.danger
-                          ? AppColors.danger
-                          : AppColors.primary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500)),
+              Text(viewAllLabel,
+                  style: AppText.button
+                      .copyWith(color: iconColor, fontSize: 12)),
               const SizedBox(width: 2),
-              Icon(Icons.chevron_right,
-                  size: 16,
-                  color: iconColor == AppColors.danger
-                      ? AppColors.danger
-                      : AppColors.primary),
+              Icon(Icons.chevron_right, size: 14, color: iconColor),
             ]),
           ),
         ),
@@ -409,8 +473,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// Installment row card — name + phone + due-date + amount badge.
-/// Used in both "Due today" and "Overdue" sections.
 class _InstallmentRow extends ConsumerWidget {
   const _InstallmentRow({required this.item, required this.isOverdue});
   final Map<String, dynamic> item;
@@ -429,9 +491,6 @@ class _InstallmentRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Backend installments have no nested customer object — flat
-    // customerName / customerPhone live on the row itself, and the
-    // payable each month is monthlyPayment (see lopepay fix 8aa66e8).
     final name = (item['customerName'] ?? '').toString();
     final phone = (item['customerPhone'] ?? '').toString();
     final monthly = ((item['monthlyPayment'] ??
@@ -441,62 +500,68 @@ class _InstallmentRow extends ConsumerWidget {
         .toInt();
     final color = isOverdue ? AppColors.danger : AppColors.warning;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      // Detail screen aggregates by phone — backend has no per-customer
-      // endpoint and customer.id isn't on the installment response.
+    return AppCard(
+      variant: AppCardVariant.flat,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      borderColor: isOverdue ? color.withValues(alpha: 0.4) : null,
       onTap: phone.isEmpty
           ? null
-          : () => context.push(
-              '/lopepay/customers/${Uri.encodeComponent(phone)}'),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isOverdue ? color.withValues(alpha: 0.4) : AppColors.border),
-        ),
-        child: Row(children: [
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-              style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 14),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name.isEmpty ? tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz") : name,
-                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textBright)),
-                if (phone.isNotEmpty)
-                  Text(phone,
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          : () => context
+              .push('/lopepay/customers/${Uri.encodeComponent(phone)}'),
+      child: Row(children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                color.withValues(alpha: 0.28),
+                color.withValues(alpha: 0.1),
               ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            shape: BoxShape.circle,
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          alignment: Alignment.center,
+          child: Text(
+            (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+            style: AppText.titleSm.copyWith(color: color),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("${_fmt(monthly)} ${tr(ref, 'common.currency', "so'm")}",
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: color)),
-              if (isOverdue)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(tr(ref, 'mobile.lopepay.home.overdueShort', "o'tib ketgan"),
-                      style: const TextStyle(fontSize: 11, color: AppColors.danger, fontWeight: FontWeight.w500)),
-                ),
+              Text(
+                  name.isEmpty
+                      ? tr(ref, 'mobile.barber.bookingsAll.client',
+                          "Mijoz")
+                      : name,
+                  style: AppText.titleSm.copyWith(fontSize: 14)),
+              if (phone.isNotEmpty)
+                Text(phone, style: AppText.caption),
             ],
           ),
-        ]),
-      ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+                "${_fmt(monthly)} ${tr(ref, 'common.currency', "so'm")}",
+                style: AppText.titleSm.copyWith(color: color, fontSize: 14)),
+            if (isOverdue) ...[
+              const SizedBox(height: 2),
+              AppBadge(
+                label: tr(ref, 'mobile.lopepay.home.overdueShort',
+                    "o'tib ketgan"),
+                variant: AppBadgeVariant.danger,
+              ),
+            ],
+          ],
+        ),
+      ]),
     );
   }
 }
@@ -512,7 +577,7 @@ class _LopepayCustomersTab extends ConsumerStatefulWidget {
 class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
   static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
   String _query = '';
-  String _filter = 'all'; // 'all' | 'overdue' | 'dueToday' | 'paidOff'
+  String _filter = 'all';
 
   bool _matchesFilter(LopepayCustomer c, DateTime now) {
     final today = DateTime(now.year, now.month, now.day);
@@ -540,10 +605,15 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => context.push('/lopepay/customers/new'),
-        icon: const Icon(Icons.add),
-        label: Text(tr(ref, 'mobile.lopepay.customerForm.addBtn',
-            "Rassrochka qo'shish")),
+        onPressed: () {
+          AppHaptics.medium();
+          context.push('/lopepay/customers/new');
+        },
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+            tr(ref, 'mobile.lopepay.customerForm.addBtn',
+                "Rassrochka qo'shish"),
+            style: AppText.button.copyWith(color: Colors.white)),
       ),
       body: SafeArea(
         child: async.when(
@@ -563,51 +633,76 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
 
             return RefreshIndicator(
               color: AppColors.primary,
-              onRefresh: () async => ref.refresh(lopepayCustomersProvider.future),
+              onRefresh: () async =>
+                  ref.refresh(lopepayCustomersProvider.future),
               child: Column(children: [
-                // Search bar
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: TextField(
-                    onChanged: (v) => setState(() => _query = v),
-                    style: const TextStyle(color: AppColors.textBright),
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search,
-                          color: AppColors.textMuted, size: 22),
-                      hintText: tr(ref, 'mobile.lopepay.customers.searchHint',
-                          "Ism yoki telefon"),
-                      isDense: true,
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.xs),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: AppRadius.rMd,
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: TextField(
+                      onChanged: (v) => setState(() => _query = v),
+                      style: AppText.body,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.md),
+                        prefixIcon: const Icon(Icons.search,
+                            color: AppColors.textMuted, size: 20),
+                        hintText: tr(ref,
+                            'mobile.lopepay.customers.searchHint',
+                            "Ism yoki telefon"),
+                        hintStyle: AppText.body
+                            .copyWith(color: AppColors.textMuted),
+                      ),
                     ),
                   ),
                 ),
-                // Filter chips
                 SizedBox(
-                  height: 40,
+                  height: 44,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg),
                     children: [
-                      _FilterChip(
+                      AppChip(
                         label: tr(ref, 'common.all', "Hammasi"),
-                        on: _filter == 'all',
+                        selected: _filter == 'all',
                         onTap: () => setState(() => _filter = 'all'),
                       ),
-                      _FilterChip(
-                        label: tr(ref, 'mobile.lopepay.customer.statusOverdue',
+                      const SizedBox(width: AppSpacing.sm),
+                      AppChip(
+                        label: tr(ref,
+                            'mobile.lopepay.customer.statusOverdue',
                             "Muddati o'tgan"),
-                        on: _filter == 'overdue',
+                        selected: _filter == 'overdue',
                         onTap: () => setState(() => _filter = 'overdue'),
                       ),
-                      _FilterChip(
+                      const SizedBox(width: AppSpacing.sm),
+                      AppChip(
                         label: tr(ref, 'mobile.lopepay.home.dueToday',
                             "Bugun tushishi kerak"),
-                        on: _filter == 'dueToday',
+                        selected: _filter == 'dueToday',
                         onTap: () => setState(() => _filter = 'dueToday'),
                       ),
-                      _FilterChip(
-                        label: tr(ref, 'mobile.lopepay.customer.statusPaid',
+                      const SizedBox(width: AppSpacing.sm),
+                      AppChip(
+                        label: tr(ref,
+                            'mobile.lopepay.customer.statusPaid',
                             "To'langan"),
-                        on: _filter == 'paidOff',
+                        selected: _filter == 'paidOff',
                         onTap: () => setState(() => _filter = 'paidOff'),
                       ),
                     ],
@@ -615,84 +710,130 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                 ),
                 if (list.isEmpty)
                   Expanded(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Text(
-                          rawList.isEmpty
-                              ? tr(ref, 'mobile.lopepay.home.noCustomers',
-                                  "Mijozlar yo'q")
-                              : tr(ref, 'common.noResults',
-                                  "Filterga mos natija yo'q"),
-                          style: const TextStyle(color: AppColors.textMuted),
-                        ),
-                      ),
+                    child: AppEmptyState(
+                      icon: Icons.people_outline_rounded,
+                      title: rawList.isEmpty
+                          ? tr(ref, 'mobile.lopepay.home.noCustomers',
+                              "Mijozlar yo'q")
+                          : tr(ref, 'common.noResults',
+                              "Filterga mos natija yo'q"),
                     ),
                   )
                 else
                   Expanded(
                     child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                      padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          AppSpacing.sm,
+                          AppSpacing.lg,
+                          96),
                       itemCount: list.length,
-                      separatorBuilder: (context, i) => const SizedBox(height: 10),
+                      separatorBuilder: (context, i) =>
+                          const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (context, i) {
                         final c = list[i];
                         final overdue = c.nextDue != null &&
                             c.nextDue!.isBefore(DateTime.now());
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => context.push(
-                        '/lopepay/customers/${Uri.encodeComponent(c.id)}'),
-                    child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: overdue ? AppColors.danger.withValues(alpha: 0.4) : AppColors.border),
-                    ),
-                    child: Row(children: [
-                      Container(
-                        width: 44, height: 44,
-                        decoration: BoxDecoration(
-                          color: (overdue ? AppColors.danger : AppColors.primary).withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text((c.name.isNotEmpty ? c.name[0] : '?').toUpperCase(),
-                            style: TextStyle(color: overdue ? AppColors.danger : AppColors.primary, fontSize: 18, fontWeight: FontWeight.w600)),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(c.name.isEmpty ? c.phone : c.name,
-                                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-                            if (c.phone.isNotEmpty)
-                              Text(c.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                            const SizedBox(height: 4),
-                            Row(children: [
-                              Text("${_fmt(c.totalDebt)} ${tr(ref, 'common.currency', "so'm")}",
-                                  style: TextStyle(color: overdue ? AppColors.danger : AppColors.warning, fontWeight: FontWeight.w600, fontSize: 14)),
-                              if (c.nextDue != null) ...[
-                                const SizedBox(width: 8),
-                                Text("• ${_df.format(c.nextDue!)}", style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                              ],
-                            ]),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 20),
-                        onPressed: c.phone.isEmpty ? null : () async {
-                          final clean = c.phone.replaceAll(RegExp(r'[^\d+]'), '');
-                          final uri = Uri(scheme: 'tel', path: clean);
-                          if (await canLaunchUrl(uri)) await launchUrl(uri);
-                        },
-                      ),
-                    ]),
-                  ),
-                  ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);
+                        final color =
+                            overdue ? AppColors.danger : AppColors.primary;
+                        return AppCard(
+                          variant: AppCardVariant.flat,
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          borderColor: overdue
+                              ? AppColors.danger.withValues(alpha: 0.4)
+                              : null,
+                          onTap: () => context.push(
+                              '/lopepay/customers/${Uri.encodeComponent(c.id)}'),
+                          child: Row(children: [
+                            Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    color.withValues(alpha: 0.6),
+                                    color.withValues(alpha: 0.25),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.surface,
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                    (c.name.isNotEmpty
+                                            ? c.name[0]
+                                            : '?')
+                                        .toUpperCase(),
+                                    style: AppText.titleMd
+                                        .copyWith(color: color)),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(c.name.isEmpty ? c.phone : c.name,
+                                      style: AppText.titleSm
+                                          .copyWith(fontSize: 14)),
+                                  if (c.phone.isNotEmpty)
+                                    Text(c.phone,
+                                        style: AppText.caption),
+                                  const SizedBox(height: 4),
+                                  Row(children: [
+                                    Text(
+                                        "${_fmt(c.totalDebt)} ${tr(ref, 'common.currency', "so'm")}",
+                                        style: AppText.button.copyWith(
+                                            color: overdue
+                                                ? AppColors.danger
+                                                : AppColors.warning,
+                                            fontSize: 14)),
+                                    if (c.nextDue != null) ...[
+                                      const SizedBox(
+                                          width: AppSpacing.sm),
+                                      Text("• ${_df.format(c.nextDue!)}",
+                                          style: AppText.caption
+                                              .copyWith(fontSize: 11)),
+                                    ],
+                                  ]),
+                                ],
+                              ),
+                            ),
+                            TapScale(
+                              onTap: c.phone.isEmpty
+                                  ? null
+                                  : () async {
+                                      final clean = c.phone
+                                          .replaceAll(RegExp(r'[^\d+]'), '');
+                                      final uri = Uri(
+                                          scheme: 'tel', path: clean);
+                                      if (await canLaunchUrl(uri)) {
+                                        await launchUrl(uri);
+                                      }
+                                    },
+                              haptic: HapticStrength.light,
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.phone_outlined,
+                                    color: AppColors.primary, size: 18),
+                              ),
+                            ),
+                          ]),
+                        ).animate().fadeIn(
+                            duration: 250.ms, delay: (i * 25).ms);
                       },
                     ),
                   ),
@@ -713,35 +854,5 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.on, required this.onTap});
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: on ? AppColors.primary.withValues(alpha: 0.15) : AppColors.background,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: on ? AppColors.primary : AppColors.border),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: on ? FontWeight.w600 : FontWeight.w500,
-                  color: on ? AppColors.primary : AppColors.textMuted)),
-        ),
-      ),
-    );
   }
 }
