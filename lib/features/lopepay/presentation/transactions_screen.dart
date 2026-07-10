@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/balance_repository.dart';
 import 'top_up_modal.dart';
 
-/// Combined balance + payment history. Mirrors web MyTransactionsPage:
-///   - Balance hero card (with top-up button)
-///   - Income / Expense stats card (computed server-side per filter window)
-///   - Direction chips (Hammasi / Kirim / Chiqim)
-///   - Filter button → collapsible panel: method dropdown, from/to dates
-///   - Prev/Next pagination
 class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
   @override
@@ -28,14 +22,13 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   static final _df = DateFormat('dd.MM.yyyy HH:mm', 'ru_RU');
   static final _ymd = DateFormat('yyyy-MM-dd');
 
-  String _direction = 'all'; // 'all' | 'in' | 'out' → income/expense server-side
-  String _method = 'all'; // 'all' | 'click' | 'payme' | 'telegram' | 'internal'
+  String _direction = 'all';
+  String _method = 'all';
   DateTime? _from;
   DateTime? _to;
   int _page = 1;
   bool _filtersOpen = false;
 
-  // Map direction chip to server param. Web sends 'income'/'expense'.
   String? _directionParam() {
     if (_direction == 'in') return 'income';
     if (_direction == 'out') return 'expense';
@@ -52,6 +45,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       );
 
   Future<void> _pickDate(bool isFrom) async {
+    AppHaptics.light();
     final init = (isFrom ? _from : _to) ?? DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -71,6 +65,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 
   void _resetFilters() {
+    AppHaptics.light();
     setState(() {
       _direction = 'all';
       _method = 'all';
@@ -93,7 +88,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
             'Telegram');
       case 'internal':
         return tr(ref, 'mobile.customer.transactions.methodInternal',
-            "Ichki");
+            'Ichki');
       default:
         return tr(ref, 'common.all', 'Hammasi');
     }
@@ -114,7 +109,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         return tr(
             ref, 'mobile.customer.transactions.methodSms', 'SMS xizmat');
       case 'ai':
-        return tr(ref, 'mobile.customer.transactions.methodAi', 'AI Stil');
+        return tr(
+            ref, 'mobile.customer.transactions.methodAi', 'AI Stil');
       case 'referral':
         return tr(ref, 'mobile.customer.transactions.methodReferral',
             'Referal bonus');
@@ -139,20 +135,45 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
     if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: Center(child: CircularProgressIndicator()));
     }
     final balance = ref.watch(myBalanceProvider(user.id));
-    final async = ref.watch(paymentHistoryFilteredProvider(_key(user.id)));
+    final async =
+        ref.watch(paymentHistoryFilteredProvider(_key(user.id)));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.customer.transactions.title', "Hisobim")),
+        title: Text(
+          tr(ref, 'mobile.customer.transactions.title', 'Hisobim'),
+          style: AppText.titleMd,
+        ),
         actions: [
-          IconButton(
-            icon: Icon(
-                _filtersOpen ? Icons.filter_list_off : Icons.filter_list,
-                color: _filtersOpen ? AppColors.primary : null),
-            onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: TapScale(
+              onTap: () {
+                AppHaptics.light();
+                setState(() => _filtersOpen = !_filtersOpen);
+              },
+              scale: 0.9,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _filtersOpen
+                      ? AppColors.primary
+                      : AppColors.surface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Icon(
+                  _filtersOpen ? Icons.filter_list_off : Icons.filter_list,
+                  color: _filtersOpen ? Colors.white : AppColors.textPrimary,
+                  size: 18,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -164,185 +185,190 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           ref.invalidate(paymentHistoryProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.xxl,
+          ),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            // ===== Balance hero =====
             balance.when(
-              loading: () => const AppSkeleton(height: 130, borderRadius: 20),
+              loading: () =>
+                  const SkeletonRect(height: 160, radius: AppRadius.xl),
               error: (e, _) => SizedBox(
-                height: 180,
+                height: 200,
                 child: AppErrorState(
                   message: humanize(e),
-                  onRetry: () => ref.invalidate(myBalanceProvider(user.id)),
+                  onRetry: () =>
+                      ref.invalidate(myBalanceProvider(user.id)),
                 ),
               ),
               data: (b) => _BalanceCard(
                   amount: b.amount, aiFree: b.aiFreeRemaining),
             ),
-
-            // ===== Stats card (Income / Expense) =====
             async.maybeWhen(
               data: (res) => Padding(
-                padding: const EdgeInsets.only(top: 14),
+                padding: const EdgeInsets.only(top: AppSpacing.md),
                 child: Row(children: [
                   Expanded(
                     child: _StatTile(
-                        icon: Icons.trending_up,
-                        color: AppColors.success,
-                        label: tr(ref, 'mobile.customer.transactions.income',
-                            "Kirim"),
-                        value:
-                            "${_fmt(res.totalIncome)} ${tr(ref, 'common.currency', "so'm")}"),
+                      icon: Icons.trending_up,
+                      color: AppColors.success,
+                      label: tr(ref,
+                          'mobile.customer.transactions.income', 'Kirim'),
+                      value:
+                          "${_fmt(res.totalIncome)} ${tr(ref, 'common.currency', "so'm")}",
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  AppSpacing.hGapSm,
                   Expanded(
                     child: _StatTile(
-                        icon: Icons.trending_down,
-                        color: AppColors.danger,
-                        label: tr(ref, 'mobile.customer.transactions.expense',
-                            "Chiqim"),
-                        value:
-                            "${_fmt(res.totalExpense)} ${tr(ref, 'common.currency', "so'm")}"),
+                      icon: Icons.trending_down,
+                      color: AppColors.danger,
+                      label: tr(
+                          ref,
+                          'mobile.customer.transactions.expense',
+                          'Chiqim'),
+                      value:
+                          "${_fmt(res.totalExpense)} ${tr(ref, 'common.currency', "so'm")}",
+                    ),
                   ),
                 ]),
               ),
               orElse: () => const SizedBox.shrink(),
             ),
-
-            const SizedBox(height: 22),
+            AppSpacing.gapXl,
             Text(
-                tr(ref, 'mobile.customer.transactions.history',
-                    "Tranzaktsiyalar"),
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                    letterSpacing: -0.3)),
-            const SizedBox(height: 10),
+              tr(ref, 'mobile.customer.transactions.history',
+                  'Tranzaktsiyalar'),
+              style: AppText.titleMd,
+            ),
+            AppSpacing.gapMd,
 
-            // Direction chips
             SizedBox(
-              height: 38,
+              height: 40,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _TxnChip(
-                      label: tr(ref, 'common.all', "Hammasi"),
-                      on: _direction == 'all',
-                      onTap: () => setState(() {
-                            _direction = 'all';
-                            _page = 1;
-                          })),
-                  _TxnChip(
-                      label: tr(ref, 'mobile.customer.transactions.income',
-                          "Kirim"),
-                      on: _direction == 'in',
-                      onTap: () => setState(() {
-                            _direction = 'in';
-                            _page = 1;
-                          })),
-                  _TxnChip(
-                      label: tr(ref, 'mobile.customer.transactions.expense',
-                          "Chiqim"),
-                      on: _direction == 'out',
-                      onTap: () => setState(() {
-                            _direction = 'out';
-                            _page = 1;
-                          })),
+                  AppChip(
+                    label: tr(ref, 'common.all', 'Hammasi'),
+                    selected: _direction == 'all',
+                    onTap: () => setState(() {
+                      _direction = 'all';
+                      _page = 1;
+                    }),
+                  ),
+                  AppSpacing.hGapSm,
+                  AppChip(
+                    label: tr(ref,
+                        'mobile.customer.transactions.income', 'Kirim'),
+                    leadingIcon: Icons.trending_up,
+                    selected: _direction == 'in',
+                    onTap: () => setState(() {
+                      _direction = 'in';
+                      _page = 1;
+                    }),
+                  ),
+                  AppSpacing.hGapSm,
+                  AppChip(
+                    label: tr(ref,
+                        'mobile.customer.transactions.expense', 'Chiqim'),
+                    leadingIcon: Icons.trending_down,
+                    selected: _direction == 'out',
+                    onTap: () => setState(() {
+                      _direction = 'out';
+                      _page = 1;
+                    }),
+                  ),
                 ],
               ),
             ),
 
-            // Filter panel
             if (_filtersOpen) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      DropdownButtonFormField<String>(
-                        isDense: true,
-                        initialValue: _method,
-                        decoration: InputDecoration(
-                            labelText: tr(ref, 'lopePay.shop.filterType',
-                                "To'lov turi")),
-                        items: [
-                          DropdownMenuItem(
-                              value: 'all',
-                              child: Text(_methodLabel('all'))),
-                          DropdownMenuItem(
-                              value: 'click',
-                              child: Text(_methodLabel('click'))),
-                          DropdownMenuItem(
-                              value: 'payme',
-                              child: Text(_methodLabel('payme'))),
-                          DropdownMenuItem(
-                              value: 'telegram',
-                              child: Text(_methodLabel('telegram'))),
-                          DropdownMenuItem(
-                              value: 'internal',
-                              child: Text(_methodLabel('internal'))),
-                        ],
-                        onChanged: (v) => setState(() {
-                          _method = v ?? 'all';
-                          _page = 1;
-                        }),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        Expanded(
-                            child: _DatePill(
-                                label: _from == null
-                                    ? tr(ref, 'shop.filter.from', "Dan")
-                                    : _ymd.format(_from!),
-                                onTap: () => _pickDate(true))),
-                        const SizedBox(width: 8),
-                        const Text("—",
-                            style: TextStyle(color: AppColors.textMuted)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                            child: _DatePill(
-                                label: _to == null
-                                    ? tr(ref, 'shop.filter.to', "Gacha")
-                                    : _ymd.format(_to!),
-                                onTap: () => _pickDate(false))),
-                      ]),
-                      const SizedBox(height: 10),
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.refresh, size: 16),
-                        label: Text(tr(ref, 'common.reset', "Tozalash")),
-                        onPressed: _resetFilters,
-                      ),
-                    ]),
-              ),
-            ],
-
-            const SizedBox(height: 12),
-            async.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
+              AppSpacing.gapMd,
+              AppCard(
+                variant: AppCardVariant.outlined,
+                padding: AppSpacing.cardPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AppSkeleton(height: 62, borderRadius: 12),
-                    SizedBox(height: 8),
-                    AppSkeleton(height: 62, borderRadius: 12),
-                    SizedBox(height: 8),
-                    AppSkeleton(height: 62, borderRadius: 12),
+                    DropdownButtonFormField<String>(
+                      isDense: true,
+                      initialValue: _method,
+                      decoration: InputDecoration(
+                        labelText: tr(ref, 'lopePay.shop.filterType',
+                            "To'lov turi"),
+                      ),
+                      items: [
+                        for (final m in const [
+                          'all',
+                          'click',
+                          'payme',
+                          'telegram',
+                          'internal'
+                        ])
+                          DropdownMenuItem(
+                              value: m, child: Text(_methodLabel(m))),
+                      ],
+                      onChanged: (v) => setState(() {
+                        _method = v ?? 'all';
+                        _page = 1;
+                      }),
+                    ),
+                    AppSpacing.gapMd,
+                    Row(children: [
+                      Expanded(
+                        child: _DatePill(
+                          label: _from == null
+                              ? tr(ref, 'shop.filter.from', 'Dan')
+                              : _ymd.format(_from!),
+                          onTap: () => _pickDate(true),
+                        ),
+                      ),
+                      AppSpacing.hGapSm,
+                      const Text('—',
+                          style: TextStyle(color: AppColors.textMuted)),
+                      AppSpacing.hGapSm,
+                      Expanded(
+                        child: _DatePill(
+                          label: _to == null
+                              ? tr(ref, 'shop.filter.to', 'Gacha')
+                              : _ymd.format(_to!),
+                          onTap: () => _pickDate(false),
+                        ),
+                      ),
+                    ]),
+                    AppSpacing.gapMd,
+                    AppButton(
+                      label: tr(ref, 'common.reset', 'Tozalash'),
+                      leadingIcon: Icons.refresh,
+                      variant: AppButtonVariant.secondary,
+                      fullWidth: true,
+                      onPressed: _resetFilters,
+                    ),
                   ],
                 ),
+              ),
+            ],
+
+            AppSpacing.gapMd,
+            async.when(
+              loading: () => const Column(
+                children: [
+                  SkeletonRect(height: 68, radius: AppRadius.md),
+                  SizedBox(height: AppSpacing.sm),
+                  SkeletonRect(height: 68, radius: AppRadius.md),
+                  SizedBox(height: AppSpacing.sm),
+                  SkeletonRect(height: 68, radius: AppRadius.md),
+                ],
               ),
               error: (e, _) => SizedBox(
                 height: 300,
                 child: AppErrorState(
                   message: humanize(e),
-                  onRetry: () => ref.invalidate(paymentHistoryFilteredProvider),
+                  onRetry: () =>
+                      ref.invalidate(paymentHistoryFilteredProvider),
                 ),
               ),
               data: (res) {
@@ -353,7 +379,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     height: 260,
                     child: AppEmptyState(
                       icon: Icons.receipt_long_rounded,
-                      title: tr(ref, 'mobile.customer.transactions.empty',
+                      title: tr(
+                          ref,
+                          'mobile.customer.transactions.empty',
                           "Hali tranzaktsiya yo'q"),
                       message: tr(
                         ref,
@@ -367,87 +395,93 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   ...List.generate(list.length, (i) {
                     final p = list[i];
                     final inflow = p.direction == 'in' || p.amount > 0;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: (inflow
-                                    ? AppColors.success
-                                    : AppColors.danger)
-                                .withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                              inflow
-                                  ? Icons.arrow_downward
-                                  : Icons.arrow_upward,
-                              size: 18,
-                              color: inflow
-                                  ? AppColors.success
-                                  : AppColors.danger),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  p.description ??
-                                      _methodRowLabel(ref, p.method),
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14)),
-                              const SizedBox(height: 2),
-                              Text(_df.format(p.createdAt.toLocal()),
-                                  style: const TextStyle(
-                                      color: AppColors.textMuted,
-                                      fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                        Text(
-                            "${inflow ? '+' : '−'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                    return Padding(
+                      padding:
+                          const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: AppCard(
+                        variant: AppCardVariant.outlined,
+                        padding: AppSpacing.cardPadding,
+                        child: Row(children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: (inflow
+                                      ? AppColors.success
+                                      : AppColors.danger)
+                                  .withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                                inflow
+                                    ? Icons.arrow_downward
+                                    : Icons.arrow_upward,
+                                size: 20,
                                 color: inflow
                                     ? AppColors.success
-                                    : AppColors.danger)),
-                      ]),
+                                    : AppColors.danger),
+                          ),
+                          AppSpacing.hGapMd,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    p.description ??
+                                        _methodRowLabel(ref, p.method),
+                                    style: AppText.body.copyWith(
+                                        fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 2),
+                                Text(_df.format(p.createdAt.toLocal()),
+                                    style: AppText.caption),
+                              ],
+                            ),
+                          ),
+                          Text(
+                              "${inflow ? '+' : '−'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
+                              style: AppText.body.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: inflow
+                                    ? AppColors.success
+                                    : AppColors.danger,
+                              )),
+                        ]),
+                      ),
                     ).animate().fadeIn(
                         duration: 200.ms, delay: (i * 20).ms);
                   }),
                   if (pages > 1) ...[
-                    const SizedBox(height: 8),
+                    AppSpacing.gapSm,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        OutlinedButton(
+                        AppButton(
+                          label: tr(ref, 'common.prev', 'Oldingi'),
+                          leadingIcon: Icons.chevron_left,
+                          variant: AppButtonVariant.secondary,
+                          size: AppButtonSize.sm,
                           onPressed: _page <= 1
                               ? null
                               : () => setState(() => _page--),
-                          child: Text(tr(ref, 'common.prev', "Oldingi")),
                         ),
-                        const SizedBox(width: 12),
-                        Text("$_page / $pages",
-                            style: const TextStyle(
-                                color: AppColors.textMuted,
-                                fontWeight: FontWeight.w700)),
-                        const SizedBox(width: 12),
-                        OutlinedButton(
+                        AppSpacing.hGapMd,
+                        Text(
+                          '$_page / $pages',
+                          style: AppText.body.copyWith(
+                            color: AppColors.textMuted,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        AppSpacing.hGapMd,
+                        AppButton(
+                          label: tr(ref, 'common.next', 'Keyingi'),
+                          trailingIcon: Icons.chevron_right,
+                          variant: AppButtonVariant.secondary,
+                          size: AppButtonSize.sm,
                           onPressed: _page >= pages
                               ? null
                               : () => setState(() => _page++),
-                          child: Text(tr(ref, 'common.next', "Keyingi")),
                         ),
                       ],
                     ),
@@ -463,11 +497,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 }
 
 class _StatTile extends StatelessWidget {
-  const _StatTile(
-      {required this.icon,
-      required this.color,
-      required this.label,
-      required this.value});
+  const _StatTile({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.value,
+  });
   final IconData icon;
   final Color color;
   final String label;
@@ -475,32 +510,33 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        color: color.withValues(alpha: 0.05),
+        borderRadius: AppRadius.rMd,
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
             Icon(icon, color: color, size: 16),
-            const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700)),
+            AppSpacing.hGapXs,
+            Text(
+              label,
+              style: AppText.caption.copyWith(
+                color: color,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ]),
           const SizedBox(height: 4),
-          Text(value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  color: AppColors.textBright,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15)),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppText.titleSm.copyWith(color: AppColors.textBright),
+          ),
         ],
       ),
     );
@@ -517,6 +553,7 @@ class _BalanceCard extends ConsumerStatefulWidget {
 
 class _BalanceCardState extends ConsumerState<_BalanceCard> {
   Future<void> _openTopUpSheet() async {
+    AppHaptics.light();
     await TopUpModal.show(context);
   }
 
@@ -534,86 +571,101 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: AppSpacing.cardPaddingLg,
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.rXl,
+        boxShadow: AppShadows.primaryGlow(AppColors.primary),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-              tr(ref, 'mobile.customer.transactions.balanceCurrent',
-                  "Joriy balans"),
-              style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 6),
-          Text(
-              "${_fmt(widget.amount)} ${tr(ref, 'common.currency', "so'm")}",
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 30,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5)),
-          if (widget.aiFree != null) ...[
-            const SizedBox(height: 8),
-            Text(
-                tr(ref, 'mobile.customer.transactions.freeAiHint',
-                    "Bugun {{n}} ta bepul AI Stil qoldi",
-                    {'n': '${widget.aiFree}'}),
-                style: const TextStyle(color: Colors.white70, fontSize: 12)),
-          ],
-          const SizedBox(height: 14),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primary,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          Row(children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: AppRadius.rSm,
+              ),
+              child: const Icon(Icons.account_balance_wallet,
+                  color: Colors.white, size: 20),
             ),
-            onPressed: _openTopUpSheet,
-            child: Text(
-                tr(ref, 'mobile.customer.transactions.topUp', "To'ldirish"),
-                style: const TextStyle(fontWeight: FontWeight.w700)),
+            AppSpacing.hGapSm,
+            Text(
+              tr(ref, 'mobile.customer.transactions.balanceCurrent',
+                  'Joriy balans'),
+              style: AppText.body.copyWith(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ]),
+          AppSpacing.gapMd,
+          Text(
+            "${_fmt(widget.amount)} ${tr(ref, 'common.currency', "so'm")}",
+            style: AppText.display.copyWith(
+              color: Colors.white,
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
+          if (widget.aiFree != null) ...[
+            AppSpacing.gapSm,
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: AppRadius.rPill,
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.auto_awesome,
+                    color: Colors.white, size: 12),
+                AppSpacing.hGapXs,
+                Text(
+                  tr(
+                      ref,
+                      'mobile.customer.transactions.freeAiHint',
+                      'Bugun {{n}} ta bepul AI Stil qoldi',
+                      {'n': '${widget.aiFree}'}),
+                  style: AppText.caption.copyWith(color: Colors.white),
+                ),
+              ]),
+            ),
+          ],
+          AppSpacing.gapLg,
+          TapScale(
+            onTap: _openTopUpSheet,
+            scale: 0.94,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: AppRadius.rPill,
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.add,
+                    color: AppColors.primary, size: 18),
+                AppSpacing.hGapSm,
+                Text(
+                  tr(ref, 'mobile.customer.transactions.topUp',
+                      "To'ldirish"),
+                  style: AppText.button.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ]),
+            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _TxnChip extends StatelessWidget {
-  const _TxnChip(
-      {required this.label, required this.on, required this.onTap});
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: on
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.background,
-            borderRadius: BorderRadius.circular(18),
-            border:
-                Border.all(color: on ? AppColors.primary : AppColors.border),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                  color: on ? AppColors.primary : AppColors.textMuted)),
-        ),
       ),
     );
   }
@@ -625,26 +677,30 @@ class _DatePill extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return TapScale(
       onTap: onTap,
+      scale: 0.97,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.surface,
+          borderRadius: AppRadius.rMd,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
           const Icon(Icons.event_outlined,
               size: 14, color: AppColors.textMuted),
-          const SizedBox(width: 5),
+          AppSpacing.hGapSm,
           Expanded(
-            child: Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    const TextStyle(color: AppColors.textBright, fontSize: 12)),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.bodySm,
+            ),
           ),
         ]),
       ),

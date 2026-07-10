@@ -8,38 +8,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api_client.dart';
 import '../../../core/routes.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/shadcn.dart';
+import '../../../shared/shared.dart';
 import '../data/auth_repository.dart';
 import 'auth_controller.dart';
 
-/// Final registration step — mirrors the web's `Register.tsx` form fields:
-///   - Name input
-///   - Gender toggle (👨 Erkak / 👩 Ayol)
-///   - Password input with visibility toggle
-///   - Promo code input (optional)
-///   - Role select: Mijoz / Sartarosh / Salon ega (radio cards)
-///   - "Ro'yxatdan o'tish" button
 class RegisterCompleteScreen extends ConsumerStatefulWidget {
   const RegisterCompleteScreen({super.key, required this.phone});
   final String phone;
   @override
-  ConsumerState<RegisterCompleteScreen> createState() => _RegisterCompleteScreenState();
+  ConsumerState<RegisterCompleteScreen> createState() =>
+      _RegisterCompleteScreenState();
 }
 
-class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen> {
+class _RegisterCompleteScreenState
+    extends ConsumerState<RegisterCompleteScreen> {
   final _nameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _promoCtrl = TextEditingController();
   final _shopNameCtrl = TextEditingController();
   String _role = 'user';
-  String? _gender; // 'MALE' | 'FEMALE'
+  String? _gender;
   bool _loading = false;
   bool _obscure = true;
   String? _error;
 
-  // Promo code real-time validation (debounced)
-  String _promoStatus = 'idle'; // 'idle' | 'checking' | 'valid' | 'invalid'
+  String _promoStatus = 'idle';
   Timer? _promoDebounce;
 
   @override
@@ -83,24 +76,31 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
   }
 
   Future<void> _submit() async {
+    AppHaptics.medium();
     final name = _nameCtrl.text.trim();
     final password = _passwordCtrl.text;
     if (name.length < 2) {
-      setState(() => _error = tr(ref, 'auth.enterName', "Ismni kiriting"));
+      AppHaptics.error();
+      setState(() =>
+          _error = tr(ref, 'auth.enterName', 'Ismni kiriting'));
       return;
     }
     if (password.length < 4) {
-      setState(() => _error = tr(ref, 'auth.shortPassword', "Parol kamida 4 belgi"));
+      AppHaptics.error();
+      setState(() => _error =
+          tr(ref, 'auth.shortPassword', 'Parol kamida 4 belgi'));
       return;
     }
     if (_role == 'barbershop' && _shopNameCtrl.text.trim().isEmpty) {
-      setState(() => _error = tr(ref, 'auth.shopNameRequired',
-          "Salon nomini kiriting"));
+      AppHaptics.error();
+      setState(() => _error = tr(
+          ref, 'auth.shopNameRequired', 'Salon nomini kiriting'));
       return;
     }
     if (_role != 'barbershop' && _gender == null) {
-      setState(() => _error = tr(ref, 'auth.genderRequired',
-          "Jinsni tanlang"));
+      AppHaptics.error();
+      setState(() =>
+          _error = tr(ref, 'auth.genderRequired', 'Jinsni tanlang'));
       return;
     }
     setState(() {
@@ -114,19 +114,26 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
             password: password,
             role: _role,
             gender: _role == 'barbershop' ? null : _gender,
-            promoCode: _promoCtrl.text.trim().isEmpty ? null : _promoCtrl.text.trim(),
-            shopName: _role == 'barbershop' ? _shopNameCtrl.text.trim() : null,
+            promoCode: _promoCtrl.text.trim().isEmpty
+                ? null
+                : _promoCtrl.text.trim(),
+            shopName:
+                _role == 'barbershop' ? _shopNameCtrl.text.trim() : null,
           );
       await ref.read(authControllerProvider.notifier).signedIn(user);
       if (!mounted) return;
+      AppHaptics.success();
       routeToRoleHome(context, user);
     } on Object catch (e) {
-      String msg = tr(ref, 'auth.registrationError', "Ro'yxatdan o'tishda xato");
+      AppHaptics.error();
+      String msg = tr(ref, 'auth.registrationError',
+          "Ro'yxatdan o'tishda xato");
       if (e.toString().contains('SocketException')) {
         msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
       }
       if (e.toString().contains('409')) {
-        msg = tr(ref, 'auth.phoneAlreadyRegistered', "Bu raqam allaqachon ro'yxatdan o'tgan");
+        msg = tr(ref, 'auth.phoneAlreadyRegistered',
+            "Bu raqam allaqachon ro'yxatdan o'tgan");
       }
       setState(() => _error = msg);
     } finally {
@@ -141,198 +148,294 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.xxl,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: ShadCard(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Center(
-                    child: Column(children: [
-                      const ShadIconBubble(icon: Icons.person_outline),
-                      const SizedBox(height: 12),
-                      ShadCardTitle(tr(ref, 'auth.yourInfo', "Ma'lumotlaringiz")),
-                      const SizedBox(height: 4),
-                      ShadCardDescription(tr(ref, 'auth.yourInfoSub',
-                          "Hisobni yakunlash uchun ma'lumotlaringizni kiriting")),
-                    ]),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // ===== Name =====
-                  ShadField(
-                    label: tr(ref, 'auth.yourName', "Ismingiz"),
-                    child: TextField(
-                      controller: _nameCtrl,
-                      autofocus: true,
-                      textCapitalization: TextCapitalization.words,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      decoration: InputDecoration(
-                          hintText: tr(ref, 'auth.namePlaceholder', "Masalan: Shohruh")),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // ===== Gender (hidden for shop role) =====
-                  if (_role != 'barbershop') ...[
-                    ShadLabel(tr(ref, 'auth.gender', "Jins")),
-                    const SizedBox(height: 6),
-                    Row(children: [
-                      Expanded(child: _genderBtn('MALE',
-                          "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}")),
-                      const SizedBox(width: 8),
-                      Expanded(child: _genderBtn('FEMALE',
-                          "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}")),
-                    ]),
-                    const SizedBox(height: 14),
-                  ],
-
-                  // ===== Shop name (only for shop role) =====
-                  if (_role == 'barbershop') ...[
-                    ShadField(
-                      label: tr(ref, 'auth.shopName', "Salon nomi"),
-                      child: TextField(
-                        controller: _shopNameCtrl,
-                        textCapitalization: TextCapitalization.words,
-                        style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                        decoration: InputDecoration(
-                            hintText: tr(ref, 'auth.shopNamePlaceholder',
-                                "Masalan: Lope Style")),
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: AppRadius.rXl,
+                        boxShadow:
+                            AppShadows.primaryGlow(AppColors.primary),
                       ),
+                      child: const Icon(Icons.person_outline,
+                          color: Colors.white, size: 32),
                     ),
-                    const SizedBox(height: 14),
-                  ],
-
-                  // ===== Password =====
-                  ShadField(
-                    label: tr(ref, 'auth.password', "Parol"),
-                    child: TextField(
-                      controller: _passwordCtrl,
-                      obscureText: _obscure,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      decoration: InputDecoration(
-                        hintText: "••••••",
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                              color: AppColors.textMuted, size: 18),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                    ),
+                  ).animate().scale(
+                      begin: const Offset(0.5, 0.5),
+                      duration: 500.ms,
+                      curve: Curves.easeOutBack),
+                  AppSpacing.gapLg,
+                  Text(
+                    tr(ref, 'auth.yourInfo', "Ma'lumotlaringiz"),
+                    style: AppText.titleLg,
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 14),
-
-                  // ===== Promo code (optional, real-time validated) =====
-                  ShadField(
-                    label: tr(ref, 'auth.promoCode', "Promo-kod (ixtiyoriy)"),
-                    child: TextField(
-                      controller: _promoCtrl,
-                      textCapitalization: TextCapitalization.characters,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      decoration: InputDecoration(
-                          hintText: tr(ref, 'auth.promoIfAny', "Agar bor bo'lsa"),
-                          suffixIcon: _promoStatus == 'checking'
-                              ? const Padding(
-                                  padding: EdgeInsets.all(10),
-                                  child: SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2)),
-                                )
-                              : _promoStatus == 'valid'
-                                  ? const Icon(Icons.check_circle,
-                                      color: AppColors.success, size: 18)
-                                  : _promoStatus == 'invalid'
-                                      ? const Icon(Icons.cancel,
-                                          color: AppColors.danger, size: 18)
-                                      : null),
-                    ),
-                  ),
-                  if (_promoStatus == 'valid')
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                          tr(ref, 'auth.promoValid', "Promo-kod yaroqli"),
-                          style: const TextStyle(
-                              color: AppColors.success,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600)),
-                    )
-                  else if (_promoStatus == 'invalid')
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                          tr(ref, 'auth.promoInvalid',
-                              "Promo-kod noto'g'ri"),
-                          style: const TextStyle(
-                              color: AppColors.danger,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600)),
-                    ),
-                  const SizedBox(height: 14),
-
-                  // ===== Role select — dropdown 5 varianti bilan =====
-                  ShadLabel(tr(ref, 'auth.accountType', "Hisob turi")),
                   const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _role,
-                        isExpanded: true,
-                        icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
-                        onChanged: (v) {
-                          if (v != null) setState(() => _role = v);
-                        },
-                        items: [
-                          DropdownMenuItem(
-                            value: 'user',
-                            child: Text(tr(ref, 'auth.roleCustomer', "Mijoz")),
+                  Text(
+                    tr(ref, 'auth.yourInfoSub',
+                        "Hisobni yakunlash uchun ma'lumotlaringizni kiriting"),
+                    style: AppText.bodyLg
+                        .copyWith(color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                  AppSpacing.gapXxl,
+
+                  AppCard(
+                    variant: AppCardVariant.outlined,
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    radius: AppRadius.xl,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Name
+                        Text(tr(ref, 'auth.yourName', 'Ismingiz'),
+                            style: AppText.overline),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _nameCtrl,
+                          autofocus: true,
+                          textCapitalization: TextCapitalization.words,
+                          style: AppText.body,
+                          decoration: InputDecoration(
+                            hintText: tr(ref, 'auth.namePlaceholder',
+                                'Masalan: Shohruh'),
                           ),
-                          DropdownMenuItem(
-                            value: 'barber',
-                            child: Text(tr(ref, 'auth.roleBarber', "Sartarosh")),
+                        ),
+                        AppSpacing.gapMd,
+
+                        // Gender
+                        if (_role != 'barbershop') ...[
+                          Text(tr(ref, 'auth.gender', 'Jins'),
+                              style: AppText.overline),
+                          const SizedBox(height: 6),
+                          Row(children: [
+                            Expanded(
+                              child: _genderBtn(
+                                  'MALE',
+                                  "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}"),
+                            ),
+                            AppSpacing.hGapSm,
+                            Expanded(
+                              child: _genderBtn(
+                                  'FEMALE',
+                                  "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}"),
+                            ),
+                          ]),
+                          AppSpacing.gapMd,
+                        ],
+
+                        // Shop name
+                        if (_role == 'barbershop') ...[
+                          Text(tr(ref, 'auth.shopName', 'Salon nomi'),
+                              style: AppText.overline),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _shopNameCtrl,
+                            textCapitalization: TextCapitalization.words,
+                            style: AppText.body,
+                            decoration: InputDecoration(
+                              hintText: tr(ref, 'auth.shopNamePlaceholder',
+                                  'Masalan: Lope Style'),
+                            ),
                           ),
-                          DropdownMenuItem(
-                            value: 'stylist',
-                            child: Text(tr(ref, 'auth.roleStylist', "Stilist")),
+                          AppSpacing.gapMd,
+                        ],
+
+                        // Password
+                        Text(tr(ref, 'auth.password', 'Parol'),
+                            style: AppText.overline),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _passwordCtrl,
+                          obscureText: _obscure,
+                          style: AppText.body,
+                          decoration: InputDecoration(
+                            hintText: '••••••',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                  _obscure
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: AppColors.textMuted,
+                                  size: 20),
+                              onPressed: () =>
+                                  setState(() => _obscure = !_obscure),
+                            ),
                           ),
-                          DropdownMenuItem(
-                            value: 'cosmetologist',
-                            child: Text(tr(ref, 'auth.roleCosmetologist', "Kosmetolog")),
+                        ),
+                        AppSpacing.gapMd,
+
+                        // Promo
+                        Text(
+                            tr(ref, 'auth.promoCode',
+                                'Promo-kod (ixtiyoriy)'),
+                            style: AppText.overline),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _promoCtrl,
+                          textCapitalization:
+                              TextCapitalization.characters,
+                          style: AppText.body,
+                          decoration: InputDecoration(
+                            hintText: tr(ref, 'auth.promoIfAny',
+                                "Agar bor bo'lsa"),
+                            suffixIcon: _promoStatus == 'checking'
+                                ? const Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2)),
+                                  )
+                                : _promoStatus == 'valid'
+                                    ? const Icon(Icons.check_circle,
+                                        color: AppColors.success,
+                                        size: 20)
+                                    : _promoStatus == 'invalid'
+                                        ? const Icon(Icons.cancel,
+                                            color: AppColors.danger,
+                                            size: 20)
+                                        : null,
                           ),
-                          DropdownMenuItem(
-                            value: 'barbershop',
-                            child: Text(tr(ref, 'auth.roleShop', "Salon")),
+                        ),
+                        if (_promoStatus == 'valid')
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(top: 4, left: 4),
+                            child: Text(
+                              tr(ref, 'auth.promoValid',
+                                  'Promo-kod yaroqli'),
+                              style: AppText.caption.copyWith(
+                                color: AppColors.success,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          )
+                        else if (_promoStatus == 'invalid')
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(top: 4, left: 4),
+                            child: Text(
+                              tr(ref, 'auth.promoInvalid',
+                                  "Promo-kod noto'g'ri"),
+                              style: AppText.caption.copyWith(
+                                color: AppColors.danger,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        AppSpacing.gapMd,
+
+                        // Role
+                        Text(tr(ref, 'auth.accountType', 'Hisob turi'),
+                            style: AppText.overline),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceElevated,
+                            borderRadius: AppRadius.rMd,
+                            border:
+                                Border.all(color: AppColors.border),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _role,
+                              isExpanded: true,
+                              icon: const Icon(Icons.arrow_drop_down,
+                                  color: AppColors.textMuted),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  AppHaptics.selection();
+                                  setState(() => _role = v);
+                                }
+                              },
+                              items: [
+                                DropdownMenuItem(
+                                  value: 'user',
+                                  child: Text(tr(ref,
+                                      'auth.roleCustomer', 'Mijoz')),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'barber',
+                                  child: Text(tr(ref,
+                                      'auth.roleBarber', 'Sartarosh')),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'stylist',
+                                  child: Text(tr(ref,
+                                      'auth.roleStylist', 'Stilist')),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'cosmetologist',
+                                  child: Text(tr(
+                                      ref,
+                                      'auth.roleCosmetologist',
+                                      'Kosmetolog')),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'barbershop',
+                                  child: Text(tr(ref,
+                                      'auth.roleShop', 'Salon')),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        if (_error != null) ...[
+                          AppSpacing.gapMd,
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.sm),
+                            decoration: BoxDecoration(
+                              color: AppColors.danger
+                                  .withValues(alpha: 0.1),
+                              borderRadius: AppRadius.rSm,
+                              border: Border.all(
+                                color: AppColors.danger
+                                    .withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(children: [
+                              const Icon(Icons.error_outline,
+                                  color: AppColors.danger, size: 16),
+                              AppSpacing.hGapSm,
+                              Expanded(
+                                child: Text(_error!,
+                                    style: AppText.bodySm.copyWith(
+                                        color: AppColors.danger)),
+                              ),
+                            ]),
                           ),
                         ],
-                      ),
-                    ),
-                  ),
 
-                  if (_error != null) ...[
-                    const SizedBox(height: 14),
-                    Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
-                  ],
-
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 44,
-                    child: ElevatedButton(
-                      onPressed: _loading ? null : _submit,
-                      child: _loading
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Text(tr(ref, 'auth.register', "Ro'yxatdan o'tish")),
+                        AppSpacing.gapLg,
+                        AppButton(
+                          label: tr(ref, 'auth.register',
+                              "Ro'yxatdan o'tish"),
+                          variant: AppButtonVariant.primary,
+                          size: AppButtonSize.lg,
+                          fullWidth: true,
+                          loading: _loading,
+                          onPressed: _loading ? null : _submit,
+                        ),
+                      ],
                     ),
-                  ),
-                ]),
-              ).animate().fadeIn(duration: 300.ms),
+                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+                ],
+              ),
             ),
           ),
         ),
@@ -342,26 +445,38 @@ class _RegisterCompleteScreenState extends ConsumerState<RegisterCompleteScreen>
 
   Widget _genderBtn(String key, String label) {
     final on = _gender == key;
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: () => setState(() {
-        _gender = on ? null : key;
-      }),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+    return TapScale(
+      onTap: () {
+        AppHaptics.selection();
+        setState(() {
+          _gender = on ? null : key;
+        });
+      },
+      scale: 0.96,
+      child: AnimatedContainer(
+        duration: AppMotion.base,
+        curve: AppMotion.emphasized,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: on ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: on ? AppColors.primary : AppColors.border, width: 2),
+          gradient: on ? AppColors.primaryGradient : null,
+          color: on ? null : AppColors.surfaceElevated,
+          borderRadius: AppRadius.rMd,
+          border: Border.all(
+            color: on ? AppColors.primary : AppColors.border,
+            width: on ? 2 : 1,
+          ),
+          boxShadow:
+              on ? AppShadows.primaryGlow(AppColors.primary) : null,
         ),
         alignment: Alignment.center,
-        child: Text(label,
-            style: TextStyle(
-                color: on ? Colors.white : AppColors.textMuted,
-                fontSize: 14,
-                fontWeight: on ? FontWeight.w600 : FontWeight.w500)),
+        child: Text(
+          label,
+          style: AppText.body.copyWith(
+            color: on ? Colors.white : AppColors.textPrimary,
+            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
       ),
     );
   }
-
 }
