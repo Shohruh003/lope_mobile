@@ -7,19 +7,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
-import '../../../shared/widgets/shadcn.dart';
 import '../../barber_panel/data/barber_panel_repository.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/shop_repository.dart';
 
-/// Mirrors `BarbershopBookings.tsx` 1:1.
-///   - Title "Salon bronlari"
-///   - Filter row: Date picker tile + Barber dropdown + Status dropdown +
-///     "X ta bron" counter
-///   - List of cards: time pill + 36px avatar + barber name + client +
-///     services line + total + cancel button (only for confirmed)
 class ShopBookingsScreen extends ConsumerStatefulWidget {
   const ShopBookingsScreen({super.key});
   @override
@@ -27,9 +20,6 @@ class ShopBookingsScreen extends ConsumerStatefulWidget {
 }
 
 class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
-  /// `null` means "no date filter — show across all dates with pagination".
-  /// Web's BarbershopBookings starts at today but lets the owner clear it
-  /// to browse the full history.
   DateTime? _date = DateTime.now();
   String _barberId = 'all';
   String _status = 'all';
@@ -79,184 +69,212 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
             )).future);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
-            // ===== Title =====
-            Text(tr(ref, 'mobile.shop.bookings.title', "Salon bronlari"),
-                style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textBright)),
-            const SizedBox(height: 14),
+              Text(tr(ref, 'mobile.shop.bookings.title', "Salon bronlari"),
+                  style: AppText.titleMd),
+              const SizedBox(height: AppSpacing.lg),
 
-            // ===== Date row =====
-            InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: _pickDate,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(children: [
-                  const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
-                  const SizedBox(width: 8),
-                  Text("${tr(ref, 'booking.date', 'Sana')}:",
-                      style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
-                  const SizedBox(width: 6),
-                  Text(
-                      _date == null
-                          ? tr(ref, 'mobile.shop.bookings.allDates',
-                              "Barcha sanalar")
-                          : _dateStr(_date!),
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textBright)),
-                  const Spacer(),
-                  if (_date != null)
-                    IconButton(
-                      icon: const Icon(Icons.close,
-                          size: 16, color: AppColors.danger),
-                      onPressed: () => setState(() {
-                        _date = null;
-                        _page = 1;
-                      }),
-                      tooltip: tr(ref,
-                          'mobile.shop.bookings.clearDateFilter',
-                          "Sana filtrini olib tashlash"),
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.today_outlined, size: 16, color: AppColors.primary),
-                    onPressed: () => setState(() {
-                      _date = DateTime.now();
-                      _page = 1;
-                    }),
-                    tooltip: tr(ref, 'barberApp.today', 'Bugun'),
+              TapScale(
+                onTap: _pickDate,
+                haptic: HapticStrength.light,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md, vertical: AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.rMd,
+                    border: Border.all(color: AppColors.border),
                   ),
-                ]),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // ===== Barber filter =====
-            mastersAsync.maybeWhen(
-              data: (masters) => _filterDropdown<String>(
-                label: tr(ref, 'mobile.shop.bookings.masterLabel', "Master"),
-                value: _barberId,
-                items: [
-                  DropdownMenuItem(value: 'all', child: Text(tr(ref, 'common.all', "Barchasi"))),
-                  ...masters.map((b) =>
-                      DropdownMenuItem(value: b.id, child: Text(b.name))),
-                ],
-                onChanged: (v) => setState(() => _barberId = v ?? 'all'),
-              ),
-              orElse: () => const SizedBox.shrink(),
-            ),
-
-            const SizedBox(height: 10),
-
-            // ===== Status filter =====
-            _filterDropdown<String>(
-              label: tr(ref, 'mobile.shop.bookings.statusLabel', "Status"),
-              value: _status,
-              items: [
-                DropdownMenuItem(value: 'all', child: Text(tr(ref, 'common.all', "Barchasi"))),
-                DropdownMenuItem(value: 'confirmed', child: Text(tr(ref, 'myBookings.statusConfirmed', "Tasdiqlangan"))),
-                DropdownMenuItem(value: 'completed', child: Text(tr(ref, 'myBookings.statusCompleted', "Yakunlangan"))),
-                DropdownMenuItem(value: 'cancelled', child: Text(tr(ref, 'myBookings.statusCancelled', "Bekor qilingan"))),
-              ],
-              onChanged: (v) => setState(() => _status = v ?? 'all'),
-            ),
-
-            const SizedBox(height: 14),
-
-            // ===== Count =====
-            bookingsAsync.maybeWhen(
-              data: (res) => Row(children: [
-                const Icon(Icons.event_note, size: 14, color: AppColors.textMuted),
-                const SizedBox(width: 6),
-                Text(
-                    "${res.total} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-              ]),
-              orElse: () => const SizedBox.shrink(),
-            ),
-
-            const SizedBox(height: 10),
-
-            // ===== Bookings list =====
-            bookingsAsync.when(
-              loading: () => const AppListSkeleton(itemCount: 5),
-              error: (e, _) => SizedBox(
-                height: 280,
-                child: AppErrorState(message: humanize(e)),
-              ),
-              data: (res) {
-                final list = res.data;
-                final totalPages = res.totalPages;
-                if (list.isEmpty) {
-                  return SizedBox(
-                    height: 280,
-                    child: AppEmptyState(
-                      icon: Icons.event_available_rounded,
-                      title: tr(ref, 'mobile.shop.bookings.emptyForDay',
-                          "Bu sanada bronlar yo'q"),
-                      message: tr(
-                        ref,
-                        'mobile.shop.bookings.emptyForDayHint',
-                        "Mijozlar yozilishi bilan barcha barberlarning bronlari shu yerda ko'rinadi.",
+                  child: Row(children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: AppRadius.rSm,
                       ),
+                      child: const Icon(Icons.calendar_today_outlined,
+                          size: 15, color: AppColors.primary),
                     ),
-                  );
-                }
-                final sorted = [...list]..sort((a, b) => a.time.compareTo(b.time));
-                return Column(
-                  children: [
-                    ...sorted
-                        .asMap()
-                        .entries
-                        .map((e) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: _BookingCard(b: e.value)
-                                  .animate()
-                                  .fadeIn(duration: 200.ms, delay: (e.key * 20).ms),
-                            )),
-                    if (totalPages > 1 && _date == null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          OutlinedButton(
-                            onPressed: _page <= 1
-                                ? null
-                                : () => setState(() => _page--),
-                            child: Text(tr(ref, 'common.prev', "Oldingi")),
-                          ),
-                          const SizedBox(width: 12),
-                          Text("$_page / $totalPages",
-                              style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontWeight: FontWeight.w700)),
-                          const SizedBox(width: 12),
-                          OutlinedButton(
-                            onPressed: _page >= totalPages
-                                ? null
-                                : () => setState(() => _page++),
-                            child: Text(tr(ref, 'common.next', "Keyingi")),
-                          ),
+                          Text(tr(ref, 'booking.date', 'Sana'),
+                              style: AppText.overline
+                                  .copyWith(color: AppColors.textMuted)),
+                          const SizedBox(height: 2),
+                          Text(
+                              _date == null
+                                  ? tr(ref, 'mobile.shop.bookings.allDates',
+                                      "Barcha sanalar")
+                                  : _dateStr(_date!),
+                              style: AppText.titleSm.copyWith(fontSize: 14)),
                         ],
                       ),
-                    ],
+                    ),
+                    if (_date != null)
+                      TapScale(
+                        onTap: () => setState(() {
+                          _date = null;
+                          _page = 1;
+                        }),
+                        haptic: HapticStrength.light,
+                        child: Container(
+                          padding: const EdgeInsets.all(AppSpacing.xs),
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withValues(alpha: 0.1),
+                            borderRadius: AppRadius.rSm,
+                          ),
+                          child: const Icon(Icons.close,
+                              size: 14, color: AppColors.danger),
+                        ),
+                      ),
+                    const SizedBox(width: AppSpacing.xs),
+                    TapScale(
+                      onTap: () => setState(() {
+                        _date = DateTime.now();
+                        _page = 1;
+                      }),
+                      haptic: HapticStrength.light,
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.xs),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: AppRadius.rSm,
+                        ),
+                        child: const Icon(Icons.today_outlined,
+                            size: 14, color: AppColors.primary),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+
+              mastersAsync.maybeWhen(
+                data: (masters) => _filterDropdown<String>(
+                  label: tr(ref, 'mobile.shop.bookings.masterLabel', "Master"),
+                  icon: Icons.person_outline,
+                  value: _barberId,
+                  items: [
+                    DropdownMenuItem(
+                        value: 'all',
+                        child: Text(tr(ref, 'common.all', "Barchasi"))),
+                    ...masters.map((b) =>
+                        DropdownMenuItem(value: b.id, child: Text(b.name))),
                   ],
-                );
-              },
-            ),
-          ],
+                  onChanged: (v) => setState(() {
+                    _barberId = v ?? 'all';
+                    _page = 1;
+                  }),
+                ),
+                orElse: () => const SizedBox.shrink(),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+
+              _filterDropdown<String>(
+                label: tr(ref, 'mobile.shop.bookings.statusLabel', "Status"),
+                icon: Icons.flag_outlined,
+                value: _status,
+                items: [
+                  DropdownMenuItem(
+                      value: 'all',
+                      child: Text(tr(ref, 'common.all', "Barchasi"))),
+                  DropdownMenuItem(
+                      value: 'confirmed',
+                      child: Text(tr(ref, 'myBookings.statusConfirmed',
+                          "Tasdiqlangan"))),
+                  DropdownMenuItem(
+                      value: 'completed',
+                      child: Text(tr(ref, 'myBookings.statusCompleted',
+                          "Yakunlangan"))),
+                  DropdownMenuItem(
+                      value: 'cancelled',
+                      child: Text(tr(ref, 'myBookings.statusCancelled',
+                          "Bekor qilingan"))),
+                ],
+                onChanged: (v) => setState(() {
+                  _status = v ?? 'all';
+                  _page = 1;
+                }),
+              ),
+              const SizedBox(height: AppSpacing.md),
+
+              bookingsAsync.maybeWhen(
+                data: (res) => Row(children: [
+                  const Icon(Icons.event_note,
+                      size: 14, color: AppColors.textMuted),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                      "${res.total} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
+                      style: AppText.caption),
+                ]),
+                orElse: () => const SizedBox.shrink(),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+
+              bookingsAsync.when(
+                loading: () => const AppListSkeleton(itemCount: 5),
+                error: (e, _) => SizedBox(
+                  height: 280,
+                  child: AppErrorState(message: humanize(e)),
+                ),
+                data: (res) {
+                  final list = res.data;
+                  final totalPages = res.totalPages;
+                  if (list.isEmpty) {
+                    return SizedBox(
+                      height: 280,
+                      child: AppEmptyState(
+                        icon: Icons.event_available_rounded,
+                        title: tr(ref, 'mobile.shop.bookings.emptyForDay',
+                            "Bu sanada bronlar yo'q"),
+                        message: tr(
+                          ref,
+                          'mobile.shop.bookings.emptyForDayHint',
+                          "Mijozlar yozilishi bilan barcha barberlarning bronlari shu yerda ko'rinadi.",
+                        ),
+                      ),
+                    );
+                  }
+                  final sorted = [...list]
+                    ..sort((a, b) => a.time.compareTo(b.time));
+                  return Column(
+                    children: [
+                      ...sorted.asMap().entries.map((e) => Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: AppSpacing.sm),
+                            child: _BookingCard(b: e.value)
+                                .animate()
+                                .fadeIn(
+                                    duration: 200.ms,
+                                    delay: (e.key * 20).ms),
+                          )),
+                      if (totalPages > 1 && _date == null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        _Pager(
+                          page: _page,
+                          totalPages: totalPages,
+                          prevLabel: tr(ref, 'common.prev', "Oldingi"),
+                          nextLabel: tr(ref, 'common.next', "Keyingi"),
+                          onPrev: _page <= 1
+                              ? null
+                              : () => setState(() => _page--),
+                          onNext: _page >= totalPages
+                              ? null
+                              : () => setState(() => _page++),
+                        ),
+                      ],
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -265,21 +283,33 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
 
   Widget _filterDropdown<T>({
     required String label,
+    required IconData icon,
     required T value,
     required List<DropdownMenuItem<T>> items,
     required ValueChanged<T?> onChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
+        color: AppColors.surface,
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: AppColors.border),
       ),
       child: Row(children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.textMuted.withValues(alpha: 0.1),
+            borderRadius: AppRadius.rSm,
+          ),
+          child: Icon(icon, size: 14, color: AppColors.textMuted),
+        ),
+        const SizedBox(width: AppSpacing.sm),
         Text("$label:",
-            style: const TextStyle(fontSize: 13, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
-        const SizedBox(width: 6),
+            style: AppText.bodySm.copyWith(fontWeight: FontWeight.w500)),
+        const SizedBox(width: AppSpacing.xs),
         Expanded(
           child: DropdownButtonHideUnderline(
             child: DropdownButton<T>(
@@ -287,12 +317,11 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
               value: value,
               items: items,
               onChanged: onChanged,
-              style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textBright),
-              dropdownColor: AppColors.background,
-              icon: const Icon(Icons.expand_more, size: 18, color: AppColors.textMuted),
+              style: AppText.body.copyWith(
+                  fontWeight: FontWeight.w600, color: AppColors.textBright),
+              dropdownColor: AppColors.surface,
+              icon: const Icon(Icons.expand_more,
+                  size: 18, color: AppColors.textMuted),
             ),
           ),
         ),
@@ -301,18 +330,67 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
   }
 }
 
+class _Pager extends StatelessWidget {
+  const _Pager({
+    required this.page,
+    required this.totalPages,
+    required this.prevLabel,
+    required this.nextLabel,
+    required this.onPrev,
+    required this.onNext,
+  });
+  final int page;
+  final int totalPages;
+  final String prevLabel;
+  final String nextLabel;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      AppButton(
+        label: prevLabel,
+        variant: AppButtonVariant.secondary,
+        size: AppButtonSize.sm,
+        onPressed: onPrev,
+        leadingIcon: Icons.chevron_left,
+      ),
+      const SizedBox(width: AppSpacing.md),
+      Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.1),
+          borderRadius: AppRadius.rPill,
+        ),
+        child: Text("$page / $totalPages",
+            style: AppText.button.copyWith(color: AppColors.primary)),
+      ),
+      const SizedBox(width: AppSpacing.md),
+      AppButton(
+        label: nextLabel,
+        variant: AppButtonVariant.secondary,
+        size: AppButtonSize.sm,
+        onPressed: onNext,
+        trailingIcon: Icons.chevron_right,
+      ),
+    ]);
+  }
+}
+
 class _BookingCard extends ConsumerWidget {
   const _BookingCard({required this.b});
   final ShopBooking b;
 
-  Color get _statusColor {
+  AppBadgeVariant get _statusVariant {
     switch (b.status) {
       case 'completed':
-        return AppColors.success;
+        return AppBadgeVariant.success;
       case 'cancelled':
-        return AppColors.danger;
+        return AppBadgeVariant.danger;
       default:
-        return AppColors.primary;
+        return AppBadgeVariant.info;
     }
   }
 
@@ -329,31 +407,27 @@ class _BookingCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
+    return AppCard(
+      variant: AppCardVariant.flat,
+      padding: const EdgeInsets.all(AppSpacing.md),
       onTap: b.barberId.isEmpty
           ? null
           : () => GoRouter.of(context).push('/shop/barbers/${b.barberId}'),
-      child: ShadCard(
-        padding: const EdgeInsets.all(12),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Time pill
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm, vertical: 6),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border),
+            color: AppColors.primary.withValues(alpha: 0.1),
+            borderRadius: AppRadius.rSm,
+            border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.25)),
           ),
           child: Text(b.time,
-              style: const TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textBright)),
+              style: AppText.button
+                  .copyWith(color: AppColors.primary, fontSize: 13)),
         ),
-        const SizedBox(width: 10),
-
-        // Barber avatar — image if present, otherwise initial fallback (36px)
+        const SizedBox(width: AppSpacing.md),
         ClipOval(
           child: (b.barberAvatar?.isNotEmpty ?? false)
               ? CachedNetworkImage(
@@ -361,74 +435,51 @@ class _BookingCard extends ConsumerWidget {
                   width: 36,
                   height: 36,
                   fit: BoxFit.cover,
-                  errorWidget: (_, _, _) =>
-                      _avatarFallback(b.barberName),
+                  errorWidget: (_, _, _) => _avatarFallback(b.barberName),
                 )
               : _avatarFallback(b.barberName),
         ),
-        const SizedBox(width: 10),
-
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(b.userName,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: AppColors.textBright)),
-              const SizedBox(height: 2),
-              Row(children: [
-                const Icon(Icons.person_outline,
-                    size: 12, color: AppColors.textMuted),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(b.barberName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 12)),
-                ),
-                if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
-                  const Text("  •  ",
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                  Flexible(
-                    child: Text(b.userPhone!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 12)),
-                  ),
-                ],
-                if (b.totalDuration > 0) ...[
-                  const Text("  •  ",
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                  const Icon(Icons.access_time,
-                      size: 12, color: AppColors.textMuted),
+                  style: AppText.titleSm.copyWith(fontSize: 14)),
+              const SizedBox(height: 3),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  const Icon(Icons.person_outline,
+                      size: 11, color: AppColors.textMuted),
                   const SizedBox(width: 3),
-                  Text("${b.totalDuration}m",
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 12)),
-                ],
-                if (b.isManual) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
+                  Text(b.barberName,
+                      style: AppText.caption.copyWith(fontSize: 11)),
+                  if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
+                    Text("  •  ",
+                        style: AppText.caption.copyWith(fontSize: 11)),
+                    Text(b.userPhone!,
+                        style: AppText.caption.copyWith(fontSize: 11)),
+                  ],
+                  if (b.totalDuration > 0) ...[
+                    Text("  •  ",
+                        style: AppText.caption.copyWith(fontSize: 11)),
+                    const Icon(Icons.access_time,
+                        size: 11, color: AppColors.textMuted),
+                    const SizedBox(width: 2),
+                    Text("${b.totalDuration}m",
+                        style: AppText.caption.copyWith(fontSize: 11)),
+                  ],
+                  if (b.isManual) ...[
+                    const SizedBox(width: 6),
+                    AppBadge(
+                      label: tr(ref, 'mobile.shop.bookings.manualBadge',
+                          "Qo'lda"),
+                      variant: AppBadgeVariant.warning,
                     ),
-                    child: Text(
-                        tr(ref, 'mobile.shop.bookings.manualBadge',
-                            "Qo'lda"),
-                        style: const TextStyle(
-                            color: AppColors.warning,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600)),
-                  ),
+                  ],
                 ],
-              ]),
+              ),
               if (b.notes != null && b.notes!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -439,79 +490,51 @@ class _BookingCard extends ConsumerWidget {
                     child: Text(b.notes!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic)),
+                        style: AppText.bodySm.copyWith(
+                            fontStyle: FontStyle.italic, fontSize: 12)),
                   ),
                 ]),
               ],
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.sm),
               Row(children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _statusColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(_statusText(ref),
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600)),
-                ),
+                AppBadge(
+                    label: _statusText(ref),
+                    variant: _statusVariant,
+                    dot: true),
                 const Spacer(),
                 if (b.totalPrice > 0)
-                  Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
-                      style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14)),
+                  Text(
+                      "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
+                      style: AppText.titleSm.copyWith(
+                          color: AppColors.primary, fontSize: 14)),
               ]),
               if (b.status == 'confirmed') ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm),
                 Row(children: [
-                  SizedBox(
-                    height: 32,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.check_circle_outline, size: 12),
-                      label: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
-                          style: const TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () => _complete(context, ref),
-                    ),
+                  AppButton(
+                    label: tr(ref, 'myBookings.complete', "Yakunlash"),
+                    variant: AppButtonVariant.success,
+                    size: AppButtonSize.sm,
+                    leadingIcon: Icons.check_circle_outline,
+                    onPressed: () => _complete(context, ref),
                   ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    height: 32,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.close,
-                          size: 12, color: AppColors.danger),
-                      label: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.danger,
-                              fontWeight: FontWeight.w500)),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        side: BorderSide(
-                            color: AppColors.danger.withValues(alpha: 0.5)),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () => _cancel(context, ref),
-                    ),
+                  const SizedBox(width: AppSpacing.sm),
+                  AppButton(
+                    label: tr(ref, 'myBookings.cancel', "Bekor qilish"),
+                    variant: AppButtonVariant.secondary,
+                    size: AppButtonSize.sm,
+                    leadingIcon: Icons.close,
+                    onPressed: () => _cancel(context, ref),
                   ),
                   const Spacer(),
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.more_vert,
-                        size: 16, color: AppColors.textMuted),
+                        size: 18, color: AppColors.textMuted),
                     padding: EdgeInsets.zero,
+                    color: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppRadius.md)),
                     onSelected: (value) async {
                       if (value == 'reschedule') {
                         await _reschedule(context, ref);
@@ -523,8 +546,9 @@ class _BookingCard extends ConsumerWidget {
                       PopupMenuItem(
                         value: 'reschedule',
                         child: Row(children: [
-                          const Icon(Icons.event_repeat, size: 16),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.event_repeat,
+                              size: 16, color: AppColors.primary),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(tr(ref, 'mobile.shop.barber.reschedule',
                               "Boshqa vaqtga ko'chirish")),
                         ]),
@@ -532,8 +556,9 @@ class _BookingCard extends ConsumerWidget {
                       PopupMenuItem(
                         value: 'extend',
                         child: Row(children: [
-                          const Icon(Icons.timer_outlined, size: 16),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.timer_outlined,
+                              size: 16, color: AppColors.primary),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(tr(ref, 'mobile.shop.barber.extend',
                               "Vaqtni uzaytirish")),
                         ]),
@@ -546,7 +571,6 @@ class _BookingCard extends ConsumerWidget {
           ),
         ),
       ]),
-      ),
     );
   }
 
@@ -554,16 +578,21 @@ class _BookingCard extends ConsumerWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary.withValues(alpha: 0.25),
+              AppColors.primary.withValues(alpha: 0.1),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           shape: BoxShape.circle,
         ),
         alignment: Alignment.center,
         child: Text(
           name.isNotEmpty ? name[0].toUpperCase() : '?',
-          style: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-              fontSize: 14),
+          style: AppText.titleSm
+              .copyWith(color: AppColors.primary, fontSize: 14),
         ),
       );
 
@@ -575,12 +604,17 @@ class _BookingCard extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'myBookings.completeConfirmTitle',
-            "Bronni yakunlash?")),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'myBookings.completeConfirmTitle', "Bronni yakunlash?"),
+            style: AppText.titleMd),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(tr(ref, 'myBookings.completeConfirmMsg',
-              "Bron yakunlangan deb belgilanadi.")),
-          const SizedBox(height: 12),
+          Text(
+              tr(ref, 'myBookings.completeConfirmMsg',
+                  "Bron yakunlangan deb belgilanadi."),
+              style: AppText.body),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             controller: priceCtrl,
             keyboardType: TextInputType.number,
@@ -630,10 +664,15 @@ class _BookingCard extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'myBookings.cancelConfirmTitle',
-            "Bronni bekor qilasizmi?")),
-        content: Text(tr(ref, 'myBookings.cancelConfirmMsg',
-            "Bekor qilingach, qaytarib bo'lmaydi.")),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'myBookings.cancelConfirmTitle', "Bronni bekor qilasizmi?"),
+            style: AppText.titleMd),
+        content: Text(
+            tr(ref, 'myBookings.cancelConfirmMsg',
+                "Bekor qilingach, qaytarib bo'lmaydi."),
+            style: AppText.body),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dCtx, false),
@@ -704,8 +743,12 @@ class _BookingCard extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'mobile.shop.barber.extendTitle',
-            "Vaqtni uzaytirish (daqiqa)")),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'mobile.shop.barber.extendTitle',
+                "Vaqtni uzaytirish (daqiqa)"),
+            style: AppText.titleMd),
         content: StatefulBuilder(builder: (sCtx, setSt) {
           return DropdownButtonFormField<int>(
             initialValue: minutes,
@@ -757,9 +800,6 @@ class _BookingCard extends ConsumerWidget {
   }
 }
 
-/// Provider matching the same query the web sends. Without `date` the
-/// backend returns paginated history across all dates, with `date` it
-/// returns every booking for that day.
 final shopBookingsFilteredProvider = FutureProvider.family<
     ({List<ShopBooking> data, int total, int totalPages, bool hasMore}),
     ({String? date, String? barberId, String? status, int page})>(
