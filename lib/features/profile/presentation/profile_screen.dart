@@ -903,6 +903,15 @@ class _ThemeTile extends ConsumerWidget {
     );
     if (picked == null || picked == current) return;
     await ref.read(themeModeProvider.notifier).setMode(picked);
+    if (picked != ThemeMode.dark && context.mounted) {
+      // Preference is saved but full light-mode palette isn't shipped
+      // yet — surface that instead of silently failing to change the
+      // UI. Removes the "hamma joy bardak" feedback loop.
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(tr(ref, 'mobile.profile.themeComingSoon',
+            "Yorug' rejim tez orada tayyor bo'ladi — sozlama saqlandi.")),
+      ));
+    }
   }
 }
 

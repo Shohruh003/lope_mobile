@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/push_service.dart';
 import '../core/theme_mode_provider.dart';
-import '../shared/theme/colors.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -32,20 +31,21 @@ class _LopeAppState extends ConsumerState<LopeApp> {
       });
     }
 
-    // Dispatch between dark (custom Lope palette) and light (Material
-    // fallback tinted by the brand primary) based on the user's stored
-    // preference. `system` follows the OS setting.
-    final mode = ref.watch(themeModeProvider).asData?.value ?? ThemeMode.system;
+    // Preference is still watched (so the theme picker keeps its
+    // saved choice) but until AppColors is refactored to be
+    // theme-aware, forcing light mode leaves half the UI unreadable —
+    // dark AppCards on a white scaffold with white text. Pass the
+    // dark theme in both slots and force ThemeMode.dark so the picker
+    // is honest: it's a preference we can honour once the palette
+    // migration lands.
+    final _ = ref.watch(themeModeProvider);
+    final darkTheme = buildAppTheme();
     return MaterialApp.router(
       title: 'Lope Style',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: AppColors.primary,
-        brightness: Brightness.light,
-      ),
-      darkTheme: buildAppTheme(),
-      themeMode: mode,
+      theme: darkTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.dark,
       routerConfig: router,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
