@@ -719,11 +719,19 @@ class _BarberCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firstGallery = barber.gallery.isNotEmpty ? barber.gallery.first : '';
-    // Watch the optimistic-favorites Set so the heart flips instantly on
-    // tap. Server list still drives the initial value via the controller's
-    // seed listener.
+    // Watch the optimistic-favorites Set so the bookmark flips instantly
+    // on tap. Server list still drives the initial value via the
+    // controller's seed listener.
     final favIds = ref.watch(favoritesControllerProvider);
     final isFav = favIds.contains(barber.id);
+
+    // Distance to the customer — used to show a "1.2 km" pill next to
+    // the location. Falls back to null when we don't have the user's
+    // geolocation OR the master lacks coordinates.
+    final me = ref.watch(currentLocationProvider).asData?.value;
+    final double? km = (me != null && barber.lat != null && barber.lng != null)
+        ? haversineKm(me, LatLng(barber.lat!, barber.lng!))
+        : null;
 
     return AppCard(
       variant: AppCardVariant.outlined,
@@ -735,45 +743,20 @@ class _BarberCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header — gallery photo + heart + status
-            SizedBox(
-              height: 96,
-              child: Stack(children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.2),
-                        AppColors.primary.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: firstGallery.isEmpty
-                      ? null
-                      : Opacity(
-                          opacity: 0.6,
-                          child: CachedNetworkImage(
-                            // Backend stores gallery as relative paths
-                            // (`/uploads/gallery/foo.jpg`) — must prepend
-                            // the API base via assetUrl or the image
-                            // silently 404s and the gradient falls back
-                            // to solid. Was the reason backgrounds
-                            // stopped appearing after the redesign.
-                            imageUrl: assetUrl(firstGallery),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            // Broken image → let the gradient show through
-                            // instead of dumping "TrendingError: ..." text.
-                            placeholder: (_, _) => const SizedBox.shrink(),
-                            errorWidget: (_, _, _) =>
-                                const SizedBox.shrink(),
-                          ),
-                        ),
+            // Header — gallery photo (or fallback avatar as bg) + bookmark
+            // + status badge. Cleaner than the old avatar-overlap trick
+            // that caused the "random emoji" artefact users reported.
+            AspectRatio(
+              aspectRatio: 1.35,
+              child: Stack(fit: StackFit.expand, children: [
+                _HeaderMedia(
+                  gallery: firstGallery,
+                  avatarUrl: avatarUrl,
+                  name: barber.name,
                 ),
-                // Bookmark top-left (was a heart) — matches the header
-                // shortcut. Flips optimistically via FavoritesController.
+                // Dark scrim so bookmark + badge stay readable on light
+                // gallery photos.
+                const _HeaderScrim(),
                 Positioned(
                   top: AppSpacing.sm,
                   left: AppSpacing.sm,
@@ -783,21 +766,20 @@ class _BarberCard extends ConsumerWidget {
                         .read(favoritesControllerProvider.notifier)
                         .toggleOptimistic(barber.id),
                     child: Container(
-                      width: 30,
-                      height: 30,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.35),
+                        color: Colors.black.withValues(alpha: 0.45),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         isFav ? Icons.bookmark : Icons.bookmark_border,
-                        size: 16,
-                        color: isFav ? AppColors.primary : Colors.white,
+                        size: 17,
+                        color: isFav ? Colors.white : Colors.white,
                       ),
                     ),
                   ),
                 ),
-                // Status badge top-right
                 Positioned(
                   top: AppSpacing.sm,
                   right: AppSpacing.sm,
@@ -811,104 +793,66 @@ class _BarberCard extends ConsumerWidget {
                     dot: true,
                   ),
                 ),
-                // (Gender emoji indicator removed — was showing 👨/👩 as
-                // a floating pill that looked like a random artefact on
-                // the card. Filter/sort UI in the tuner sheet is enough
-                // signal for gender-preferred masters.)
               ]),
             ),
-            // Body — avatar overlaps
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  0,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Transform.translate(
-                      offset: const Offset(0, -22),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          shape: BoxShape.circle,
-                          boxShadow: AppShadows.subtle,
-                        ),
-                        padding: const EdgeInsets.all(3),
-                        child: ClipOval(
-                          child: avatarUrl.isEmpty
-                              ? _AvatarFallback(name: barber.name)
-                              : CachedNetworkImage(
-                                  imageUrl: avatarUrl,
-                                  width: 44,
-                                  height: 44,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) =>
-                                      const SkeletonCircle(size: 44),
-                                  errorWidget: (context, url, err) =>
-                                      _AvatarFallback(name: barber.name),
-                                ),
-                        ),
+            // Body — no more Transform.translate; content sits neatly
+            // under the header.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    barber.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.titleSm,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    const Icon(Icons.star,
+                        size: 12, color: Color(0xFFFBBF24)),
+                    AppSpacing.hGapXs,
+                    Text(
+                      barber.rating.toStringAsFixed(1),
+                      style: AppText.caption.copyWith(
+                        color: AppColors.textBright,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Transform.translate(
-                      offset: const Offset(0, -16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            barber.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppText.titleSm,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(children: [
-                            const Icon(Icons.star,
-                                size: 12, color: Color(0xFFFBBF24)),
-                            AppSpacing.hGapXs,
-                            Text(
-                              barber.rating.toStringAsFixed(1),
-                              style: AppText.caption.copyWith(
-                                color: AppColors.textBright,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            AppSpacing.hGapXs,
-                            Text(
-                              '(${barber.reviewCount})',
-                              style: AppText.caption,
-                            ),
-                          ]),
-                          if (barber.location.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Row(children: [
-                              const Icon(Icons.location_on_outlined,
-                                  size: 12, color: AppColors.textMuted),
-                              AppSpacing.hGapXs,
-                              Expanded(
-                                child: Text(
-                                  barber.location,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppText.caption,
-                                ),
-                              ),
-                            ]),
-                          ],
-                          const SizedBox(height: AppSpacing.sm),
-                          // Yozilish CTA — one tap straight into the
-                          // booking flow, skips the detail bounce for
-                          // users who just want to pick a slot.
-                          _BookNowButton(barberId: barber.id),
-                        ],
+                    AppSpacing.hGapXs,
+                    Text('(${barber.reviewCount})',
+                        style: AppText.caption),
+                    if (km != null) ...[
+                      AppSpacing.hGapSm,
+                      _DistancePill(km: km),
+                    ],
+                  ]),
+                  if (barber.location.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      const Icon(Icons.location_on_outlined,
+                          size: 11, color: AppColors.textMuted),
+                      AppSpacing.hGapXs,
+                      Expanded(
+                        child: Text(
+                          barber.location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.caption,
+                        ),
                       ),
-                    ),
+                    ]),
                   ],
-                ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _BookNowButton(barberId: barber.id),
+                ],
               ),
             ),
           ],
@@ -918,20 +862,123 @@ class _BarberCard extends ConsumerWidget {
   }
 }
 
-class _AvatarFallback extends StatelessWidget {
-  const _AvatarFallback({required this.name});
+/// Card header media. Prefers the barber's first gallery photo; falls
+/// back to the avatar zoomed in as a moody background; falls back again
+/// to a monogram-on-gradient tile so a card without any imagery still
+/// looks intentional instead of an empty dark rectangle.
+class _HeaderMedia extends StatelessWidget {
+  const _HeaderMedia({
+    required this.gallery,
+    required this.avatarUrl,
+    required this.name,
+  });
+  final String gallery;
+  final String avatarUrl;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    if (gallery.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: assetUrl(gallery),
+        fit: BoxFit.cover,
+        placeholder: (_, _) => const _MonogramFallback(name: '?'),
+        errorWidget: (_, _, _) => _MonogramFallback(name: name),
+      );
+    }
+    if (avatarUrl.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: avatarUrl,
+        fit: BoxFit.cover,
+        placeholder: (_, _) => const _MonogramFallback(name: '?'),
+        errorWidget: (_, _, _) => _MonogramFallback(name: name),
+      );
+    }
+    return _MonogramFallback(name: name);
+  }
+}
+
+/// Dark bottom-to-top scrim so bookmark + status pills stay readable
+/// on top of light gallery photos.
+class _HeaderScrim extends StatelessWidget {
+  const _HeaderScrim();
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.black.withValues(alpha: 0.35),
+            Colors.transparent,
+            Colors.black.withValues(alpha: 0.25),
+          ],
+          stops: const [0, 0.4, 1],
+        ),
+      ),
+    );
+  }
+}
+
+/// Monogram-on-gradient tile used when no image is available. Fills the
+/// full header area so the card never has an empty dark rectangle.
+class _MonogramFallback extends StatelessWidget {
+  const _MonogramFallback({required this.name});
   final String name;
   @override
   Widget build(BuildContext context) {
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
     return Container(
-      width: 44,
-      height: 44,
       decoration: BoxDecoration(gradient: AppColors.primaryGradient),
       alignment: Alignment.center,
       child: Text(
         initial,
-        style: AppText.titleMd.copyWith(color: Colors.white),
+        style: AppText.display.copyWith(
+          color: Colors.white.withValues(alpha: 0.85),
+          fontSize: 44,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+/// Small distance chip shown next to the rating on each barber card
+/// when the user's geolocation is available. Under 1 km shows metres;
+/// otherwise rounded km.
+class _DistancePill extends StatelessWidget {
+  const _DistancePill({required this.km});
+  final double km;
+
+  String get _label {
+    if (km < 1) return '${(km * 1000).round()} m';
+    if (km < 10) return '${km.toStringAsFixed(1)} km';
+    return '${km.round()} km';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.12),
+        borderRadius: AppRadius.rPill,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.near_me, size: 10, color: AppColors.primary),
+          const SizedBox(width: 3),
+          Text(
+            _label,
+            style: AppText.overline.copyWith(
+              color: AppColors.primary,
+              fontSize: 10,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
