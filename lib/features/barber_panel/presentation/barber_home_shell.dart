@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
@@ -13,9 +12,6 @@ import 'barber_bookings_screen.dart';
 import 'barber_stats_screen.dart';
 import 'barber_settings_screen.dart';
 
-/// Barber shell — mirrors the web's BarberLayout: 5 bottom tabs (Schedule,
-/// Clients, AI Style, Stats, Settings) and a flat top header with the
-/// Lope Style logo + notification bell. NO drawer — settings is its own tab.
 class BarberHomeShell extends ConsumerStatefulWidget {
   const BarberHomeShell({super.key, this.initialTab = 0});
   final int initialTab;
@@ -30,7 +26,6 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
   @override
   void initState() {
     super.initState();
-    // One-shot low-balance check after first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (_balanceCheckDone || !mounted) return;
       _balanceCheckDone = true;
@@ -50,20 +45,30 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
   Widget build(BuildContext context) {
     final items = [
       _Item(
-          icon: Icons.calendar_today,
-          label: tr(ref, 'mobile.barber.home.schedule', 'Jadval')),
+        icon: Icons.calendar_today_outlined,
+        activeIcon: Icons.calendar_today,
+        label: tr(ref, 'mobile.barber.home.schedule', 'Jadval'),
+      ),
       _Item(
-          icon: Icons.people_outline,
-          label: tr(ref, 'shop.nav.clients', 'Mijozlar')),
+        icon: Icons.people_outline,
+        activeIcon: Icons.people,
+        label: tr(ref, 'shop.nav.clients', 'Mijozlar'),
+      ),
       _Item(
-          icon: Icons.auto_awesome,
-          label: tr(ref, 'mobile.tabs.aiStyle', 'AI Stil')),
+        icon: Icons.auto_awesome_outlined,
+        activeIcon: Icons.auto_awesome,
+        label: tr(ref, 'mobile.tabs.aiStyle', 'AI Stil'),
+      ),
       _Item(
-          icon: Icons.bar_chart,
-          label: tr(ref, 'mobile.barber.home.stats', 'Statistika')),
+        icon: Icons.bar_chart_outlined,
+        activeIcon: Icons.bar_chart,
+        label: tr(ref, 'mobile.barber.home.stats', 'Statistika'),
+      ),
       _Item(
-          icon: Icons.person_outline,
-          label: tr(ref, 'mobile.tabs.profile', 'Profil')),
+        icon: Icons.person_outline,
+        activeIcon: Icons.person,
+        label: tr(ref, 'mobile.tabs.profile', 'Profil'),
+      ),
     ];
     return Scaffold(
       drawer: const AppDrawer(),
@@ -71,7 +76,11 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
         const _Header(),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
       ]),
-      bottomNavigationBar: _BottomBar(items: items, index: _index, onSelect: (i) => setState(() => _index = i)),
+      bottomNavigationBar: _BottomBar(
+        items: items,
+        index: _index,
+        onSelect: (i) => setState(() => _index = i),
+      ),
     );
   }
 }
@@ -87,29 +96,53 @@ class _Header extends StatelessWidget {
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Padding(
-        // Click/Payme/Uzum uslubi: logo CHAP tomonda, boshqaruv (bell + menu)
-        // O'ng tomonda. Foydalanuvchi qo'lining tabiiy zonasida — o'ng tomon.
-        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.sm,
+          AppSpacing.sm,
+        ),
         child: Row(children: [
-          Row(children: const [
-            Icon(Icons.content_cut, color: AppColors.primary, size: 24),
-            SizedBox(width: 6),
-            Text("Lope Style",
-                style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3)),
-          ]),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: AppRadius.rMd,
+              boxShadow: AppShadows.primaryGlow(AppColors.primary),
+            ),
+            child: const Icon(Icons.content_cut,
+                color: Colors.white, size: 18),
+          ),
+          AppSpacing.hGapSm,
+          Text(
+            'Lope Style',
+            style: AppText.titleMd.copyWith(
+              color: AppColors.primary,
+              letterSpacing: -0.3,
+            ),
+          ),
           const Spacer(),
           const NotificationBell(),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 24),
-            onPressed: () {
-              HapticFeedback.selectionClick();
+          AppSpacing.hGapXs,
+          TapScale(
+            onTap: () {
+              AppHaptics.selection();
               Scaffold.of(context).openDrawer();
             },
+            scale: 0.9,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              alignment: Alignment.center,
+              child: const Icon(Icons.menu_rounded,
+                  color: AppColors.textPrimary, size: 20),
+            ),
           ),
         ]),
       ),
@@ -118,45 +151,90 @@ class _Header extends StatelessWidget {
 }
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.items, required this.index, required this.onSelect});
+  const _BottomBar({
+    required this.items,
+    required this.index,
+    required this.onSelect,
+  });
   final List<_Item> items;
   final int index;
   final ValueChanged<int> onSelect;
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        border: const Border(top: BorderSide(color: AppColors.border)),
+        boxShadow: AppShadows.subtle,
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 64,
-          child: Row(children: List.generate(items.length, (i) {
-            final active = i == index;
-            final item = items[i];
-            return Expanded(
-              child: InkWell(
-                onTap: () { HapticFeedback.selectionClick(); onSelect(i); },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(item.icon,
-                        color: active ? AppColors.primary : AppColors.textMuted,
-                        size: active ? 24 : 20),
-                    const SizedBox(height: 2),
-                    Text(item.label,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                          color: active ? AppColors.primary : AppColors.textMuted,
-                        )),
-                  ],
-                ),
-              ),
-            );
-          })),
+          height: 72,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            child: Row(
+              children: List.generate(items.length, (i) {
+                final active = i == index;
+                final item = items[i];
+                return Expanded(
+                  child: TapScale(
+                    onTap: () => onSelect(i),
+                    haptic: HapticStrength.selection,
+                    scale: 0.94,
+                    child: AnimatedContainer(
+                      duration: AppMotion.base,
+                      curve: AppMotion.emphasized,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xs,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: active
+                            ? AppColors.primaryGradient
+                            : null,
+                        borderRadius: AppRadius.rLg,
+                        boxShadow: active
+                            ? AppShadows.primaryGlow(AppColors.primary)
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            active ? item.activeIcon : item.icon,
+                            color: active
+                                ? Colors.white
+                                : AppColors.textMuted,
+                            size: 22,
+                          ),
+                          if (active) ...[
+                            AppSpacing.hGapXs,
+                            Flexible(
+                              child: Text(
+                                item.label,
+                                style: AppText.caption.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
         ),
       ),
     );
@@ -164,7 +242,12 @@ class _BottomBar extends StatelessWidget {
 }
 
 class _Item {
-  const _Item({required this.icon, required this.label});
+  const _Item({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+  });
   final IconData icon;
+  final IconData activeIcon;
   final String label;
 }
