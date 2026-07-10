@@ -64,13 +64,24 @@ import '../features/auth/presentation/auth_controller.dart';
 /// session is absent or the role doesn't match. This way a deep link can
 /// never silently land an unauthenticated user inside the barber panel.
 final routerProvider = Provider<GoRouter>((ref) {
+  // Rebuild the router whenever the auth session flips loading/user
+  // state so the redirect re-runs after restoreSession completes.
+  // Without this, a hard refresh on /home reads user==null before the
+  // async restore finishes and dumps the user on /login for good.
+  final auth = ref.watch(authControllerProvider);
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
-      final auth = ProviderScope.containerOf(context).read(authControllerProvider);
       final loc = state.matchedLocation;
       const publicPaths = {'/', '/login', '/register-phone', '/register-otp', '/register-complete', '/forgot-password'};
       final isPublic = publicPaths.contains(loc) || loc.startsWith('/b/');
+
+      // Auth still resolving from persistent storage → park the user
+      // on the splash so it can await the restore and dispatch to the
+      // right role home. Prevents the /home → /login flash on refresh.
+      if (auth.loading) {
+        return loc == '/' ? null : '/';
+      }
 
       // Unauthenticated → public-only.
       if (auth.user == null && !isPublic) return '/login';
