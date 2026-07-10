@@ -1,18 +1,15 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../../shared/widgets/stat_charts.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart';
 
-/// Lightweight stats for the barber: this week / month booking totals,
-/// computed client-side from the bookings list. The web has a richer stats
-/// page; this is the v1 mobile equivalent.
 class BarberStatsScreen extends ConsumerWidget {
   const BarberStatsScreen({super.key});
 
@@ -20,7 +17,8 @@ class BarberStatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final barberId = ref.watch(authControllerProvider).user?.id;
     if (barberId == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: Center(child: CircularProgressIndicator()));
     }
     final async = ref.watch(barberAllBookingsProvider(barberId));
 
@@ -28,51 +26,61 @@ class BarberStatsScreen extends ConsumerWidget {
       body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.primary,
-          onRefresh: () async => ref.refresh(barberAllBookingsProvider(barberId).future),
+          onRefresh: () async =>
+              ref.refresh(barberAllBookingsProvider(barberId).future),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             children: [
               Text(
-                tr(ref, 'mobile.barber.stats.title', "Statistika"),
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textBright,
-                    letterSpacing: -0.3),
+                tr(ref, 'mobile.barber.stats.title', 'Statistika'),
+                style: AppText.titleLg,
               ),
-              const SizedBox(height: 14),
+              AppSpacing.gapLg,
               async.when(
                 loading: () => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: const [
                     Row(children: [
-                      Expanded(child: AppSkeleton(height: 96, borderRadius: 12)),
-                      SizedBox(width: 12),
-                      Expanded(child: AppSkeleton(height: 96, borderRadius: 12)),
+                      Expanded(
+                          child: SkeletonRect(
+                              height: 96, radius: AppRadius.md)),
+                      SizedBox(width: AppSpacing.md),
+                      Expanded(
+                          child: SkeletonRect(
+                              height: 96, radius: AppRadius.md)),
                     ]),
-                    SizedBox(height: 12),
-                    AppSkeleton(height: 220, borderRadius: 12),
-                    SizedBox(height: 12),
-                    AppSkeleton(height: 220, borderRadius: 12),
+                    SizedBox(height: AppSpacing.md),
+                    SkeletonRect(height: 220, radius: AppRadius.md),
+                    SizedBox(height: AppSpacing.md),
+                    SkeletonRect(height: 220, radius: AppRadius.md),
                   ],
                 ),
                 error: (e, _) => SizedBox(
                   height: 320,
                   child: AppErrorState(
                     message: humanize(e),
-                    onRetry: () => ref.invalidate(barberAllBookingsProvider(barberId)),
+                    onRetry: () => ref
+                        .invalidate(barberAllBookingsProvider(barberId)),
                   ),
                 ),
                 data: (list) {
                   final now = DateTime.now();
                   final weekAgo = now.subtract(const Duration(days: 7));
-                  final monthAgo = DateTime(now.year, now.month - 1, now.day);
+                  final monthAgo =
+                      DateTime(now.year, now.month - 1, now.day);
 
                   int weekCount = 0, monthCount = 0, totalRev = 0;
                   int weekRev = 0, monthRev = 0;
-                  int confirmedCount = 0, completedCount = 0, cancelledCount = 0;
-                  final serviceAgg = <String, ({String name, int count, int revenue})>{};
-                  // Build day-of-week (Mon=0..Sun=6) bucket for the bar chart.
+                  int confirmedCount = 0,
+                      completedCount = 0,
+                      cancelledCount = 0;
+                  final serviceAgg =
+                      <String, ({String name, int count, int revenue})>{};
                   final byDow = List<int>.filled(7, 0);
                   for (final b in list) {
                     final d = DateTime.tryParse(b.date);
@@ -90,7 +98,6 @@ class BarberStatsScreen extends ConsumerWidget {
                     }
                     if (b.status == 'cancelled') continue;
                     totalRev += b.totalPrice;
-                    // Aggregate services for the Top Services card.
                     for (final s in b.services) {
                       final key = s.name;
                       final prev = serviceAgg[key];
@@ -103,7 +110,6 @@ class BarberStatsScreen extends ConsumerWidget {
                     if (d.isAfter(weekAgo)) {
                       weekCount++;
                       weekRev += b.totalPrice;
-                      // weekday: 1=Mon..7=Sun → index 0..6
                       byDow[d.weekday - 1]++;
                     }
                     if (d.isAfter(monthAgo)) {
@@ -114,190 +120,213 @@ class BarberStatsScreen extends ConsumerWidget {
                   final topServices = serviceAgg.values.toList()
                     ..sort((a, b) => b.count.compareTo(a.count));
 
-                  // Count today's bookings (matches web's todayCount)
                   final todayStr =
                       '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
                   final todayCount = list
-                      .where((b) => b.date == todayStr && b.status != 'cancelled')
+                      .where((b) =>
+                          b.date == todayStr && b.status != 'cancelled')
                       .length;
                   final uniqueClients = list
                       .where((b) => b.status != 'cancelled')
-                      .map((b) => b.userPhone ?? b.guestPhone ?? b.userName)
+                      .map((b) =>
+                          b.userPhone ?? b.guestPhone ?? b.userName)
                       .toSet()
                       .length;
 
-                  // 4 stat tiles, 2x2 — matches web's statCards array exactly.
                   return Column(
                     children: [
                       GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 2,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 1.45,
+                        mainAxisSpacing: AppSpacing.sm,
+                        crossAxisSpacing: AppSpacing.sm,
+                        childAspectRatio: 1.6,
                         children: [
                           _StatTile(
                             icon: Icons.event_available,
-                            label: tr(ref, 'mobile.barber.stats.todayBookings', "Bugungi bronlar"),
-                            value: "$todayCount",
-                            color: const Color(0xFF3B82F6), // blue-500
+                            label: tr(
+                                ref,
+                                'mobile.barber.stats.todayBookings',
+                                'Bugungi bronlar'),
+                            value: '$todayCount',
+                            color: const Color(0xFF3B82F6),
                           ),
                           _StatTile(
                             icon: Icons.trending_up,
-                            label: tr(ref, 'mobile.barber.stats.month', "Bu oy"),
-                            value: "$monthCount",
-                            color: const Color(0xFF22C55E), // green-500
+                            label: tr(ref,
+                                'mobile.barber.stats.month', 'Bu oy'),
+                            value: '$monthCount',
+                            color: AppColors.success,
                           ),
                           _StatTile(
                             icon: Icons.people_outline,
-                            label: tr(ref, 'mobile.barber.stats.totalClients', "Jami mijozlar"),
-                            value: "$uniqueClients",
-                            color: const Color(0xFFA855F7), // purple-500
+                            label: tr(
+                                ref,
+                                'mobile.barber.stats.totalClients',
+                                'Jami mijozlar'),
+                            value: '$uniqueClients',
+                            color: const Color(0xFFA855F7),
                           ),
                           _StatTile(
                             icon: Icons.attach_money,
-                            label: tr(ref, 'mobile.barber.stats.monthRevenue', "Bu oy daromad"),
-                            value: "${_fmt(monthRev)} ${tr(ref, 'common.currency', "so'm")}",
-                            color: const Color(0xFF10B981), // emerald-500
+                            label: tr(
+                                ref,
+                                'mobile.barber.stats.monthRevenue',
+                                'Bu oy daromad'),
+                            value:
+                                "${_fmt(monthRev)} ${tr(ref, 'common.currency', "so'm")}",
+                            color: const Color(0xFF10B981),
                           ),
                         ],
                       ),
-
-                      const SizedBox(height: 14),
-
-                      // Weekly bar chart card
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(tr(ref, 'mobile.barber.stats.weeklyBookings', "Haftalik bronlar"),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: AppColors.textBright)),
-                            const SizedBox(height: 8),
-                            WeeklyBookingsBarChart(
-                              counts: byDow,
-                              dayLabels: trList(ref, 'mobile.dates.weekDaysShort',
-                                  const ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // Summary card
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(tr(ref, 'mobile.barber.stats.summary', "Umumiy hisob"),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: AppColors.textBright)),
-                            const SizedBox(height: 10),
-                            _SummaryRow(
-                                label: tr(ref, 'mobile.barber.stats.week', "Bu hafta"),
-                                value: "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} · ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}"),
-                            const Divider(color: AppColors.border, height: 14),
-                            _SummaryRow(
-                                label: tr(ref, 'mobile.barber.stats.totalBookings', "Jami bronlar"),
-                                value: "${list.length} ${tr(ref, 'mobile.barber.stats.countSuffix', 'ta')}"),
-                            const Divider(color: AppColors.border, height: 14),
-                            _SummaryRow(
-                                label: tr(ref, 'mobile.barber.stats.total', "Jami daromad"),
-                                value: "${_fmt(totalRev)} ${tr(ref, 'common.currency', "so'm")}"),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // ===== Booking status breakdown (mirrors web) =====
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border),
+                      AppSpacing.gapMd,
+                      AppCard(
+                        variant: AppCardVariant.outlined,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.xs,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                                tr(ref, 'barberApp.bookingsByStatus',
-                                    "Bronlar holati bo'yicha"),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: AppColors.textBright)),
-                            const SizedBox(height: 12),
-                            _StatusRow(
-                                color: const Color(0xFF3B82F6),
-                                label: tr(ref, 'status.confirmed',
-                                    'Tasdiqlangan'),
-                                count: confirmedCount),
-                            const SizedBox(height: 8),
-                            _StatusRow(
-                                color: const Color(0xFF22C55E),
-                                label:
-                                    tr(ref, 'status.completed', 'Yakunlangan'),
-                                count: completedCount),
-                            const SizedBox(height: 8),
-                            _StatusRow(
-                                color: const Color(0xFFEF4444),
-                                label:
-                                    tr(ref, 'status.cancelled', 'Bekor qilingan'),
-                                count: cancelledCount),
+                              tr(
+                                  ref,
+                                  'mobile.barber.stats.weeklyBookings',
+                                  'Haftalik bronlar'),
+                              style: AppText.titleSm,
+                            ),
+                            AppSpacing.gapSm,
+                            WeeklyBookingsBarChart(
+                              counts: byDow,
+                              dayLabels: trList(
+                                  ref,
+                                  'mobile.dates.weekDaysShort',
+                                  const [
+                                    'Du',
+                                    'Se',
+                                    'Ch',
+                                    'Pa',
+                                    'Ju',
+                                    'Sh',
+                                    'Ya'
+                                  ]),
+                            ),
                           ],
                         ),
                       ),
-
+                      AppSpacing.gapMd,
+                      AppCard(
+                        variant: AppCardVariant.outlined,
+                        padding: AppSpacing.cardPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tr(ref, 'mobile.barber.stats.summary',
+                                  'Umumiy hisob'),
+                              style: AppText.titleSm,
+                            ),
+                            AppSpacing.gapSm,
+                            _SummaryRow(
+                              label: tr(ref,
+                                  'mobile.barber.stats.week', 'Bu hafta'),
+                              value:
+                                  "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} · ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}",
+                            ),
+                            const Divider(
+                                color: AppColors.border, height: 14),
+                            _SummaryRow(
+                              label: tr(
+                                  ref,
+                                  'mobile.barber.stats.totalBookings',
+                                  'Jami bronlar'),
+                              value:
+                                  "${list.length} ${tr(ref, 'mobile.barber.stats.countSuffix', 'ta')}",
+                            ),
+                            const Divider(
+                                color: AppColors.border, height: 14),
+                            _SummaryRow(
+                              label: tr(ref,
+                                  'mobile.barber.stats.total',
+                                  'Jami daromad'),
+                              value:
+                                  "${_fmt(totalRev)} ${tr(ref, 'common.currency', "so'm")}",
+                            ),
+                          ],
+                        ),
+                      ),
+                      AppSpacing.gapMd,
+                      AppCard(
+                        variant: AppCardVariant.outlined,
+                        padding: AppSpacing.cardPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tr(ref, 'barberApp.bookingsByStatus',
+                                  "Bronlar holati bo'yicha"),
+                              style: AppText.titleSm,
+                            ),
+                            AppSpacing.gapMd,
+                            _StatusRow(
+                              color: const Color(0xFF3B82F6),
+                              label: tr(ref, 'status.confirmed',
+                                  'Tasdiqlangan'),
+                              count: confirmedCount,
+                            ),
+                            AppSpacing.gapSm,
+                            _StatusRow(
+                              color: AppColors.success,
+                              label: tr(ref, 'status.completed',
+                                  'Yakunlangan'),
+                              count: completedCount,
+                            ),
+                            AppSpacing.gapSm,
+                            _StatusRow(
+                              color: AppColors.danger,
+                              label: tr(ref, 'status.cancelled',
+                                  'Bekor qilingan'),
+                              count: cancelledCount,
+                            ),
+                          ],
+                        ),
+                      ),
                       if (topServices.isNotEmpty) ...[
-                        const SizedBox(height: 14),
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
-                          ),
+                        AppSpacing.gapMd,
+                        AppCard(
+                          variant: AppCardVariant.outlined,
+                          padding: AppSpacing.cardPadding,
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
                             children: [
                               Text(
-                                  tr(ref, 'barberApp.topServices',
-                                      "Eng ko'p so'ralgan xizmatlar"),
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 14,
-                                      color: AppColors.textBright)),
-                              const SizedBox(height: 10),
-                              ...topServices.take(5).toList().asMap().entries.map(
-                                  (e) => Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 8),
+                                tr(
+                                    ref,
+                                    'barberApp.topServices',
+                                    "Eng ko'p so'ralgan xizmatlar"),
+                                style: AppText.titleSm,
+                              ),
+                              AppSpacing.gapMd,
+                              ...topServices
+                                  .take(5)
+                                  .toList()
+                                  .asMap()
+                                  .entries
+                                  .map((e) => Padding(
+                                        padding: const EdgeInsets.only(
+                                            bottom: AppSpacing.sm),
                                         child: _TopServiceRow(
                                           rank: e.key + 1,
                                           name: e.value.name,
                                           count: e.value.count,
                                           revenue: e.value.revenue,
-                                          currency: tr(ref, 'common.currency',
-                                              "so'm"),
+                                          currency: tr(ref,
+                                              'common.currency', "so'm"),
                                           fmt: _fmt,
                                         ),
                                       )),
@@ -305,8 +334,7 @@ class BarberStatsScreen extends ConsumerWidget {
                           ),
                         ),
                       ],
-
-                      const SizedBox(height: 14),
+                      AppSpacing.gapMd,
                       _SmsStatsCard(barberId: barberId),
                     ],
                   );
@@ -345,21 +373,22 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.surface,
+        borderRadius: AppRadius.rLg,
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withValues(alpha: 0.15),
+              borderRadius: AppRadius.rSm,
             ),
             child: Icon(icon, color: color, size: 20),
           ),
@@ -367,20 +396,14 @@ class _StatTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                      letterSpacing: -0.3,
-                      color: AppColors.textBright)),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.titleMd.copyWith(fontSize: 18),
+              ),
               const SizedBox(height: 4),
-              Text(label,
-                  style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500)),
+              Text(label, style: AppText.caption),
             ],
           ),
         ],
@@ -397,23 +420,22 @@ class _SummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
-          child: Text(label,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
+        Expanded(child: Text(label, style: AppText.bodySm)),
+        Text(
+          value,
+          style: AppText.body.copyWith(fontWeight: FontWeight.w700),
         ),
-        Text(value,
-            style: const TextStyle(
-                color: AppColors.textBright,
-                fontSize: 14,
-                fontWeight: FontWeight.w500)),
       ],
     );
   }
 }
 
 class _StatusRow extends StatelessWidget {
-  const _StatusRow(
-      {required this.color, required this.label, required this.count});
+  const _StatusRow({
+    required this.color,
+    required this.label,
+    required this.count,
+  });
   final Color color;
   final String label;
   final int count;
@@ -423,26 +445,34 @@ class _StatusRow extends StatelessWidget {
       Container(
         width: 10,
         height: 10,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.5),
+              blurRadius: 6,
+            ),
+          ],
+        ),
       ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Text(label,
-            style: const TextStyle(
-                color: AppColors.textBright, fontSize: 14)),
-      ),
+      AppSpacing.hGapSm,
+      Expanded(child: Text(label, style: AppText.body)),
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 3,
+        ),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.rPill,
           border: Border.all(color: AppColors.border),
         ),
-        child: Text("$count",
-            style: const TextStyle(
-                color: AppColors.textBright,
-                fontWeight: FontWeight.w600,
-                fontSize: 12)),
+        child: Text('$count',
+            style: AppText.caption.copyWith(
+              color: AppColors.textBright,
+              fontWeight: FontWeight.w800,
+            )),
       ),
     ]);
   }
@@ -468,52 +498,50 @@ class _TopServiceRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(children: [
       SizedBox(
-        width: 22,
-        child: Text("#$rank",
-            style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'monospace')),
+        width: 24,
+        child: Text(
+          '#$rank',
+          style: AppText.caption.copyWith(
+            fontFamily: 'monospace',
+            fontWeight: FontWeight.w800,
+            color: AppColors.textMuted,
+          ),
+        ),
       ),
       Expanded(
-        child: Text(name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                color: AppColors.textBright, fontSize: 14, fontWeight: FontWeight.w500)),
+        child: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppText.body,
+        ),
       ),
-      const SizedBox(width: 8),
+      AppSpacing.hGapSm,
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.rPill,
           border: Border.all(color: AppColors.border),
         ),
-        child: Text("${count}x",
-            style: const TextStyle(
-                color: AppColors.textBright,
-                fontWeight: FontWeight.w600,
-                fontSize: 11)),
+        child: Text(
+          '${count}x',
+          style: AppText.caption.copyWith(
+            color: AppColors.textBright,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
-      const SizedBox(width: 8),
-      Text("${fmt(revenue)} $currency",
-          style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 12,
-              fontWeight: FontWeight.w500)),
+      AppSpacing.hGapSm,
+      Text(
+        '${fmt(revenue)} $currency',
+        style: AppText.caption,
+      ),
     ]);
   }
 }
 
-/// SMS-billing breakdown card. Mirrors the web BarberStatsScreen SMS
-/// section — total sent + total cost at the top, per-type
-/// (confirmation / reminder / retention) rows below.
-///
-/// The date range is editable via two pickers (defaults to this month);
-/// a small × button next to the second picker snaps both back to the
-/// month-to-today default. Same behaviour web's BarberStatsScreen has.
 class _SmsStatsCard extends ConsumerStatefulWidget {
   const _SmsStatsCard({required this.barberId});
   final String barberId;
@@ -531,6 +559,7 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
       '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
 
   Future<void> _pickDate(bool isFrom) async {
+    AppHaptics.light();
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -570,29 +599,28 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
     final async = ref.watch(barberSmsStatsProvider(
         (barberId: widget.barberId, from: _ymd(effFrom), to: _ymd(effTo))));
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: AppSpacing.cardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.sms_outlined,
-                size: 16, color: AppColors.primary),
-            const SizedBox(width: 6),
-            Text(tr(ref, 'mobile.barber.stats.smsTitle', "SMS xizmat"),
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: AppColors.textBright)),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: AppRadius.rSm,
+              ),
+              child: const Icon(Icons.sms_outlined,
+                  size: 18, color: AppColors.primary),
+            ),
+            AppSpacing.hGapSm,
+            Text(tr(ref, 'mobile.barber.stats.smsTitle', 'SMS xizmat'),
+                style: AppText.titleSm),
           ]),
-          const SizedBox(height: 8),
-          // Date range row — two compact pickers + a reset chip when the
-          // range isn't the default (first-of-month .. today).
+          AppSpacing.gapSm,
           Row(children: [
             Expanded(
               child: _MiniDate(
@@ -601,8 +629,9 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
               ),
             ),
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 6),
-              child: Text('—', style: TextStyle(color: AppColors.textMuted)),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+              child:
+                  Text('—', style: TextStyle(color: AppColors.textMuted)),
             ),
             Expanded(
               child: _MiniDate(
@@ -610,21 +639,31 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                 onTap: () => _pickDate(false),
               ),
             ),
-            if (customRange)
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.close,
-                    size: 14, color: AppColors.textMuted),
-                onPressed: () => setState(() {
+            if (customRange) ...[
+              AppSpacing.hGapXs,
+              TapScale(
+                onTap: () => setState(() {
                   _from = null;
                   _to = null;
                 }),
+                scale: 0.85,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close,
+                      size: 14, color: AppColors.textMuted),
+                ),
               ),
+            ],
           ]),
-          const SizedBox(height: 10),
+          AppSpacing.gapSm,
           async.when(
             loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
               child: Center(
                   child: SizedBox(
                       width: 18,
@@ -632,49 +671,55 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                       child: CircularProgressIndicator(strokeWidth: 2))),
             ),
             error: (e, _) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                  style:
-                      const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
+                style: AppText.caption,
+              ),
             ),
             data: (s) => Column(
               children: [
                 _SummaryRow(
-                    label: tr(ref, 'mobile.barber.stats.smsTotal',
-                        "Jami SMS"),
-                    value:
-                        "${s.totalSent} · ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                  label: tr(ref, 'mobile.barber.stats.smsTotal', 'Jami SMS'),
+                  value:
+                      "${s.totalSent} · ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}",
+                ),
                 const Divider(color: AppColors.border, height: 14),
                 _SummaryRow(
-                    label: tr(ref, 'mobile.barber.stats.smsConfirmation',
-                        "Tasdiqlash"),
-                    value:
-                        "${s.confirmationRegistered + s.confirmationGuest} · ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                  label: tr(ref, 'mobile.barber.stats.smsConfirmation',
+                      'Tasdiqlash'),
+                  value:
+                      "${s.confirmationRegistered + s.confirmationGuest} · ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}",
+                ),
                 const Divider(color: AppColors.border, height: 14),
                 _SummaryRow(
-                    label: tr(ref, 'mobile.barber.stats.smsReminder',
-                        "Eslatma"),
-                    value:
-                        "${s.reminderCount} · ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                  label: tr(ref, 'mobile.barber.stats.smsReminder',
+                      'Eslatma'),
+                  value:
+                      "${s.reminderCount} · ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}",
+                ),
                 const Divider(color: AppColors.border, height: 14),
                 _SummaryRow(
-                    label: tr(ref, 'mobile.barber.stats.smsRetention',
-                        "Retention"),
-                    value:
-                        "${s.retentionCount} · ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}"),
+                  label: tr(ref, 'mobile.barber.stats.smsRetention',
+                      'Retention'),
+                  value:
+                      "${s.retentionCount} · ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}",
+                ),
                 if (s.returnedClients > 0) ...[
                   const Divider(color: AppColors.border, height: 14),
                   _SummaryRow(
-                      label: tr(ref, 'mobile.barber.stats.smsReturned',
-                          "Qaytib kelganlar"),
-                      value: "${s.returnedClients}"),
+                    label: tr(ref, 'mobile.barber.stats.smsReturned',
+                        'Qaytib kelganlar'),
+                    value: '${s.returnedClients}',
+                  ),
                   if (s.totalSent > 0) ...[
                     const Divider(color: AppColors.border, height: 14),
                     _SummaryRow(
-                        label: tr(ref, 'mobile.barber.stats.smsConversion',
-                            "Konversiya"),
-                        value:
-                            "${((s.returnedClients / s.totalSent) * 100).round()}%"),
+                      label: tr(ref, 'mobile.barber.stats.smsConversion',
+                          'Konversiya'),
+                      value:
+                          "${((s.returnedClients / s.totalSent) * 100).round()}%",
+                    ),
                   ],
                 ],
               ],
@@ -692,25 +737,24 @@ class _MiniDate extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return TapScale(
       onTap: onTap,
+      scale: 0.97,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
           color: AppColors.surfaceElevated,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: AppRadius.rSm,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
           const Icon(Icons.calendar_today,
               size: 12, color: AppColors.textMuted),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(label,
-                style: const TextStyle(
-                    color: AppColors.textSecondary, fontSize: 11)),
-          ),
+          AppSpacing.hGapXs,
+          Expanded(child: Text(label, style: AppText.caption)),
         ]),
       ),
     );
