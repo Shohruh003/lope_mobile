@@ -4,22 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/shadcn.dart';
+import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/balance_repository.dart';
 
-/// Mirrors `ClickTopUpModal.tsx` 1:1.
-///
-/// Two-step flow:
-///   Step 1 — Method selection: Telegram bot / Click / Payme
-///   Step 2 — Amount input with 4 quick-pick buttons (5k/10k/50k/100k) and
-///            free-form input, then "Pay" CTA that opens the gateway in the
-///            external browser.
 class TopUpModal extends ConsumerStatefulWidget {
   const TopUpModal({super.key});
 
-  /// Imperative helper — push this from anywhere.
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -39,8 +30,8 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
   static const _maxTopUp = 1000000;
   static const _quickAmounts = [5000, 10000, 50000, 100000];
 
-  String _step = 'method'; // 'method' | 'amount'
-  String _method = 'click'; // 'click' | 'payme'
+  String _step = 'method';
+  String _method = 'click';
   final _amountCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
@@ -52,6 +43,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
   }
 
   Future<void> _openTelegram() async {
+    AppHaptics.light();
     final uri = Uri.parse(_telegramBot);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -60,13 +52,18 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
   }
 
   Future<void> _pay() async {
+    AppHaptics.medium();
     final amount = int.tryParse(_amountCtrl.text.trim());
     if (amount == null || amount < _minTopUp) {
-      setState(() => _error = tr(ref, 'topUp.minAmount', "Minimal summa 1 000 so'm"));
+      AppHaptics.error();
+      setState(() => _error =
+          tr(ref, 'topUp.minAmount', "Minimal summa 1 000 so'm"));
       return;
     }
     if (amount > _maxTopUp) {
-      setState(() => _error = tr(ref, 'topUp.maxAmount', "Maksimal summa 1 000 000 so'm"));
+      AppHaptics.error();
+      setState(() => _error =
+          tr(ref, 'topUp.maxAmount', "Maksimal summa 1 000 000 so'm"));
       return;
     }
     final user = ref.read(authControllerProvider).user;
@@ -82,7 +79,8 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
             gateway: _method,
           );
       if (url.isEmpty) {
-        throw Exception(tr(ref, 'topUp.payError', "To'lov tizimi bilan bog'lanishda xatolik"));
+        throw Exception(tr(ref, 'topUp.payError',
+            "To'lov tizimi bilan bog'lanishda xatolik"));
       }
       final uri = Uri.tryParse(url);
       if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
@@ -92,7 +90,9 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      setState(() => _error = '${tr(ref, 'topUp.payError', "To'lov tizimi bilan bog'lanishda xatolik")}: $e');
+      AppHaptics.error();
+      setState(() => _error =
+          '${tr(ref, 'topUp.payError', "To'lov tizimi bilan bog'lanishda xatolik")}: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -107,55 +107,68 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       expand: false,
       builder: (context, controller) => Container(
         decoration: const BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          color: AppColors.surface,
+          borderRadius: AppRadius.rTopXl,
         ),
         child: SingleChildScrollView(
           controller: controller,
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 16,
-            bottom: 24 + MediaQuery.of(context).viewInsets.bottom,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            top: AppSpacing.md,
+            bottom:
+                AppSpacing.xxl + MediaQuery.of(context).viewInsets.bottom,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Drag handle
               Center(
                 child: Container(
-                  width: 36, height: 4,
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: AppRadius.rPill,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // ===== Header =====
+              AppSpacing.gapLg,
               Row(children: [
                 Container(
-                  width: 36, height: 36,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: AppRadius.rMd,
+                    boxShadow:
+                        AppShadows.primaryGlow(AppColors.primary),
                   ),
-                  child: const Icon(Icons.account_balance_wallet, color: AppColors.primary, size: 18),
+                  child: const Icon(Icons.account_balance_wallet,
+                      color: Colors.white, size: 22),
                 ),
-                const SizedBox(width: 8),
-                Text(tr(ref, 'topUp.title', "Balansni to'ldirish"),
-                    style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textBright)),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close, color: AppColors.textMuted, size: 20),
-                  onPressed: () => Navigator.of(context).pop(),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: Text(
+                    tr(ref, 'topUp.title', "Balansni to'ldirish"),
+                    style: AppText.titleMd,
+                  ),
+                ),
+                TapScale(
+                  onTap: () => Navigator.of(context).pop(),
+                  scale: 0.9,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceElevated,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close,
+                        color: AppColors.textMuted, size: 16),
+                  ),
                 ),
               ]),
-
-              const SizedBox(height: 12),
-
+              AppSpacing.gapLg,
               if (_step == 'method') _methodStep() else _amountStep(),
             ],
           ),
@@ -166,136 +179,186 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
 
   Widget _methodStep() {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Center(
-        child: Text(tr(ref, 'topUp.selectMethod', "To'lov usulini tanlang"),
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+      Text(
+        tr(ref, 'topUp.selectMethod', "To'lov usulini tanlang"),
+        style: AppText.overline,
       ),
-      const SizedBox(height: 14),
+      AppSpacing.gapMd,
       _MethodBtn(
-        bgColor: const Color(0xFF3B82F6),
+        bgColor: const Color(0xFF2AABEE),
         icon: Icons.send,
-        title: tr(ref, 'topUp.viaTelegram', "Telegram bot orqali"),
-        subtitle: "@lope_style_bot",
+        title: tr(ref, 'topUp.viaTelegram', 'Telegram bot orqali'),
+        subtitle: '@lope_style_bot',
         onTap: _openTelegram,
       ),
-      const SizedBox(height: 8),
+      AppSpacing.gapSm,
       _MethodBtn(
         bgColor: AppColors.primary,
         icon: Icons.open_in_new,
-        title: tr(ref, 'topUp.viaClick', "Click orqali"),
-        subtitle: tr(ref, 'topUp.clickDesc', "Online to'lov — darhol balansingizga tushadi"),
-        onTap: () => setState(() {
-          _method = 'click';
-          _step = 'amount';
-        }),
+        title: tr(ref, 'topUp.viaClick', 'Click orqali'),
+        subtitle: tr(ref, 'topUp.clickDesc',
+            "Online to'lov — darhol balansingizga tushadi"),
+        onTap: () {
+          AppHaptics.light();
+          setState(() {
+            _method = 'click';
+            _step = 'amount';
+          });
+        },
       ),
-      const SizedBox(height: 8),
+      AppSpacing.gapSm,
       _MethodBtn(
         bgColor: const Color(0xFF2563EB),
         icon: Icons.open_in_new,
-        title: tr(ref, 'topUp.viaPayme', "Payme orqali"),
-        subtitle: tr(ref, 'topUp.paymeDesc', "Online to'lov — darhol balansingizga tushadi"),
-        onTap: () => setState(() {
-          _method = 'payme';
-          _step = 'amount';
-        }),
+        title: tr(ref, 'topUp.viaPayme', 'Payme orqali'),
+        subtitle: tr(ref, 'topUp.paymeDesc',
+            "Online to'lov — darhol balansingizga tushadi"),
+        onTap: () {
+          AppHaptics.light();
+          setState(() {
+            _method = 'payme';
+            _step = 'amount';
+          });
+        },
       ),
     ]);
   }
 
   Widget _amountStep() {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      // Back
-      Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton.icon(
-          icon: const Icon(Icons.arrow_back, size: 14),
-          label: Text(tr(ref, 'topUp.back', "← Orqaga").replaceAll('← ', '')),
-          onPressed: () => setState(() {
+      TapScale(
+        onTap: () {
+          AppHaptics.light();
+          setState(() {
             _step = 'method';
             _amountCtrl.clear();
             _error = null;
-          }),
-        ),
+          });
+        },
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.arrow_back,
+              color: AppColors.primary, size: 18),
+          AppSpacing.hGapXs,
+          Text(
+            tr(ref, 'topUp.back', "Orqaga").replaceAll('← ', ''),
+            style: AppText.body.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ]),
       ),
-      const SizedBox(height: 4),
-
-      // Quick amounts grid
-      Row(children: List.generate(_quickAmounts.length, (i) {
-        final q = _quickAmounts[i];
-        final on = _amountCtrl.text == q.toString();
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(right: i == _quickAmounts.length - 1 ? 0 : 6),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () => setState(() {
-                _amountCtrl.text = q.toString();
-                _error = null;
-              }),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: on ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: on ? AppColors.primary : AppColors.border),
-                ),
-                child: Center(
-                  child: Text("${_fmt(q ~/ 1000)}k",
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: on ? AppColors.primary : AppColors.textMuted)),
+      AppSpacing.gapMd,
+      Text(
+        tr(ref, 'topUp.enterAmount', 'Summa kiriting'),
+        style: AppText.overline,
+      ),
+      AppSpacing.gapSm,
+      Row(
+        children: List.generate(_quickAmounts.length, (i) {
+          final q = _quickAmounts[i];
+          final on = _amountCtrl.text == q.toString();
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: i == _quickAmounts.length - 1 ? 0 : AppSpacing.sm,
+              ),
+              child: TapScale(
+                onTap: () {
+                  AppHaptics.selection();
+                  setState(() {
+                    _amountCtrl.text = q.toString();
+                    _error = null;
+                  });
+                },
+                scale: 0.95,
+                child: AnimatedContainer(
+                  duration: AppMotion.base,
+                  curve: AppMotion.emphasized,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: on
+                        ? AppColors.primary.withValues(alpha: 0.15)
+                        : AppColors.surface,
+                    borderRadius: AppRadius.rMd,
+                    border: Border.all(
+                      color:
+                          on ? AppColors.primary : AppColors.border,
+                      width: on ? 2 : 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${_fmt(q ~/ 1000)}k',
+                      style: AppText.body.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: on
+                            ? AppColors.primary
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      })),
-
-      const SizedBox(height: 14),
-
-      // Amount input
-      ShadLabel(tr(ref, 'topUp.enterAmount', "Summa kiriting")),
-      const SizedBox(height: 6),
+          );
+        }),
+      ),
+      AppSpacing.gapMd,
       TextField(
         controller: _amountCtrl,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (_) => setState(() => _error = null),
-        style: const TextStyle(fontSize: 18, color: AppColors.textBright, fontWeight: FontWeight.w700),
+        style: AppText.numeric.copyWith(fontSize: 22),
         decoration: InputDecoration(
-          hintText: "10 000",
+          hintText: '10 000',
           suffixText: tr(ref, 'common.currency', "so'm"),
-          suffixStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+          suffixStyle: AppText.body.copyWith(color: AppColors.textMuted),
         ),
       ),
       if (_error != null) ...[
-        const SizedBox(height: 6),
-        Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
-      ],
-
-      const SizedBox(height: 14),
-
-      SizedBox(
-        height: 46,
-        child: ElevatedButton.icon(
-          icon: _loading
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Icon(Icons.open_in_new, size: 16),
-          label: Text(_method == 'payme'
-              ? tr(ref, 'topUp.payBtnPayme', "Payme orqali to'lash")
-              : tr(ref, 'topUp.payBtn', "Click orqali to'lash")),
-          onPressed: _loading ? null : _pay,
+        AppSpacing.gapSm,
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: AppColors.danger.withValues(alpha: 0.1),
+            borderRadius: AppRadius.rSm,
+          ),
+          child: Row(children: [
+            const Icon(Icons.error_outline,
+                color: AppColors.danger, size: 14),
+            AppSpacing.hGapSm,
+            Expanded(
+              child: Text(_error!,
+                  style: AppText.bodySm.copyWith(color: AppColors.danger)),
+            ),
+          ]),
         ),
+      ],
+      AppSpacing.gapLg,
+      AppButton(
+        label: _method == 'payme'
+            ? tr(ref, 'topUp.payBtnPayme', "Payme orqali to'lash")
+            : tr(ref, 'topUp.payBtn', "Click orqali to'lash"),
+        trailingIcon: Icons.open_in_new,
+        variant: AppButtonVariant.primary,
+        size: AppButtonSize.lg,
+        fullWidth: true,
+        loading: _loading,
+        onPressed: _loading ? null : _pay,
       ),
-      const SizedBox(height: 8),
-      Text(
-        _method == 'payme'
-            ? tr(ref, 'topUp.redirectNotePayme', "Payme to'lov sahifasiga o'tasiz")
-            : tr(ref, 'topUp.redirectNote', "Click to'lov sahifasiga o'tasiz"),
-        textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+      AppSpacing.gapSm,
+      Center(
+        child: Text(
+          _method == 'payme'
+              ? tr(ref, 'topUp.redirectNotePayme',
+                  "Payme to'lov sahifasiga o'tasiz")
+              : tr(ref, 'topUp.redirectNote',
+                  "Click to'lov sahifasiga o'tasiz"),
+          style: AppText.caption,
+        ),
       ),
     ]);
   }
@@ -327,44 +390,34 @@ class _MethodBtn extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: const EdgeInsets.all(AppSpacing.md),
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+      child: Row(children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: bgColor.withValues(alpha: 0.15),
+            borderRadius: AppRadius.rSm,
+          ),
+          child: Icon(icon, color: bgColor, size: 20),
         ),
-        child: Row(children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: bgColor.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: bgColor, size: 18),
+        AppSpacing.hGapMd,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppText.titleSm),
+              const SizedBox(height: 2),
+              Text(subtitle, style: AppText.caption),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: AppColors.textBright)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
-        ]),
-      ),
+        ),
+        const Icon(Icons.chevron_right,
+            color: AppColors.textMuted, size: 18),
+      ]),
     );
   }
 }
