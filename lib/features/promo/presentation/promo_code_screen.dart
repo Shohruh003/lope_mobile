@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -10,12 +12,65 @@ import '../../auth/data/auth_repository.dart';
 import '../../auth/domain/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 
-class PromoCodeScreen extends ConsumerWidget {
+class PromoCodeScreen extends ConsumerStatefulWidget {
   const PromoCodeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PromoCodeScreen> createState() => _PromoCodeScreenState();
+}
+
+class _PromoCodeScreenState extends ConsumerState<PromoCodeScreen> {
+  bool _autoGenTriggered = false;
+
+  /// Legacy accounts (created before the auto-referralCode feature was
+  /// added on the server) can have a null referralCode. Rather than
+  /// asking the customer to think one up, we generate one from their
+  /// name on the client and PATCH the existing server endpoint. This
+  /// is mobile-only and touches no backend code — the endpoint already
+  /// exists for the user's own manual edits.
+  Future<void> _autoGenerateIfMissing(AppUser user) async {
+    if (_autoGenTriggered) return;
+    if ((user.referralCode ?? '').isNotEmpty) return;
+    _autoGenTriggered = true;
+
+    final rnd = Random();
+    for (var attempt = 0; attempt < 4; attempt++) {
+      final candidate = _seedCode(user.name, rnd);
+      try {
+        final newCode = await ref
+            .read(authRepositoryProvider)
+            .updateMyReferralCode(candidate);
+        await ref
+            .read(authControllerProvider.notifier)
+            .updateReferralCode(newCode);
+        return;
+      } catch (e) {
+        // 409 → the candidate collides with someone else's code; loop
+        // and try again with fresh digits. Any other error just falls
+        // through: the user can still tap the pencil and set it by hand.
+        if (!e.toString().contains('409')) return;
+      }
+    }
+  }
+
+  static String _seedCode(String name, Random rnd) {
+    final letters = name
+        .toUpperCase()
+        .replaceAll(RegExp(r'[^A-Z]'), '')
+        .padRight(4, 'X')
+        .substring(0, 4);
+    final digits = (100 + rnd.nextInt(900)).toString();
+    return '$letters$digits';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
+    if (user != null) {
+      // Fire-and-forget — auto-fills the code exactly once per widget
+      // lifecycle without blocking the render.
+      Future.microtask(() => _autoGenerateIfMissing(user));
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(
