@@ -5,15 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/lopepay_repository.dart';
 
-/// Mirrors web `ShopTransactions.tsx`:
-///   - "Current balance" card up top
-///   - Filter button → collapsible panel: type (topup/sms_deduction/all), from/to dates
-///   - List of transaction rows with arrow icon, type badge, date, description, amount
-///   - Prev / Next pagination at bottom when total > limit
 class LopepayTransactionsScreen extends ConsumerStatefulWidget {
   const LopepayTransactionsScreen({super.key});
   @override
@@ -60,6 +55,7 @@ class _LopepayTransactionsScreenState
   }
 
   void _resetFilters() {
+    AppHaptics.selection();
     setState(() {
       _type = 'all';
       _from = null;
@@ -88,89 +84,91 @@ class _LopepayTransactionsScreenState
     final async = ref.watch(lopepayTxnFilteredProvider(_key));
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.customer.transactions.history',
-            "Tranzaktsiyalar")),
+        title: Text(
+            tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"),
+            style: AppText.titleMd),
         actions: [
           IconButton(
             icon: Icon(
                 _filtersOpen ? Icons.filter_list_off : Icons.filter_list,
                 color: _filtersOpen ? AppColors.primary : null),
-            onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
+            onPressed: () {
+              AppHaptics.selection();
+              setState(() => _filtersOpen = !_filtersOpen);
+            },
           ),
         ],
       ),
       body: Column(children: [
-        // ===== Filter panel =====
         if (_filtersOpen)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                DropdownButtonFormField<String>(
-                  isDense: true,
-                  initialValue: _type,
-                  decoration: InputDecoration(
-                      labelText: tr(ref, 'lopePay.shop.filterType', "Turi")),
-                  items: [
-                    DropdownMenuItem(
-                        value: 'all',
-                        child: Text(tr(ref, 'common.all', "Hammasi"))),
-                    DropdownMenuItem(
-                        value: 'topup', child: Text(_typeLabel('topup'))),
-                    DropdownMenuItem(
-                        value: 'sms_deduction',
-                        child: Text(_typeLabel('sms_deduction'))),
-                    DropdownMenuItem(
-                        value: 'ai_deduction',
-                        child: Text(_typeLabel('ai_deduction'))),
-                    DropdownMenuItem(
-                        value: 'referral_bonus',
-                        child: Text(_typeLabel('referral_bonus'))),
-                  ],
-                  onChanged: (v) => setState(() {
-                    _type = v ?? 'all';
-                    _page = 1;
-                  }),
-                ),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(
-                      child: _DatePill(
-                          label: _from == null
-                              ? tr(ref, 'lopePay.shop.filterFrom', "Dan")
-                              : _ymd.format(_from!),
-                          onTap: () => _pickDate(true))),
-                  const SizedBox(width: 8),
-                  const Text("—",
-                      style: TextStyle(color: AppColors.textMuted)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                      child: _DatePill(
-                          label: _to == null
-                              ? tr(ref, 'lopePay.shop.filterTo', "Gacha")
-                              : _ymd.format(_to!),
-                          onTap: () => _pickDate(false))),
-                ]),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: Text(tr(ref, 'common.reset', "Tozalash")),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xs),
+            child: AppCard(
+              variant: AppCardVariant.flat,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      isDense: true,
+                      initialValue: _type,
+                      decoration: InputDecoration(
+                          labelText:
+                              tr(ref, 'lopePay.shop.filterType', "Turi")),
+                      items: [
+                        DropdownMenuItem(
+                            value: 'all',
+                            child: Text(tr(ref, 'common.all', "Hammasi"))),
+                        DropdownMenuItem(
+                            value: 'topup',
+                            child: Text(_typeLabel('topup'))),
+                        DropdownMenuItem(
+                            value: 'sms_deduction',
+                            child: Text(_typeLabel('sms_deduction'))),
+                        DropdownMenuItem(
+                            value: 'ai_deduction',
+                            child: Text(_typeLabel('ai_deduction'))),
+                        DropdownMenuItem(
+                            value: 'referral_bonus',
+                            child: Text(_typeLabel('referral_bonus'))),
+                      ],
+                      onChanged: (v) => setState(() {
+                        _type = v ?? 'all';
+                        _page = 1;
+                      }),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(children: [
+                      Expanded(
+                          child: _DatePill(
+                              label: _from == null
+                                  ? tr(ref, 'lopePay.shop.filterFrom', "Dan")
+                                  : _ymd.format(_from!),
+                              onTap: () => _pickDate(true))),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Text("—",
+                          style: TextStyle(color: AppColors.textMuted)),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                          child: _DatePill(
+                              label: _to == null
+                                  ? tr(ref, 'lopePay.shop.filterTo', "Gacha")
+                                  : _ymd.format(_to!),
+                              onTap: () => _pickDate(false))),
+                    ]),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppButton(
+                      label: tr(ref, 'common.reset', "Tozalash"),
+                      leadingIcon: Icons.refresh,
+                      variant: AppButtonVariant.secondary,
+                      size: AppButtonSize.sm,
+                      fullWidth: true,
                       onPressed: _resetFilters,
                     ),
-                  ),
-                ]),
-              ]),
+                  ]),
             ),
           ),
-
         Expanded(
           child: async.when(
             loading: () => const AppListSkeleton(),
@@ -191,59 +189,51 @@ class _LopepayTransactionsScreenState
                   ref.invalidate(lopepayTxnProvider);
                 },
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
+                      AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
-                    // Balance hero card
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: AppColors.primary.withValues(alpha: 0.25)),
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: AppRadius.rLg,
+                        boxShadow: AppShadows.primaryGlow(AppColors.primary),
                       ),
                       child: Row(children: [
                         Container(
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
-                          child: const Icon(
-                              Icons.account_balance_wallet,
-                              color: AppColors.primary),
+                          child: const Icon(Icons.account_balance_wallet,
+                              color: Colors.white, size: 24),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
                             children: [
                               Text(
                                   tr(ref, 'lopePay.shop.currentBalance',
                                       "Joriy balans"),
-                                  style: const TextStyle(
-                                      color: AppColors.textMuted,
-                                      fontSize: 12,
-                                      letterSpacing: 0.5,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 4),
+                                  style: AppText.overline
+                                      .copyWith(color: Colors.white70)),
+                              const SizedBox(height: 2),
                               Text(
                                   "${_fmt(res.balance)} ${tr(ref, 'common.currency', "so'm")}",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 24,
-                                      color: AppColors.primary,
-                                      letterSpacing: -0.3)),
+                                  style: AppText.titleLg
+                                      .copyWith(color: Colors.white)),
                             ],
                           ),
                         ),
                       ]),
                     ),
-                    const SizedBox(height: 14),
-
+                    const SizedBox(height: AppSpacing.lg),
                     if (list.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 40),
@@ -251,8 +241,7 @@ class _LopepayTransactionsScreenState
                           child: Text(
                               tr(ref, 'mobile.customer.transactions.empty',
                                   "Tranzaktsiya yo'q"),
-                              style:
-                                  const TextStyle(color: AppColors.textMuted)),
+                              style: AppText.bodySm),
                         ),
                       )
                     else
@@ -262,62 +251,51 @@ class _LopepayTransactionsScreenState
                         final amount = ((t['amount'] ?? 0) as num).toInt();
                         final inflow = amount > 0;
                         final type = (t['type'] ?? '').toString();
-                        final description = (t['description'] ?? '').toString();
+                        final description =
+                            (t['description'] ?? '').toString();
+                        final color =
+                            inflow ? AppColors.success : AppColors.danger;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.border),
-                            ),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: AppCard(
+                            variant: AppCardVariant.flat,
+                            padding: const EdgeInsets.all(AppSpacing.md),
                             child: Row(children: [
                               Container(
-                                width: 36,
-                                height: 36,
+                                width: 40,
+                                height: 40,
                                 decoration: BoxDecoration(
-                                  color: (inflow
-                                          ? AppColors.success
-                                          : AppColors.danger)
-                                      .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(10),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      color.withValues(alpha: 0.22),
+                                      color.withValues(alpha: 0.08),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: AppRadius.rMd,
                                 ),
                                 child: Icon(
                                     inflow
                                         ? Icons.arrow_downward
                                         : Icons.arrow_upward,
-                                    color: inflow
-                                        ? AppColors.success
-                                        : AppColors.danger,
+                                    color: color,
                                     size: 18),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     Row(children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.surface,
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          border: Border.all(
-                                              color: AppColors.border),
-                                        ),
-                                        child: Text(
-                                            type.isEmpty
-                                                ? '—'
-                                                : _typeLabel(type),
-                                            style: const TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.textBright)),
+                                      AppBadge(
+                                        label: type.isEmpty
+                                            ? '—'
+                                            : _typeLabel(type),
+                                        variant: AppBadgeVariant.neutral,
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: AppSpacing.sm),
                                       Flexible(
                                         child: Text(
                                             t['createdAt'] != null
@@ -328,9 +306,8 @@ class _LopepayTransactionsScreenState
                                                 : '',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                                color: AppColors.textMuted,
-                                                fontSize: 12)),
+                                            style: AppText.caption
+                                                .copyWith(fontSize: 11)),
                                       ),
                                     ]),
                                     if (description.isNotEmpty) ...[
@@ -338,49 +315,57 @@ class _LopepayTransactionsScreenState
                                       Text(description,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                              color: AppColors.textMuted,
-                                              fontSize: 12)),
+                                          style: AppText.caption),
                                     ],
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: AppSpacing.sm),
                               Text(
                                   "${inflow ? '+' : '−'}${_fmt(amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: inflow
-                                          ? AppColors.success
-                                          : AppColors.danger,
-                                      fontSize: 14)),
+                                  style: AppText.titleSm.copyWith(
+                                      color: color, fontSize: 14)),
                             ]),
                           ),
-                        ).animate().fadeIn(duration: 200.ms, delay: (i * 20).ms);
+                        ).animate().fadeIn(
+                            duration: 200.ms, delay: (i * 20).ms);
                       }),
-
-                    // Pagination
                     if (pages > 1) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          OutlinedButton(
-                            onPressed:
-                                _page <= 1 ? null : () => setState(() => _page--),
-                            child: Text(tr(ref, 'common.prev', "Oldingi")),
+                          AppButton(
+                            label: tr(ref, 'common.prev', "Oldingi"),
+                            variant: AppButtonVariant.secondary,
+                            size: AppButtonSize.sm,
+                            leadingIcon: Icons.chevron_left,
+                            onPressed: _page <= 1
+                                ? null
+                                : () => setState(() => _page--),
                           ),
-                          const SizedBox(width: 12),
-                          Text("$_page / $pages",
-                              style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontWeight: FontWeight.w700)),
-                          const SizedBox(width: 12),
-                          OutlinedButton(
+                          const SizedBox(width: AppSpacing.md),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.xs),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.rPill,
+                            ),
+                            child: Text("$_page / $pages",
+                                style: AppText.button
+                                    .copyWith(color: AppColors.primary)),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          AppButton(
+                            label: tr(ref, 'common.next', "Keyingi"),
+                            variant: AppButtonVariant.secondary,
+                            size: AppButtonSize.sm,
+                            trailingIcon: Icons.chevron_right,
                             onPressed: _page >= pages
                                 ? null
                                 : () => setState(() => _page++),
-                            child: Text(tr(ref, 'common.next', "Keyingi")),
                           ),
                         ],
                       ),
@@ -413,14 +398,15 @@ class _DatePill extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return TapScale(
       onTap: onTap,
+      haptic: HapticStrength.light,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.surface,
+          borderRadius: AppRadius.rSm,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
@@ -431,8 +417,7 @@ class _DatePill extends StatelessWidget {
             child: Text(label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style:
-                    const TextStyle(color: AppColors.textBright, fontSize: 12)),
+                style: AppText.body.copyWith(fontSize: 12)),
           ),
         ]),
       ),
