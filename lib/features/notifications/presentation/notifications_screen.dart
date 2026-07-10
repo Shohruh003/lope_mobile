@@ -83,6 +83,8 @@ class NotificationsScreen extends ConsumerWidget {
         ],
       ),
       body: async.when(
+        skipLoadingOnRefresh: true,
+        skipLoadingOnReload: true,
         loading: () => const AppListSkeleton(itemCount: 6),
         error: (e, _) => AppErrorState(
           message: humanize(e),

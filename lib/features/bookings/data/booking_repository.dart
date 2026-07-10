@@ -135,14 +135,20 @@ final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
   return BookingRepository(ref.watch(dioProvider));
 });
 
-/// Family provider over (barberId, dates) returning which of the given
+/// Family provider over (barberId, datesKey) returning which of the given
 /// dates the barber has any schedule slots on. Empty list means none
 /// of the dates have slots yet.
+///
+/// `datesKey` is a comma-joined stable string (not `List<String>`) — Dart
+/// List uses identity equality, so passing a fresh `.toList()` on every
+/// build would spawn a new provider instance per rebuild and hammer the
+/// API into 429s. A String key gives us structural equality for free.
 final scheduledDatesProvider = FutureProvider.family<List<String>,
-    ({String barberId, List<String> dates})>((ref, k) async {
+    ({String barberId, String datesKey})>((ref, k) async {
+  final dates = k.datesKey.split(',');
   return ref
       .watch(bookingRepositoryProvider)
-      .scheduledDates(barberId: k.barberId, dates: k.dates);
+      .scheduledDates(barberId: k.barberId, dates: dates);
 });
 
 /// My bookings provider — keyed on the current user id so a fresh login pulls

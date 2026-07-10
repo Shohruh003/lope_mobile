@@ -37,9 +37,8 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   String _filter = 'all'; // 'all' | 'favorites' | 'available'
-  String _sort = 'rating'; // 'rating' | 'name' | 'experience' | 'price' | 'distance'
+  String _sort = 'distance'; // 'distance' | 'rating' | 'name' | 'experience' | 'price'
   String _gender = 'ALL'; // 'ALL' | 'MALE' | 'FEMALE'
-  bool _filterDefaulted = false;
 
   @override
   void dispose() {
@@ -86,7 +85,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
     );
   }
 
-  bool get _tunerActive => _sort != 'rating' || _gender != 'ALL';
+  bool get _tunerActive => _sort != 'distance' || _gender != 'ALL';
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +117,12 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
               ),
             ),
             async.when(
+              // Keep showing the previous data during a pull-to-refresh so
+              // the screen never goes blank — user sees stale cards with
+              // the RefreshIndicator spinner overlay rather than a wall of
+              // shimmering skeletons every 3 seconds.
+              skipLoadingOnRefresh: true,
+              skipLoadingOnReload: true,
               loading: () => const SliverToBoxAdapter(child: _LoadingGrid()),
               error: (e, _) => SliverToBoxAdapter(
                 child: SizedBox(
@@ -129,14 +134,6 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 ),
               ),
               data: (list) {
-                if (!_filterDefaulted) {
-                  final favs =
-                      ref.read(favoritesProvider).asData?.value ?? const [];
-                  if (favs.isNotEmpty && _filter == 'all') {
-                    _filter = 'favorites';
-                  }
-                  _filterDefaulted = true;
-                }
                 var filtered = _query.isEmpty
                     ? list
                     : list
@@ -359,16 +356,12 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
           Expanded(
             child: SizedBox(
               height: 36,
+              // Sevimlilar chip is now a header shortcut icon that
+              // pushes to /favorites — keep just the list-scope filters
+              // here.
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  AppChip(
-                    label: favoritesLabel,
-                    selected: filter == 'favorites',
-                    leadingIcon: Icons.favorite,
-                    onTap: () => onFilter('favorites'),
-                  ),
-                  AppSpacing.hGapSm,
                   AppChip(
                     label: allLabel,
                     selected: filter == 'all',
@@ -726,9 +719,11 @@ class _BarberCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firstGallery = barber.gallery.isNotEmpty ? barber.gallery.first : '';
-    final favsAsync = ref.watch(favoritesProvider);
-    final isFav = favsAsync.maybeWhen<bool>(
-        data: (l) => l.any((b) => b.id == barber.id), orElse: () => false);
+    // Watch the optimistic-favorites Set so the heart flips instantly on
+    // tap. Server list still drives the initial value via the controller's
+    // seed listener.
+    final favIds = ref.watch(favoritesControllerProvider);
+    final isFav = favIds.contains(barber.id);
 
     return AppCard(
       variant: AppCardVariant.outlined,
@@ -763,6 +758,11 @@ class _BarberCard extends ConsumerWidget {
                             imageUrl: firstGallery,
                             fit: BoxFit.cover,
                             width: double.infinity,
+                            // Broken image → let the gradient show through
+                            // instead of dumping "TrendingError: ..." text.
+                            placeholder: (_, _) => const SizedBox.shrink(),
+                            errorWidget: (_, _, _) =>
+                                const SizedBox.shrink(),
                           ),
                         ),
                 ),
@@ -772,14 +772,9 @@ class _BarberCard extends ConsumerWidget {
                   left: AppSpacing.sm,
                   child: TapScale(
                     scale: 0.85,
-                    onTap: () async {
-                      try {
-                        await ref
-                            .read(favoritesRepositoryProvider)
-                            .toggle(barber.id);
-                        ref.invalidate(favoritesProvider);
-                      } catch (_) {}
-                    },
+                    onTap: () => ref
+                        .read(favoritesControllerProvider.notifier)
+                        .toggleOptimistic(barber.id),
                     child: Container(
                       width: 30,
                       height: 30,

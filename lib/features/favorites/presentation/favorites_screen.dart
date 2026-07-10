@@ -25,6 +25,8 @@ class FavoritesScreen extends ConsumerWidget {
         ),
       ),
       body: async.when(
+        skipLoadingOnRefresh: true,
+        skipLoadingOnReload: true,
         loading: () => const AppListSkeleton(itemCount: 5),
         error: (e, _) => AppErrorState(
           message: humanize(e),
@@ -130,14 +132,11 @@ class FavoritesScreen extends ConsumerWidget {
                         ),
                       ),
                       TapScale(
-                        onTap: () async {
+                        onTap: () {
                           AppHaptics.light();
-                          try {
-                            await ref
-                                .read(favoritesRepositoryProvider)
-                                .toggle(b.id);
-                            ref.invalidate(favoritesProvider);
-                          } catch (_) {}
+                          ref
+                              .read(favoritesControllerProvider.notifier)
+                              .toggleOptimistic(b.id);
                         },
                         scale: 0.85,
                         child: Container(

@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/asset_url.dart';
 import '../../core/tr.dart';
 import '../theme/colors.dart';
 import '../../features/auth/presentation/auth_controller.dart';
@@ -32,13 +34,9 @@ class AppDrawer extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    child: Text(
-                      (user?.name.isNotEmpty == true ? user!.name[0] : '?').toUpperCase(),
-                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w600),
-                    ),
+                  _AvatarCircle(
+                    avatar: user?.avatar,
+                    name: user?.name,
                   ),
                   const SizedBox(height: 12),
                   Text(user?.name ?? '—',
@@ -243,4 +241,51 @@ class _DrawerItem {
   // keeping the constructor narrow until we wire those up.
   String? get badge => null;
   bool get destructive => false;
+}
+
+/// Header avatar circle — renders the user's uploaded photo when set and
+/// falls back to a first-letter monogram otherwise. Broken avatar URLs
+/// silently degrade to the monogram instead of the CachedNetworkImage
+/// error text.
+class _AvatarCircle extends StatelessWidget {
+  const _AvatarCircle({required this.avatar, required this.name});
+  final String? avatar;
+  final String? name;
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 56.0;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 2),
+      ),
+      child: ClipOval(
+        child: (avatar != null && avatar!.isNotEmpty)
+            ? CachedNetworkImage(
+                imageUrl: assetUrl(avatar),
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                placeholder: (_, _) => _fallback(),
+                errorWidget: (_, _, _) => _fallback(),
+              )
+            : _fallback(),
+      ),
+    );
+  }
+
+  Widget _fallback() => Center(
+        child: Text(
+          (name?.isNotEmpty == true ? name![0] : '?').toUpperCase(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
@@ -96,6 +97,15 @@ class _CustomerHeader extends ConsumerWidget {
           AppSpacing.sm,
         ),
         child: Row(children: [
+          // Hamburger — leading position matches drawer edge (left-side)
+          _CircleIconButton(
+            icon: Icons.menu_rounded,
+            onTap: () {
+              AppHaptics.selection();
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+          AppSpacing.hGapSm,
           // Brand — gradient icon + wordmark
           Container(
             width: 34,
@@ -117,15 +127,15 @@ class _CustomerHeader extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          const NotificationBell(),
-          AppSpacing.hGapXs,
           _CircleIconButton(
-            icon: Icons.menu_rounded,
+            icon: Icons.favorite_border,
             onTap: () {
               AppHaptics.selection();
-              Scaffold.of(context).openDrawer();
+              context.push('/favorites');
             },
           ),
+          AppSpacing.hGapXs,
+          const NotificationBell(),
         ]),
       ),
     );

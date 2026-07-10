@@ -284,59 +284,77 @@ class _HeaderBlock extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: AppRadius.rMd,
-                boxShadow: AppShadows.primaryGlow(AppColors.primary),
-              ),
-              child: const Icon(Icons.auto_awesome,
-                  color: Colors.white, size: 22),
-            ),
-            AppSpacing.hGapMd,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(tr(ref, 'aiStyle.title', 'AI Stil'),
-                      style: AppText.titleLg),
-                  Text(
-                    tr(ref, 'mobile.aiStyle.subtitle',
-                        "Sun'iy intellekt yordamida"),
-                    style: AppText.bodySm,
-                  ),
-                ],
-              ),
-            ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withValues(alpha: 0.18),
+            AppColors.primary.withValues(alpha: 0.05),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        AppSpacing.gapMd,
-        balance == null
-            ? _BalancePill(text: tr(ref, 'aiStyle.perGen', 'Har generatsiya 1000 so\'m'))
-            : balance!.when(
-                loading: () => const SkeletonLine(width: 200, height: 28),
-                error: (e, _) => const SizedBox.shrink(),
-                data: (b) {
-                  final free = (b.aiFreeRemaining as int?) ?? 0;
-                  final text = free > 0
-                      ? tr(
-                          ref,
-                          'aiStyle.todayFree',
-                          "Bugun {{count}} ta bepul · keyingisi 1000 so'm",
-                          {'count': '$free'},
-                        )
-                      : tr(ref, 'aiStyle.perGen', 'Har generatsiya 1000 so\'m');
-                  return _BalancePill(text: text, hasFree: free > 0);
-                },
+        borderRadius: AppRadius.rXl,
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: AppRadius.rMd,
+                  boxShadow: AppShadows.primaryGlow(AppColors.primary),
+                ),
+                child: const Icon(Icons.auto_awesome,
+                    color: Colors.white, size: 26),
               ),
-      ],
+              AppSpacing.hGapMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tr(ref, 'aiStyle.title', 'AI Stil'),
+                        style: AppText.titleLg),
+                    const SizedBox(height: 2),
+                    Text(
+                      tr(ref, 'mobile.aiStyle.subtitle',
+                          "Sun'iy intellekt yordamida yangi imidjni ko'ring"),
+                      style: AppText.bodySm,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.gapMd,
+          balance == null
+              ? _BalancePill(
+                  text: tr(ref, 'aiStyle.perGen', 'Har generatsiya 1000 so\'m'))
+              : balance!.when(
+                  loading: () => const SkeletonLine(width: 200, height: 28),
+                  error: (e, _) => const SizedBox.shrink(),
+                  data: (b) {
+                    final free = (b.aiFreeRemaining as int?) ?? 0;
+                    final text = free > 0
+                        ? tr(
+                            ref,
+                            'aiStyle.todayFree',
+                            "Bugun {{count}} ta bepul · keyingisi 1000 so'm",
+                            {'count': '$free'},
+                          )
+                        : tr(
+                            ref, 'aiStyle.perGen', 'Har generatsiya 1000 so\'m');
+                    return _BalancePill(text: text, hasFree: free > 0);
+                  },
+                ),
+        ],
+      ),
     );
   }
 }
@@ -387,7 +405,9 @@ class _BalancePill extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Step header — number badge + title + optional subtitle
+// Step header — subtle numbered badge + title + optional subtitle.
+// Pilot number shown in a tinted pill (not a solid square) so the header
+// feels editorial rather than form-like.
 // ─────────────────────────────────────────────────────────────────────────
 class _StepHeader extends StatelessWidget {
   const _StepHeader({
@@ -408,31 +428,33 @@ class _StepHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 28,
-              height: 28,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: AppRadius.rSm,
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: AppRadius.rPill,
               ),
-              alignment: Alignment.center,
               child: Text(
                 '$number',
-                style: AppText.button.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
+                style: AppText.overline.copyWith(
+                  color: AppColors.primary,
+                  fontSize: 11,
+                  letterSpacing: 0.8,
                 ),
               ),
             ),
             AppSpacing.hGapSm,
-            Expanded(child: Text(title, style: AppText.titleSm)),
+            Expanded(
+              child: Text(
+                title,
+                style: AppText.titleMd.copyWith(fontSize: 17),
+              ),
+            ),
           ],
         ),
         if (subtitle != null) ...[
           const SizedBox(height: 6),
-          Padding(
-            padding: const EdgeInsets.only(left: 36),
-            child: Text(subtitle!, style: AppText.bodySm),
-          ),
+          Text(subtitle!, style: AppText.bodySm),
         ],
       ],
     );
@@ -440,7 +462,8 @@ class _StepHeader extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Step 1 — gender picker
+// Step 1 — gender picker. Segmented pill toggle (Uzum-style) with a
+// gradient thumb sliding under the active option.
 // ─────────────────────────────────────────────────────────────────────────
 class _GenderRow extends ConsumerWidget {
   const _GenderRow({required this.gender, required this.onChange});
@@ -449,69 +472,80 @@ class _GenderRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(children: [
-      Expanded(
-        child: AppCard(
-          variant: AppCardVariant.outlined,
-          color: gender == 'male'
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : null,
-          borderColor: gender == 'male' ? AppColors.primary : null,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-          onTap: () => onChange('male'),
-          child: _GenderInner(
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: AppRadius.rXl,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(children: [
+        Expanded(
+          child: _GenderSegment(
+            selected: gender == 'male',
             emoji: '👨',
             label: tr(ref, 'auth.genderMale', 'Erkak'),
-            selected: gender == 'male',
+            onTap: () => onChange('male'),
           ),
         ),
-      ),
-      AppSpacing.hGapSm,
-      Expanded(
-        child: AppCard(
-          variant: AppCardVariant.outlined,
-          color: gender == 'female'
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : null,
-          borderColor: gender == 'female' ? AppColors.primary : null,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-          onTap: () => onChange('female'),
-          child: _GenderInner(
+        const SizedBox(width: 4),
+        Expanded(
+          child: _GenderSegment(
+            selected: gender == 'female',
             emoji: '👩',
             label: tr(ref, 'auth.genderFemale', 'Ayol'),
-            selected: gender == 'female',
+            onTap: () => onChange('female'),
           ),
         ),
-      ),
-    ]);
+      ]),
+    );
   }
 }
 
-class _GenderInner extends StatelessWidget {
-  const _GenderInner({
+class _GenderSegment extends StatelessWidget {
+  const _GenderSegment({
+    required this.selected,
     required this.emoji,
     required this.label,
-    required this.selected,
+    required this.onTap,
   });
+  final bool selected;
   final String emoji;
   final String label;
-  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        AppSpacing.hGapSm,
-        Text(
-          label,
-          style: AppText.body.copyWith(
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? AppColors.primary : AppColors.textPrimary,
-          ),
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.selection,
+      scale: 0.96,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        decoration: BoxDecoration(
+          gradient: selected ? AppColors.primaryGradient : null,
+          borderRadius: AppRadius.rLg,
+          boxShadow: selected
+              ? AppShadows.primaryGlow(AppColors.primary)
+              : null,
         ),
-      ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 22)),
+            AppSpacing.hGapSm,
+            Text(
+              label,
+              style: AppText.body.copyWith(
+                fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -39,3 +39,54 @@ final favoritesProvider = FutureProvider<List<Barber>>((ref) {
   final _ = ref.watch(authControllerProvider.select((s) => s.user?.id));
   return ref.watch(favoritesRepositoryProvider).list();
 });
+
+/// Optimistic favourite-ids store. UI reads this Set for the heart
+/// state and calls [FavoritesController.toggleOptimistic] on tap — the
+/// heart turns red immediately without waiting for the network round-
+/// trip. If the API call fails, we revert.
+class FavoritesController extends StateNotifier<Set<String>> {
+  FavoritesController(this._ref) : super(const {});
+
+  final Ref _ref;
+
+  /// Seed the set from the server list. Called from a listener on
+  /// [favoritesProvider] so a fresh fetch keeps this store in sync.
+  void seed(Iterable<String> ids) {
+    state = ids.toSet();
+  }
+
+  bool contains(String id) => state.contains(id);
+
+  Future<void> toggleOptimistic(String barberId) async {
+    final wasFav = state.contains(barberId);
+    // 1. Optimistic flip
+    state = wasFav
+        ? (state.toSet()..remove(barberId))
+        : (state.toSet()..add(barberId));
+    try {
+      final serverFav =
+          await _ref.read(favoritesRepositoryProvider).toggle(barberId);
+      // 2. Reconcile: server tells us the true state
+      state = serverFav
+          ? (state.toSet()..add(barberId))
+          : (state.toSet()..remove(barberId));
+      // 3. Refetch the list so the /favorites screen reflects the change
+      _ref.invalidate(favoritesProvider);
+    } catch (_) {
+      // 4. Revert on error
+      state = wasFav
+          ? (state.toSet()..add(barberId))
+          : (state.toSet()..remove(barberId));
+    }
+  }
+}
+
+final favoritesControllerProvider =
+    StateNotifierProvider<FavoritesController, Set<String>>((ref) {
+  final ctrl = FavoritesController(ref);
+  // Whenever the server list resolves, seed the optimistic store.
+  ref.listen(favoritesProvider, (_, next) {
+    next.whenData((list) => ctrl.seed(list.map((b) => b.id)));
+  });
+  return ctrl;
+});

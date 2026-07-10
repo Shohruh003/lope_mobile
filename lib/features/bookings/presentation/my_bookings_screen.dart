@@ -113,13 +113,8 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
               AppSpacing.xxl,
             ),
             children: [
-              // ===== Header =====
-              Text(
-                tr(ref, 'myBookings.title', 'Bronlar'),
-                style: AppText.titleLg,
-              ),
-              AppSpacing.gapMd,
-
+              // Header title removed — bottom nav already shows "Bronlar",
+              // duplicating it wastes vertical space.
               Builder(builder: (_) {
                 if (_initial && _loading) {
                   return const AppListSkeleton(itemCount: 5);

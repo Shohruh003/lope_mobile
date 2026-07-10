@@ -61,6 +61,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
     final async = ref.watch(barberDetailProvider(widget.barberId));
     return Scaffold(
       body: async.when(
+        skipLoadingOnRefresh: true,
+        skipLoadingOnReload: true,
         loading: () => const AppListSkeleton(),
         error: (e, _) => AppErrorState(
           message: humanize(e),
@@ -485,6 +487,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   // ─────────────────────── Sharhlar (Reviews) ───────────────────────
   Widget _reviewsTab(AsyncValue<List<Review>> async) {
     return async.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       loading: () => Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         child: Column(

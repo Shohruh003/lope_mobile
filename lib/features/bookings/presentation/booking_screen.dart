@@ -333,7 +333,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         child: Consumer(builder: (context, ref, _) {
           final scheduledAsync = ref.watch(scheduledDatesProvider((
             barberId: widget.barberId,
-            dates: _days.map(_dateStr).toList(),
+            datesKey: _days.map(_dateStr).join(','),
           )));
           final scheduledSet = scheduledAsync.maybeWhen(
               data: (l) => l.toSet(), orElse: () => <String>{});
