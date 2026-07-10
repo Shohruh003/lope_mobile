@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/api_client.dart';
 import '../../../core/asset_url.dart';
+import '../../../core/errors.dart';
 import '../../../core/l10n.dart';
 import '../../../core/roles.dart';
 import '../../../core/tr.dart';
@@ -57,82 +59,15 @@ class ProfileScreen extends ConsumerWidget {
 
             AppSpacing.gapLg,
 
-            // ═════════════ Language card ═════════════
-            AppCard(
-              variant: AppCardVariant.outlined,
-              padding: AppSpacing.cardPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        borderRadius: AppRadius.rSm,
-                      ),
-                      child: const Icon(Icons.language,
-                          color: AppColors.primary, size: 18),
-                    ),
-                    AppSpacing.hGapSm,
-                    Expanded(
-                      child: Text(
-                        tr(ref, 'barberApp.language', 'Til'),
-                        style: AppText.titleSm,
-                      ),
-                    ),
-                  ]),
-                  AppSpacing.gapMd,
-                  Row(children: [
-                    Expanded(
-                      child: _LangBtn(
-                          code: 'uz',
-                          label: "O'zbek",
-                          flag: '🇺🇿',
-                          on: currentLang == 'uz',
-                          ref: ref),
-                    ),
-                    AppSpacing.hGapSm,
-                    Expanded(
-                      child: _LangBtn(
-                          code: 'uz_cyr',
-                          label: 'Ўзбек',
-                          flag: '🇺🇿',
-                          on: currentLang == 'uz_cyr',
-                          ref: ref),
-                    ),
-                    AppSpacing.hGapSm,
-                    Expanded(
-                      child: _LangBtn(
-                          code: 'ru',
-                          label: 'Русский',
-                          flag: '🇷🇺',
-                          on: currentLang == 'ru',
-                          ref: ref),
-                    ),
-                    AppSpacing.hGapSm,
-                    Expanded(
-                      child: _LangBtn(
-                          code: 'en',
-                          label: 'English',
-                          flag: '🇺🇸',
-                          on: currentLang == 'en',
-                          ref: ref),
-                    ),
-                  ]),
-                ],
-              ),
-            ),
-
-            AppSpacing.gapLg,
-
             // ═════════════ Menu links ═════════════
             // Since we dropped the hamburger drawer, every non-tab
             // destination lives here — this is the customer's single
             // "everything else" surface (Uzum/Click pattern).
             if (user != null) ...[
               _MenuGroup(children: [
+                // Language row — compact tile with current flag; tap
+                // opens a bottom sheet with the four options.
+                _LangTile(currentLang: currentLang),
                 if (user.role == 'user') ...[
                   _LinkTile(
                     icon: Icons.bookmark_border,
@@ -177,36 +112,39 @@ class ProfileScreen extends ConsumerWidget {
                       ref, 'barberApp.notifications', 'Bildirishnomalar'),
                   onTap: () => context.push('/notifications'),
                 ),
-                _LinkTile(
-                  icon: Icons.settings_outlined,
-                  iconColor: AppColors.textMuted,
-                  label: tr(ref, 'barberApp.settings', 'Sozlamalar'),
-                  onTap: () => context.push('/settings'),
-                ),
+                // Sozlamalar / "Profil" link removed — it just re-opened
+                // the same profile screen and confused users.
               ]),
               AppSpacing.gapLg,
             ],
 
-            // ═════════════ Support ═════════════
+            // ═════════════ Help / Yordam ═════════════
             _MenuGroup(children: [
               _LinkTile(
                 icon: Icons.support_agent_outlined,
                 iconColor: AppColors.success,
                 label: tr(ref, 'barberApp.support', "Qo'llab-quvvatlash"),
-                onTap: () async {
-                  AppHaptics.light();
-                  final uri = Uri.parse('https://t.me/lopestyle_support');
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
+                onTap: () => _openUrl('https://t.me/lopestyle_support'),
+              ),
+              _LinkTile(
+                icon: Icons.help_outline,
+                iconColor: AppColors.primary,
+                label: tr(ref, 'profile.faq',
+                    'FAQ — Tez-tez beriladigan savollar'),
+                onTap: () => _openUrl('https://lopestyle.uz/faq'),
+              ),
+              _LinkTile(
+                icon: Icons.policy_outlined,
+                iconColor: AppColors.textMuted,
+                label: tr(ref, 'profile.privacy', 'Maxfiylik siyosati'),
+                onTap: () => _openUrl('https://lopestyle.uz/privacy'),
               ),
             ]),
 
             AppSpacing.gapLg,
 
-            // ═════════════ Logout ═════════════
-            if (user != null)
+            // ═════════════ Danger zone: Logout + Delete ═════════════
+            if (user != null) ...[
               AppButton(
                 label: tr(ref, 'barberApp.logout', 'Chiqish'),
                 leadingIcon: Icons.logout,
@@ -223,6 +161,18 @@ class ProfileScreen extends ConsumerWidget {
                   }
                 },
               ),
+              AppSpacing.gapSm,
+              TextButton(
+                onPressed: () => _confirmDelete(context, ref),
+                child: Text(
+                  tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish"),
+                  style: AppText.bodySm.copyWith(
+                    color: AppColors.danger,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
 
             AppSpacing.gapMd,
             Center(
@@ -236,6 +186,104 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+Future<void> _openUrl(String url) async {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return;
+  final scheme = uri.scheme.toLowerCase();
+  if (scheme != 'http' && scheme != 'https') return;
+  AppHaptics.light();
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
+/// Deletion path — matches the old /settings screen: prompt, then POST
+/// /users/delete-request and log the user out.
+Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+  AppHaptics.light();
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (dCtx) => Dialog(
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.delete_outline,
+                    color: AppColors.danger, size: 22),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: Text(
+                  '${tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish")}?',
+                  style: AppText.titleMd,
+                ),
+              ),
+            ]),
+            AppSpacing.gapMd,
+            Text(
+              tr(ref, 'barberApp.deleteAccountConfirm',
+                  "Hisobingiz va barcha ma'lumotlaringiz o'chiriladi. Bu jarayonni bekor qilib bo'lmaydi."),
+              style: AppText.bodySm,
+            ),
+            AppSpacing.gapLg,
+            Row(children: [
+              Expanded(
+                child: AppButton(
+                  label: tr(ref, 'common.cancel', 'Bekor'),
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => Navigator.pop(dCtx, false),
+                  fullWidth: true,
+                ),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: AppButton(
+                  label: tr(ref, 'common.delete', "O'chirish"),
+                  variant: AppButtonVariant.danger,
+                  onPressed: () => Navigator.pop(dCtx, true),
+                  fullWidth: true,
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    ),
+  );
+  if (ok != true) return;
+  try {
+    await ref
+        .read(dioProvider)
+        .post('/users/delete-request', data: <String, dynamic>{});
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'barberApp.deleteAccountQueued',
+              "O'chirish so'rovingiz qabul qilindi"))));
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content:
+              Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+    }
+    return;
+  }
+  await ref.read(authControllerProvider.notifier).logout();
+  if (context.mounted) context.go('/login');
 }
 
 Future<bool?> _logoutDialog(BuildContext context, WidgetRef ref) {
@@ -518,58 +566,170 @@ class _Fallback extends StatelessWidget {
   }
 }
 
-// ═════════════════════════ Language button ═════════════════════════
+// ═════════════════════════ Language tile ═════════════════════════
 
-class _LangBtn extends StatelessWidget {
-  const _LangBtn({
-    required this.code,
-    required this.label,
-    required this.flag,
-    required this.on,
-    required this.ref,
-  });
-  final String code;
-  final String label;
-  final String flag;
-  final bool on;
-  final WidgetRef ref;
+const _langOptions = [
+  ('uz', "O'zbek", '🇺🇿'),
+  ('uz_cyr', 'Ўзбек', '🇺🇿'),
+  ('ru', 'Русский', '🇷🇺'),
+  ('en', 'English', '🇺🇸'),
+];
+
+String _localeLabel(String code) {
+  for (final opt in _langOptions) {
+    if (opt.$1 == code) return opt.$2;
+  }
+  return code;
+}
+
+String _localeFlag(String code) {
+  for (final opt in _langOptions) {
+    if (opt.$1 == code) return opt.$3;
+  }
+  return '🌐';
+}
+
+/// Compact language row that slots into the profile menu. Shows the
+/// current flag + label on the right; tap opens a bottom sheet with
+/// all four options.
+class _LangTile extends ConsumerWidget {
+  const _LangTile({required this.currentLang});
+  final String currentLang;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return TapScale(
-      onTap: () async {
-        AppHaptics.selection();
-        await ref.read(localeProvider.notifier).setLocale(code);
-      },
-      scale: 0.95,
-      child: AnimatedContainer(
-        duration: AppMotion.base,
-        curve: AppMotion.emphasized,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: on
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : AppColors.surface,
-          borderRadius: AppRadius.rMd,
-          border: Border.all(
-            color: on ? AppColors.primary : AppColors.border,
-            width: on ? 2 : 1,
-          ),
+      onTap: () => _pickLanguage(context, ref, currentLang),
+      scale: 0.98,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
         ),
-        child: Column(children: [
-          Text(flag, style: const TextStyle(fontSize: 20)),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppText.caption.copyWith(
-              fontSize: 11,
-              fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-              color: on ? AppColors.primary : AppColors.textPrimary,
+        child: Row(children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: AppRadius.rSm,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(Icons.language,
+                color: AppColors.primary, size: 18),
+          ),
+          AppSpacing.hGapMd,
+          Expanded(
+            child: Text(
+              tr(ref, 'barberApp.language', 'Til'),
+              style: AppText.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textBright,
+              ),
             ),
           ),
+          Text(_localeFlag(currentLang),
+              style: const TextStyle(fontSize: 18)),
+          AppSpacing.hGapXs,
+          Text(
+            _localeLabel(currentLang),
+            style: AppText.bodySm.copyWith(color: AppColors.textMuted),
+          ),
+          AppSpacing.hGapSm,
+          const Icon(Icons.chevron_right,
+              color: AppColors.textMuted, size: 18),
         ]),
       ),
     );
+  }
+
+  Future<void> _pickLanguage(
+      BuildContext context, WidgetRef ref, String current) async {
+    AppHaptics.light();
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
+      builder: (sheetCtx) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: AppRadius.rPill,
+                  ),
+                ),
+              ),
+              AppSpacing.gapMd,
+              Text(
+                tr(ref, 'barberApp.language', 'Til'),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapMd,
+              for (final opt in _langOptions)
+                TapScale(
+                  onTap: () {
+                    AppHaptics.selection();
+                    Navigator.of(sheetCtx).pop(opt.$1);
+                  },
+                  scale: 0.98,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: opt.$1 == current
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : AppColors.surfaceElevated,
+                      borderRadius: AppRadius.rMd,
+                      border: Border.all(
+                        color: opt.$1 == current
+                            ? AppColors.primary
+                            : AppColors.border,
+                      ),
+                    ),
+                    child: Row(children: [
+                      Text(opt.$3,
+                          style: const TextStyle(fontSize: 22)),
+                      AppSpacing.hGapMd,
+                      Expanded(
+                        child: Text(
+                          opt.$2,
+                          style: AppText.body.copyWith(
+                            color: opt.$1 == current
+                                ? AppColors.primary
+                                : AppColors.textBright,
+                            fontWeight: opt.$1 == current
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      if (opt.$1 == current)
+                        const Icon(Icons.check,
+                            color: AppColors.primary, size: 20),
+                    ]),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked == null || picked == current) return;
+    await ref.read(localeProvider.notifier).setLocale(picked);
   }
 }
 
