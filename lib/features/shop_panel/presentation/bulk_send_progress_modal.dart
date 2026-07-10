@@ -4,15 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../data/shop_repository.dart';
 
-/// Polls /blast-jobs/:id every 2s while the SMS blast is RUNNING and
-/// renders a progress bar + sent/skipped/out-of-balance counters +
-/// failed-row list. Mirrors web's BulkSendProgressModal.
-///
-/// Call via [show] — the future completes when the user closes the
-/// dialog (only possible once the job leaves RUNNING).
 class BulkSendProgressModal {
   static Future<void> show(BuildContext context,
       {required String jobId}) async {
@@ -36,6 +30,7 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
   Map<String, dynamic>? _job;
   bool _loading = true;
   String? _error;
+  bool _wasRunning = false;
 
   @override
   void initState() {
@@ -54,11 +49,16 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
     try {
       final j = await ref.read(shopRepositoryProvider).blastJob(widget.jobId);
       if (!mounted) return;
+      final isRun = j['status'] == 'RUNNING';
+      if (_wasRunning && !isRun) {
+        AppHaptics.success();
+      }
+      _wasRunning = isRun;
       setState(() {
         _job = j;
         _loading = false;
       });
-      if (j['status'] != 'RUNNING') {
+      if (!isRun) {
         _timer?.cancel();
       }
     } catch (e) {
@@ -86,31 +86,46 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
     final failed = (j?['failed'] is Map ? j!['failed'] as Map : {});
     final failedData = (failed['data'] as List?) ?? const [];
 
+    final heroColor = isDone
+        ? AppColors.success
+        : isFailed
+            ? AppColors.danger
+            : AppColors.primary;
+
     return Dialog(
       backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg)),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.lg),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            // Header
             Row(children: [
-              if (isRunning)
-                const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2.5))
-              else if (isDone)
-                const Icon(Icons.check_circle,
-                    color: AppColors.success, size: 22)
-              else if (isFailed)
-                const Icon(Icons.cancel,
-                    color: AppColors.danger, size: 22)
-              else
-                const Icon(Icons.sms_outlined,
-                    color: AppColors.textMuted, size: 22),
-              const SizedBox(width: 8),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: heroColor.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.rMd,
+                ),
+                child: isRunning
+                    ? Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5, color: heroColor),
+                      )
+                    : Icon(
+                        isDone
+                            ? Icons.check_circle
+                            : isFailed
+                                ? Icons.cancel
+                                : Icons.sms_outlined,
+                        color: heroColor,
+                        size: 22),
+              ),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
                     isRunning
@@ -122,11 +137,7 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
                                 ? tr(ref, 'blast.failedTitle',
                                     "Xatolik bilan tugadi")
                                 : tr(ref, 'common.loading', 'Yuklanmoqda…'),
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textBright,
-                        letterSpacing: -0.3)),
+                    style: AppText.titleMd),
               ),
               if (!isRunning)
                 IconButton(
@@ -135,29 +146,23 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
                   onPressed: () => Navigator.of(context).pop(),
                 ),
             ]),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.md),
 
             if (_loading && j == null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               const Center(child: CircularProgressIndicator()),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
             ] else if (_error != null && j == null) ...[
               Text("${tr(ref, 'common.error', 'Xatolik')}: $_error",
-                  style: const TextStyle(color: AppColors.danger)),
+                  style: AppText.body.copyWith(color: AppColors.danger)),
             ] else if (j != null) ...[
-              // Progress bar
               Row(children: [
                 Expanded(
-                  child: Text(
-                      tr(ref, 'blast.progress', "Jarayon"),
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 12)),
+                  child: Text(tr(ref, 'blast.progress', "Jarayon"),
+                      style: AppText.caption),
                 ),
                 Text("$processed / $total ($pct%)",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: AppColors.textBright)),
+                    style: AppText.button.copyWith(fontSize: 13)),
               ]),
               const SizedBox(height: 6),
               ClipRRect(
@@ -166,26 +171,25 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
                   value: total == 0 ? null : processed / total,
                   minHeight: 8,
                   backgroundColor:
-                      AppColors.primary.withValues(alpha: 0.15),
-                  valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                      heroColor.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation(heroColor),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: AppSpacing.md),
 
-              // Counters
               Row(children: [
                 Expanded(
                     child: _Counter(
                         label: tr(ref, 'blast.sent', "Yuborildi"),
                         value: sent,
                         color: AppColors.success)),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                     child: _Counter(
                         label: tr(ref, 'blast.skipped', "O'tkazib yuborildi"),
                         value: skipped,
                         color: AppColors.warning)),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                     child: _Counter(
                         label: tr(ref, 'blast.outOfBalance', "Balans yo'q"),
@@ -194,17 +198,14 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
               ]),
 
               if (failedData.isNotEmpty) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: AppSpacing.md),
                 Row(children: [
                   const Icon(Icons.warning_amber_rounded,
                       size: 16, color: AppColors.warning),
                   const SizedBox(width: 4),
                   Text(
                       "${tr(ref, 'blast.failedList', "Muvaffaqiyatsizlar")} (${failedData.length})",
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textBright)),
+                      style: AppText.titleSm.copyWith(fontSize: 13)),
                 ]),
                 const SizedBox(height: 6),
                 ConstrainedBox(
@@ -212,16 +213,13 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: failedData.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 6),
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: 6),
                     itemBuilder: (_, i) {
                       final f = failedData[i] as Map;
-                      return Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.border),
-                        ),
+                      return AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.sm),
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -229,19 +227,16 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
                                 Expanded(
                                   child: Text(
                                       (f['name'] ?? '—').toString(),
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 13)),
+                                      style: AppText.titleSm
+                                          .copyWith(fontSize: 13)),
                                 ),
                                 Text((f['phone'] ?? '').toString(),
-                                    style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 12)),
+                                    style: AppText.caption),
                               ]),
                               if (f['errorMessage'] != null) ...[
                                 const SizedBox(height: 2),
                                 Text(f['errorMessage'].toString(),
-                                    style: const TextStyle(
+                                    style: AppText.caption.copyWith(
                                         color: AppColors.danger,
                                         fontSize: 12)),
                               ],
@@ -253,16 +248,14 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
               ],
             ],
 
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isRunning ? null : () => Navigator.of(context).pop(),
-                child: Text(isRunning
-                    ? tr(ref, 'blast.waitingHint',
-                        "Tugaganda yopiladi…")
-                    : tr(ref, 'common.close', "Yopish")),
-              ),
+            const SizedBox(height: AppSpacing.md),
+            AppButton(
+              label: isRunning
+                  ? tr(ref, 'blast.waitingHint', "Tugaganda yopiladi…")
+                  : tr(ref, 'common.close', "Yopish"),
+              onPressed:
+                  isRunning ? null : () => Navigator.of(context).pop(),
+              fullWidth: true,
             ),
           ]),
         ),
@@ -280,26 +273,27 @@ class _Counter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm, horizontal: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(10),
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.14),
+            color.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: AppRadius.rMd,
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(children: [
         Text("$value",
-            style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-                letterSpacing: -0.3)),
+            style: AppText.numeric.copyWith(color: color, fontSize: 20)),
         const SizedBox(height: 2),
         Text(label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 10,
-                fontWeight: FontWeight.w600)),
+            style: AppText.caption.copyWith(fontSize: 10)),
       ]),
     );
   }
