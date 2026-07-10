@@ -28,12 +28,14 @@
       padding: 0;
       background: #0B0F1A;
       color: #E5E7EB;
-      font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter",
+                   Roboto, "Helvetica Neue", Arial, sans-serif;
       overscroll-behavior: none;
     }
-    /* Dark-themed splash shown while main.dart.js downloads. Flutter's
-       default blue LinearProgressIndicator is hidden — we replace it
-       with a subtle 3-dot pulse that matches the SplashScreen widget. */
+    /* Dark-themed splash shown while main.dart.js downloads. Uses an
+       inline SVG for the scissors so the icon renders regardless of the
+       browser's emoji font support (the previous ✂ codepoint was
+       invisible on some Chromium builds). */
     #lope-splash {
       position: fixed;
       inset: 0;
@@ -42,9 +44,10 @@
       align-items: center;
       justify-content: center;
       background: radial-gradient(circle at center,
-                    rgba(59, 130, 246, 0.12) 0%,
-                    #0B0F1A 70%);
+                    rgba(59, 130, 246, 0.14) 0%,
+                    #0B0F1A 65%);
       z-index: 999;
+      opacity: 1;
       transition: opacity 300ms ease;
     }
     #lope-splash.done {
@@ -52,33 +55,50 @@
       pointer-events: none;
     }
     #lope-splash .logo {
-      width: 84px;
-      height: 84px;
-      border-radius: 24px;
+      width: 96px;
+      height: 96px;
+      border-radius: 28px;
       background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-      box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 60px rgba(59, 130, 246, 0.55),
+                  0 8px 24px rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 40px;
+      animation: lope-scale-in 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    #lope-splash .logo svg {
+      width: 46px;
+      height: 46px;
+      color: #FFFFFF;
+      stroke: #FFFFFF;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     #lope-splash .brand {
-      margin-top: 20px;
-      font-size: 26px;
+      margin-top: 22px;
+      font-size: 30px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.6px;
       color: #FFFFFF;
+      animation: lope-fade-up 500ms ease-out 200ms both;
+    }
+    #lope-splash .tagline {
+      margin-top: 6px;
+      font-size: 15px;
+      color: #9CA3AF;
+      animation: lope-fade-up 500ms ease-out 350ms both;
     }
     #lope-splash .dots {
       position: absolute;
-      bottom: 48px;
+      bottom: 56px;
       display: flex;
-      gap: 6px;
+      gap: 8px;
     }
     #lope-splash .dots span {
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: #3B82F6;
       animation: lope-bounce 900ms ease-in-out infinite;
@@ -89,25 +109,56 @@
       0%, 100% { transform: scale(0.6); opacity: 0.4; }
       50%      { transform: scale(1);   opacity: 1; }
     }
+    @keyframes lope-scale-in {
+      0%   { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+    @keyframes lope-fade-up {
+      0%   { transform: translateY(8px); opacity: 0; }
+      100% { transform: translateY(0);   opacity: 1; }
+    }
   </style>
 </head>
 <body>
   <div id="lope-splash">
-    <div class="logo">✂</div>
+    <div class="logo">
+      <!-- Scissors icon — matches the Material `content_cut` symbol used
+           inside the Flutter SplashScreen widget. Inline SVG avoids the
+           emoji-font fallback problem. -->
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="6" cy="6" r="3"></circle>
+        <circle cx="6" cy="18" r="3"></circle>
+        <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+        <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+        <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+      </svg>
+    </div>
     <div class="brand">Lope Style</div>
+    <div class="tagline">Sartaroshingiz — bir bosishda</div>
     <div class="dots"><span></span><span></span><span></span></div>
   </div>
 
   <script>
-    // Hide the branded splash once Flutter's first frame renders. Flutter
-    // dispatches a `flutter-first-frame` event on window when the engine
-    // has painted the initial UI.
-    window.addEventListener('flutter-first-frame', function () {
-      var el = document.getElementById('lope-splash');
-      if (!el) return;
-      el.classList.add('done');
-      setTimeout(function () { el.remove(); }, 320);
-    });
+    // Guarantee the branded splash is visible for at least this many ms
+    // so users always see the animation instead of an instant flash to
+    // the app on fast connections.
+    var LOPE_SPLASH_MIN_MS = 900;
+    var lopeSplashShownAt = Date.now();
+    var lopeSplashDone = false;
+
+    function dismissLopeSplash() {
+      if (lopeSplashDone) return;
+      lopeSplashDone = true;
+      var elapsed = Date.now() - lopeSplashShownAt;
+      var wait = Math.max(0, LOPE_SPLASH_MIN_MS - elapsed);
+      setTimeout(function () {
+        var el = document.getElementById('lope-splash');
+        if (!el) return;
+        el.classList.add('done');
+        setTimeout(function () { el.remove(); }, 320);
+      }, wait);
+    }
+    window.addEventListener('flutter-first-frame', dismissLopeSplash);
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
