@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/push_service.dart';
@@ -45,6 +47,13 @@ class AuthController extends Notifier<AuthState> {
     final fresh = await ref.read(authRepositoryProvider).refreshMe();
     if (fresh != null) {
       state = state.copyWith(user: fresh);
+      // Legacy customer accounts (created before server-side auto-gen)
+      // ship a null referralCode. Silently claim one via the existing
+      // PATCH endpoint so the promo screen always has a code ready
+      // without any manual step from the user. Mobile-only fix — the
+      // server is unmodified.
+      // ignore: unawaited_futures
+      _ensureReferralCode(fresh);
       return;
     }
     // refreshMe returned null — could be a 401 (auth repo already cleared
@@ -70,6 +79,11 @@ class AuthController extends Notifier<AuthState> {
     // that we have a token so future pushes are routed to this device.
     // ignore: unawaited_futures
     ref.read(pushServiceProvider).registerCurrentToken();
+    // Same legacy-account backfill as _refreshSilent: fresh logins
+    // whose accounts predate auto-generation get their promo code
+    // filled in the background before they ever open the promo screen.
+    // ignore: unawaited_futures
+    _ensureReferralCode(user);
   }
 
   Future<void> logout() async {
@@ -86,6 +100,44 @@ class AuthController extends Notifier<AuthState> {
     if (current == null) return;
     final next = current.copyWith(referralCode: newCode);
     state = state.copyWith(user: next);
+  }
+
+  /// Silently claim a referral code for legacy accounts that shipped
+  /// with a null one. Uses the existing PATCH /auth/me/referral-code
+  /// endpoint — no backend changes. Retries up to 4 times on 409
+  /// (collision with an existing user's code) before giving up.
+  Future<void> _ensureReferralCode(AppUser user) async {
+    if ((user.referralCode ?? '').isNotEmpty) return;
+    final repo = ref.read(authRepositoryProvider);
+    final rnd = Random();
+    for (var attempt = 0; attempt < 4; attempt++) {
+      final candidate = _seedReferralCode(user.name, rnd);
+      try {
+        final newCode = await repo.updateMyReferralCode(candidate);
+        final current = state.user;
+        if (current != null) {
+          state = state.copyWith(
+              user: current.copyWith(referralCode: newCode));
+        }
+        return;
+      } catch (e) {
+        // 409 → collision; loop with a fresh candidate. Any other error
+        // is transient / permission-related and we just leave the code
+        // null — the user can still enter one manually from the promo
+        // screen's pencil button.
+        if (!e.toString().contains('409')) return;
+      }
+    }
+  }
+
+  static String _seedReferralCode(String name, Random rnd) {
+    final letters = name
+        .toUpperCase()
+        .replaceAll(RegExp(r'[^A-Z]'), '')
+        .padRight(4, 'X')
+        .substring(0, 4);
+    final digits = (100 + rnd.nextInt(900)).toString();
+    return '$letters$digits';
   }
 }
 
