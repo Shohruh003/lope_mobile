@@ -1,33 +1,27 @@
 import 'package:flutter/material.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/barber_panel_repository.dart';
 
-/// Mirrors `BarberClientsScreen.tsx` exactly:
-///   - Date filter row: chevronLeft + date input + chevronRight + "Today" pill
-///   - Search bar
-///   - Status tabs: 3 pills (Confirmed/Completed/Cancelled) each showing the
-///     count, active tab gets a colored background (blue/green/red)
-///   - "X ta bron" counter
-///   - List of booking cards
 class BarberBookingsScreen extends ConsumerStatefulWidget {
   const BarberBookingsScreen({super.key});
 
   @override
-  ConsumerState<BarberBookingsScreen> createState() => _BarberBookingsScreenState();
+  ConsumerState<BarberBookingsScreen> createState() =>
+      _BarberBookingsScreenState();
 }
 
 class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
   late DateTime _selectedDate;
-  String _activeTab = 'confirmed'; // 'confirmed' | 'completed' | 'cancelled'
+  String _activeTab = 'confirmed';
   String _search = '';
 
   @override
@@ -47,6 +41,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
   }
 
   Future<void> _pickDate() async {
+    AppHaptics.light();
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -59,7 +54,10 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (user == null) {
+      return const Scaffold(
+          body: Center(child: CircularProgressIndicator()));
+    }
 
     final async = ref.watch(barberDayBookingsProvider(
         (barberId: user.id, date: _toDateStr(_selectedDate))));
@@ -68,86 +66,106 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.xxl,
+          ),
           children: [
-            // ===== Date filter row =====
             Row(children: [
               _IconBtn(
                 icon: Icons.chevron_left,
-                onTap: () => setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1))),
+                onTap: () => setState(() => _selectedDate =
+                    _selectedDate.subtract(const Duration(days: 1))),
               ),
-              const SizedBox(width: 8),
+              AppSpacing.hGapSm,
               Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
+                child: TapScale(
                   onTap: _pickDate,
+                  scale: 0.97,
                   child: Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(10),
+                      color: AppColors.surface,
+                      borderRadius: AppRadius.rMd,
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Row(children: [
-                      const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textMuted),
-                      const SizedBox(width: 8),
-                      Text(
-                        _toDateStr(_selectedDate),
-                        style: const TextStyle(
-                            fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      ),
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 16, color: AppColors.textMuted),
+                      AppSpacing.hGapSm,
+                      Text(_toDateStr(_selectedDate),
+                          style: AppText.body.copyWith(
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ])),
                     ]),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              AppSpacing.hGapSm,
               _IconBtn(
                 icon: Icons.chevron_right,
-                onTap: () => setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1))),
+                onTap: () => setState(() => _selectedDate =
+                    _selectedDate.add(const Duration(days: 1))),
               ),
               if (!_isToday) ...[
-                const SizedBox(width: 8),
-                InkWell(
-                  borderRadius: BorderRadius.circular(10),
+                AppSpacing.hGapSm,
+                TapScale(
                   onTap: () => setState(() => _selectedDate = DateTime.now()),
+                  scale: 0.95,
                   child: Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(10),
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: AppRadius.rMd,
+                      boxShadow:
+                          AppShadows.primaryGlow(AppColors.primary),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      tr(ref, 'mobile.barber.bookingsAll.today', "Bugun"),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 14),
+                      tr(ref, 'mobile.barber.bookingsAll.today', 'Bugun'),
+                      style: AppText.button.copyWith(color: Colors.white),
                     ),
                   ),
                 ),
               ],
             ]),
-
-            const SizedBox(height: 12),
-
-            // ===== Search =====
-            SizedBox(
+            AppSpacing.gapMd,
+            Container(
               height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.rMd,
+                border: Border.all(color: AppColors.border),
+              ),
               child: TextField(
-                onChanged: (v) => setState(() => _search = v.trim().toLowerCase()),
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+                onChanged: (v) =>
+                    setState(() => _search = v.trim().toLowerCase()),
+                style: AppText.body,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 18),
-                  prefixIconConstraints: const BoxConstraints(minWidth: 40),
-                  hintText: tr(ref, 'mobile.barber.bookings.searchPlaceholder', "Mijoz nomi yoki telefon"),
+                  isDense: true,
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12),
+                  prefixIcon: const Icon(Icons.search,
+                      color: AppColors.textMuted, size: 20),
+                  hintText: tr(ref, 'mobile.barber.bookings.searchPlaceholder',
+                      'Mijoz nomi yoki telefon'),
+                  hintStyle:
+                      AppText.body.copyWith(color: AppColors.textMuted),
                 ),
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            // ===== Status tabs =====
+            AppSpacing.gapMd,
             async.when(
               loading: () => _tabsRow(0, 0, 0),
               error: (_, _) => _tabsRow(0, 0, 0),
@@ -158,10 +176,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                 return _tabsRow(c, co, ca);
               },
             ),
-
-            const SizedBox(height: 16),
-
-            // ===== List =====
+            AppSpacing.gapLg,
             async.when(
               loading: () => const AppListSkeleton(itemCount: 5),
               error: (e, _) => SizedBox(
@@ -172,8 +187,12 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                 final filtered = list.where((b) {
                   if (b.status != _activeTab) return false;
                   if (_search.isEmpty) return true;
-                  final name = (b.guestName?.isNotEmpty == true ? b.guestName! : b.userName).toLowerCase();
-                  final phone = (b.guestPhone ?? b.userPhone ?? '').toLowerCase();
+                  final name = (b.guestName?.isNotEmpty == true
+                          ? b.guestName!
+                          : b.userName)
+                      .toLowerCase();
+                  final phone =
+                      (b.guestPhone ?? b.userPhone ?? '').toLowerCase();
                   return name.contains(_search) || phone.contains(_search);
                 }).toList();
 
@@ -184,33 +203,36 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                       icon: Icons.event_available_rounded,
                       title: tr(ref, 'myBookings.empty', "Bron yo'q"),
                       message: _search.isNotEmpty
-                          ? tr(ref, 'common.noResults', "Hech narsa topilmadi")
+                          ? tr(ref, 'common.noResults',
+                              'Hech narsa topilmadi')
                           : tr(
                               ref,
                               'mobile.barber.bookings.emptyHint',
-                              "Bu sanada bron yo'q. Mijozlar yozilishi bilan bu yerda ko'rinadi.",
-                            ),
+                              "Bu sanada bron yo'q. Mijozlar yozilishi bilan bu yerda ko'rinadi."),
                     ),
                   );
                 }
 
                 return Column(children: [
-                  // Count
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: Row(children: [
-                      const Icon(Icons.people_outline, size: 16, color: AppColors.textMuted),
-                      const SizedBox(width: 6),
-                      Text("${filtered.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
+                      const Icon(Icons.people_outline,
+                          size: 16, color: AppColors.textMuted),
+                      AppSpacing.hGapXs,
+                      Text(
+                          "${filtered.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
+                          style: AppText.bodySm),
                     ]),
                   ),
                   ...filtered.asMap().entries.map((entry) {
                     final i = entry.key;
                     final b = entry.value;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _BookingTile(b: b).animate().fadeIn(duration: 200.ms, delay: (i * 25).ms),
+                      padding:
+                          const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: _BookingTile(b: b).animate().fadeIn(
+                          duration: 200.ms, delay: (i * 25).ms),
                     );
                   }),
                 ]);
@@ -225,26 +247,26 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
   Widget _tabsRow(int confirmed, int completed, int cancelled) {
     return Row(children: [
       _StatusTab(
-        label: tr(ref, 'myBookings.statusConfirmed', "Tasdiqlangan"),
+        label: tr(ref, 'myBookings.statusConfirmed', 'Tasdiqlangan'),
         count: confirmed,
         on: _activeTab == 'confirmed',
-        onColor: const Color(0xFF3B82F6), // blue-500
+        color: const Color(0xFF3B82F6),
         onTap: () => setState(() => _activeTab = 'confirmed'),
       ),
-      const SizedBox(width: 8),
+      AppSpacing.hGapSm,
       _StatusTab(
-        label: tr(ref, 'myBookings.statusCompleted', "Yakunlangan"),
+        label: tr(ref, 'myBookings.statusCompleted', 'Yakunlangan'),
         count: completed,
         on: _activeTab == 'completed',
-        onColor: const Color(0xFF22C55E), // green-500
+        color: AppColors.success,
         onTap: () => setState(() => _activeTab = 'completed'),
       ),
-      const SizedBox(width: 8),
+      AppSpacing.hGapSm,
       _StatusTab(
-        label: tr(ref, 'profile.cancelled', "Bekor"),
+        label: tr(ref, 'profile.cancelled', 'Bekor'),
         count: cancelled,
         on: _activeTab == 'cancelled',
-        onColor: const Color(0xFFEF4444), // red-500
+        color: AppColors.danger,
         onTap: () => setState(() => _activeTab = 'cancelled'),
       ),
     ]);
@@ -257,16 +279,19 @@ class _IconBtn extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
+    return TapScale(
       onTap: onTap,
+      scale: 0.9,
       child: Container(
-        width: 40, height: 40,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          color: AppColors.surface,
+          borderRadius: AppRadius.rMd,
           border: Border.all(color: AppColors.border),
         ),
-        child: Icon(icon, color: AppColors.textMuted, size: 16),
+        child:
+            Icon(icon, color: AppColors.textMuted, size: 18),
       ),
     );
   }
@@ -277,42 +302,49 @@ class _StatusTab extends StatelessWidget {
     required this.label,
     required this.count,
     required this.on,
-    required this.onColor,
+    required this.color,
     required this.onTap,
   });
   final String label;
   final int count;
   final bool on;
-  final Color onColor;
+  final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+      child: TapScale(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+        scale: 0.97,
+        child: AnimatedContainer(
+          duration: AppMotion.base,
+          curve: AppMotion.emphasized,
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: on ? onColor.withValues(alpha: 0.1) : Colors.transparent,
-            border: Border.all(color: on ? onColor : AppColors.border),
+            borderRadius: AppRadius.rMd,
+            color: on ? color.withValues(alpha: 0.1) : AppColors.surface,
+            border: Border.all(
+              color: on ? color : AppColors.border,
+              width: on ? 2 : 1,
+            ),
           ),
           child: Column(children: [
-            Text(label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                  color: on ? onColor : AppColors.textMuted,
-                )),
+            Text(
+              label,
+              style: AppText.caption.copyWith(
+                fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                color: on ? color : AppColors.textMuted,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text("$count",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: on ? onColor : AppColors.textBright,
-                )),
+            Text(
+              '$count',
+              style: AppText.numeric.copyWith(
+                color: on ? color : AppColors.textBright,
+                fontSize: 18,
+              ),
+            ),
           ]),
         ),
       ),
@@ -328,224 +360,279 @@ class _BookingTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final name = b.guestName?.isNotEmpty == true
         ? b.guestName!
-        : (b.userName.isNotEmpty ? b.userName : tr(ref, 'mobile.barber.bookingsAll.client', "Mijoz"));
+        : (b.userName.isNotEmpty
+            ? b.userName
+            : tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz'));
     final phone = b.guestPhone ?? b.userPhone ?? '';
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-        Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-            style: const TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textBright)),
-              if (phone.isNotEmpty)
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: AppSpacing.cardPadding,
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(2),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surface,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+                    style: AppText.titleSm,
+                  ),
+                ),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: AppText.titleSm),
+                    if (phone.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(phone, style: AppText.caption),
+                      ),
+                    const SizedBox(height: 4),
+                    Row(children: [
+                      const Icon(Icons.access_time,
+                          size: 12, color: AppColors.textMuted),
+                      AppSpacing.hGapXs,
+                      Text(b.time, style: AppText.caption),
+                      if (b.totalDuration > 0) ...[
+                        AppSpacing.hGapXs,
+                        Text(
+                          "(${b.totalDuration} ${tr(ref, 'booking.duration', 'daq')})",
+                          style: AppText.caption,
+                        ),
+                      ],
+                      if (b.isManual) ...[
+                        AppSpacing.hGapXs,
+                        AppBadge(
+                          label: tr(ref,
+                              'mobile.shop.bookings.manualBadge',
+                              "Qo'lda"),
+                          variant: AppBadgeVariant.warning,
+                        ),
+                      ],
+                    ]),
+                    if (b.notes != null && b.notes!.isNotEmpty) ...[
+                      AppSpacing.gapXs,
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceElevated,
+                          borderRadius: AppRadius.rSm,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.sticky_note_2_outlined,
+                                size: 12,
+                                color: AppColors.textMuted),
+                            AppSpacing.hGapXs,
+                            Expanded(
+                              child: Text(
+                                b.notes!,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppText.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (b.totalPrice > 0)
                 Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(phone,
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                ),
-              const SizedBox(height: 4),
-              Row(children: [
-                const Icon(Icons.access_time, size: 12, color: AppColors.textMuted),
-                const SizedBox(width: 4),
-                Text(b.time,
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                if (b.totalDuration > 0) ...[
-                  const SizedBox(width: 6),
-                  Text("(${b.totalDuration} ${tr(ref, 'booking.duration', 'daq')})",
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-                ],
-                if (b.isManual) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.warning.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
+                  padding: const EdgeInsets.only(
+                      left: AppSpacing.xs, right: AppSpacing.xs),
+                  child: Text(
+                    "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
+                    style: AppText.body.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
                     ),
-                    child: Text(
-                        tr(ref, 'mobile.shop.bookings.manualBadge',
-                            "Qo'lda"),
-                        style: const TextStyle(
-                            color: AppColors.warning,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600)),
                   ),
-                ],
+                ),
+              if (phone.isNotEmpty)
+                TapScale(
+                  onTap: () async {
+                    AppHaptics.light();
+                    final clean =
+                        phone.replaceAll(RegExp(r'[^\d+]'), '');
+                    final uri = Uri(scheme: 'tel', path: clean);
+                    if (await canLaunchUrl(uri)) await launchUrl(uri);
+                  },
+                  scale: 0.9,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color:
+                          AppColors.primary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.phone_outlined,
+                        color: AppColors.primary, size: 18),
+                  ),
+                ),
+            ]),
+            if (b.status == 'confirmed') ...[
+              AppSpacing.gapMd,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'myBookings.complete', 'Yakunlash'),
+                    leadingIcon: Icons.check_circle_outline,
+                    variant: AppButtonVariant.success,
+                    size: AppButtonSize.sm,
+                    fullWidth: true,
+                    onPressed: () => _complete(context, ref),
+                  ),
+                ),
+                AppSpacing.hGapSm,
+                Expanded(
+                  child: AppButton(
+                    label:
+                        tr(ref, 'myBookings.cancel', 'Bekor qilish'),
+                    leadingIcon: Icons.close,
+                    variant: AppButtonVariant.danger,
+                    size: AppButtonSize.sm,
+                    fullWidth: true,
+                    onPressed: () => _cancel(context, ref),
+                  ),
+                ),
+                AppSpacing.hGapSm,
+                PopupMenuButton<String>(
+                  icon: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceElevated,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.more_vert,
+                        size: 18, color: AppColors.textMuted),
+                  ),
+                  padding: EdgeInsets.zero,
+                  onSelected: (value) async {
+                    if (value == 'reschedule') {
+                      await _reschedule(context, ref);
+                    } else if (value == 'extend') {
+                      await _extend(context, ref);
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 'reschedule',
+                      child: Row(children: [
+                        const Icon(Icons.event_repeat, size: 16),
+                        AppSpacing.hGapSm,
+                        Text(tr(ref, 'mobile.shop.barber.reschedule',
+                            "Boshqa vaqtga ko'chirish")),
+                      ]),
+                    ),
+                    PopupMenuItem(
+                      value: 'extend',
+                      child: Row(children: [
+                        const Icon(Icons.timer_outlined, size: 16),
+                        AppSpacing.hGapSm,
+                        Text(tr(ref, 'mobile.shop.barber.extend',
+                            'Vaqtni uzaytirish')),
+                      ]),
+                    ),
+                  ],
+                ),
               ]),
-              if (b.notes != null && b.notes!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Icon(Icons.notes,
-                      size: 12, color: AppColors.textMuted),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(b.notes!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic)),
-                  ),
-                ]),
-              ],
             ],
-          ),
-        ),
-        if (b.totalPrice > 0)
-          Padding(
-            padding: const EdgeInsets.only(left: 4, right: 6),
-            child: Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
-                style: const TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.w600)),
-          ),
-        if (phone.isNotEmpty)
-          IconButton(
-            icon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 18),
-            onPressed: () async {
-              final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
-              final uri = Uri(scheme: 'tel', path: clean);
-              if (await canLaunchUrl(uri)) await launchUrl(uri);
-            },
-          ),
-      ]),
-        if (b.status == 'confirmed') ...[
-          const SizedBox(height: 8),
-          Row(children: [
-            SizedBox(
-              height: 32,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.check_circle_outline, size: 12),
-                label: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w500)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () => _complete(context, ref),
-              ),
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              height: 32,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.close,
-                    size: 12, color: AppColors.danger),
-                label: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.danger,
-                        fontWeight: FontWeight.w500)),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  side: BorderSide(
-                      color: AppColors.danger.withValues(alpha: 0.5)),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () => _cancel(context, ref),
-              ),
-            ),
-            const Spacer(),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert,
-                  size: 16, color: AppColors.textMuted),
-              padding: EdgeInsets.zero,
-              onSelected: (value) async {
-                if (value == 'reschedule') {
-                  await _reschedule(context, ref);
-                } else if (value == 'extend') {
-                  await _extend(context, ref);
-                }
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(
-                  value: 'reschedule',
-                  child: Row(children: [
-                    const Icon(Icons.event_repeat, size: 16),
-                    const SizedBox(width: 8),
-                    Text(tr(ref, 'mobile.shop.barber.reschedule',
-                        "Boshqa vaqtga ko'chirish")),
-                  ]),
-                ),
-                PopupMenuItem(
-                  value: 'extend',
-                  child: Row(children: [
-                    const Icon(Icons.timer_outlined, size: 16),
-                    const SizedBox(width: 8),
-                    Text(tr(ref, 'mobile.shop.barber.extend',
-                        "Vaqtni uzaytirish")),
-                  ]),
-                ),
-              ],
-            ),
           ]),
-        ],
-      ]),
     );
   }
 
   Future<void> _complete(BuildContext context, WidgetRef ref) async {
+    AppHaptics.light();
     int? overrideTotal;
     final priceCtrl = TextEditingController(
         text: b.totalPrice > 0 ? b.totalPrice.toString() : '');
     final ok = await showDialog<bool>(
       context: context,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'myBookings.completeConfirmTitle',
-            "Bronni yakunlash?")),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(tr(ref, 'myBookings.completeConfirmMsg',
-              "Bron yakunlangan deb belgilanadi.")),
-          const SizedBox(height: 12),
-          TextField(
-            controller: priceCtrl,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: tr(ref, 'myBookings.totalPriceLabel',
-                  "Olingan summa (ixtiyoriy)"),
-              hintText: '0',
-              suffixText: tr(ref, 'common.currency', "so'm"),
-            ),
+      builder: (dCtx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr(ref, 'myBookings.completeConfirmTitle',
+                    'Bronni yakunlash?'),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapSm,
+              Text(
+                tr(ref, 'myBookings.completeConfirmMsg',
+                    'Bron yakunlangan deb belgilanadi.'),
+                style: AppText.bodySm,
+              ),
+              AppSpacing.gapMd,
+              TextField(
+                controller: priceCtrl,
+                keyboardType: TextInputType.number,
+                style: AppText.body,
+                decoration: InputDecoration(
+                  labelText: tr(ref, 'myBookings.totalPriceLabel',
+                      'Olingan summa (ixtiyoriy)'),
+                  hintText: '0',
+                  suffixText: tr(ref, 'common.currency', "so'm"),
+                ),
+              ),
+              AppSpacing.gapLg,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.cancel', 'Bekor'),
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.pop(dCtx, false),
+                    fullWidth: true,
+                  ),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.confirm', 'Tasdiqlash'),
+                    variant: AppButtonVariant.primary,
+                    onPressed: () {
+                      overrideTotal =
+                          int.tryParse(priceCtrl.text.trim());
+                      Navigator.pop(dCtx, true);
+                    },
+                    fullWidth: true,
+                  ),
+                ),
+              ]),
+            ],
           ),
-        ]),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx, false),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
-          TextButton(
-              onPressed: () {
-                overrideTotal = int.tryParse(priceCtrl.text.trim());
-                Navigator.pop(dCtx, true);
-              },
-              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
-        ],
+        ),
       ),
     );
     try {
@@ -556,12 +643,13 @@ class _BookingTile extends ConsumerWidget {
       ref.invalidate(barberAllBookingsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+            content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       priceCtrl.dispose();
@@ -569,23 +657,53 @@ class _BookingTile extends ConsumerWidget {
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
+    AppHaptics.light();
     final ok = await showDialog<bool>(
       context: context,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'myBookings.cancelConfirmTitle',
-            "Bronni bekor qilasizmi?")),
-        content: Text(tr(ref, 'myBookings.cancelConfirmMsg',
-            "Bekor qilingach, qaytarib bo'lmaydi.")),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx, false),
-              child: Text(tr(ref, 'common.close', "Yopish"))),
-          TextButton(
-              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-              onPressed: () => Navigator.pop(dCtx, true),
-              child: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"))),
-        ],
+      builder: (dCtx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr(ref, 'myBookings.cancelConfirmTitle',
+                    'Bronni bekor qilasizmi?'),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapSm,
+              Text(
+                tr(ref, 'myBookings.cancelConfirmMsg',
+                    "Bekor qilingach, qaytarib bo'lmaydi."),
+                style: AppText.bodySm,
+              ),
+              AppSpacing.gapLg,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.close', 'Yopish'),
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.pop(dCtx, false),
+                    fullWidth: true,
+                  ),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: AppButton(
+                    label:
+                        tr(ref, 'myBookings.cancel', 'Bekor qilish'),
+                    variant: AppButtonVariant.danger,
+                    onPressed: () => Navigator.pop(dCtx, true),
+                    fullWidth: true,
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
       ),
     );
     if (ok != true) return;
@@ -595,17 +713,19 @@ class _BookingTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'myBookings.cancelled',
-                "Bron bekor qilindi"))));
+                'Bron bekor qilindi'))));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     }
   }
 
   Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
+    AppHaptics.light();
     final initial = DateTime.tryParse(b.date) ?? DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
@@ -633,43 +753,71 @@ class _BookingTile extends ConsumerWidget {
       ref.invalidate(barberAllBookingsProvider);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+          content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+          content: Text(
+              "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 
   Future<void> _extend(BuildContext context, WidgetRef ref) async {
+    AppHaptics.light();
     int minutes = 30;
     final ok = await showDialog<int>(
       context: context,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'mobile.shop.barber.extendTitle',
-            "Vaqtni uzaytirish (daqiqa)")),
-        content: StatefulBuilder(builder: (sCtx, setSt) {
-          return DropdownButtonFormField<int>(
-            initialValue: minutes,
-            items: const [
-              DropdownMenuItem(value: 15, child: Text("+15")),
-              DropdownMenuItem(value: 30, child: Text("+30")),
-              DropdownMenuItem(value: 45, child: Text("+45")),
-              DropdownMenuItem(value: 60, child: Text("+60")),
-              DropdownMenuItem(value: 90, child: Text("+90")),
+      builder: (dCtx) => Dialog(
+        backgroundColor: AppColors.surface,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr(ref, 'mobile.shop.barber.extendTitle',
+                    'Vaqtni uzaytirish (daqiqa)'),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapMd,
+              StatefulBuilder(builder: (sCtx, setSt) {
+                return DropdownButtonFormField<int>(
+                  initialValue: minutes,
+                  items: const [
+                    DropdownMenuItem(value: 15, child: Text('+15')),
+                    DropdownMenuItem(value: 30, child: Text('+30')),
+                    DropdownMenuItem(value: 45, child: Text('+45')),
+                    DropdownMenuItem(value: 60, child: Text('+60')),
+                    DropdownMenuItem(value: 90, child: Text('+90')),
+                  ],
+                  onChanged: (v) => setSt(() => minutes = v ?? 30),
+                );
+              }),
+              AppSpacing.gapLg,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.cancel', 'Bekor'),
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.pop(dCtx),
+                    fullWidth: true,
+                  ),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.confirm', 'Tasdiqlash'),
+                    variant: AppButtonVariant.primary,
+                    onPressed: () => Navigator.pop(dCtx, minutes),
+                    fullWidth: true,
+                  ),
+                ),
+              ]),
             ],
-            onChanged: (v) => setSt(() => minutes = v ?? 30),
-          );
-        }),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx, minutes),
-              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
-        ],
+          ),
+        ),
       ),
     );
     if (ok == null) return;
@@ -680,11 +828,12 @@ class _BookingTile extends ConsumerWidget {
       ref.invalidate(barberAllBookingsProvider);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+          content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+          content: Text(
+              "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
     }
   }
 
