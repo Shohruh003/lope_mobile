@@ -134,6 +134,15 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 ),
               ),
               data: (list) {
+                // When sorting by distance (the default), wait until
+                // the customer's geolocation resolves before rendering.
+                // Otherwise the grid paints once by rating, then flips
+                // on top of itself when the GPS position lands a moment
+                // later — that's the "rikoshet" jitter the user hit.
+                final locAsync = ref.watch(currentLocationProvider);
+                if (_sort == 'distance' && locAsync.isLoading) {
+                  return const SliverToBoxAdapter(child: _LoadingGrid());
+                }
                 var filtered = _query.isEmpty
                     ? list
                     : list

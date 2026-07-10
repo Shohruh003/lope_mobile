@@ -31,13 +31,12 @@ class _LopeAppState extends ConsumerState<LopeApp> {
       });
     }
 
-    // Preference is still watched (so the theme picker keeps its
-    // saved choice) but until AppColors is refactored to be
-    // theme-aware, forcing light mode leaves half the UI unreadable —
-    // dark AppCards on a white scaffold with white text. Pass the
-    // dark theme in both slots and force ThemeMode.dark so the picker
-    // is honest: it's a preference we can honour once the palette
-    // migration lands.
+    // themeMode preference is kept in place (persists in shared prefs +
+    // shows in the picker) but the whole palette is still hard-coded
+    // dark via `AppColors.*` constants which the framework can't swap
+    // at runtime. Fully honouring light mode needs migrating AppColors
+    // to a ThemeExtension — planned separately. Until then, force dark
+    // so the UI stays readable.
     final _ = ref.watch(themeModeProvider);
     final darkTheme = buildAppTheme();
     return MaterialApp.router(
