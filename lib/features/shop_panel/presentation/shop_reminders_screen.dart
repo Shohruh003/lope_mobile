@@ -8,13 +8,9 @@ import 'package:intl/intl.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 
-/// Clients who haven't visited the salon for `reminderDays` days or more.
-/// Mirrors the web's BarbershopReminders page exactly — taps open the
-/// shop-side client detail. Backend:
-/// GET /barbershop/clients/due-for-reminder.
 class ShopRemindersScreen extends ConsumerStatefulWidget {
   const ShopRemindersScreen({super.key});
   @override
@@ -31,7 +27,8 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
     final async = ref.watch(_dueForReminderProvider(_page));
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.shop.reminders.title', "Eslatma kutmoqda")),
+        title: Text(tr(ref, 'mobile.shop.reminders.title', "Eslatma kutmoqda"),
+            style: AppText.titleMd),
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
@@ -49,44 +46,62 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
               await ref.read(_dueForReminderProvider(_page).future);
             },
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                // ===== Hint banner with days param =====
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: AppColors.warning.withValues(alpha: 0.30)),
+                AppCard(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.warning.withValues(alpha: 0.18),
+                      AppColors.warning.withValues(alpha: 0.06),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  borderColor: AppColors.warning.withValues(alpha: 0.35),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(children: [
-                    const Icon(Icons.notifications_active,
-                        color: AppColors.warning, size: 18),
-                    const SizedBox(width: 8),
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.2),
+                        borderRadius: AppRadius.rSm,
+                      ),
+                      child: const Icon(Icons.notifications_active,
+                          color: AppColors.warning, size: 18),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         tr(ref, 'mobile.shop.reminders.hint',
                             "Oxirgi tashrifidan {{n}} kun yoki undan ko'p o'tgan mijozlar.",
                             {'n': '$days'}),
-                        style: const TextStyle(
-                            color: AppColors.textSecondary, fontSize: 12),
+                        style: AppText.bodySm,
                       ),
                     ),
-                    TextButton(
-                      onPressed: () => context.push('/shop/settings'),
-                      style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 6)),
-                      child: Text(
-                          tr(ref, 'mobile.shop.reminders.changeBtn',
-                              "O'zgartirish"),
-                          style: const TextStyle(
-                              color: AppColors.primary, fontSize: 12)),
+                    TapScale(
+                      onTap: () => context.push('/shop/settings'),
+                      haptic: HapticStrength.light,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: AppSpacing.xs),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: AppRadius.rSm,
+                        ),
+                        child: Text(
+                            tr(ref, 'mobile.shop.reminders.changeBtn',
+                                "O'zgartirish"),
+                            style: AppText.button
+                                .copyWith(color: AppColors.primary, fontSize: 12)),
+                      ),
                     ),
                   ]),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
 
                 if (clients.isEmpty)
                   SizedBox(
@@ -105,158 +120,152 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                 else
                   ...clients.asMap().entries.map((e) {
                     final c = e.value;
+                    final overdue = c.daysSince >= days + 7;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         onTap: () => context.push(
                             '/shop/clients/${Uri.encodeComponent(c.key)}'),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Row(children: [
-                            ClipOval(
+                        child: Row(children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: overdue
+                                    ? [
+                                        AppColors.danger
+                                            .withValues(alpha: 0.6),
+                                        AppColors.danger
+                                            .withValues(alpha: 0.2),
+                                      ]
+                                    : [
+                                        AppColors.warning
+                                            .withValues(alpha: 0.6),
+                                        AppColors.warning
+                                            .withValues(alpha: 0.2),
+                                      ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: ClipOval(
                               child: c.avatar.isNotEmpty
                                   ? CachedNetworkImage(
                                       imageUrl: c.avatar,
-                                      width: 40, height: 40, fit: BoxFit.cover)
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.cover)
                                   : Container(
-                                      width: 40, height: 40,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary.withValues(alpha: 0.12),
-                                        shape: BoxShape.circle,
-                                      ),
+                                      width: 40,
+                                      height: 40,
+                                      color: AppColors.surface,
                                       alignment: Alignment.center,
                                       child: Text(
-                                          (c.name.isNotEmpty ? c.name[0] : '?')
+                                          (c.name.isNotEmpty
+                                                  ? c.name[0]
+                                                  : '?')
                                               .toUpperCase(),
-                                          style: const TextStyle(
-                                              color: AppColors.primary,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600)),
+                                          style: AppText.titleSm.copyWith(
+                                              color: AppColors.primary)),
                                     ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(c.name.isEmpty ? c.phone : c.name,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14)),
-                                  if (c.phone.isNotEmpty)
-                                    Text(c.phone,
-                                        style: const TextStyle(
-                                            color: AppColors.textMuted,
-                                            fontSize: 13)),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: (c.daysSince >= days + 7
-                                            ? AppColors.danger
-                                            : AppColors.warning)
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                      tr(
-                                          ref,
-                                          'mobile.shop.reminders.daysAgo',
-                                          "{{n}} kun oldin",
-                                          {'n': '${c.daysSince}'}),
-                                      style: TextStyle(
-                                          color: c.daysSince >= days + 7
-                                              ? AppColors.danger
-                                              : AppColors.warning,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 10)),
-                                ),
-                                if (c.smsSentRecently) ...[
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.success
-                                          .withValues(alpha: 0.15),
-                                      borderRadius:
-                                          BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(Icons.check,
-                                              size: 10,
-                                              color: AppColors.success),
-                                          const SizedBox(width: 3),
-                                          Text(
-                                              tr(
-                                                  ref,
-                                                  'mobile.shop.reminders.smsSent',
-                                                  "SMS yuborilgan"),
-                                              style: const TextStyle(
-                                                  color: AppColors.success,
-                                                  fontSize: 10,
-                                                  fontWeight:
-                                                      FontWeight.w600)),
-                                        ]),
-                                  ),
-                                ],
-                                if (c.lastVisit != null) ...[
-                                  const SizedBox(height: 3),
-                                  Text(_df.format(c.lastVisit!.toLocal()),
-                                      style: const TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 11)),
-                                ],
+                                Text(c.name.isEmpty ? c.phone : c.name,
+                                    style: AppText.titleSm
+                                        .copyWith(fontSize: 14)),
+                                if (c.phone.isNotEmpty)
+                                  Text(c.phone, style: AppText.caption),
+                                if (c.lastVisit != null)
+                                  Text(
+                                      "${tr(ref, 'barberMyClients.lastVisit', 'Oxirgi tashrif')}: ${_df.format(c.lastVisit!.toLocal())}",
+                                      style: AppText.caption
+                                          .copyWith(fontSize: 11)),
                                 if (c.lastBarberName.isNotEmpty)
                                   Text(c.lastBarberName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 11)),
+                                      style: AppText.caption
+                                          .copyWith(fontSize: 11)),
                               ],
                             ),
-                          ]),
-                        ),
-                      ).animate().fadeIn(duration: 250.ms, delay: (e.key * 25).ms),
-                    );
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              AppBadge(
+                                label: tr(
+                                    ref,
+                                    'mobile.shop.reminders.daysAgo',
+                                    "{{n}} kun oldin",
+                                    {'n': '${c.daysSince}'}),
+                                variant: overdue
+                                    ? AppBadgeVariant.danger
+                                    : AppBadgeVariant.warning,
+                              ),
+                              if (c.smsSentRecently) ...[
+                                const SizedBox(height: 4),
+                                AppBadge(
+                                  label: tr(
+                                      ref,
+                                      'mobile.shop.reminders.smsSent',
+                                      "SMS yuborilgan"),
+                                  variant: AppBadgeVariant.success,
+                                  icon: Icons.check,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ]),
+                      ),
+                    )
+                        .animate()
+                        .fadeIn(duration: 250.ms, delay: (e.key * 25).ms);
                   }),
                 if (data.totalPages > 1) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      OutlinedButton(
+                      AppButton(
+                        label: tr(ref, 'common.prev', "Oldingi"),
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.sm,
+                        leadingIcon: Icons.chevron_left,
                         onPressed: _page <= 1
                             ? null
                             : () => setState(() => _page--),
-                        child: Text(tr(ref, 'common.prev', "Oldingi")),
                       ),
-                      const SizedBox(width: 12),
-                      Text("$_page / ${data.totalPages}",
-                          style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(width: 12),
-                      OutlinedButton(
+                      const SizedBox(width: AppSpacing.md),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.xs),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: AppRadius.rPill,
+                        ),
+                        child: Text("$_page / ${data.totalPages}",
+                            style: AppText.button
+                                .copyWith(color: AppColors.primary)),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      AppButton(
+                        label: tr(ref, 'common.next', "Keyingi"),
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.sm,
+                        trailingIcon: Icons.chevron_right,
                         onPressed: _page >= data.totalPages
                             ? null
                             : () => setState(() => _page++),
-                        child: Text(tr(ref, 'common.next', "Keyingi")),
                       ),
                     ],
                   ),
