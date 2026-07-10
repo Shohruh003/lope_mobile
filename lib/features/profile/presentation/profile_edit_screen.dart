@@ -1,5 +1,5 @@
 import 'dart:io';
-import '../../../core/errors.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -8,23 +8,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/asset_url.dart';
+import '../../../core/errors.dart';
 import '../../../core/image_picker_service.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/shadcn.dart';
+import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
 
-/// Mirrors `CustomerProfileEditScreen.tsx` 1:1.
-///   - Sticky header with back arrow + "Profilni tahrirlash"
-///   - Centered avatar (96px) with camera button overlay → pick from gallery
-///   - "Ism" card (name field)
-///   - "Jins" card with 👨 Erkak / 👩 Ayol toggle buttons (2-col)
-///   - "Parolni o'zgartirish" card with 3 password fields + eye toggles
-///   - Bottom "Saqlash" button
 class ProfileEditScreen extends ConsumerStatefulWidget {
   const ProfileEditScreen({super.key});
   @override
-  ConsumerState<ProfileEditScreen> createState() => _ProfileEditScreenState();
+  ConsumerState<ProfileEditScreen> createState() =>
+      _ProfileEditScreenState();
 }
 
 class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
@@ -33,7 +27,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   final _newPassCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
 
-  String? _gender; // 'MALE' | 'FEMALE' | null
+  String? _gender;
   File? _avatarFile;
   String? _avatarUrl;
   bool _seeded = false;
@@ -54,28 +48,26 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   }
 
   Future<void> _pickAvatar() async {
-    final file = await ImagePickerService.instance.pickFromSheet(context, ref: ref);
+    AppHaptics.light();
+    final file = await ImagePickerService.instance
+        .pickFromSheet(context, ref: ref);
     if (!mounted || file == null) return;
-    setState(() {
-      _avatarFile = file;
-    });
+    setState(() => _avatarFile = file);
   }
 
   Future<void> _save(String userId) async {
+    AppHaptics.medium();
     if (_newPassCtrl.text.isNotEmpty &&
         _newPassCtrl.text != _confirmPassCtrl.text) {
+      AppHaptics.error();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(ref, 'common.validation.passwordMismatch',
-              "Yangi parol mos kelmadi"))));
+              'Yangi parol mos kelmadi'))));
       return;
     }
     setState(() => _saving = true);
     try {
       final dio = ref.read(dioProvider);
-
-      // 1) Upload avatar if changed. Backend FileInterceptor field name
-      // is 'avatar' (users.controller.ts:79), not 'file' — old name made
-      // every customer avatar upload 400.
       if (_avatarFile != null) {
         setState(() => _uploadingAvatar = true);
         final form = FormData.fromMap({
@@ -85,44 +77,43 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         if (!mounted) return;
         setState(() => _uploadingAvatar = false);
       }
-
-      // 2) Patch profile. PATCH /users/:id is admin-only — regular users
-      // must hit /users/:id/profile (users.controller.ts:58), so the
-      // previous endpoint returned 403 for non-admins and the customer
-      // saw "Saqlanmadi" with no idea why.
       final payload = <String, dynamic>{
         'name': _nameCtrl.text.trim(),
         if (_gender != null) 'gender': _gender,
-        if (_oldPassCtrl.text.isNotEmpty && _newPassCtrl.text.isNotEmpty) ...{
+        if (_oldPassCtrl.text.isNotEmpty &&
+            _newPassCtrl.text.isNotEmpty) ...{
           'oldPassword': _oldPassCtrl.text,
           'newPassword': _newPassCtrl.text,
         },
       };
       await dio.patch('/users/$userId/profile', data: payload);
-
-      // Refresh in-memory user so the header chip / drawer name / VIP
-      // crown pick up the changes without waiting for the next /auth/me
-      // poll. Without this, the user saves and immediately sees the
-      // old name everywhere until they reopen the app.
-      await ref.read(authControllerProvider.notifier).refreshFromServer();
-
+      await ref
+          .read(authControllerProvider.notifier)
+          .refreshFromServer();
       if (mounted) {
+        AppHaptics.success();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'profile.profileUpdated', "Profil yangilandi"))));
+            content: Text(tr(
+                ref, 'profile.profileUpdated', 'Profil yangilandi'))));
         context.pop();
       }
     } on DioException catch (e) {
-      String msg = tr(ref, 'profile.saveFailed', "Saqlanmadi");
+      AppHaptics.error();
+      String msg = tr(ref, 'profile.saveFailed', 'Saqlanmadi');
       if (e.response?.statusCode == 401) {
-        msg = tr(ref, 'backend.oldPasswordWrong', "Eski parol noto'g'ri");
+        msg = tr(ref, 'backend.oldPasswordWrong',
+            "Eski parol noto'g'ri");
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
+      AppHaptics.error();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -133,220 +124,271 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
     if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: Center(child: CircularProgressIndicator()));
     }
     if (!_seeded) {
       _seeded = true;
       _nameCtrl.text = user.name;
       _avatarUrl = user.avatar;
-      // Seed gender from the cached user record so the matching pill is
-      // pre-selected when the screen opens — was always null before.
       _gender = user.gender;
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'profile.editProfile', 'Profilni tahrirlash'),
+          style: AppText.titleMd,
+        ),
+      ),
       body: SafeArea(
         top: false,
-        child: Column(children: [
-          // ===== Sticky header =====
-          Container(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-            decoration: const BoxDecoration(
-              color: AppColors.background,
-              border: Border(bottom: BorderSide(color: AppColors.border)),
-            ),
-            child: Row(children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 22),
-                onPressed: () => context.pop(),
-              ),
-              const SizedBox(width: 4),
-              Text(tr(ref, 'profile.editProfile', "Profilni tahrirlash"),
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textBright)),
-            ]),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.xxl,
           ),
-
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              children: [
-                // ===== Avatar =====
-                Center(
-                  child: Stack(children: [
-                    ClipOval(
-                      child: _avatarFile != null
-                          ? Image.file(_avatarFile!, width: 96, height: 96, fit: BoxFit.cover)
-                          : (_avatarUrl?.isNotEmpty == true
-                              ? CachedNetworkImage(
-                                  imageUrl: assetUrl(_avatarUrl),
-                                  width: 96, height: 96,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (context, url, err) => _Fallback(name: user.name),
-                                )
-                              : _Fallback(name: user.name)),
+          children: [
+            // Hero avatar with gradient ring
+            Center(
+              child: Stack(children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    shape: BoxShape.circle,
+                    boxShadow:
+                        AppShadows.primaryGlow(AppColors.primary),
+                  ),
+                  child: ClipOval(
+                    child: _avatarFile != null
+                        ? Image.file(_avatarFile!,
+                            width: 112, height: 112, fit: BoxFit.cover)
+                        : (_avatarUrl?.isNotEmpty == true
+                            ? CachedNetworkImage(
+                                imageUrl: assetUrl(_avatarUrl),
+                                width: 112,
+                                height: 112,
+                                fit: BoxFit.cover,
+                                errorWidget: (_, _, _) =>
+                                    _Fallback(name: user.name),
+                              )
+                            : _Fallback(name: user.name)),
+                  ),
+                ),
+                Positioned(
+                  bottom: 4,
+                  right: 4,
+                  child: TapScale(
+                    onTap: _pickAvatar,
+                    scale: 0.85,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: AppColors.background, width: 3),
+                      ),
+                      alignment: Alignment.center,
+                      child: _uploadingAvatar
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
+                            )
+                          : const Icon(Icons.camera_alt,
+                              color: AppColors.primary, size: 18),
                     ),
-                    Positioned(
-                      bottom: 0, right: 0,
-                      child: InkWell(
-                        onTap: _pickAvatar,
-                        borderRadius: BorderRadius.circular(999),
-                        child: Container(
-                          width: 32, height: 32,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: _uploadingAvatar
-                              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                        ),
+                  ),
+                ),
+              ]),
+            ),
+            AppSpacing.gapMd,
+            Center(child: Text(user.name, style: AppText.titleMd)),
+            AppSpacing.gapXl,
+
+            // Name card
+            AppCard(
+              variant: AppCardVariant.outlined,
+              padding: AppSpacing.cardPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(tr(ref, 'profile.name', 'Ism'),
+                      style: AppText.overline),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _nameCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    style: AppText.body,
+                  ),
+                ],
+              ),
+            ),
+
+            AppSpacing.gapMd,
+
+            // Gender card
+            AppCard(
+              variant: AppCardVariant.outlined,
+              padding: AppSpacing.cardPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(tr(ref, 'auth.gender', 'Jins'),
+                      style: AppText.titleSm),
+                  AppSpacing.gapMd,
+                  Row(children: [
+                    Expanded(
+                      child: _genderBtn('MALE',
+                          "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}"),
+                    ),
+                    AppSpacing.hGapSm,
+                    Expanded(
+                      child: _genderBtn('FEMALE',
+                          "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}"),
+                    ),
+                  ]),
+                ],
+              ),
+            ),
+
+            AppSpacing.gapMd,
+
+            // Password card
+            AppCard(
+              variant: AppCardVariant.outlined,
+              padding: AppSpacing.cardPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color:
+                            AppColors.warning.withValues(alpha: 0.15),
+                        borderRadius: AppRadius.rSm,
+                      ),
+                      child: const Icon(Icons.lock_outline,
+                          color: AppColors.warning, size: 18),
+                    ),
+                    AppSpacing.hGapSm,
+                    Expanded(
+                      child: Text(
+                        tr(ref, 'profile.changePassword',
+                            "Parolni o'zgartirish"),
+                        style: AppText.titleSm,
                       ),
                     ),
                   ]),
-                ),
-                const SizedBox(height: 8),
-                Center(
-                  child: Text(user.name,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textBright)),
-                ),
-
-                const SizedBox(height: 16),
-
-                // ===== Name card =====
-                ShadCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    ShadLabel(tr(ref, 'profile.name', "Ism")),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _nameCtrl,
-                      textCapitalization: TextCapitalization.words,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                    ),
-                  ]),
-                ),
-
-                const SizedBox(height: 10),
-
-                // ===== Gender card =====
-                ShadCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Text(tr(ref, 'auth.gender', "Jins"),
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textBright)),
-                    const SizedBox(height: 10),
-                    Row(children: [
-                      Expanded(
-                          child: _genderBtn('MALE',
-                              "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}")),
-                      const SizedBox(width: 8),
-                      Expanded(
-                          child: _genderBtn('FEMALE',
-                              "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}")),
-                    ]),
-                  ]),
-                ),
-
-                const SizedBox(height: 10),
-
-                // ===== Password card =====
-                ShadCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Text(tr(ref, 'profile.changePassword', "Parolni o'zgartirish"),
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textMuted)),
-                    const SizedBox(height: 10),
-
-                    _passField(tr(ref, 'profile.oldPassword', "Eski parol"),
-                        _oldPassCtrl, _hideOld,
-                        () => setState(() => _hideOld = !_hideOld)),
-                    const SizedBox(height: 10),
-                    _passField(tr(ref, 'profile.newPassword', "Yangi parol"),
-                        _newPassCtrl, _hideNew,
-                        () => setState(() => _hideNew = !_hideNew)),
-                    const SizedBox(height: 10),
-                    _passField(tr(ref, 'auth.verify', "Tasdiqlash"),
-                        _confirmPassCtrl, _hideConfirm,
-                        () => setState(() => _hideConfirm = !_hideConfirm)),
-                  ]),
-                ),
-
-                const SizedBox(height: 14),
-
-                // ===== Save =====
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    icon: _saving
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Icon(Icons.check, size: 16),
-                    label: Text(_saving
-                        ? tr(ref, 'common.loading', "Yuklanmoqda...")
-                        : tr(ref, 'common.save', "Saqlash")),
-                    onPressed: _saving ? null : () => _save(user.id),
-                  ),
-                ),
-              ],
+                  AppSpacing.gapMd,
+                  _passField(
+                      tr(ref, 'profile.oldPassword', 'Eski parol'),
+                      _oldPassCtrl,
+                      _hideOld,
+                      () => setState(() => _hideOld = !_hideOld)),
+                  AppSpacing.gapSm,
+                  _passField(
+                      tr(ref, 'profile.newPassword', 'Yangi parol'),
+                      _newPassCtrl,
+                      _hideNew,
+                      () => setState(() => _hideNew = !_hideNew)),
+                  AppSpacing.gapSm,
+                  _passField(
+                      tr(ref, 'auth.verify', 'Tasdiqlash'),
+                      _confirmPassCtrl,
+                      _hideConfirm,
+                      () => setState(
+                          () => _hideConfirm = !_hideConfirm)),
+                ],
+              ),
             ),
-          ),
-        ]),
+
+            AppSpacing.gapXl,
+
+            AppButton(
+              label: _saving
+                  ? tr(ref, 'common.loading', 'Yuklanmoqda...')
+                  : tr(ref, 'common.save', 'Saqlash'),
+              leadingIcon: Icons.check,
+              variant: AppButtonVariant.primary,
+              size: AppButtonSize.lg,
+              fullWidth: true,
+              loading: _saving,
+              onPressed: _saving ? null : () => _save(user.id),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _genderBtn(String key, String label) {
     final on = _gender == key;
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: () => setState(() {
-        _gender = on ? null : key;
-      }),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+    return TapScale(
+      onTap: () {
+        AppHaptics.selection();
+        setState(() {
+          _gender = on ? null : key;
+        });
+      },
+      scale: 0.96,
+      child: AnimatedContainer(
+        duration: AppMotion.base,
+        curve: AppMotion.emphasized,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: on ? AppColors.primary : Colors.transparent,
-          border: Border.all(color: on ? AppColors.primary : AppColors.border, width: 2),
+          gradient: on ? AppColors.primaryGradient : null,
+          color: on ? null : AppColors.surface,
+          borderRadius: AppRadius.rMd,
+          border: Border.all(
+            color: on ? AppColors.primary : AppColors.border,
+            width: on ? 2 : 1,
+          ),
+          boxShadow:
+              on ? AppShadows.primaryGlow(AppColors.primary) : null,
         ),
         alignment: Alignment.center,
-        child: Text(label,
-            style: TextStyle(
-                color: on ? Colors.white : AppColors.textMuted,
-                fontSize: 13,
-                fontWeight: on ? FontWeight.w700 : FontWeight.w500)),
+        child: Text(
+          label,
+          style: AppText.body.copyWith(
+            color: on ? Colors.white : AppColors.textPrimary,
+            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
       ),
     );
   }
 
-  Widget _passField(String label, TextEditingController ctrl, bool hide, VoidCallback onToggle) {
+  Widget _passField(String label, TextEditingController ctrl, bool hide,
+      VoidCallback onToggle) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ShadLabel(label),
+        Text(label, style: AppText.overline),
         const SizedBox(height: 6),
         TextField(
           controller: ctrl,
           obscureText: hide,
-          style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+          style: AppText.body,
           decoration: InputDecoration(
-            hintText: "••••••",
+            hintText: '••••••',
             suffixIcon: IconButton(
               icon: Icon(
-                  hide ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  hide
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: AppColors.textMuted,
-                  size: 18),
+                  size: 20),
               onPressed: onToggle,
             ),
           ),
@@ -362,13 +404,16 @@ class _Fallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 96, height: 96,
-      color: AppColors.primary.withValues(alpha: 0.1),
+      width: 112,
+      height: 112,
+      color: AppColors.surface,
       alignment: Alignment.center,
       child: Text(
         (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-        style: const TextStyle(
-            color: AppColors.primary, fontSize: 36, fontWeight: FontWeight.w700),
+        style: AppText.display.copyWith(
+          color: AppColors.textBright,
+          fontSize: 40,
+        ),
       ),
     );
   }

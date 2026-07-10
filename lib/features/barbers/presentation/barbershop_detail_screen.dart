@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/errors.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -9,16 +8,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
 import '../../../core/asset_url.dart';
+import '../../../core/errors.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 
-/// Customer-facing barbershop profile. Mirrors web's
-/// `CustomerBarbershopDetailScreen` 1:1 — hero, name, address, phone, route
-/// button, and a barbers list with rating, experience, review count, min
-/// price and availability badge. Single GET /barbershops/:id provides
-/// everything in one round-trip (same endpoint web uses).
 class BarbershopDetailScreen extends ConsumerWidget {
   const BarbershopDetailScreen({super.key, required this.shopId});
   final String shopId;
@@ -35,39 +30,74 @@ class BarbershopDetailScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(_shopByIdProvider(shopId)),
         ),
         data: (shop) {
-          final barbers =
-              ((shop['barbers'] ?? const []) as List).cast<Map<String, dynamic>>();
+          final barbers = ((shop['barbers'] ?? const []) as List)
+              .cast<Map<String, dynamic>>();
           final cover = (shop['avatar'] ?? shop['cover'] ?? '').toString();
           final name = (shop['name'] ?? '').toString();
-          final address = (shop['address'] ?? shop['geoAddress'] ?? '').toString();
+          final address =
+              (shop['address'] ?? shop['geoAddress'] ?? '').toString();
           final phone = (shop['phone'] ?? '').toString();
           final lat = (shop['latitude'] as num?)?.toDouble();
           final lng = (shop['longitude'] as num?)?.toDouble();
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.refresh(_shopByIdProvider(shopId).future),
+            onRefresh: () async =>
+                ref.refresh(_shopByIdProvider(shopId).future),
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverAppBar(
-                  expandedHeight: 220,
+                  expandedHeight: 260,
                   pinned: true,
                   backgroundColor: AppColors.background,
-                  leading: const BackButton(color: Colors.white),
+                  leading: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    child: TapScale(
+                      onTap: () => context.pop(),
+                      scale: 0.9,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_back,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
                   flexibleSpace: FlexibleSpaceBar(
                     background: Stack(fit: StackFit.expand, children: [
                       if (cover.isNotEmpty)
-                        CachedNetworkImage(imageUrl: assetUrl(cover), fit: BoxFit.cover)
+                        CachedNetworkImage(
+                            imageUrl: assetUrl(cover),
+                            fit: BoxFit.cover,
+                            placeholder: (_, _) =>
+                                const SkeletonRect())
                       else
-                        Container(color: AppColors.surface,
-                            child: const Center(
-                                child: Icon(Icons.content_cut,
-                                    color: AppColors.textMuted, size: 48))),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF8B5CF6)
+                                    .withValues(alpha: 0.3),
+                                const Color(0xFF6366F1)
+                                    .withValues(alpha: 0.1),
+                              ],
+                            ),
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.storefront,
+                                color: Colors.white38, size: 72),
+                          ),
+                        ),
                       const DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.transparent, AppColors.background],
+                            colors: [
+                              Colors.transparent,
+                              AppColors.background
+                            ],
                             begin: Alignment.center,
                             end: Alignment.bottomCenter,
                           ),
@@ -78,71 +108,93 @@ class BarbershopDetailScreen extends ConsumerWidget {
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.xs,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name,
-                            style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.3,
-                                color: AppColors.textBright)),
-                        if (address.isNotEmpty) ...[
-                          const SizedBox(height: 6),
+                        Text(name, style: AppText.titleLg),
+                        AppSpacing.gapSm,
+                        if (address.isNotEmpty)
                           Row(children: [
                             const Icon(Icons.location_on_outlined,
-                                size: 16, color: AppColors.textSecondary),
-                            const SizedBox(width: 4),
+                                size: 16,
+                                color: AppColors.textSecondary),
+                            AppSpacing.hGapXs,
                             Expanded(
                               child: Text(address,
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 14)),
+                                  style: AppText.bodySm.copyWith(
+                                      color: AppColors.textSecondary)),
                             ),
                           ]),
-                        ],
                         if (phone.isNotEmpty) ...[
                           const SizedBox(height: 4),
-                          InkWell(
-                            onTap: () =>
-                                launchUrl(Uri.parse('tel:$phone')),
+                          TapScale(
+                            onTap: () async {
+                              AppHaptics.light();
+                              await launchUrl(Uri.parse('tel:$phone'));
+                            },
                             child: Row(children: [
                               const Icon(Icons.phone_outlined,
-                                  size: 16, color: AppColors.textSecondary),
-                              const SizedBox(width: 4),
+                                  size: 16,
+                                  color: AppColors.primary),
+                              AppSpacing.hGapXs,
                               Text(phone,
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 14)),
+                                  style: AppText.bodySm.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600)),
                             ]),
                           ),
                         ],
                         if (lat != null && lng != null) ...[
-                          const SizedBox(height: 14),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () => launchUrl(
+                          AppSpacing.gapMd,
+                          AppButton(
+                            label: tr(ref, 'customerApp.route', "Yo'l"),
+                            leadingIcon: Icons.navigation,
+                            variant: AppButtonVariant.secondary,
+                            fullWidth: true,
+                            onPressed: () async {
+                              AppHaptics.light();
+                              await launchUrl(
                                 Uri.parse(
                                     'https://yandex.uz/maps/?pt=$lng,$lat&z=16'),
                                 mode: LaunchMode.externalApplication,
-                              ),
-                              icon: const Icon(Icons.navigation_outlined,
-                                  size: 18),
-                              label: Text(tr(ref, 'customerApp.route', "Yo'l")),
-                            ),
+                              );
+                            },
                           ),
                         ],
-                        const SizedBox(height: 22),
-                        Text(
-                            "${tr(ref, 'mobile.shop.home.masters', "Masterlar")} (${barbers.length})",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: AppColors.textMuted,
-                                letterSpacing: 0.6)),
-                        const SizedBox(height: 10),
+                        AppSpacing.gapXl,
+                        Row(children: [
+                          Text(
+                            tr(ref, 'mobile.shop.home.masters',
+                                'Masterlar'),
+                            style: AppText.overline,
+                          ),
+                          AppSpacing.hGapXs,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary
+                                  .withValues(alpha: 0.15),
+                              borderRadius: AppRadius.rPill,
+                            ),
+                            child: Text(
+                              '${barbers.length}',
+                              style: AppText.caption.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ]),
+                        AppSpacing.gapMd,
                       ],
                     ),
                   ),
@@ -150,144 +202,148 @@ class BarbershopDetailScreen extends ConsumerWidget {
                 if (barbers.isEmpty)
                   SliverFillRemaining(
                     hasScrollBody: false,
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Center(
-                        child: Text(
-                            tr(ref, 'mobile.shop.masters.empty',
-                                "Hali master ro'yxatga olinmagan"),
-                            style: const TextStyle(color: AppColors.textMuted)),
-                      ),
+                    child: AppEmptyState(
+                      icon: Icons.person_off_outlined,
+                      title: tr(ref, 'mobile.shop.masters.empty',
+                          "Hali master ro'yxatga olinmagan"),
                     ),
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      AppSpacing.xxl,
+                    ),
                     sliver: SliverList.separated(
                       itemCount: barbers.length,
-                      separatorBuilder: (context, i) =>
-                          const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => AppSpacing.gapSm,
                       itemBuilder: (context, i) {
                         final b = barbers[i];
-                        final user =
-                            (b['user'] ?? const {}) as Map<String, dynamic>;
-                        final barberName = (user['name'] ?? '').toString();
+                        final user = (b['user'] ?? const {})
+                            as Map<String, dynamic>;
+                        final barberName =
+                            (user['name'] ?? '').toString();
                         final avatar = (user['avatar'] ?? '').toString();
-                        final rating = (b['rating'] as num?)?.toDouble() ?? 0;
+                        final rating =
+                            (b['rating'] as num?)?.toDouble() ?? 0;
                         final reviewCount =
                             ((b['reviewCount'] ?? 0) as num).toInt();
-                        final experience = (b['experience'] ?? '').toString();
+                        final experience =
+                            (b['experience'] ?? '').toString();
                         final isAvailable = b['isAvailable'] == true;
-                        final services = ((b['services'] ?? const []) as List)
-                            .cast<Map<String, dynamic>>();
+                        final services =
+                            ((b['services'] ?? const []) as List)
+                                .cast<Map<String, dynamic>>();
                         final minPrice = services.isEmpty
                             ? null
                             : services
-                                .map((s) => (s['price'] as num?)?.toInt() ?? 0)
+                                .map((s) =>
+                                    (s['price'] as num?)?.toInt() ?? 0)
                                 .reduce((a, b) => a < b ? a : b);
 
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(16),
+                        return AppCard(
+                          variant: AppCardVariant.outlined,
+                          padding: AppSpacing.cardPadding,
                           onTap: () => context.push('/barber/${b['id']}'),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: Row(children: [
-                              ClipOval(
+                          child: Row(children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(2),
+                              child: ClipOval(
                                 child: avatar.isNotEmpty
                                     ? CachedNetworkImage(
                                         imageUrl: assetUrl(avatar),
-                                        width: 48,
-                                        height: 48,
-                                        fit: BoxFit.cover)
+                                        width: 52,
+                                        height: 52,
+                                        fit: BoxFit.cover,
+                                        placeholder: (_, _) =>
+                                            const SkeletonCircle(size: 52),
+                                      )
                                     : Container(
-                                        width: 48,
-                                        height: 48,
-                                        color: AppColors.background,
-                                        child: const Icon(Icons.person,
-                                            color: AppColors.textMuted),
+                                        width: 52,
+                                        height: 52,
+                                        color: AppColors.surface,
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          (barberName.isNotEmpty
+                                                  ? barberName[0]
+                                                  : '?')
+                                              .toUpperCase(),
+                                          style: AppText.titleMd,
+                                        ),
                                       ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(barberName,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16)),
-                                    const SizedBox(height: 4),
-                                    Row(children: [
-                                      const Icon(Icons.star,
-                                          size: 12, color: AppColors.warning),
-                                      const SizedBox(width: 4),
-                                      Text(rating.toStringAsFixed(1),
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500)),
-                                      if (reviewCount > 0) ...[
-                                        const SizedBox(width: 4),
-                                        Text("($reviewCount)",
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: AppColors.textMuted)),
-                                      ],
-                                      if (experience.isNotEmpty &&
-                                          experience != '0') ...[
-                                        const SizedBox(width: 6),
-                                        Text(
-                                            "• $experience ${_yearWord(lang)}",
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: AppColors.textMuted)),
-                                      ],
-                                    ]),
-                                    if (minPrice != null) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                          "${_fmt(minPrice)} ${tr(ref, 'common.currency', "so'm")}${_fromWord(lang)}",
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.primary,
-                                              fontWeight: FontWeight.w500)),
+                            ),
+                            AppSpacing.hGapMd,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text(barberName,
+                                      style: AppText.titleSm),
+                                  const SizedBox(height: 4),
+                                  Row(children: [
+                                    const Icon(Icons.star,
+                                        size: 12,
+                                        color: Color(0xFFFBBF24)),
+                                    AppSpacing.hGapXs,
+                                    Text(
+                                      rating.toStringAsFixed(1),
+                                      style: AppText.caption.copyWith(
+                                        color: AppColors.textBright,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    if (reviewCount > 0) ...[
+                                      AppSpacing.hGapXs,
+                                      Text('($reviewCount)',
+                                          style: AppText.caption),
                                     ],
+                                    if (experience.isNotEmpty &&
+                                        experience != '0') ...[
+                                      AppSpacing.hGapSm,
+                                      Text(
+                                        '· $experience ${_yearWord(lang)}',
+                                        style: AppText.caption,
+                                      ),
+                                    ],
+                                  ]),
+                                  if (minPrice != null) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      "${_fmt(minPrice)} ${tr(ref, 'common.currency', "so'm")}${_fromWord(lang)}",
+                                      style: AppText.caption.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ],
-                                ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: isAvailable
-                                      ? AppColors.success.withValues(alpha: 0.1)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                      color: isAvailable
-                                          ? AppColors.success
-                                              .withValues(alpha: 0.3)
-                                          : AppColors.border),
-                                ),
-                                child: Text(
-                                    isAvailable
-                                        ? tr(ref, 'barbers.available', 'Bo\'sh')
-                                        : tr(ref, 'barbers.unavailable', 'Band'),
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: isAvailable
-                                            ? AppColors.success
-                                            : AppColors.textMuted)),
-                              ),
-                            ]),
-                          ),
-                        ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms);
+                            ),
+                            AppSpacing.hGapSm,
+                            AppBadge(
+                              label: isAvailable
+                                  ? tr(ref, 'barbers.available',
+                                      "Bo'sh")
+                                  : tr(ref, 'barbers.unavailable',
+                                      'Band'),
+                              variant: isAvailable
+                                  ? AppBadgeVariant.success
+                                  : AppBadgeVariant.neutral,
+                              dot: true,
+                            ),
+                          ]),
+                        ).animate().fadeIn(
+                            duration: 250.ms,
+                            delay: (i * 30).ms,
+                            curve: AppMotion.emphasized);
                       },
                     ),
                   ),
@@ -333,9 +389,6 @@ class BarbershopDetailScreen extends ConsumerWidget {
   }
 }
 
-/// Single GET /barbershops/:id — response includes the barbers array with
-/// rating, reviewCount, experience, services, isAvailable (same shape web
-/// uses via `getPublicBarbershopAPI`).
 final _shopByIdProvider =
     FutureProvider.family<Map<String, dynamic>, String>((ref, id) async {
   final Dio dio = ref.watch(dioProvider);
