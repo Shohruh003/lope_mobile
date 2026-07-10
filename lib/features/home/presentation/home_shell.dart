@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
@@ -11,11 +10,13 @@ import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../barbers/presentation/barbers_list_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 
-/// Customer shell — mirrors the web's CustomerLayout exactly:
-///   - Top header: Scissors+Logo (primary) on left, notification bell on right
-///   - Bottom tab bar: 4 tabs (Barbers, AI Style, Bookings, Profile), active
-///     tab gets a slightly bigger icon and bolder weight
-///   - NO drawer (the web doesn't have one for the customer role)
+/// Customer shell — 4-tab bottom nav bilan (Sartaroshlar / AI Stil /
+/// Bronlar / Profil). Uzum/Click darajasidagi bottom bar:
+///   - Aktiv tab uchun primary rangdagi ko'targan pill (gradient + glow)
+///   - Nofaol tabs: monochromatic ikon, kichkina label
+///   - Har tap qilinganda TapScale + selection haptic
+///
+/// Header: gradient logo pill + notification bell + drawer icon.
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key, this.initialTab = 0});
   final int initialTab;
@@ -38,17 +39,25 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   Widget build(BuildContext context) {
     final items = [
       _Item(
-          icon: Icons.content_cut,
-          label: tr(ref, 'mobile.tabs.discover', 'Sartaroshlar')),
+        icon: Icons.content_cut,
+        activeIcon: Icons.content_cut,
+        label: tr(ref, 'mobile.tabs.discover', 'Sartaroshlar'),
+      ),
       _Item(
-          icon: Icons.auto_awesome,
-          label: tr(ref, 'mobile.tabs.aiStyle', 'AI Stil')),
+        icon: Icons.auto_awesome_outlined,
+        activeIcon: Icons.auto_awesome,
+        label: tr(ref, 'mobile.tabs.aiStyle', 'AI Stil'),
+      ),
       _Item(
-          icon: Icons.calendar_today,
-          label: tr(ref, 'mobile.tabs.bookings', 'Bronlar')),
+        icon: Icons.calendar_today_outlined,
+        activeIcon: Icons.calendar_today,
+        label: tr(ref, 'mobile.tabs.bookings', 'Bronlar'),
+      ),
       _Item(
-          icon: Icons.person_outline,
-          label: tr(ref, 'mobile.tabs.profile', 'Profil')),
+        icon: Icons.person_outline,
+        activeIcon: Icons.person,
+        label: tr(ref, 'mobile.tabs.profile', 'Profil'),
+      ),
     ];
     return Scaffold(
       drawer: const AppDrawer(),
@@ -67,40 +76,53 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 }
 
-/// Header bar — `border-b bg-background/95 backdrop-blur` in web. Logo
-/// (Scissors + "Lope Style") on left, notification bell on right.
+/// Top header — brand pill + notification bell + drawer.
 class _CustomerHeader extends ConsumerWidget {
   const _CustomerHeader();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top,
-      ),
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: const BoxDecoration(
         color: AppColors.background,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.sm,
+          AppSpacing.sm,
+          AppSpacing.sm,
+        ),
         child: Row(children: [
-          Row(children: const [
-            Icon(Icons.content_cut, color: AppColors.primary, size: 24),
-            SizedBox(width: 6),
-            Text("Lope Style",
-                style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3)),
-          ]),
+          // Brand — gradient icon + wordmark
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: AppRadius.rMd,
+              boxShadow: AppShadows.primaryGlow(AppColors.primary),
+            ),
+            child: const Icon(Icons.content_cut,
+                color: Colors.white, size: 18),
+          ),
+          AppSpacing.hGapSm,
+          Text(
+            'Lope Style',
+            style: AppText.titleMd.copyWith(
+              color: AppColors.primary,
+              letterSpacing: -0.3,
+            ),
+          ),
           const Spacer(),
           const NotificationBell(),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.menu_rounded, color: AppColors.textPrimary, size: 24),
-            onPressed: () {
-              HapticFeedback.selectionClick();
+          AppSpacing.hGapXs,
+          _CircleIconButton(
+            icon: Icons.menu_rounded,
+            onTap: () {
+              AppHaptics.selection();
               Scaffold.of(context).openDrawer();
             },
           ),
@@ -110,57 +132,120 @@ class _CustomerHeader extends ConsumerWidget {
   }
 }
 
-/// Bottom tab bar — flat, no shadow. Active tab: primary color, icon 24px
-/// + label w600. Inactive: textMuted, icon 20px + label w500. Matches the
-/// web's `flex flex-col items-center justify-center` tabs.
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      scale: 0.9,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.border),
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon, color: AppColors.textPrimary, size: 20),
+      ),
+    );
+  }
+}
+
+/// Bottom nav bar — aktiv tab primary gradient pill sifatida ko'tariladi,
+/// nofaol tabs faqat kichik ikon + label. Har tap TapScale + haptic.
 class _BottomTabBar extends StatelessWidget {
-  const _BottomTabBar({required this.items, required this.index, required this.onSelect});
+  const _BottomTabBar({
+    required this.items,
+    required this.index,
+    required this.onSelect,
+  });
   final List<_Item> items;
   final int index;
   final ValueChanged<int> onSelect;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        border: const Border(top: BorderSide(color: AppColors.border)),
+        boxShadow: AppShadows.subtle,
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 64,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final active = i == index;
-              final item = items[i];
-              return Expanded(
-                child: InkWell(
-                  onTap: () { HapticFeedback.selectionClick(); onSelect(i); },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 150),
-                        child: Icon(
-                          item.icon,
-                          color: active ? AppColors.primary : AppColors.textMuted,
-                          size: active ? 24 : 20,
-                        ),
+          height: 72,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            child: Row(
+              children: List.generate(items.length, (i) {
+                final active = i == index;
+                final item = items[i];
+                return Expanded(
+                  child: TapScale(
+                    onTap: () => onSelect(i),
+                    haptic: HapticStrength.selection,
+                    scale: 0.94,
+                    child: AnimatedContainer(
+                      duration: AppMotion.base,
+                      curve: AppMotion.emphasized,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.sm,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.label,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                          color: active ? AppColors.primary : AppColors.textMuted,
-                        ),
+                      decoration: BoxDecoration(
+                        gradient: active
+                            ? AppColors.primaryGradient
+                            : null,
+                        borderRadius: AppRadius.rLg,
+                        boxShadow: active
+                            ? AppShadows.primaryGlow(AppColors.primary)
+                            : null,
                       ),
-                    ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            active ? item.activeIcon : item.icon,
+                            color: active
+                                ? Colors.white
+                                : AppColors.textMuted,
+                            size: 22,
+                          ),
+                          if (active) ...[
+                            AppSpacing.hGapXs,
+                            AnimatedSize(
+                              duration: AppMotion.base,
+                              curve: AppMotion.emphasized,
+                              child: Text(
+                                item.label,
+                                style: AppText.caption.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
         ),
       ),
@@ -169,8 +254,12 @@ class _BottomTabBar extends StatelessWidget {
 }
 
 class _Item {
-  const _Item({required this.icon, required this.label});
+  const _Item({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+  });
   final IconData icon;
+  final IconData activeIcon;
   final String label;
 }
-

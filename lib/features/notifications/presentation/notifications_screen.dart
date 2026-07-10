@@ -1,57 +1,48 @@
 import 'package:flutter/material.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/l10n.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notifications_repository.dart';
 
-/// Mirrors web `BarberNotificationsScreen` / `CustomerNotificationsScreen`:
-///   - Date grouping (Bugun / Kecha / explicit DD-month) sticky-headered
-///   - Type-aware colour + icon: new_booking / booking_cancelled /
-///     manual_booking / reminder
-///   - Pull-to-refresh and explicit Mark-all-read with a stamped unread count
+/// Notifications screen — date-grouped, type-aware. Uzum/Click darajasi:
+///   - Date headers sifatida overline label
+///   - Kartochka: chap tomonda rangli accent bar + icon dahili
+///     (new_booking/booking_cancelled/manual_booking/reminder)
+///   - Read/unread — unread'da subtle tint background + read dot indicator
+///   - Mark-all-read tugmasi appbarda (faqat unread > 0 bo'lsa)
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final async = ref.watch(notificationsProvider(user.role));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.notifications.title', "Bildirishnomalar")),
+        title: Text(
+          tr(ref, 'mobile.notifications.title', 'Bildirishnomalar'),
+          style: AppText.titleMd,
+        ),
         actions: [
           async.maybeWhen(
             data: (list) {
               final unread = list.where((n) => !n.read).length;
               if (unread == 0) return const SizedBox.shrink();
-              return Row(children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    unread.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.done_all, color: AppColors.primary),
-                  tooltip: tr(ref, 'mobile.notifications.markAllRead', "Hammasini o'qish"),
-                  onPressed: () async {
+              return Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: TapScale(
+                  onTap: () async {
+                    AppHaptics.light();
                     try {
                       await ref
                           .read(notificationsRepositoryProvider)
@@ -59,8 +50,33 @@ class NotificationsScreen extends ConsumerWidget {
                       ref.invalidate(notificationsProvider(user.role));
                     } catch (_) {}
                   },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      borderRadius: AppRadius.rPill,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.done_all,
+                            color: AppColors.primary, size: 16),
+                        AppSpacing.hGapXs,
+                        Text(
+                          '$unread',
+                          style: AppText.caption.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ]);
+              );
             },
             orElse: () => const SizedBox.shrink(),
           ),
@@ -76,58 +92,69 @@ class NotificationsScreen extends ConsumerWidget {
           if (list.isEmpty) {
             return AppEmptyState(
               icon: Icons.notifications_off_rounded,
-              title: tr(ref, 'mobile.notifications.empty', "Bildirishnomalar yo'q"),
+              title: tr(ref, 'mobile.notifications.empty',
+                  "Bildirishnomalar yo'q"),
               message: tr(ref, 'barberApp.noNotificationsHint',
                   "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz"),
             );
           }
 
-          // ----- Group by date label -----
-          final locale = ref.watch(localeProvider).asData?.value.locale ?? 'uz';
+          final locale =
+              ref.watch(localeProvider).asData?.value.locale ?? 'uz';
           final groups = _groupByDate(list, ref, locale);
 
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.refresh(notificationsProvider(user.role).future),
+            onRefresh: () async =>
+                ref.refresh(notificationsProvider(user.role).future),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+              ),
               itemCount: groups.length,
               itemBuilder: (context, gi) {
                 final group = groups[gi];
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 4, bottom: 6),
+                        padding: const EdgeInsets.only(
+                          left: AppSpacing.xs,
+                          bottom: AppSpacing.sm,
+                        ),
                         child: Text(
                           group.label.toUpperCase(),
-                          style: const TextStyle(
-                            color: AppColors.textMuted,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            letterSpacing: 1,
-                          ),
+                          style: AppText.overline,
                         ),
                       ),
                       ...List.generate(group.items.length, (i) {
                         final n = group.items[i];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding:
+                              const EdgeInsets.only(bottom: AppSpacing.sm),
                           child: _NotifTile(
                             n: n,
                             onTap: () async {
                               if (n.read) return;
+                              AppHaptics.light();
                               try {
                                 await ref
                                     .read(notificationsRepositoryProvider)
                                     .markRead(n.id, role: user.role);
-                                ref.invalidate(notificationsProvider(user.role));
+                                ref.invalidate(
+                                    notificationsProvider(user.role));
                               } catch (_) {}
                             },
                           ),
-                        ).animate().fadeIn(duration: 200.ms, delay: (i * 25).ms);
+                        ).animate().fadeIn(
+                            duration: 200.ms,
+                            delay: (i * 25).ms,
+                            curve: AppMotion.emphasized);
                       }),
                     ],
                   ),
@@ -153,24 +180,22 @@ List<_Group> _groupByDate(
   final t0 = DateTime(today.year, today.month, today.day);
   final y0 = t0.subtract(const Duration(days: 1));
 
-  // Locale-aware month names so the "DD month" header reads naturally in
-  // every supported language. Falls back to Uzbek if locale is unknown.
   const monthsByLocale = <String, List<String>>{
     'uz': [
-      "yanvar","fevral","mart","aprel","may","iyun",
-      "iyul","avgust","sentabr","oktabr","noyabr","dekabr"
+      'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+      'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'
     ],
     'uz_cyr': [
-      "январ","феврал","март","апрел","май","июн",
-      "июл","август","сентябр","октябр","ноябр","декабр"
+      'январ', 'феврал', 'март', 'апрел', 'май', 'июн',
+      'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр'
     ],
     'ru': [
-      "января","февраля","марта","апреля","мая","июня",
-      "июля","августа","сентября","октября","ноября","декабря"
+      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
     ],
     'en': [
-      "Jan","Feb","Mar","Apr","May","Jun",
-      "Jul","Aug","Sep","Oct","Nov","Dec"
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ],
   };
   final months = monthsByLocale[locale] ?? monthsByLocale['uz']!;
@@ -210,10 +235,13 @@ class _TypeStyle {
 }
 
 const _typeStyles = <String, _TypeStyle>{
-  'new_booking':        _TypeStyle(Icons.event_available,  Color(0xFF3B82F6)), // blue
-  'booking_cancelled':  _TypeStyle(Icons.event_busy,       Color(0xFFEF4444)), // red
-  'manual_booking':     _TypeStyle(Icons.phone_in_talk,    Color(0xFF10B981)), // green
-  'reminder':           _TypeStyle(Icons.access_time,      Color(0xFFF59E0B)), // orange
+  'new_booking':
+      _TypeStyle(Icons.event_available, Color(0xFF3B82F6)), // blue
+  'booking_cancelled':
+      _TypeStyle(Icons.event_busy, Color(0xFFEF4444)), // red
+  'manual_booking':
+      _TypeStyle(Icons.phone_in_talk, Color(0xFF10B981)), // green
+  'reminder': _TypeStyle(Icons.access_time, Color(0xFFF59E0B)), // orange
 };
 
 class _NotifTile extends StatelessWidget {
@@ -224,30 +252,39 @@ class _NotifTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = _typeStyles[n.type ?? ''] ?? _typeStyles['new_booking']!;
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
+    return TapScale(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
+      scale: 0.98,
+      child: AnimatedContainer(
+        duration: AppMotion.base,
+        curve: AppMotion.emphasized,
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: n.read
-              ? AppColors.background
+              ? AppColors.surface
               : style.color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border(left: BorderSide(color: style.color, width: 3)),
+          borderRadius: AppRadius.rLg,
+          border: Border.all(
+            color: n.read
+                ? AppColors.border
+                : style.color.withValues(alpha: 0.35),
+          ),
+          boxShadow: n.read ? null : AppShadows.subtle,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Type icon
             Container(
-              width: 36, height: 36,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: style.color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.rMd,
               ),
-              child: Icon(style.icon, color: style.color, size: 18),
+              child: Icon(style.icon, color: style.color, size: 20),
             ),
-            const SizedBox(width: 12),
+            AppSpacing.hGapMd,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,19 +295,20 @@ class _NotifTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           n.title,
-                          style: TextStyle(
-                            fontWeight: n.read ? FontWeight.w500 : FontWeight.w600,
-                            fontSize: 14,
-                            color: n.read ? AppColors.textSecondary : AppColors.textBright,
-                            height: 1.25,
+                          style: AppText.body.copyWith(
+                            fontWeight:
+                                n.read ? FontWeight.w500 : FontWeight.w700,
+                            color: n.read
+                                ? AppColors.textSecondary
+                                : AppColors.textBright,
+                            height: 1.3,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      AppSpacing.hGapSm,
                       Text(
                         _hhmm(n.createdAt),
-                        style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 12),
+                        style: AppText.caption,
                       ),
                     ],
                   ),
@@ -280,15 +318,32 @@ class _NotifTile extends StatelessWidget {
                       n.body,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 13,
-                          height: 1.4),
+                      style: AppText.bodySm.copyWith(
+                        color: AppColors.textMuted,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ],
               ),
             ),
+            if (!n.read) ...[
+              AppSpacing.hGapSm,
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: style.color,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: style.color.withValues(alpha: 0.5),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

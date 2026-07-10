@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api_client.dart';
+import '../../../core/errors.dart';
 import '../../../core/l10n.dart';
 import '../../../core/roles.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/shadcn.dart';
+import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
 
+/// Settings screen — grouped list of tiles with the new design system.
+/// State/API preserved: locale change, logout, delete-request POST.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -21,82 +22,115 @@ class SettingsScreen extends ConsumerWidget {
     final localeAsync = ref.watch(localeProvider);
     final currentLocale = localeAsync.asData?.value.locale ?? 'uz';
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'barberApp.settings', 'Sozlamalar'))),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'barberApp.settings', 'Sozlamalar'),
+          style: AppText.titleMd,
+        ),
+      ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.xxl,
+        ),
         children: [
-          ShadSectionLabel(
+          // ═══════════ Account section ═══════════
+          _SectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
-          const SizedBox(height: 8),
-          ShadTileGroup(children: [
-            ShadTile(
+          AppSpacing.gapSm,
+          _TileGroup(children: [
+            _SettingsTile(
               icon: Icons.edit_outlined,
-              label: tr(ref, 'profile.editProfile', "Profilni tahrirlash"),
-              onTap: () => context.push(isBarberRole(user?.role) ? '/barber/profile' : '/profile-edit'),
+              iconColor: AppColors.primary,
+              label: tr(ref, 'profile.editProfile', 'Profilni tahrirlash'),
+              onTap: () => context.push(isBarberRole(user?.role)
+                  ? '/barber/profile'
+                  : '/profile-edit'),
             ),
-            ShadTile(
+            _SettingsTile(
               icon: Icons.account_balance_wallet_outlined,
-              label: tr(ref, 'myTransactions.title', "Hisobim"),
+              iconColor: AppColors.success,
+              label: tr(ref, 'myTransactions.title', 'Hisobim'),
               onTap: () => context.push('/transactions'),
             ),
-            ShadTile(
+            _SettingsTile(
               icon: Icons.notifications_outlined,
-              label: tr(ref, 'barberApp.notifications', "Bildirishnomalar"),
+              iconColor: AppColors.primary,
+              label: tr(ref, 'barberApp.notifications', 'Bildirishnomalar'),
               onTap: () => context.push('/notifications'),
             ),
-            ShadTile(
+            _SettingsTile(
               icon: Icons.card_giftcard_outlined,
-              label: tr(ref, 'promoCode.title', "Promo kod"),
+              iconColor: AppColors.warning,
+              label: tr(ref, 'promoCode.title', 'Promo kod'),
               onTap: () => context.push('/promo'),
             ),
           ]),
 
-          const SizedBox(height: 18),
-          ShadSectionLabel(
+          AppSpacing.gapXl,
+
+          // ═══════════ App section ═══════════
+          _SectionLabel(
               tr(ref, 'profile.section.app', 'Ilova').toUpperCase()),
-          const SizedBox(height: 8),
-          ShadTileGroup(children: [
-            ShadTile(
+          AppSpacing.gapSm,
+          _TileGroup(children: [
+            _SettingsTile(
               icon: Icons.language_outlined,
-              label: tr(ref, 'barberApp.language', "Til"),
-              trailing: Text(_localeLabel(currentLocale),
-                  style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+              iconColor: AppColors.primary,
+              label: tr(ref, 'barberApp.language', 'Til'),
+              trailing: Text(
+                _localeLabel(currentLocale),
+                style: AppText.bodySm.copyWith(color: AppColors.textMuted),
+              ),
               onTap: () => _pickLanguage(context, ref, currentLocale),
             ),
           ]),
 
-          const SizedBox(height: 18),
-          ShadSectionLabel(
+          AppSpacing.gapXl,
+
+          // ═══════════ Help section ═══════════
+          _SectionLabel(
               tr(ref, 'profile.section.help', 'Yordam').toUpperCase()),
-          const SizedBox(height: 8),
-          ShadTileGroup(children: [
-            ShadTile(
+          AppSpacing.gapSm,
+          _TileGroup(children: [
+            _SettingsTile(
               icon: Icons.help_outline,
-              label: tr(ref, 'profile.faq', "FAQ — Tez-tez beriladigan savollar"),
+              iconColor: AppColors.primary,
+              label: tr(ref, 'profile.faq',
+                  'FAQ — Tez-tez beriladigan savollar'),
               onTap: () => _openUrl('https://lopestyle.uz/faq'),
             ),
-            ShadTile(
+            _SettingsTile(
               icon: Icons.support_agent_outlined,
+              iconColor: AppColors.success,
               label: tr(ref, 'barberApp.support', "Qo'llab-quvvatlash"),
               onTap: () => _openUrl('https://t.me/lopestyle_support'),
             ),
-            ShadTile(
+            _SettingsTile(
               icon: Icons.policy_outlined,
-              label: tr(ref, 'profile.privacy', "Maxfiylik siyosati"),
+              iconColor: AppColors.textMuted,
+              label: tr(ref, 'profile.privacy', 'Maxfiylik siyosati'),
               onTap: () => _openUrl('https://lopestyle.uz/privacy'),
             ),
           ]),
 
-          const SizedBox(height: 18),
-          ShadTileGroup(children: [
-            ShadTile(
+          AppSpacing.gapXl,
+
+          // ═══════════ Danger zone ═══════════
+          _TileGroup(children: [
+            _SettingsTile(
               icon: Icons.logout_outlined,
-              label: tr(ref, 'barberApp.logout', "Chiqish"),
+              iconColor: AppColors.textMuted,
+              label: tr(ref, 'barberApp.logout', 'Chiqish'),
               onTap: () => _confirmLogout(context, ref),
             ),
-            ShadTile(
+            _SettingsTile(
               icon: Icons.delete_outline,
-              label: tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish"),
+              iconColor: AppColors.danger,
+              label: tr(ref, 'barberApp.deleteAccount',
+                  "Hisobni o'chirish"),
               destructive: true,
               onTap: () => _confirmDelete(context, ref),
             ),
@@ -114,49 +148,85 @@ class SettingsScreen extends ConsumerWidget {
         _ => code,
       };
 
-  Future<void> _pickLanguage(BuildContext context, WidgetRef ref, String current) async {
+  Future<void> _pickLanguage(
+      BuildContext context, WidgetRef ref, String current) async {
+    AppHaptics.light();
     final picked = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => SafeArea(
         top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 36, height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: AppRadius.rPill,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(tr(ref, 'barberApp.language', 'Til'),
-                    style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textBright)),
+              AppSpacing.gapMd,
+              Text(
+                tr(ref, 'barberApp.language', 'Til'),
+                style: AppText.titleMd,
               ),
-            ),
-            const SizedBox(height: 6),
-            for (final code in const ['uz', 'uz_cyr', 'ru', 'en'])
-              ListTile(
-                title: Text(_localeLabel(code),
-                    style: const TextStyle(color: AppColors.textBright)),
-                trailing: code == current
-                    ? const Icon(Icons.check, color: AppColors.primary, size: 20)
-                    : null,
-                onTap: () => Navigator.of(sheetCtx).pop(code),
-              ),
-            const SizedBox(height: 12),
-          ],
+              AppSpacing.gapMd,
+              for (final code in const ['uz', 'uz_cyr', 'ru', 'en'])
+                TapScale(
+                  onTap: () {
+                    AppHaptics.selection();
+                    Navigator.of(sheetCtx).pop(code);
+                  },
+                  scale: 0.98,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: code == current
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : AppColors.surfaceElevated,
+                      borderRadius: AppRadius.rMd,
+                      border: Border.all(
+                        color: code == current
+                            ? AppColors.primary
+                            : AppColors.border,
+                      ),
+                    ),
+                    child: Row(children: [
+                      Expanded(
+                        child: Text(
+                          _localeLabel(code),
+                          style: AppText.body.copyWith(
+                            color: code == current
+                                ? AppColors.primary
+                                : AppColors.textBright,
+                            fontWeight: code == current
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      if (code == current)
+                        const Icon(Icons.check,
+                            color: AppColors.primary, size: 20),
+                    ]),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -165,23 +235,17 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text('${tr(ref, 'barberApp.logout', 'Chiqish')}?'),
-        content: Text(tr(ref, 'profile.logoutConfirm',
-            "Tizimdan chiqib, login sahifasiga qaytasiz.")),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(dCtx).pop(false),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
-          TextButton(
-            onPressed: () => Navigator.of(dCtx).pop(true),
-            child: Text(tr(ref, 'barberApp.logout', "Chiqish")),
-          ),
-        ],
-      ),
+    AppHaptics.light();
+    final ok = await _confirmDialog(
+      context,
+      ref,
+      title: '${tr(ref, 'barberApp.logout', 'Chiqish')}?',
+      message: tr(ref, 'profile.logoutConfirm',
+          'Tizimdan chiqib, login sahifasiga qaytasiz.'),
+      confirmLabel: tr(ref, 'barberApp.logout', 'Chiqish'),
+      confirmVariant: AppButtonVariant.danger,
+      iconColor: AppColors.textMuted,
+      icon: Icons.logout,
     );
     if (ok != true) return;
     await ref.read(authControllerProvider.notifier).logout();
@@ -193,28 +257,24 @@ class SettingsScreen extends ConsumerWidget {
     if (uri == null) return;
     final scheme = uri.scheme.toLowerCase();
     if (scheme != 'http' && scheme != 'https') return;
-    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+    AppHaptics.light();
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text('${tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish")}?'),
-        content: Text(tr(ref, 'barberApp.deleteAccountConfirm',
-            "Hisobingiz va barcha ma'lumotlaringiz o'chiriladi. Bu jarayonni bekor qilib bo'lmaydi.")),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(dCtx).pop(false),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            onPressed: () => Navigator.of(dCtx).pop(true),
-            child: Text(tr(ref, 'common.delete', "O'chirish")),
-          ),
-        ],
-      ),
+    AppHaptics.light();
+    final ok = await _confirmDialog(
+      context,
+      ref,
+      title: '${tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish")}?',
+      message: tr(ref, 'barberApp.deleteAccountConfirm',
+          "Hisobingiz va barcha ma'lumotlaringiz o'chiriladi. Bu jarayonni bekor qilib bo'lmaydi."),
+      confirmLabel: tr(ref, 'common.delete', "O'chirish"),
+      confirmVariant: AppButtonVariant.danger,
+      iconColor: AppColors.danger,
+      icon: Icons.delete_outline,
     );
     if (ok != true) return;
     try {
@@ -228,11 +288,177 @@ class SettingsScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
       return;
     }
     await ref.read(authControllerProvider.notifier).logout();
     if (context.mounted) context.go('/login');
+  }
+}
+
+// ═══════════ Reusable local widgets ═══════════
+
+Future<bool?> _confirmDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  required AppButtonVariant confirmVariant,
+  required Color iconColor,
+  required IconData icon,
+}) {
+  return showDialog<bool>(
+    context: context,
+    builder: (dCtx) => Dialog(
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(child: Text(title, style: AppText.titleMd)),
+            ]),
+            AppSpacing.gapMd,
+            Text(message, style: AppText.bodySm),
+            AppSpacing.gapLg,
+            Row(children: [
+              Expanded(
+                child: AppButton(
+                  label: tr(ref, 'common.cancel', 'Bekor'),
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => Navigator.pop(dCtx, false),
+                  fullWidth: true,
+                ),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: AppButton(
+                  label: confirmLabel,
+                  variant: confirmVariant,
+                  onPressed: () => Navigator.pop(dCtx, true),
+                  fullWidth: true,
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: AppSpacing.md),
+      child: Text(text, style: AppText.overline),
+    );
+  }
+}
+
+class _TileGroup extends StatelessWidget {
+  const _TileGroup({required this.children});
+  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i < children.length - 1)
+              const Divider(
+                color: AppColors.border,
+                height: 1,
+                indent: AppSpacing.xxl + AppSpacing.md,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  const _SettingsTile({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.onTap,
+    this.trailing,
+    this.destructive = false,
+  });
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final VoidCallback onTap;
+  final Widget? trailing;
+  final bool destructive;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      scale: 0.98,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.15),
+              borderRadius: AppRadius.rSm,
+            ),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          AppSpacing.hGapMd,
+          Expanded(
+            child: Text(
+              label,
+              style: AppText.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: destructive
+                    ? AppColors.danger
+                    : AppColors.textBright,
+              ),
+            ),
+          ),
+          ?trailing,
+          AppSpacing.hGapSm,
+          Icon(
+            Icons.chevron_right,
+            color: destructive
+                ? AppColors.danger.withValues(alpha: 0.7)
+                : AppColors.textMuted,
+            size: 18,
+          ),
+        ]),
+      ),
+    );
   }
 }
