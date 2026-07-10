@@ -6,13 +6,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../data/auth_repository.dart';
 import 'auth_controller.dart';
 
-/// Centered Card matching the web's Login.tsx layout. Compact, label-above-
-/// input pattern, primary button full width, forgot-password right-aligned,
-/// "No account? Register" CTA at the bottom + a Guest button.
+/// Login — Uzum/Click darajasidagi kirish sahifasi.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -34,37 +32,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   bool _isValidPhone(String raw) {
     final digits = raw.replaceAll(RegExp(r'\D'), '');
-    return digits.length == 9 && _validPrefixes.contains(digits.substring(0, 2));
+    return digits.length == 9 &&
+        _validPrefixes.contains(digits.substring(0, 2));
   }
 
   Future<void> _submit() async {
-    HapticFeedback.lightImpact();
+    AppHaptics.medium();
     if (!_isValidPhone(_phoneController.text)) {
-      HapticFeedback.heavyImpact();
-      setState(() => _error = tr(ref, 'common.validation.invalidPhone', "Telefon raqam noto'g'ri"));
+      AppHaptics.error();
+      setState(() => _error = tr(ref, 'common.validation.invalidPhone',
+          "Telefon raqam noto'g'ri"));
       return;
     }
     if (_passwordController.text.length < 4) {
-      HapticFeedback.heavyImpact();
-      setState(() => _error = tr(ref, 'auth.shortPassword', "Parol kamida 4 belgi"));
+      AppHaptics.error();
+      setState(() =>
+          _error = tr(ref, 'auth.shortPassword', 'Parol kamida 4 belgi'));
       return;
     }
-    final phone = '+998${_phoneController.text.replaceAll(RegExp(r'\D'), '')}';
+    final phone =
+        '+998${_phoneController.text.replaceAll(RegExp(r'\D'), '')}';
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final user = await ref
-          .read(authRepositoryProvider)
-          .login(phone: phone, password: _passwordController.text);
+      final user = await ref.read(authRepositoryProvider).login(
+          phone: phone, password: _passwordController.text);
       await ref.read(authControllerProvider.notifier).signedIn(user);
       if (!mounted) return;
-      HapticFeedback.mediumImpact();
+      AppHaptics.success();
       routeToRoleHome(context, user);
     } on Object catch (e) {
-      HapticFeedback.heavyImpact();
-      String msg = tr(ref, 'auth.invalidCredentials', "Telefon yoki parol noto'g'ri");
+      AppHaptics.error();
+      String msg = tr(ref, 'auth.invalidCredentials',
+          "Telefon yoki parol noto'g'ri");
       if (e.toString().contains('SocketException')) {
         msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
       }
@@ -87,168 +89,229 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.xxl,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Header: 48px circular icon bubble + title + description
-                    Column(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Gradient logo pill
+                  Center(
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: AppRadius.rXl,
+                        boxShadow:
+                            AppShadows.primaryGlow(AppColors.primary),
+                      ),
+                      child: const Icon(Icons.content_cut,
+                          color: Colors.white, size: 34),
+                    ),
+                  )
+                      .animate()
+                      .scale(
+                          begin: const Offset(0.5, 0.5),
+                          duration: 500.ms,
+                          curve: Curves.easeOutBack)
+                      .fadeIn(duration: 400.ms),
+                  AppSpacing.gapLg,
+                  Text(
+                    tr(ref, 'auth.loginTitle', 'Xush kelibsiz'),
+                    style: AppText.titleLg,
+                    textAlign: TextAlign.center,
+                  )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 100.ms),
+                  const SizedBox(height: 6),
+                  Text(
+                    tr(ref, 'auth.loginSub', 'Hisobingizga kiring'),
+                    style: AppText.bodyLg
+                        .copyWith(color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
+                  )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 150.ms),
+                  AppSpacing.gapXxl,
+
+                  // Card
+                  AppCard(
+                    variant: AppCardVariant.outlined,
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    radius: AppRadius.xl,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
+                        // Phone
+                        _Label(tr(ref, 'auth.phone', 'Telefon')),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(9),
+                          ],
+                          style: AppText.body,
+                          decoration: const InputDecoration(
+                            prefixText: '+998 ',
+                            prefixStyle: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textMuted,
+                            ),
+                            hintText: '901234567',
                           ),
-                          child: const Icon(Icons.content_cut, color: AppColors.primary, size: 24),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          tr(ref, 'auth.loginTitle', "Xush kelibsiz"),
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.3,
-                            color: AppColors.textBright,
+
+                        AppSpacing.gapMd,
+
+                        // Password
+                        _Label(tr(ref, 'auth.password', 'Parol')),
+                        const SizedBox(height: 6),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          style: AppText.body,
+                          decoration: InputDecoration(
+                            hintText: '••••••',
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
+                            ),
                           ),
+                          onSubmitted: (_) => _submit(),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tr(ref, 'auth.loginSub', "Hisobingizga kiring"),
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-                        ),
-                      ],
-                    ).animate().fadeIn(duration: 300.ms),
 
-                    const SizedBox(height: 22),
-
-                    // Phone label + input
-                    _Label(tr(ref, 'auth.phone', "Telefon")),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(9),
-                      ],
-                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      decoration: const InputDecoration(
-                        prefixText: '+998 ',
-                        prefixStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textMuted),
-                        hintText: '901234567',
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // Password
-                    _Label(tr(ref, 'auth.password', "Parol")),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                      decoration: InputDecoration(
-                        hintText: "••••••",
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: AppColors.textMuted,
-                            size: 18,
-                          ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
-                      onSubmitted: (_) => _submit(),
-                    ),
-
-                    // Forgot link right
-                    const SizedBox(height: 6),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () => context.push('/forgot-password'),
-                        child: Text(
-                          tr(ref, 'auth.forgotPassword', "Parolni unutdingizmi?"),
-                          style: const TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ),
-
-                    if (_error != null) ...[
-                      const SizedBox(height: 10),
-                      Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
-                    ],
-
-                    const SizedBox(height: 14),
-
-                    // Primary submit
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _submit,
-                        child: _loading
-                            ? const SizedBox(
-                                width: 16, height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                              )
-                            : Text(tr(ref, 'auth.login', "Kirish")),
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // No account? Register
-                    Center(
-                      child: Wrap(
-                        children: [
-                          Text("${tr(ref, 'auth.noAccount', "Hisobingiz yo'qmi?")} ",
-                              style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
-                          GestureDetector(
-                            onTap: () => context.push('/register-phone'),
+                        // Forgot
+                        const SizedBox(height: 6),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TapScale(
+                            onTap: () => context.push('/forgot-password'),
+                            scale: 0.95,
                             child: Text(
-                              tr(ref, 'auth.register', "Ro'yxatdan o'tish"),
-                              style: const TextStyle(
+                              tr(ref, 'auth.forgotPassword',
+                                  'Parolni unutdingizmi?'),
+                              style: AppText.bodySm.copyWith(
                                 color: AppColors.primary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
+                        ),
+
+                        if (_error != null) ...[
+                          AppSpacing.gapMd,
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.sm),
+                            decoration: BoxDecoration(
+                              color: AppColors.danger.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.rSm,
+                              border: Border.all(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(children: [
+                              const Icon(Icons.error_outline,
+                                  color: AppColors.danger, size: 16),
+                              AppSpacing.hGapSm,
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: AppText.bodySm.copyWith(
+                                      color: AppColors.danger),
+                                ),
+                              ),
+                            ]),
+                          ),
                         ],
+
+                        AppSpacing.gapLg,
+
+                        // Login CTA
+                        AppButton(
+                          label: tr(ref, 'auth.login', 'Kirish'),
+                          variant: AppButtonVariant.primary,
+                          size: AppButtonSize.lg,
+                          fullWidth: true,
+                          loading: _loading,
+                          onPressed: _loading ? null : _submit,
+                        ),
+                      ],
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+
+                  AppSpacing.gapLg,
+
+                  // No account? Register
+                  Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      children: [
+                        Text(
+                          "${tr(ref, 'auth.noAccount', "Hisobingiz yo'qmi?")} ",
+                          style: AppText.body
+                              .copyWith(color: AppColors.textMuted),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            AppHaptics.light();
+                            context.push('/register-phone');
+                          },
+                          child: Text(
+                            tr(ref, 'auth.register', "Ro'yxatdan o'tish"),
+                            style: AppText.body.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  AppSpacing.gapXl,
+
+                  // OR
+                  Row(children: [
+                    const Expanded(
+                        child: Divider(color: AppColors.border)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md),
+                      child: Text(
+                        tr(ref, 'common.or', 'yoki').toUpperCase(),
+                        style: AppText.overline,
                       ),
                     ),
+                    const Expanded(
+                        child: Divider(color: AppColors.border)),
+                  ]),
+                  AppSpacing.gapLg,
 
-                    const SizedBox(height: 18),
-                    // OR divider
-                    Row(children: [
-                      const Expanded(child: Divider(color: AppColors.border)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(tr(ref, 'common.or', 'yoki').toUpperCase(),
-                            style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1)),
-                      ),
-                      const Expanded(child: Divider(color: AppColors.border)),
-                    ]),
-                    const SizedBox(height: 14),
-
-                    // Guest button (outlined)
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => context.push('/home'),
-                        icon: const Icon(Icons.person_outline, size: 16),
-                        label: Text(tr(ref, 'auth.guestView', "Mehmon sifatida ko'rish")),
-                      ),
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn(duration: 400.ms),
+                  AppButton(
+                    label:
+                        tr(ref, 'auth.guestView', "Mehmon sifatida ko'rish"),
+                    leadingIcon: Icons.person_outline,
+                    variant: AppButtonVariant.secondary,
+                    fullWidth: true,
+                    onPressed: () => context.push('/home'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -257,35 +320,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// Card matching shadcn — same bg as scaffold, 1px border, 10px radius.
-class _Card extends StatelessWidget {
-  const _Card({required this.child});
-  final Widget child;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: child,
-    );
-  }
-}
-
-/// `<Label>` from shadcn — small, medium-weight, muted-foreground.
 class _Label extends StatelessWidget {
   const _Label(this.text);
   final String text;
   @override
-  Widget build(BuildContext context) => Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      );
+  Widget build(BuildContext context) =>
+      Text(text, style: AppText.overline);
 }

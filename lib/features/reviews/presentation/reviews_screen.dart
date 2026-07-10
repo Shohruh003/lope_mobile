@@ -1,11 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/reviews_repository.dart';
 
@@ -19,12 +19,35 @@ class ReviewsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(barberReviewsProvider(barberId));
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.reviews.title', "Sharhlar"))),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        onPressed: () => _openSubmitSheet(context, ref),
-        icon: const Icon(Icons.rate_review_outlined),
-        label: Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish")),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'mobile.reviews.title', 'Sharhlar'),
+          style: AppText.titleMd,
+        ),
+      ),
+      floatingActionButton: TapScale(
+        onTap: () => _openSubmitSheet(context, ref),
+        scale: 0.94,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: AppRadius.rPill,
+            boxShadow: AppShadows.primaryGlow(AppColors.primary),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.rate_review_outlined,
+                color: Colors.white, size: 18),
+            AppSpacing.hGapSm,
+            Text(
+              tr(ref, 'mobile.reviews.leaveReview', 'Sharh qoldirish'),
+              style: AppText.button.copyWith(color: Colors.white),
+            ),
+          ]),
+        ),
       ),
       body: async.when(
         loading: () => const AppListSkeleton(itemCount: 5),
@@ -46,44 +69,81 @@ class ReviewsScreen extends ConsumerWidget {
           }
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.refresh(barberReviewsProvider(barberId).future),
+            onRefresh: () async =>
+                ref.refresh(barberReviewsProvider(barberId).future),
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                96,
+              ),
               itemCount: list.length,
-              separatorBuilder: (context, i) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => AppSpacing.gapSm,
               itemBuilder: (context, i) {
                 final r = list[i];
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
-                  ),
+                return AppCard(
+                  variant: AppCardVariant.outlined,
+                  padding: AppSpacing.cardPadding,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        Expanded(child: Text(
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            (r.userName.isNotEmpty ? r.userName[0] : 'M')
+                                .toUpperCase(),
+                            style: AppText.titleSm
+                                .copyWith(color: Colors.white),
+                          ),
+                        ),
+                        AppSpacing.hGapMd,
+                        Expanded(
+                          child: Text(
                             r.userName.isEmpty
-                                ? tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz')
+                                ? tr(ref, 'mobile.barber.bookingsAll.client',
+                                    'Mijoz')
                                 : r.userName,
-                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14))),
-                        Row(children: List.generate(5, (idx) => Icon(
-                              idx < r.rating ? Icons.star : Icons.star_border,
-                              color: const Color(0xFFFBBF24), size: 14,
-                            ))),
+                            style: AppText.titleSm,
+                          ),
+                        ),
+                        Row(
+                            children: List.generate(
+                                5,
+                                (idx) => Icon(
+                                      idx < r.rating
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: const Color(0xFFFBBF24),
+                                      size: 14,
+                                    ))),
                       ]),
                       if (r.comment.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(r.comment, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4)),
+                        AppSpacing.gapSm,
+                        Text(
+                          r.comment,
+                          style: AppText.bodySm.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
                       ],
-                      const SizedBox(height: 6),
+                      AppSpacing.gapXs,
                       Text(_df.format(r.createdAt.toLocal()),
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          style: AppText.caption),
                     ],
                   ),
-                ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms).slideY(begin: 0.1, end: 0);
+                )
+                    .animate()
+                    .fadeIn(duration: 250.ms, delay: (i * 30).ms)
+                    .slideY(begin: 0.1, end: 0);
               },
             ),
           );
@@ -92,7 +152,9 @@ class ReviewsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _openSubmitSheet(BuildContext context, WidgetRef ref) async {
+  Future<void> _openSubmitSheet(
+      BuildContext context, WidgetRef ref) async {
+    AppHaptics.light();
     int rating = 5;
     final commentCtrl = TextEditingController();
     bool busy = false;
@@ -100,63 +162,103 @@ class ReviewsScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => StatefulBuilder(
         builder: (sheetCtx, setSheet) => Padding(
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            top: AppSpacing.md,
+            bottom:
+                AppSpacing.lg + MediaQuery.of(sheetCtx).viewInsets.bottom,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish"),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-              const SizedBox(height: 16),
               Center(
-                child: Row(mainAxisSize: MainAxisSize.min, children: List.generate(5, (i) {
-                  final filled = i < rating;
-                  return IconButton(
-                    icon: Icon(filled ? Icons.star : Icons.star_border, color: AppColors.warning, size: 36),
-                    onPressed: () => setSheet(() => rating = i + 1),
-                  );
-                })),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: AppRadius.rPill,
+                  ),
+                ),
               ),
-              const SizedBox(height: 8),
+              AppSpacing.gapMd,
+              Text(
+                tr(ref, 'mobile.reviews.leaveReview', 'Sharh qoldirish'),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapLg,
+              Center(
+                child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(5, (i) {
+                      final filled = i < rating;
+                      return TapScale(
+                        onTap: () {
+                          AppHaptics.selection();
+                          setSheet(() => rating = i + 1);
+                        },
+                        scale: 0.85,
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 4),
+                          child: Icon(
+                            filled ? Icons.star : Icons.star_border,
+                            color: AppColors.warning,
+                            size: 40,
+                          ),
+                        ),
+                      );
+                    })),
+              ),
+              AppSpacing.gapMd,
               TextField(
                 controller: commentCtrl,
                 maxLines: 4,
                 decoration: InputDecoration(
-                    hintText: tr(ref, 'mobile.reviews.commentPlaceholder',
-                        "Sharhingiz (ixtiyoriy)")),
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: busy ? null : () async {
-                    setSheet(() => busy = true);
-                    try {
-                      await ref.read(reviewsRepositoryProvider).submit(
-                            barberId: barberId,
-                            rating: rating,
-                            comment: commentCtrl.text.trim(),
-                          );
-                      if (sheetCtx.mounted) Navigator.of(sheetCtx).pop(true);
-                    } catch (e) {
-                      if (sheetCtx.mounted) {
-                        ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(
-                            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
-                      }
-                    } finally {
-                      setSheet(() => busy = false);
-                    }
-                  },
-                  child: busy
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text(tr(ref, 'mobile.reviews.submit', "Yuborish")),
+                  hintText: tr(ref, 'mobile.reviews.commentPlaceholder',
+                      'Sharhingiz (ixtiyoriy)'),
                 ),
+              ),
+              AppSpacing.gapLg,
+              AppButton(
+                label: tr(ref, 'mobile.reviews.submit', 'Yuborish'),
+                variant: AppButtonVariant.primary,
+                size: AppButtonSize.lg,
+                fullWidth: true,
+                loading: busy,
+                onPressed: busy
+                    ? null
+                    : () async {
+                        setSheet(() => busy = true);
+                        try {
+                          await ref
+                              .read(reviewsRepositoryProvider)
+                              .submit(
+                                barberId: barberId,
+                                rating: rating,
+                                comment: commentCtrl.text.trim(),
+                              );
+                          AppHaptics.success();
+                          if (sheetCtx.mounted) {
+                            Navigator.of(sheetCtx).pop(true);
+                          }
+                        } catch (e) {
+                          AppHaptics.error();
+                          if (sheetCtx.mounted) {
+                            ScaffoldMessenger.of(sheetCtx).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+                          }
+                        } finally {
+                          setSheet(() => busy = false);
+                        }
+                      },
               ),
             ],
           ),

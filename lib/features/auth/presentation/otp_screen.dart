@@ -7,8 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
-import '../../../shared/widgets/shadcn.dart';
+import '../../../shared/shared.dart';
 import '../data/auth_repository.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
@@ -31,7 +30,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   void initState() {
     super.initState();
     _startResendCountdown();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _focusNodes[0].requestFocus());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _focusNodes[0].requestFocus());
   }
 
   void _startResendCountdown() {
@@ -49,11 +49,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   String get _code => _controllers.map((c) => c.text).join();
 
   Future<void> _submit() async {
-    HapticFeedback.lightImpact();
+    AppHaptics.medium();
     if (_code.length != 4) {
-      HapticFeedback.heavyImpact();
-      setState(() =>
-          _error = tr(ref, 'auth.codeMustBe4', "Kod 4 raqamli bo'lishi kerak"));
+      AppHaptics.error();
+      setState(() => _error = tr(ref, 'auth.codeMustBe4',
+          "Kod 4 raqamli bo'lishi kerak"));
       return;
     }
     setState(() {
@@ -66,12 +66,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           .verifyRegistrationCode(phone: widget.phone, code: _code);
       if (!ok) throw Exception('Invalid OTP');
       if (!mounted) return;
-      HapticFeedback.mediumImpact();
-      context.push('/register-complete?phone=${Uri.encodeComponent(widget.phone)}&code=$_code');
+      AppHaptics.success();
+      context.push(
+          '/register-complete?phone=${Uri.encodeComponent(widget.phone)}&code=$_code');
     } on Object catch (_) {
-      HapticFeedback.heavyImpact();
-      setState(() =>
-          _error = tr(ref, 'auth.codeWrongOrExpired', "Kod noto'g'ri yoki muddati tugagan"));
+      AppHaptics.error();
+      setState(() => _error = tr(ref, 'auth.codeWrongOrExpired',
+          "Kod noto'g'ri yoki muddati tugagan"));
       for (final c in _controllers) {
         c.clear();
       }
@@ -83,17 +84,22 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
   Future<void> _resend() async {
     if (_resendIn > 0) return;
+    AppHaptics.light();
     try {
-      await ref.read(authRepositoryProvider).sendRegistrationCode(widget.phone);
+      await ref
+          .read(authRepositoryProvider)
+          .sendRegistrationCode(widget.phone);
       _startResendCountdown();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'auth.newCodeSent', "Yangi kod yuborildi"))));
+            content:
+                Text(tr(ref, 'auth.newCodeSent', 'Yangi kod yuborildi'))));
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring"))));
+            content: Text(tr(ref, 'common.errorRetry',
+                "Xatolik — qaytadan urinib ko'ring"))));
       }
     }
   }
@@ -117,52 +123,123 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.xxl,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: ShadCard(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Center(
-                    child: Column(children: [
-                      const ShadIconBubble(icon: Icons.mark_email_read_outlined),
-                      const SizedBox(height: 12),
-                      ShadCardTitle(tr(ref, 'auth.enterCode', "Kodni kiriting")),
-                      const SizedBox(height: 4),
-                      ShadCardDescription(tr(ref, 'auth.codeSentToPhone',
-                          "{{phone}} raqamiga yuborildi", {'phone': widget.phone})),
-                    ]),
-                  ),
-                  const SizedBox(height: 22),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(4, (i) => _otpCell(i)),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 10),
-                    Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 12)),
-                  ],
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _loading || _code.length != 4 ? null : _submit,
-                      child: _loading
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Text(tr(ref, 'auth.verify', "Tasdiqlash")),
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: AppRadius.rXl,
+                        boxShadow:
+                            AppShadows.primaryGlow(AppColors.primary),
+                      ),
+                      child: const Icon(Icons.mark_email_read_outlined,
+                          color: Colors.white, size: 32),
                     ),
+                  ).animate().scale(
+                      begin: const Offset(0.5, 0.5),
+                      duration: 500.ms,
+                      curve: Curves.easeOutBack),
+                  AppSpacing.gapLg,
+                  Text(
+                    tr(ref, 'auth.enterCode', 'Kodni kiriting'),
+                    style: AppText.titleLg,
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 12),
-                  Center(
-                    child: _resendIn > 0
-                        ? Text(
-                            "${tr(ref, 'auth.resendIn', 'Qayta yuborish')}: $_resendIn ${tr(ref, 'auth.secondsShort', 's')}",
-                            style: const TextStyle(color: AppColors.textMuted, fontSize: 14))
-                        : TextButton(
-                            onPressed: _resend,
-                            child: Text(tr(ref, 'auth.resendCode', "Kodni qayta yuborish"))),
+                  const SizedBox(height: 6),
+                  Text(
+                    tr(
+                        ref,
+                        'auth.codeSentToPhone',
+                        '{{phone}} raqamiga yuborildi',
+                        {'phone': widget.phone}),
+                    style: AppText.bodyLg
+                        .copyWith(color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
                   ),
-                ]),
-              ).animate().fadeIn(duration: 300.ms),
+                  AppSpacing.gapXxl,
+                  AppCard(
+                    variant: AppCardVariant.outlined,
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    radius: AppRadius.xl,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: List.generate(4, (i) => _otpCell(i)),
+                        ),
+                        if (_error != null) ...[
+                          AppSpacing.gapMd,
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.sm),
+                            decoration: BoxDecoration(
+                              color: AppColors.danger
+                                  .withValues(alpha: 0.1),
+                              borderRadius: AppRadius.rSm,
+                              border: Border.all(
+                                color: AppColors.danger
+                                    .withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(children: [
+                              const Icon(Icons.error_outline,
+                                  color: AppColors.danger, size: 16),
+                              AppSpacing.hGapSm,
+                              Expanded(
+                                child: Text(_error!,
+                                    style: AppText.bodySm.copyWith(
+                                        color: AppColors.danger)),
+                              ),
+                            ]),
+                          ),
+                        ],
+                        AppSpacing.gapLg,
+                        AppButton(
+                          label: tr(ref, 'auth.verify', 'Tasdiqlash'),
+                          variant: AppButtonVariant.primary,
+                          size: AppButtonSize.lg,
+                          fullWidth: true,
+                          loading: _loading,
+                          onPressed: _loading || _code.length != 4
+                              ? null
+                              : _submit,
+                        ),
+                        AppSpacing.gapMd,
+                        Center(
+                          child: _resendIn > 0
+                              ? Text(
+                                  "${tr(ref, 'auth.resendIn', 'Qayta yuborish')}: $_resendIn ${tr(ref, 'auth.secondsShort', 's')}",
+                                  style: AppText.bodySm,
+                                )
+                              : TapScale(
+                                  onTap: _resend,
+                                  scale: 0.95,
+                                  child: Text(
+                                    tr(ref, 'auth.resendCode',
+                                        'Kodni qayta yuborish'),
+                                    style: AppText.body.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+                ],
+              ),
             ),
           ),
         ),
@@ -173,7 +250,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   Widget _otpCell(int i) {
     final hasValue = _controllers[i].text.isNotEmpty;
     return SizedBox(
-      width: 60, height: 60,
+      width: 60,
+      height: 68,
       child: TextField(
         controller: _controllers[i],
         focusNode: _focusNodes[i],
@@ -181,23 +259,34 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         textAlign: TextAlign.center,
         maxLength: 1,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textBright),
+        style: AppText.display.copyWith(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+        ),
         decoration: InputDecoration(
           counterText: '',
           filled: true,
-          fillColor: AppColors.surfaceElevated,
+          fillColor: hasValue
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : AppColors.surfaceElevated,
           contentPadding: EdgeInsets.zero,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: hasValue ? AppColors.primary : AppColors.border),
+            borderRadius: AppRadius.rMd,
+            borderSide: BorderSide(
+                color:
+                    hasValue ? AppColors.primary : AppColors.border),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: hasValue ? AppColors.primary : AppColors.border),
+            borderRadius: AppRadius.rMd,
+            borderSide: BorderSide(
+                color:
+                    hasValue ? AppColors.primary : AppColors.border,
+                width: hasValue ? 2 : 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            borderRadius: AppRadius.rMd,
+            borderSide: const BorderSide(
+                color: AppColors.primary, width: 2),
           ),
         ),
         onChanged: (v) {

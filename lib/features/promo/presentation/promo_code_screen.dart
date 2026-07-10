@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/domain/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 
-/// Promo code screen — mirrors web's CustomerPromoCodePage. Shows the user's
-/// own referral code (read + edit + invite count). The earlier
-/// 'enter someone else's code' redemption section was wired to a
-/// /promo/redeem endpoint that doesn't exist on the backend (web doesn't
-/// have a redeem endpoint either — promo codes are only applied at
-/// registration via /auth/register's optional promoCode body field).
 class PromoCodeScreen extends ConsumerWidget {
   const PromoCodeScreen({super.key});
 
@@ -22,15 +17,64 @@ class PromoCodeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'promoCode.title', "Promo kod"))),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'promoCode.title', 'Promo kod'),
+          style: AppText.titleMd,
+        ),
+      ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            if (user != null) _MyReferralCard(user: user),
+            if (user != null) ...[
+              _MyReferralCard(user: user).animate().fadeIn(duration: 400.ms),
+              AppSpacing.gapLg,
+              _InviteHint(),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _InviteHint extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: AppSpacing.cardPadding,
+      child: Row(children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.warning.withValues(alpha: 0.15),
+            borderRadius: AppRadius.rSm,
+          ),
+          child: const Icon(Icons.tips_and_updates_outlined,
+              color: AppColors.warning, size: 22),
+        ),
+        AppSpacing.hGapMd,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr(ref, 'mobile.promo.hintTitle', 'Do\'stlaringizni taklif qiling'),
+                style: AppText.titleSm,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                tr(ref, 'mobile.promo.hintBody',
+                    "Kodingizni yuboring — ular ro'yxatdan o'tganda ikkalangizga bonus tushadi."),
+                style: AppText.bodySm,
+              ),
+            ],
+          ),
+        ),
+      ]),
     );
   }
 }
@@ -56,11 +100,13 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
   }
 
   Future<void> _save() async {
+    AppHaptics.medium();
     final next = _editCtrl.text.trim().toUpperCase();
     if (!_allowed.hasMatch(next)) {
+      AppHaptics.error();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(ref, 'promoCode.invalidFormat',
-              "Faqat A-Z va 0-9 (1-20 belgi)"))));
+              'Faqat A-Z va 0-9 (1-20 belgi)'))));
       return;
     }
     if (next == (widget.user.referralCode ?? '')) {
@@ -75,15 +121,17 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
           .read(authControllerProvider.notifier)
           .updateReferralCode(newCode);
       if (mounted) {
+        AppHaptics.success();
         setState(() => _editing = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
-                tr(ref, 'promoCode.updated', "Promo kod yangilandi"))));
+                tr(ref, 'promoCode.updated', 'Promo kod yangilandi'))));
       }
     } catch (e) {
+      AppHaptics.error();
       if (mounted) {
         final msg = e.toString().contains('409')
-            ? tr(ref, 'promoCode.taken', "Bu kod allaqachon olingan")
+            ? tr(ref, 'promoCode.taken', 'Bu kod allaqachon olingan')
             : "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}";
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(msg)));
@@ -97,108 +145,198 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
   Widget build(BuildContext context) {
     final code = widget.user.referralCode ?? '';
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: AppSpacing.cardPaddingLg,
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: AppRadius.rXl,
+        boxShadow: AppShadows.primaryGlow(AppColors.primary),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(children: [
-            const Icon(Icons.card_giftcard, color: Colors.white, size: 24),
-            const SizedBox(width: 8),
-            Text(
-                tr(ref, 'mobile.promo.myCodeTitle', "Sizning referral kodingiz"),
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16)),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: AppRadius.rSm,
+              ),
+              child: const Icon(Icons.card_giftcard,
+                  color: Colors.white, size: 22),
+            ),
+            AppSpacing.hGapMd,
+            Expanded(
+              child: Text(
+                tr(ref, 'mobile.promo.myCodeTitle',
+                    'Sizning referral kodingiz'),
+                style: AppText.titleMd.copyWith(color: Colors.white),
+              ),
+            ),
           ]),
-          const SizedBox(height: 12),
-          if (_editing)
-            Row(children: [
-              Expanded(
-                child: TextField(
-                  controller: _editCtrl,
-                  autofocus: true,
-                  textCapitalization: TextCapitalization.characters,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
-                    LengthLimitingTextInputFormatter(20),
-                  ],
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2,
-                      fontSize: 20),
-                  decoration: const InputDecoration(
-                    hintText: 'PROMO20',
-                    hintStyle: TextStyle(color: Colors.white54),
-                    border: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white54)),
-                    enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white54)),
-                    focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white)),
-                  ),
+          AppSpacing.gapLg,
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: AppRadius.rMd,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+            ),
+            child: _editing
+                ? Row(children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _editCtrl,
+                        autofocus: true,
+                        textCapitalization: TextCapitalization.characters,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[A-Z0-9]')),
+                          LengthLimitingTextInputFormatter(20),
+                        ],
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 3,
+                          fontSize: 24,
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'PROMO20',
+                          hintStyle: TextStyle(color: Colors.white54),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: false,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    AppSpacing.hGapSm,
+                    TapScale(
+                      onTap: _saving
+                          ? null
+                          : () => setState(() => _editing = false),
+                      scale: 0.9,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close,
+                            color: Colors.white, size: 18),
+                      ),
+                    ),
+                    AppSpacing.hGapXs,
+                    TapScale(
+                      onTap: _saving ? null : _save,
+                      scale: 0.9,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: _saving
+                            ? const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary),
+                              )
+                            : const Icon(Icons.check,
+                                color: AppColors.primary, size: 18),
+                      ),
+                    ),
+                  ])
+                : Row(children: [
+                    Expanded(
+                      child: Text(
+                        code.isEmpty ? '—' : code,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 26,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ),
+                    if (code.isNotEmpty)
+                      TapScale(
+                        onTap: () async {
+                          AppHaptics.light();
+                          await Clipboard.setData(
+                              ClipboardData(text: code));
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(tr(
+                                      ref,
+                                      'mobile.barber.location.copied',
+                                      'Nusxalandi'))));
+                        },
+                        scale: 0.9,
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.copy,
+                              color: Colors.white, size: 16),
+                        ),
+                      ),
+                    AppSpacing.hGapXs,
+                    TapScale(
+                      onTap: () {
+                        AppHaptics.light();
+                        _editCtrl.text = code;
+                        setState(() => _editing = true);
+                      },
+                      scale: 0.9,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.edit,
+                            color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ]),
+          ),
+          AppSpacing.gapMd,
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: AppRadius.rPill,
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.people_outline,
+                  color: Colors.white, size: 16),
+              AppSpacing.hGapSm,
+              Flexible(
+                child: Text(
+                  tr(
+                      ref,
+                      'mobile.promo.invitedCount',
+                      '{{n}} kishi sizning kodingizdan foydalandi',
+                      {'n': '${widget.user.referralsCount}'}),
+                  style: AppText.caption.copyWith(color: Colors.white),
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: _saving
-                    ? null
-                    : () => setState(() => _editing = false),
-              ),
-              IconButton(
-                icon: _saving
-                    ? const SizedBox(
-                        width: 16, height: 16,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.check, color: Colors.white),
-                onPressed: _saving ? null : _save,
-              ),
-            ])
-          else
-            Row(children: [
-              Expanded(
-                child: Text(code.isEmpty ? '—' : code,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 24,
-                        letterSpacing: 2)),
-              ),
-              if (code.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.copy, color: Colors.white, size: 18),
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: code));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(tr(ref,
-                            'mobile.barber.location.copied', "Nusxalandi"))));
-                  },
-                ),
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white, size: 18),
-                onPressed: () {
-                  _editCtrl.text = code;
-                  setState(() => _editing = true);
-                },
               ),
             ]),
-          const SizedBox(height: 10),
-          Row(children: [
-            const Icon(Icons.people_outline, color: Colors.white70, size: 16),
-            const SizedBox(width: 6),
-            Text(
-                tr(ref, 'mobile.promo.invitedCount',
-                    "{{n}} kishi sizning kodingizdan foydalandi",
-                    {'n': '${widget.user.referralsCount}'}),
-                style:
-                    const TextStyle(color: Colors.white70, fontSize: 12)),
-          ]),
+          ),
         ],
       ),
     );

@@ -1,13 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/asset_url.dart';
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/favorites_repository.dart';
 
@@ -18,7 +18,12 @@ class FavoritesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(favoritesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.customer.favorites.title', "Sevimlilar"))),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'mobile.customer.favorites.title', 'Sevimlilar'),
+          style: AppText.titleMd,
+        ),
+      ),
       body: async.when(
         loading: () => const AppListSkeleton(itemCount: 5),
         error: (e, _) => AppErrorState(
@@ -29,7 +34,8 @@ class FavoritesScreen extends ConsumerWidget {
           if (list.isEmpty) {
             return AppEmptyState(
               icon: Icons.favorite_border_rounded,
-              title: tr(ref, 'mobile.customer.favorites.empty', "Sevimlilar ro'yxati bo'sh"),
+              title: tr(ref, 'mobile.customer.favorites.empty',
+                  "Sevimlilar ro'yxati bo'sh"),
               message: tr(
                 ref,
                 'mobile.customer.favorites.emptyHint',
@@ -41,62 +47,116 @@ class FavoritesScreen extends ConsumerWidget {
             color: AppColors.primary,
             onRefresh: () async => ref.refresh(favoritesProvider.future),
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+              ),
               itemCount: list.length,
-              separatorBuilder: (context, i) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => AppSpacing.gapSm,
               itemBuilder: (context, i) {
                 final b = list[i];
-                return InkWell(
-                  borderRadius: BorderRadius.circular(10),
+                return AppCard(
+                  variant: AppCardVariant.outlined,
+                  padding: AppSpacing.cardPadding,
                   onTap: () => context.push('/barber/${b.id}'),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        ClipOval(
-                          child: b.avatar.isNotEmpty
-                              ? CachedNetworkImage(imageUrl: assetUrl(b.avatar), width: 48, height: 48, fit: BoxFit.cover)
-                              : Container(width: 48, height: 48, color: AppColors.surfaceElevated, child: const Icon(Icons.person, color: AppColors.textMuted)),
+                  child: Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(b.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
-                              const SizedBox(height: 4),
-                              Row(children: [
-                                const Icon(Icons.star, size: 12, color: Color(0xFFFBBF24)),
-                                const SizedBox(width: 4),
-                                Text(b.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                                const SizedBox(width: 10),
+                        padding: const EdgeInsets.all(2),
+                        child: ClipOval(
+                          child: b.avatar.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: assetUrl(b.avatar),
+                                  width: 52,
+                                  height: 52,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, _) =>
+                                      const SkeletonCircle(size: 52),
+                                )
+                              : Container(
+                                  width: 52,
+                                  height: 52,
+                                  color: AppColors.surfaceElevated,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    b.name.isNotEmpty
+                                        ? b.name[0].toUpperCase()
+                                        : '?',
+                                    style: AppText.titleMd.copyWith(
+                                        color: AppColors.textBright),
+                                  ),
+                                ),
+                        ),
+                      ),
+                      AppSpacing.hGapMd,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(b.name, style: AppText.titleSm),
+                            const SizedBox(height: 4),
+                            Row(children: [
+                              const Icon(Icons.star,
+                                  size: 12, color: Color(0xFFFBBF24)),
+                              AppSpacing.hGapXs,
+                              Text(
+                                b.rating.toStringAsFixed(1),
+                                style: AppText.caption.copyWith(
+                                  color: AppColors.textBright,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              AppSpacing.hGapSm,
+                              if (b.location.isNotEmpty) ...[
+                                const Icon(Icons.location_on_outlined,
+                                    size: 11, color: AppColors.textMuted),
+                                AppSpacing.hGapXs,
                                 Expanded(
                                   child: Text(b.location,
-                                      maxLines: 1, overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppText.caption),
                                 ),
-                              ]),
-                            ],
+                              ] else
+                                const Spacer(),
+                            ]),
+                          ],
+                        ),
+                      ),
+                      TapScale(
+                        onTap: () async {
+                          AppHaptics.light();
+                          try {
+                            await ref
+                                .read(favoritesRepositoryProvider)
+                                .toggle(b.id);
+                            ref.invalidate(favoritesProvider);
+                          } catch (_) {}
+                        },
+                        scale: 0.85,
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
                           ),
+                          child: const Icon(Icons.favorite,
+                              color: AppColors.danger, size: 18),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.favorite, color: AppColors.danger),
-                          onPressed: () async {
-                            try {
-                              await ref.read(favoritesRepositoryProvider).toggle(b.id);
-                              ref.invalidate(favoritesProvider);
-                            } catch (_) {}
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms).slideY(begin: 0.1, end: 0);
+                )
+                    .animate()
+                    .fadeIn(duration: 250.ms, delay: (i * 30).ms)
+                    .slideY(begin: 0.1, end: 0);
               },
             ),
           );
