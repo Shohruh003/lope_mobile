@@ -106,11 +106,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 },
               ),
               children: [
+                // CartoDB Dark Matter — free, no API key, matches the
+                // app's dark theme so the map doesn't blast the user
+                // with a bright OSM canvas mid-flow.
                 TileLayer(
                   urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                  additionalOptions: const {'r': ''},
                   userAgentPackageName: 'uz.lopestyle.mobile',
                   maxZoom: 19,
+                  retinaMode: MediaQuery.of(context).devicePixelRatio > 1.5,
                 ),
                 if (myLL != null)
                   MarkerLayer(markers: [
@@ -363,7 +368,7 @@ class _SelectedCard extends ConsumerWidget {
                     leadingIcon: Icons.calendar_month,
                     size: AppButtonSize.sm,
                     fullWidth: true,
-                    onPressed: () => context.push('/barber/${barber.id}/book'),
+                    onPressed: () => context.push('/book/${barber.id}'),
                   ),
                 ),
                 AppSpacing.hGapSm,

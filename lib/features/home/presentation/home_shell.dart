@@ -119,8 +119,19 @@ class _CustomerHeader extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          // Match NotificationBell's plain-IconButton look — no circular
-          // chip around the icon so both header actions read as one row.
+          // Three quick actions live in the header row: map shortcut,
+          // bookmark (saved masters), notifications bell. All render as
+          // plain IconButtons so they read as one clean row.
+          IconButton(
+            tooltip: tr(ref, 'mobile.map.title', 'Xarita'),
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.map_outlined,
+                color: AppColors.textPrimary, size: 22),
+            onPressed: () {
+              AppHaptics.selection();
+              context.push('/map');
+            },
+          ),
           IconButton(
             tooltip: tr(ref, 'profile.favorites', 'Masterim'),
             visualDensity: VisualDensity.compact,

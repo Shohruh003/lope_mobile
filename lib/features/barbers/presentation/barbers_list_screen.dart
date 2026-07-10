@@ -995,7 +995,7 @@ class _BookNowButton extends ConsumerWidget {
     return TapScale(
       onTap: () {
         AppHaptics.selection();
-        context.push('/barber/$barberId/book');
+        context.push('/book/$barberId');
       },
       scale: 0.96,
       child: Container(
