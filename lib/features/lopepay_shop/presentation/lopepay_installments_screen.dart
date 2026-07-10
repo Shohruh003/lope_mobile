@@ -6,14 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/lopepay_repository.dart';
 
-/// Installment-centric list — mirrors web ShopCustomers exactly. One row
-/// per installment plan (a customer with two plans appears twice).
-/// Customer-aggregated view is still available on the LopePay home
-/// shell's Customers tab.
 class LopepayInstallmentsScreen extends ConsumerStatefulWidget {
   const LopepayInstallmentsScreen({super.key, this.initialStatus});
   final String? initialStatus;
@@ -28,10 +24,9 @@ class _LopepayInstallmentsScreenState
   static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
   static final _ymd = DateFormat('yyyy-MM-dd');
   String _query = '';
-  late String _status =
-      widget.initialStatus ?? 'all'; // 'all' | 'overdue' | 'due_today' | 'upcoming' | 'paid_off'
+  late String _status = widget.initialStatus ?? 'all';
   String _phone = '';
-  String? _productId; // null = any
+  String? _productId;
   DateTime? _from;
   DateTime? _to;
   bool _filtersOpen = false;
@@ -54,19 +49,19 @@ class _LopepayInstallmentsScreenState
     }
   }
 
-  Color _statusColor(String s) {
+  AppBadgeVariant _statusVariant(String s) {
     switch (s) {
       case 'paid_off':
-        return AppColors.success;
+        return AppBadgeVariant.success;
       case 'overdue':
-        return AppColors.danger;
+        return AppBadgeVariant.danger;
       case 'due_today':
-        return AppColors.warning;
+        return AppBadgeVariant.warning;
       case 'due_tomorrow':
       case 'upcoming':
-        return AppColors.primary;
+        return AppBadgeVariant.info;
       default:
-        return AppColors.textMuted;
+        return AppBadgeVariant.neutral;
     }
   }
 
@@ -102,6 +97,7 @@ class _LopepayInstallmentsScreenState
   }
 
   void _resetFilters() {
+    AppHaptics.selection();
     setState(() {
       _query = '';
       _status = 'all';
@@ -118,38 +114,61 @@ class _LopepayInstallmentsScreenState
     final productsAsync = ref.watch(lopepayProductsProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.lopepay.installments.title',
-            "Rassrochkalar")),
+        title: Text(
+            tr(ref, 'mobile.lopepay.installments.title', "Rassrochkalar"),
+            style: AppText.titleMd),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => context.push('/lopepay/customers/new'),
-        icon: const Icon(Icons.add),
-        label: Text(tr(ref, 'mobile.lopepay.customerForm.addBtn',
-            "Rassrochka qo'shish")),
+        onPressed: () {
+          AppHaptics.medium();
+          context.push('/lopepay/customers/new');
+        },
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+            tr(ref, 'mobile.lopepay.customerForm.addBtn',
+                "Rassrochka qo'shish"),
+            style: AppText.button.copyWith(color: Colors.white)),
       ),
       body: Column(children: [
-        // Search bar + filter toggle
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xs),
           child: Row(children: [
             Expanded(
-              child: TextField(
-                onChanged: (v) => setState(() => _query = v),
-                style: const TextStyle(color: AppColors.textBright),
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search,
-                      color: AppColors.textMuted, size: 22),
-                  hintText: tr(ref, 'mobile.lopepay.customers.searchHint',
-                      "Ism yoki telefon"),
-                  isDense: true,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.rMd,
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: TextField(
+                  onChanged: (v) => setState(() => _query = v),
+                  style: AppText.body,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 12),
+                    prefixIcon: const Icon(Icons.search,
+                        color: AppColors.textMuted, size: 20),
+                    hintText: tr(ref, 'mobile.lopepay.customers.searchHint',
+                        "Ism yoki telefon"),
+                    hintStyle:
+                        AppText.body.copyWith(color: AppColors.textMuted),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () => setState(() => _filtersOpen = !_filtersOpen),
+            const SizedBox(width: AppSpacing.sm),
+            TapScale(
+              onTap: () {
+                AppHaptics.selection();
+                setState(() => _filtersOpen = !_filtersOpen);
+              },
               child: Container(
                 width: 44,
                 height: 44,
@@ -157,7 +176,7 @@ class _LopepayInstallmentsScreenState
                   color: _filtersOpen
                       ? AppColors.primary.withValues(alpha: 0.15)
                       : AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: AppRadius.rMd,
                   border: Border.all(
                       color: _filtersOpen
                           ? AppColors.primary
@@ -176,119 +195,123 @@ class _LopepayInstallmentsScreenState
           ]),
         ),
 
-        // ===== Advanced filter panel (collapsible) =====
         if (_filtersOpen)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                TextField(
-                  onChanged: (v) => setState(() => _phone = v),
-                  controller: TextEditingController(text: _phone)
-                    ..selection = TextSelection.collapsed(offset: _phone.length),
-                  style: const TextStyle(color: AppColors.textBright),
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    labelText: tr(ref, 'lopePay.shop.filterPhone',
-                        'Telefon raqami'),
-                    hintText: '+998...',
-                  ),
-                ),
-                const SizedBox(height: 10),
-                productsAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                  data: (products) => DropdownButtonFormField<String?>(
-                    isDense: true,
-                    initialValue: _productId,
-                    decoration: InputDecoration(
-                      labelText: tr(ref, 'lopePay.shop.filterProduct',
-                          "Mahsulot"),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm,
+                AppSpacing.lg, AppSpacing.xs),
+            child: AppCard(
+              variant: AppCardVariant.flat,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      onChanged: (v) => setState(() => _phone = v),
+                      controller: TextEditingController(text: _phone)
+                        ..selection = TextSelection.collapsed(
+                            offset: _phone.length),
+                      style: AppText.body,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        labelText: tr(ref, 'lopePay.shop.filterPhone',
+                            'Telefon raqami'),
+                        hintText: '+998...',
+                      ),
                     ),
-                    items: [
-                      DropdownMenuItem(
-                          value: null,
-                          child: Text(tr(ref, 'common.all', "Hammasi"))),
-                      ...products.map((p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text(p.name,
-                              overflow: TextOverflow.ellipsis))),
-                    ],
-                    onChanged: (v) => setState(() => _productId = v),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(
-                    child: _DatePill(
-                      label: _from == null
-                          ? tr(ref, 'lopePay.shop.filterFrom', "Dan")
-                          : _ymd.format(_from!),
-                      onTap: () => _pickDate(true),
+                    const SizedBox(height: AppSpacing.sm),
+                    productsAsync.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                      data: (products) =>
+                          DropdownButtonFormField<String?>(
+                        isDense: true,
+                        initialValue: _productId,
+                        decoration: InputDecoration(
+                          labelText: tr(ref, 'lopePay.shop.filterProduct',
+                              "Mahsulot"),
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                              value: null,
+                              child:
+                                  Text(tr(ref, 'common.all', "Hammasi"))),
+                          ...products.map((p) => DropdownMenuItem(
+                              value: p.id,
+                              child: Text(p.name,
+                                  overflow: TextOverflow.ellipsis))),
+                        ],
+                        onChanged: (v) => setState(() => _productId = v),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text("—",
-                      style: TextStyle(color: AppColors.textMuted)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _DatePill(
-                      label: _to == null
-                          ? tr(ref, 'lopePay.shop.filterTo', "Gacha")
-                          : _ymd.format(_to!),
-                      onTap: () => _pickDate(false),
-                    ),
-                  ),
-                ]),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: Text(tr(ref, 'common.reset', "Tozalash")),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(children: [
+                      Expanded(
+                        child: _DatePill(
+                          label: _from == null
+                              ? tr(ref, 'lopePay.shop.filterFrom', "Dan")
+                              : _ymd.format(_from!),
+                          onTap: () => _pickDate(true),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Text("—",
+                          style: TextStyle(color: AppColors.textMuted)),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: _DatePill(
+                          label: _to == null
+                              ? tr(ref, 'lopePay.shop.filterTo', "Gacha")
+                              : _ymd.format(_to!),
+                          onTap: () => _pickDate(false),
+                        ),
+                      ),
+                    ]),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppButton(
+                      label: tr(ref, 'common.reset', "Tozalash"),
+                      leadingIcon: Icons.refresh,
+                      variant: AppButtonVariant.secondary,
+                      size: AppButtonSize.sm,
+                      fullWidth: true,
                       onPressed: _resetFilters,
                     ),
-                  ),
-                ]),
-              ]),
+                  ]),
             ),
           ),
-        // Status filter chips
+
         SizedBox(
-          height: 40,
+          height: 44,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             children: [
-              _Chip(
+              AppChip(
                   label: tr(ref, 'common.all', "Hammasi"),
-                  on: _status == 'all',
+                  selected: _status == 'all',
                   onTap: () => setState(() => _status = 'all')),
-              _Chip(
+              const SizedBox(width: AppSpacing.sm),
+              AppChip(
                   label: tr(ref, 'mobile.lopepay.customer.statusOverdue',
                       "Muddati o'tgan"),
-                  on: _status == 'overdue',
+                  selected: _status == 'overdue',
                   onTap: () => setState(() => _status = 'overdue')),
-              _Chip(
+              const SizedBox(width: AppSpacing.sm),
+              AppChip(
                   label: tr(ref, 'mobile.lopepay.home.dueToday', "Bugun"),
-                  on: _status == 'due_today',
+                  selected: _status == 'due_today',
                   onTap: () => setState(() => _status = 'due_today')),
-              _Chip(
+              const SizedBox(width: AppSpacing.sm),
+              AppChip(
                   label: tr(ref, 'mobile.lopepay.installments.upcoming',
                       "Kelajakda"),
-                  on: _status == 'upcoming',
+                  selected: _status == 'upcoming',
                   onTap: () => setState(() => _status = 'upcoming')),
-              _Chip(
+              const SizedBox(width: AppSpacing.sm),
+              AppChip(
                   label: tr(ref, 'mobile.lopepay.customer.statusPaid',
                       "To'langan"),
-                  on: _status == 'paid_off',
+                  selected: _status == 'paid_off',
                   onTap: () => setState(() => _status = 'paid_off')),
             ],
           ),
@@ -298,7 +321,8 @@ class _LopepayInstallmentsScreenState
             loading: () => const AppListSkeleton(),
             error: (e, _) => AppErrorState(
               message: humanize(e),
-              onRetry: () => ref.invalidate(lopepayInstallmentsListProvider),
+              onRetry: () =>
+                  ref.invalidate(lopepayInstallmentsListProvider),
             ),
             data: (res) {
               final list = res.data;
@@ -318,131 +342,114 @@ class _LopepayInstallmentsScreenState
                 color: AppColors.primary,
                 onRefresh: () async {
                   ref.invalidate(lopepayInstallmentsListProvider);
-                  await ref.read(lopepayInstallmentsListProvider(_key).future);
+                  await ref
+                      .read(lopepayInstallmentsListProvider(_key).future);
                 },
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 96),
                   itemCount: list.length,
-                  separatorBuilder: (context, i) => const SizedBox(height: 8),
+                  separatorBuilder: (context, i) =>
+                      const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (context, i) {
                     final inst = list[i];
                     final name = (inst['customerName'] ?? '').toString();
                     final phone = (inst['customerPhone'] ?? '').toString();
-                    final productName = (inst['productName'] ?? '').toString();
-                    final monthsPaid = ((inst['monthsPaid'] ?? 0) as num).toInt();
-                    final monthsTotal = ((inst['monthsTotal'] ?? 0) as num).toInt();
-                    final debt = ((inst['debt'] ?? inst['monthlyPayment'] ?? 0)
-                            as num)
+                    final productName =
+                        (inst['productName'] ?? '').toString();
+                    final monthsPaid =
+                        ((inst['monthsPaid'] ?? 0) as num).toInt();
+                    final monthsTotal =
+                        ((inst['monthsTotal'] ?? 0) as num).toInt();
+                    final debt = ((inst['debt'] ??
+                            inst['monthlyPayment'] ??
+                            0) as num)
                         .toInt();
                     final isPaidOff = inst['isPaidOff'] == true;
                     final status = (inst['status'] ?? '').toString();
                     final daysLate =
                         ((inst['daysLate'] ?? 0) as num).toInt();
                     final nextDue = inst['nextDueDate']?.toString();
-                    final color = _statusColor(status);
 
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      // The detail provider keys on customerPhone (we
-                      // aggregate installments by phone), not the
-                      // installment id. Routing on the installment id
-                      // would never match any installment in the detail
-                      // aggregation → blank screen.
-                      onTap: phone.isEmpty
-                          ? null
-                          : () => context.push(
-                              '/lopepay/customers/${Uri.encodeComponent(phone)}'),
-                      child: Opacity(
-                        opacity: isPaidOff ? 0.6 : 1.0,
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Row(children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(children: [
-                                    Flexible(
-                                      child: Text(name,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 14)),
-                                    ),
-                                    if (status.isNotEmpty) ...[
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: color.withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: Text(
-                                            _statusLabel(ref, status, daysLate),
-                                            style: TextStyle(
-                                                color: color,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600)),
-                                      ),
-                                    ],
-                                  ]),
-                                  if (phone.isNotEmpty)
-                                    Row(children: [
-                                      const Icon(Icons.phone_outlined,
-                                          size: 12, color: AppColors.textMuted),
-                                      const SizedBox(width: 4),
-                                      Text(phone,
-                                          style: const TextStyle(
-                                              color: AppColors.textMuted,
-                                              fontSize: 12)),
-                                    ]),
-                                  if (productName.isNotEmpty)
-                                    Text(
-                                        "$productName · $monthsPaid/$monthsTotal ${tr(ref, 'lopePay.shop.monthsPaid', 'oy')}",
+                    return Opacity(
+                      opacity: isPaidOff ? 0.65 : 1.0,
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        onTap: phone.isEmpty
+                            ? null
+                            : () => context.push(
+                                '/lopepay/customers/${Uri.encodeComponent(phone)}'),
+                        child: Row(children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Row(children: [
+                                  Flexible(
+                                    child: Text(name,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            color: AppColors.textMuted,
-                                            fontSize: 12)),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                    "${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14)),
-                                if (nextDue != null && !isPaidOff) ...[
-                                  const SizedBox(height: 2),
-                                  Builder(builder: (_) {
-                                    final d = DateTime.tryParse(nextDue);
-                                    if (d == null) {
-                                      return const SizedBox.shrink();
-                                    }
-                                    return Text(_df.format(d.toLocal()),
-                                        style: const TextStyle(
-                                            color: AppColors.textMuted,
-                                            fontSize: 11));
-                                  }),
-                                ],
+                                        style: AppText.titleSm
+                                            .copyWith(fontSize: 14)),
+                                  ),
+                                  if (status.isNotEmpty) ...[
+                                    const SizedBox(width: AppSpacing.xs),
+                                    AppBadge(
+                                      label: _statusLabel(
+                                          ref, status, daysLate),
+                                      variant: _statusVariant(status),
+                                    ),
+                                  ],
+                                ]),
+                                if (phone.isNotEmpty)
+                                  Row(children: [
+                                    const Icon(Icons.phone_outlined,
+                                        size: 11,
+                                        color: AppColors.textMuted),
+                                    const SizedBox(width: 3),
+                                    Text(phone,
+                                        style: AppText.caption
+                                            .copyWith(fontSize: 11)),
+                                  ]),
+                                if (productName.isNotEmpty)
+                                  Text(
+                                      "$productName · $monthsPaid/$monthsTotal ${tr(ref, 'lopePay.shop.monthsPaid', 'oy')}",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppText.caption
+                                          .copyWith(fontSize: 11)),
                               ],
                             ),
-                          ]),
-                        ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                  "${_fmt(debt)} ${tr(ref, 'common.currency', "so'm")}",
+                                  style: AppText.titleSm
+                                      .copyWith(fontSize: 14)),
+                              if (nextDue != null && !isPaidOff) ...[
+                                const SizedBox(height: 2),
+                                Builder(builder: (_) {
+                                  final d = DateTime.tryParse(nextDue);
+                                  if (d == null) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Text(_df.format(d.toLocal()),
+                                      style: AppText.caption
+                                          .copyWith(fontSize: 11));
+                                }),
+                              ],
+                            ],
+                          ),
+                        ]),
                       ),
-                    ).animate().fadeIn(duration: 200.ms, delay: (i * 20).ms);
+                    )
+                        .animate()
+                        .fadeIn(duration: 200.ms, delay: (i * 20).ms);
                   },
                 ),
               );
@@ -454,52 +461,21 @@ class _LopepayInstallmentsScreenState
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.on, required this.onTap});
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: on
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.background,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: on ? AppColors.primary : AppColors.border),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                  color: on ? AppColors.primary : AppColors.textMuted)),
-        ),
-      ),
-    );
-  }
-}
-
 class _DatePill extends StatelessWidget {
   const _DatePill({required this.label, required this.onTap});
   final String label;
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return TapScale(
       onTap: onTap,
+      haptic: HapticStrength.light,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.surface,
+          borderRadius: AppRadius.rSm,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
@@ -510,8 +486,7 @@ class _DatePill extends StatelessWidget {
             child: Text(label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: AppColors.textBright, fontSize: 12)),
+                style: AppText.body.copyWith(fontSize: 12)),
           ),
         ]),
       ),
