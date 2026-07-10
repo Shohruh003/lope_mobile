@@ -8,19 +8,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api_client.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 
-/// Public, no-auth booking page reached via a shared link like
-/// `app.lopestyle.uz/b/:slug`. The slug resolves to a barber server-side; the
-/// customer picks a service + date + time and supplies their phone (verified
-/// via SMS OTP). Mirrors the web's PublicBarberBookingPage.
 class PublicBookingScreen extends ConsumerStatefulWidget {
   const PublicBookingScreen({super.key, required this.slug});
   final String slug;
 
   @override
-  ConsumerState<PublicBookingScreen> createState() => _PublicBookingScreenState();
+  ConsumerState<PublicBookingScreen> createState() =>
+      _PublicBookingScreenState();
 }
 
 class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
@@ -42,35 +39,28 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
   Future<List<String>> _loadSlots(String barberId) async {
     final dio = ref.read(dioProvider);
-    final d = '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
+    final d =
+        '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
     try {
-      // Web fetches BOTH the day-schedule and booked-slots and subtracts.
-      // No public-only routes exist — these endpoints are unauthenticated
-      // (no @UseGuards on either controller). Old /barbers/:id/schedule/:d
-      // had no handler so public booking never had a list of times to show.
       final results = await Future.wait([
-        dio
-            .get('/schedule/$barberId/$d')
-            .then((r) {
-              final d = r.data;
-              if (d is Map && d['slots'] is List) {
-                return (d['slots'] as List).map((e) => e.toString()).toList();
-              }
-              return <String>[];
-            })
-            .catchError((_) => <String>[]),
-        dio
-            .get('/bookings/booked-slots',
-                queryParameters: {'barberId': barberId, 'date': d})
-            .then((r) {
-              final d = r.data;
-              if (d is List) return d.map((e) => e.toString()).toList();
-              if (d is Map && d['slots'] is List) {
-                return (d['slots'] as List).map((e) => e.toString()).toList();
-              }
-              return <String>[];
-            })
-            .catchError((_) => <String>[]),
+        dio.get('/schedule/$barberId/$d').then((r) {
+          final d = r.data;
+          if (d is Map && d['slots'] is List) {
+            return (d['slots'] as List).map((e) => e.toString()).toList();
+          }
+          return <String>[];
+        }).catchError((_) => <String>[]),
+        dio.get('/bookings/booked-slots', queryParameters: {
+          'barberId': barberId,
+          'date': d
+        }).then((r) {
+          final d = r.data;
+          if (d is List) return d.map((e) => e.toString()).toList();
+          if (d is Map && d['slots'] is List) {
+            return (d['slots'] as List).map((e) => e.toString()).toList();
+          }
+          return <String>[];
+        }).catchError((_) => <String>[]),
       ]);
       final scheduleSlots = results[0];
       final booked = results[1].toSet();
@@ -82,16 +72,16 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
   Future<void> _submit(
       String barberId, List<Map<String, dynamic>> allServices) async {
-    HapticFeedback.lightImpact();
+    AppHaptics.light();
     if (_selected.isEmpty || _time == null) {
-      HapticFeedback.heavyImpact();
+      AppHaptics.error();
       setState(() => _error = tr(ref, 'mobile.publicBooking.pickServiceTime',
           "Xizmat va vaqt tanlang"));
       return;
     }
     final phone = _phoneCtrl.text.replaceAll(RegExp(r'\D'), '');
     if (phone.length != 9) {
-      HapticFeedback.heavyImpact();
+      AppHaptics.error();
       setState(() => _error = tr(ref, 'common.validation.invalidPhone',
           "Telefon raqami noto'g'ri"));
       return;
@@ -101,23 +91,22 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
       _error = null;
     });
     try {
-      final d = '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
-      // Backend: POST /public/bookings/:slug (public-booking.controller.ts:43).
-      // Slug goes in URL, full services snapshot in body — same shape as
-      // /bookings/manual minus barberId. Old /bookings/public route had no
-      // handler so EVERY share-link booking was silently 404'ing.
+      final d =
+          '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}';
       final picked = allServices
           .where((s) => _selected.contains((s['id'] ?? '').toString()))
           .toList();
-      final services = picked.map((s) => {
-            'id': s['id'],
-            'name': (s['name'] ?? s['nameUz'] ?? '').toString(),
-            'nameUz': (s['nameUz'] ?? s['name'] ?? '').toString(),
-            'nameRu': (s['nameRu'] ?? '').toString(),
-            'price': ((s['price'] ?? 0) as num).toInt(),
-            'duration': ((s['duration'] ?? 30) as num).toInt(),
-            'icon': (s['icon'] ?? '✂️').toString(),
-          }).toList();
+      final services = picked
+          .map((s) => {
+                'id': s['id'],
+                'name': (s['name'] ?? s['nameUz'] ?? '').toString(),
+                'nameUz': (s['nameUz'] ?? s['name'] ?? '').toString(),
+                'nameRu': (s['nameRu'] ?? '').toString(),
+                'price': ((s['price'] ?? 0) as num).toInt(),
+                'duration': ((s['duration'] ?? 30) as num).toInt(),
+                'icon': (s['icon'] ?? '').toString(),
+              })
+          .toList();
       final totalPrice = picked.fold<int>(
           0, (a, s) => a + ((s['price'] ?? 0) as num).toInt());
       final totalDuration = picked.fold<int>(
@@ -132,17 +121,11 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
         'guestPhone': '+998$phone',
       });
       if (!mounted) return;
-      HapticFeedback.mediumImpact();
+      AppHaptics.success();
       setState(() => _success = true);
     } on DioException catch (e) {
       if (!mounted) return;
-      HapticFeedback.heavyImpact();
-      // Backend codes (public-booking.service.ts:330+):
-      //   OTP_REQUIRED — barber.requirePhoneOtp=true and the customer
-      //     didn't include otpCode. Mobile doesn't have the OTP UI yet,
-      //     so surface a clear "ask the barber" message instead of the
-      //     generic "try again" toast.
-      //   SLOT_TAKEN — 409, same as everywhere.
+      AppHaptics.error();
       String msg = tr(ref, 'common.errorRetry', "Xatolik — qaytadan urinib ko'ring");
       final body = e.response?.data;
       final code = body is Map ? (body['code'] ?? '').toString() : '';
@@ -150,9 +133,11 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
         msg = tr(ref, 'mobile.publicBooking.otpRequired',
             "Bu sartarosh telefon tasdiqlashni talab qiladi. Iltimos, sartarosh bilan to'g'ridan-to'g'ri bog'laning.");
       } else if (e.response?.statusCode == 409 || code == 'SLOT_TAKEN') {
-        msg = tr(ref, 'booking.slotTaken', "Bu vaqt allaqachon band qilingan");
+        msg = tr(ref, 'booking.slotTaken',
+            "Bu vaqt allaqachon band qilingan");
       } else if (e.response?.statusCode == 404) {
-        msg = tr(ref, 'mobile.publicBooking.invalidLink', "Bu havola eski yoki noto'g'ri");
+        msg = tr(ref, 'mobile.publicBooking.invalidLink',
+            "Bu havola eski yoki noto'g'ri");
       }
       setState(() => _error = msg);
     } finally {
@@ -164,7 +149,9 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(_publicBarberProvider(widget.slug));
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'booking.title', "Yozilish"))),
+      appBar: AppBar(
+          title: Text(tr(ref, 'booking.title', "Yozilish"),
+              style: AppText.titleMd)),
       body: async.when(
         loading: () => const AppListSkeleton(),
         error: (e, _) => AppEmptyState(
@@ -178,106 +165,176 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
           ),
         ),
         data: (barber) {
-          // public-booking.service.ts:192 includes the user under a nested
-          // `user` object — name/avatar/phone live there, not on the root.
           final user = barber['user'] is Map
               ? (barber['user'] as Map).cast<String, dynamic>()
               : <String, dynamic>{};
-          final barberName = (barber['name'] ?? user['name'] ?? '').toString();
-          final barberAvatar = (barber['avatar'] ?? user['avatar'] ?? '').toString();
+          final barberName =
+              (barber['name'] ?? user['name'] ?? '').toString();
+          final barberAvatar =
+              (barber['avatar'] ?? user['avatar'] ?? '').toString();
           if (_success) return _SuccessView(name: barberName);
-          final services = (barber['services'] as List? ?? []).cast<Map<String, dynamic>>();
+          final services = (barber['services'] as List? ?? [])
+              .cast<Map<String, dynamic>>();
           final barberId = barber['id'].toString();
           return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg,
+                AppSpacing.xl, AppSpacing.xxxl),
             children: [
-              // Barber hero
-              Row(children: [
-                ClipOval(
-                  child: barberAvatar.isNotEmpty
-                      ? CachedNetworkImage(imageUrl: assetUrl(barberAvatar), width: 64, height: 64, fit: BoxFit.cover)
-                      : Container(width: 64, height: 64, color: AppColors.surface, child: const Icon(Icons.person, color: AppColors.textMuted)),
+              AppCard(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.14),
+                    AppColors.primary.withValues(alpha: 0.04),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(barberName,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: AppColors.textBright, letterSpacing: -0.3)),
-                      const SizedBox(height: 4),
-                      Text((barber['locationUz'] ?? barber['location'] ?? '').toString(),
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                    ],
+                borderColor: AppColors.primary.withValues(alpha: 0.2),
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Row(children: [
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: barberAvatar.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: assetUrl(barberAvatar),
+                              width: 64,
+                              height: 64,
+                              fit: BoxFit.cover)
+                          : Container(
+                              width: 64,
+                              height: 64,
+                              color: AppColors.surface,
+                              alignment: Alignment.center,
+                              child: Text(
+                                  (barberName.isNotEmpty
+                                          ? barberName[0]
+                                          : '?')
+                                      .toUpperCase(),
+                                  style: AppText.titleLg
+                                      .copyWith(color: AppColors.primary)),
+                            ),
+                    ),
                   ),
-                ),
-              ]),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(barberName, style: AppText.titleMd),
+                        if ((barber['locationUz'] ?? barber['location'] ?? '')
+                            .toString()
+                            .isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                              (barber['locationUz'] ??
+                                      barber['location'] ??
+                                      '')
+                                  .toString(),
+                              style: AppText.bodySm),
+                        ],
+                      ],
+                    ),
+                  ),
+                ]),
+              ),
 
-              const SizedBox(height: 24),
-              Text(tr(ref, 'profile.services', "Xizmatlar"),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xl),
+              _SectionHeader(
+                icon: Icons.content_cut,
+                title: tr(ref, 'profile.services', "Xizmatlar"),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               if (services.isEmpty)
-                Text(tr(ref, 'mobile.publicBooking.noServices',
-                    "Bu sartaroshda xizmat sozlanmagan"),
-                    style: const TextStyle(color: AppColors.textMuted))
+                Text(
+                    tr(ref, 'mobile.publicBooking.noServices',
+                        "Bu sartaroshda xizmat sozlanmagan"),
+                    style: AppText.bodySm)
               else
                 Wrap(
-                  spacing: 8, runSpacing: 8,
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
                   children: services.map((s) {
                     final id = s['id'] as String;
                     final name = (s['nameUz'] ?? s['name'] ?? '').toString();
                     final price = ((s['price'] ?? 0) as num).toInt();
                     final on = _selected.contains(id);
-                    return FilterChip(
-                      label: Text("$name — ${_fmt(price)} ${tr(ref, 'common.currency', "so'm")}"),
+                    return AppChip(
+                      label:
+                          "$name — ${_fmt(price)} ${tr(ref, 'common.currency', "so'm")}",
                       selected: on,
-                      onSelected: (v) => setState(() {
-                        if (v) {
-                          _selected.add(id);
-                        } else {
+                      onTap: () => setState(() {
+                        if (on) {
                           _selected.remove(id);
+                        } else {
+                          _selected.add(id);
                         }
                       }),
                     );
                   }).toList(),
                 ),
 
-              const SizedBox(height: 22),
-              Text(tr(ref, 'booking.date', "Sana"),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xl),
+              _SectionHeader(
+                icon: Icons.event,
+                title: tr(ref, 'booking.date', "Sana"),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               SizedBox(
-                height: 70,
+                height: 76,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: 14,
-                  separatorBuilder: (context, i) => const SizedBox(width: 8),
+                  separatorBuilder: (context, i) =>
+                      const SizedBox(width: AppSpacing.sm),
                   itemBuilder: (context, i) {
                     final d = DateTime.now().add(Duration(days: i));
-                    final on = d.day == _date.day && d.month == _date.month && d.year == _date.year;
-                    return GestureDetector(
-                      onTap: () => setState(() {
-                        _date = DateTime(d.year, d.month, d.day);
-                        _time = null;
-                      }),
+                    final on = d.day == _date.day &&
+                        d.month == _date.month &&
+                        d.year == _date.year;
+                    return TapScale(
+                      onTap: () {
+                        AppHaptics.selection();
+                        setState(() {
+                          _date = DateTime(d.year, d.month, d.day);
+                          _time = null;
+                        });
+                      },
+                      haptic: HapticStrength.none,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        width: 56,
+                        width: 60,
                         decoration: BoxDecoration(
-                          color: on ? AppColors.primary : AppColors.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: on ? AppColors.primary : AppColors.border),
+                          gradient: on ? AppColors.primaryGradient : null,
+                          color: on ? null : AppColors.surface,
+                          borderRadius: AppRadius.rMd,
+                          border: Border.all(
+                              color: on
+                                  ? Colors.transparent
+                                  : AppColors.border),
+                          boxShadow: on
+                              ? AppShadows.primaryGlow(AppColors.primary)
+                              : null,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text("${d.day}",
-                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18,
-                                    color: on ? Colors.white : AppColors.textPrimary)),
+                                style: AppText.numeric.copyWith(
+                                    fontSize: 18,
+                                    color: on
+                                        ? Colors.white
+                                        : AppColors.textBright)),
                             Text(_monthShort(d.month),
-                                style: TextStyle(fontSize: 11,
-                                    color: on ? Colors.white70 : AppColors.textMuted)),
+                                style: AppText.overline.copyWith(
+                                    fontSize: 10,
+                                    color: on
+                                        ? Colors.white70
+                                        : AppColors.textMuted)),
                           ],
                         ),
                       ),
@@ -286,51 +343,64 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                 ),
               ),
 
-              const SizedBox(height: 18),
-              Text(tr(ref, 'booking.time', "Vaqt"),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.lg),
+              _SectionHeader(
+                icon: Icons.access_time,
+                title: tr(ref, 'booking.time', "Vaqt"),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               FutureBuilder<List<String>>(
                 key: ValueKey(_date.toIso8601String()),
                 future: _loadSlots(barberId),
                 builder: (context, snap) {
                   if (!snap.hasData) {
                     return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
+                      padding:
+                          EdgeInsets.symmetric(vertical: AppSpacing.sm),
                       child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
                         children: [
-                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
-                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
-                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
-                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
-                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
-                          AppSkeleton(width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(
+                              width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(
+                              width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(
+                              width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(
+                              width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(
+                              width: 72, height: 34, borderRadius: 20),
+                          AppSkeleton(
+                              width: 72, height: 34, borderRadius: 20),
                         ],
                       ),
                     );
                   }
                   final slots = snap.data!;
                   if (slots.isEmpty) {
-                    return Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceElevated,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
-                      ),
+                    return AppCard(
+                      variant: AppCardVariant.flat,
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Row(
                         children: [
-                          const Icon(Icons.event_busy_rounded,
-                              color: AppColors.textMuted, size: 20),
-                          const SizedBox(width: 10),
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color:
+                                  AppColors.textMuted.withValues(alpha: 0.15),
+                              borderRadius: AppRadius.rSm,
+                            ),
+                            child: const Icon(Icons.event_busy_rounded,
+                                color: AppColors.textMuted, size: 18),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: Text(
                               tr(ref, 'common.noSlots',
                                   "Bu kunda bo'sh vaqt yo'q"),
-                              style: const TextStyle(
-                                  color: AppColors.textSecondary, fontSize: 13),
+                              style: AppText.bodySm,
                             ),
                           ),
                         ],
@@ -338,50 +408,89 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                     );
                   }
                   return Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: slots.map((t) => ChoiceChip(
-                          label: Text(t),
-                          selected: _time == t,
-                          onSelected: (_) => setState(() => _time = t),
-                        )).toList(),
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
+                    children: slots
+                        .map((t) => AppChip(
+                              label: t,
+                              selected: _time == t,
+                              onTap: () => setState(() => _time = t),
+                            ))
+                        .toList(),
                   );
                 },
               ),
 
-              const SizedBox(height: 22),
-              Text(tr(ref, 'auth.yourInfo', "Ma'lumotlaringiz"),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.textMuted, letterSpacing: 0.6)),
-              const SizedBox(height: 8),
-              TextField(
-                  controller: _nameCtrl,
-                  decoration: InputDecoration(
-                      hintText: tr(ref, 'auth.yourName', "Ismingiz"))),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _phoneCtrl,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(9)],
-                decoration: const InputDecoration(
-                  prefix: Padding(padding: EdgeInsets.only(right: 6), child: Text("+998", style: TextStyle(fontWeight: FontWeight.w700))),
-                  hintText: "90 123 45 67",
+              const SizedBox(height: AppSpacing.xl),
+              _SectionHeader(
+                icon: Icons.person_outline,
+                title: tr(ref, 'auth.yourInfo', "Ma'lumotlaringiz"),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              AppCard(
+                variant: AppCardVariant.flat,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                        controller: _nameCtrl,
+                        decoration: InputDecoration(
+                            hintText:
+                                tr(ref, 'auth.yourName', "Ismingiz"))),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextField(
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(9)
+                      ],
+                      decoration: const InputDecoration(
+                        prefix: Padding(
+                            padding: EdgeInsets.only(right: 6),
+                            child: Text("+998",
+                                style:
+                                    TextStyle(fontWeight: FontWeight.w700))),
+                        hintText: "90 123 45 67",
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
               if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.1),
+                    borderRadius: AppRadius.rSm,
+                    border: Border.all(
+                        color: AppColors.danger.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.error_outline,
+                        size: 16, color: AppColors.danger),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(_error!,
+                          style: AppText.bodySm.copyWith(
+                              color: AppColors.danger,
+                              fontWeight: FontWeight.w500)),
+                    ),
+                  ]),
+                ),
               ],
 
-              const SizedBox(height: 22),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _busy ? null : () => _submit(barberId, services),
-                  child: _busy
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text(tr(ref, 'booking.title', "Yozilish"),
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-                ),
+              const SizedBox(height: AppSpacing.xl),
+              AppButton(
+                label: tr(ref, 'booking.title', "Yozilish"),
+                onPressed: _busy ? null : () => _submit(barberId, services),
+                loading: _busy,
+                size: AppButtonSize.lg,
+                fullWidth: true,
+                leadingIcon: Icons.check_circle_outline,
               ),
             ],
           );
@@ -392,7 +501,10 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
 
   String _monthShort(int m) {
     if (m < 1 || m > 12) return '';
-    const fallback = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
+    const fallback = [
+      'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+      'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'
+    ];
     final months = trList(ref, 'mobile.dates.months', fallback);
     return months[m - 1].substring(0, 3).toLowerCase();
   }
@@ -409,6 +521,30 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
   }
 }
 
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.title});
+  final IconData icon;
+  final String title;
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.12),
+          borderRadius: AppRadius.rSm,
+        ),
+        child: Icon(icon, size: 16, color: AppColors.primary),
+      ),
+      const SizedBox(width: AppSpacing.sm),
+      Text(title.toUpperCase(),
+          style: AppText.overline
+              .copyWith(color: AppColors.primary, letterSpacing: 1)),
+    ]);
+  }
+}
+
 class _SuccessView extends ConsumerWidget {
   const _SuccessView({required this.name});
   final String name;
@@ -416,27 +552,45 @@ class _SuccessView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(AppSpacing.xxxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 90, height: 90,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.15),
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.success.withValues(alpha: 0.3),
+                    AppColors.success.withValues(alpha: 0.1),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
+                boxShadow: AppShadows.primaryGlow(AppColors.success),
               ),
-              child: const Icon(Icons.check, size: 56, color: AppColors.success),
-            ).animate().scale(duration: 500.ms, begin: const Offset(0.4, 0.4), end: const Offset(1, 1), curve: Curves.easeOutBack),
-            const SizedBox(height: 20),
-            Text(tr(ref, 'mobile.publicBooking.successTitle', "Yozildingiz!"),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textBright, letterSpacing: -0.3)),
-            const SizedBox(height: 8),
+              child: const Icon(Icons.check,
+                  size: 56, color: AppColors.success),
+            )
+                .animate()
+                .scale(
+                    duration: 500.ms,
+                    begin: const Offset(0.4, 0.4),
+                    end: const Offset(1, 1),
+                    curve: Curves.easeOutBack),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+                tr(ref, 'mobile.publicBooking.successTitle',
+                    "Yozildingiz!"),
+                style: AppText.titleLg),
+            const SizedBox(height: AppSpacing.sm),
             Text(
                 tr(ref, 'mobile.publicBooking.successMsg',
                     "{{name}} sizni kutadi. Tasdiqlash SMS keladi.",
                     {'name': name}),
-                style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
+                style: AppText.body,
                 textAlign: TextAlign.center),
           ],
         ),
@@ -445,8 +599,8 @@ class _SuccessView extends ConsumerWidget {
   }
 }
 
-/// Loads barber profile by public slug — needs no auth.
-final _publicBarberProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, slug) async {
+final _publicBarberProvider =
+    FutureProvider.family<Map<String, dynamic>, String>((ref, slug) async {
   final dio = ref.watch(dioProvider);
   final res = await dio.get('/public/barbers/$slug');
   return Map<String, dynamic>.from(res.data as Map);
