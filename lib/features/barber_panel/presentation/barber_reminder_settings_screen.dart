@@ -1,44 +1,51 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/errors.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_profile_repository.dart';
 
-/// Two-knob settings for the SMS reminder system:
-///   reminderHoursBefore: 1..6 — how far before a booking to send the SMS
-///     (web restricted to 1..6 in commit 9bfae71; SMS provider rate-limits
-///      anything longer than ~6h reliably)
-///   reminderDays: 7..30 — lookback window for the "next reminder due" sweep
 class BarberReminderSettingsScreen extends ConsumerStatefulWidget {
   const BarberReminderSettingsScreen({super.key});
 
   @override
-  ConsumerState<BarberReminderSettingsScreen> createState() => _BarberReminderSettingsScreenState();
+  ConsumerState<BarberReminderSettingsScreen> createState() =>
+      _BarberReminderSettingsScreenState();
 }
 
-class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSettingsScreen> {
+class _BarberReminderSettingsScreenState
+    extends ConsumerState<BarberReminderSettingsScreen> {
   int _hours = 1;
   int _days = 14;
   bool _saving = false;
   bool _seeded = false;
 
   Future<void> _save(String barberId) async {
+    AppHaptics.medium();
     setState(() => _saving = true);
     try {
-      await ref.read(barberProfileRepositoryProvider).updateBarber(barberId, {
+      await ref
+          .read(barberProfileRepositoryProvider)
+          .updateBarber(barberId, {
         'reminderHoursBefore': _hours,
         'reminderDays': _days,
       });
       ref.invalidate(barberProfileProvider(barberId));
+      AppHaptics.success();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppHaptics.error();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -47,105 +54,190 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
-    if (user == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (user == null) {
+      return const Scaffold(
+          body: Center(child: CircularProgressIndicator()));
+    }
     final async = ref.watch(barberProfileProvider(user.id));
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.reminders.title', "Eslatma sozlamalari"))),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'mobile.barber.reminders.title',
+              'Eslatma sozlamalari'),
+          style: AppText.titleMd,
+        ),
+      ),
       body: async.when(
         loading: () => const AppListSkeleton(),
         error: (e, _) => AppErrorState(message: humanize(e)),
         data: (b) {
           if (!_seeded) {
             _seeded = true;
-            _hours = ((b['reminderHoursBefore'] ?? 1) as num).toInt().clamp(1, 6);
-            _days = ((b['reminderDays'] ?? 14) as num).toInt().clamp(7, 30);
+            _hours =
+                ((b['reminderHoursBefore'] ?? 1) as num).toInt().clamp(1, 6);
+            _days =
+                ((b['reminderDays'] ?? 14) as num).toInt().clamp(7, 30);
           }
           final isShopManaged =
               (b['barbershopId'] ?? '').toString().isNotEmpty;
           if (isShopManaged) {
-            // Shop-managed barber: cron uses the salon's reminder values,
-            // not the barber's. Saving here would set ignored fields, so
-            // we explain and hide the steppers — mirrors web's
-            // BarberReminderSettingsScreen `isShopManaged` branch.
             return ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+              ),
               children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.25)),
-                  ),
+                AppCard(
+                  variant: AppCardVariant.outlined,
+                  padding: AppSpacing.cardPadding,
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderColor:
+                      AppColors.primary.withValues(alpha: 0.3),
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          const Icon(Icons.info_outline,
-                              size: 20, color: AppColors.primary),
-                          const SizedBox(width: 8),
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary
+                                  .withValues(alpha: 0.15),
+                              borderRadius: AppRadius.rSm,
+                            ),
+                            child: const Icon(Icons.info_outline,
+                                size: 18, color: AppColors.primary),
+                          ),
+                          AppSpacing.hGapSm,
                           Expanded(
                             child: Text(
-                                tr(ref,
-                                    'reminderSettings.shopManagedTitle',
-                                    "Salon eslatma sozlamalarini boshqaradi"),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                    color: AppColors.textBright)),
+                              tr(
+                                  ref,
+                                  'reminderSettings.shopManagedTitle',
+                                  'Salon eslatma sozlamalarini boshqaradi'),
+                              style: AppText.titleSm,
+                            ),
                           ),
                         ]),
-                        const SizedBox(height: 6),
+                        AppSpacing.gapSm,
                         Text(
-                            tr(ref,
-                                'reminderSettings.shopManagedDescription',
-                                "Siz salonga biriktirilgansiz. Eslatmalar vaqti va davri salon profilida belgilanadi."),
-                            style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                                height: 1.5)),
+                          tr(
+                              ref,
+                              'reminderSettings.shopManagedDescription',
+                              'Siz salonga biriktirilgansiz. Eslatmalar vaqti va davri salon profilida belgilanadi.'),
+                          style: AppText.bodySm,
+                        ),
                       ]),
                 ),
               ],
             );
           }
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             children: [
               Text(
                 tr(ref, 'mobile.barber.reminders.hint',
                     "Mijozlarga SMS bilan eslatma jo'natiladi. Quyida vaqtni va davrni sozlang."),
-                style: const TextStyle(color: AppColors.textSecondary, height: 1.5),
+                style: AppText.bodyLg
+                    .copyWith(color: AppColors.textSecondary),
               ),
-              const SizedBox(height: 18),
-
-              _SectionLabel(tr(ref, 'mobile.barber.reminders.hoursLabel', "Bron oldidan necha soat")),
-              _Stepper(
-                value: _hours,
-                min: 1, max: 6,
-                suffix: tr(ref, 'mobile.barber.reminders.hoursSuffix', " soat"),
-                onChanged: (v) => setState(() => _hours = v),
-              ),
-
-              const SizedBox(height: 18),
-              _SectionLabel(tr(ref, 'mobile.barber.reminders.daysLabel', "Eslatma davri (kunlarda)")),
-              _Stepper(
-                value: _days,
-                min: 7, max: 30,
-                suffix: tr(ref, 'mobile.barber.reminders.daysSuffix', " kun"),
-                onChanged: (v) => setState(() => _days = v),
-              ),
-
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : () => _save(user.id),
-                  child: _saving
-                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text(tr(ref, 'common.save', "Saqlash")),
+              AppSpacing.gapXl,
+              AppCard(
+                variant: AppCardVariant.outlined,
+                padding: AppSpacing.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary
+                              .withValues(alpha: 0.15),
+                          borderRadius: AppRadius.rSm,
+                        ),
+                        child: const Icon(Icons.access_time,
+                            color: AppColors.primary, size: 18),
+                      ),
+                      AppSpacing.hGapSm,
+                      Expanded(
+                        child: Text(
+                          tr(ref, 'mobile.barber.reminders.hoursLabel',
+                              'Bron oldidan necha soat'),
+                          style: AppText.titleSm,
+                        ),
+                      ),
+                    ]),
+                    AppSpacing.gapMd,
+                    _Stepper(
+                      value: _hours,
+                      min: 1,
+                      max: 6,
+                      suffix: tr(ref,
+                          'mobile.barber.reminders.hoursSuffix',
+                          ' soat'),
+                      onChanged: (v) => setState(() => _hours = v),
+                    ),
+                  ],
                 ),
+              ),
+              AppSpacing.gapMd,
+              AppCard(
+                variant: AppCardVariant.outlined,
+                padding: AppSpacing.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.warning
+                              .withValues(alpha: 0.15),
+                          borderRadius: AppRadius.rSm,
+                        ),
+                        child: const Icon(Icons.calendar_month,
+                            color: AppColors.warning, size: 18),
+                      ),
+                      AppSpacing.hGapSm,
+                      Expanded(
+                        child: Text(
+                          tr(ref, 'mobile.barber.reminders.daysLabel',
+                              'Eslatma davri (kunlarda)'),
+                          style: AppText.titleSm,
+                        ),
+                      ),
+                    ]),
+                    AppSpacing.gapMd,
+                    _Stepper(
+                      value: _days,
+                      min: 7,
+                      max: 30,
+                      suffix: tr(ref,
+                          'mobile.barber.reminders.daysSuffix', ' kun'),
+                      onChanged: (v) => setState(() => _days = v),
+                    ),
+                  ],
+                ),
+              ),
+              AppSpacing.gapXl,
+              AppButton(
+                label: tr(ref, 'common.save', 'Saqlash'),
+                leadingIcon: Icons.check,
+                variant: AppButtonVariant.primary,
+                size: AppButtonSize.lg,
+                fullWidth: true,
+                loading: _saving,
+                onPressed: _saving ? null : () => _save(user.id),
               ),
             ],
           );
@@ -154,12 +246,6 @@ class _BarberReminderSettingsScreenState extends ConsumerState<BarberReminderSet
     );
   }
 }
-
-// ignore: non_constant_identifier_names
-Widget _SectionLabel(String text) => Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
-    );
 
 class _Stepper extends StatelessWidget {
   const _Stepper({
@@ -178,27 +264,73 @@ class _Stepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.surfaceElevated,
+        borderRadius: AppRadius.rMd,
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: value > min ? () => onChanged(value - 1) : null,
-            icon: const Icon(Icons.remove_circle_outline, color: AppColors.primary),
+          TapScale(
+            onTap: value > min
+                ? () {
+                    AppHaptics.selection();
+                    onChanged(value - 1);
+                  }
+                : null,
+            scale: 0.85,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: value > min
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : AppColors.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.remove,
+                color: value > min
+                    ? AppColors.primary
+                    : AppColors.textMuted,
+              ),
+            ),
           ),
           Expanded(
             child: Center(
-              child: Text("$value$suffix",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
+              child: Text(
+                '$value$suffix',
+                style: AppText.numeric.copyWith(fontSize: 22),
+              ),
             ),
           ),
-          IconButton(
-            onPressed: value < max ? () => onChanged(value + 1) : null,
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+          TapScale(
+            onTap: value < max
+                ? () {
+                    AppHaptics.selection();
+                    onChanged(value + 1);
+                  }
+                : null,
+            scale: 0.85,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: value < max
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : AppColors.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.add,
+                color: value < max
+                    ? AppColors.primary
+                    : AppColors.textMuted,
+              ),
+            ),
           ),
         ],
       ),

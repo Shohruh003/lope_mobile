@@ -1,29 +1,28 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_clients_repository.dart';
 
-/// Full client history with search + visit-bucket filters. Mirrors the web's
-/// Days-Since-Visit segmentation (0-7, 8-20, 21-60, 60+).
 class BarberClientsScreen extends ConsumerStatefulWidget {
   const BarberClientsScreen({super.key});
 
   @override
-  ConsumerState<BarberClientsScreen> createState() => _BarberClientsScreenState();
+  ConsumerState<BarberClientsScreen> createState() =>
+      _BarberClientsScreenState();
 }
 
 class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
   static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
   String _query = '';
-  String _bucket = 'all'; // 'all' | '0-7' | '8-20' | '21-60' | '60+'
+  String _bucket = 'all';
 
   @override
   Widget build(BuildContext context) {
@@ -32,28 +31,40 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
     final async = ref.watch(barberClientsProvider(user.id));
 
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'barberMyClients.title', "Mijozlarim"))),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'barberMyClients.title', 'Mijozlarim'),
+          style: AppText.titleMd,
+        ),
+      ),
       body: async.when(
         loading: () => const AppListSkeleton(),
         error: (e, _) => AppErrorState(message: humanize(e)),
         data: (list) {
           final now = DateTime.now();
           final filtered = list.where((c) {
-            // Search
             if (_query.isNotEmpty) {
               final q = _query.toLowerCase();
-              final hit = c.name.toLowerCase().contains(q) || c.phone.contains(_query);
+              final hit = c.name.toLowerCase().contains(q) ||
+                  c.phone.contains(_query);
               if (!hit) return false;
             }
-            // Days-since-visit bucket
             if (_bucket != 'all') {
               if (c.lastVisit == null) return _bucket == '60+';
               final days = now.difference(c.lastVisit!).inDays;
               switch (_bucket) {
-                case '0-7': if (days > 7) return false; break;
-                case '8-20': if (days < 8 || days > 20) return false; break;
-                case '21-60': if (days < 21 || days > 60) return false; break;
-                case '60+': if (days <= 60) return false; break;
+                case '0-7':
+                  if (days > 7) return false;
+                  break;
+                case '8-20':
+                  if (days < 8 || days > 20) return false;
+                  break;
+                case '21-60':
+                  if (days < 21 || days > 60) return false;
+                  break;
+                case '60+':
+                  if (days <= 60) return false;
+                  break;
               }
             }
             return true;
@@ -61,36 +72,85 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
 
           return Column(
             children: [
-              // Search bar
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: TextField(
-                  onChanged: (v) => setState(() => _query = v),
-                  style: const TextStyle(color: AppColors.textBright),
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 22),
-                    hintText: tr(ref, 'barberMyClients.searchPlaceholder', "Ism yoki telefon"),
-                    isDense: true,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                ),
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.rMd,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: TextField(
+                    onChanged: (v) => setState(() => _query = v),
+                    style: AppText.body,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12),
+                      prefixIcon: const Icon(Icons.search,
+                          color: AppColors.textMuted, size: 20),
+                      hintText: tr(ref,
+                          'barberMyClients.searchPlaceholder',
+                          'Ism yoki telefon'),
+                      hintStyle: AppText.body
+                          .copyWith(color: AppColors.textMuted),
+                    ),
                   ),
                 ),
               ),
-              // Bucket chips
               SizedBox(
-                height: 40,
+                height: 44,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg),
                   children: [
-                    _Chip(label: tr(ref, 'common.all', "Hammasi"), on: _bucket == 'all', onTap: () => setState(() => _bucket = 'all')),
-                    _Chip(label: tr(ref, 'barberMyClients.days07', "0-7 kun"), on: _bucket == '0-7', onTap: () => setState(() => _bucket = '0-7')),
-                    _Chip(label: tr(ref, 'barberMyClients.days820', "8-20 kun"), on: _bucket == '8-20', onTap: () => setState(() => _bucket = '8-20')),
-                    _Chip(label: tr(ref, 'barberMyClients.days2160', "21-60 kun"), on: _bucket == '21-60', onTap: () => setState(() => _bucket = '21-60')),
-                    _Chip(label: tr(ref, 'barberMyClients.days60plus', "60+ kun"), on: _bucket == '60+', onTap: () => setState(() => _bucket = '60+')),
+                    AppChip(
+                      label: tr(ref, 'common.all', 'Hammasi'),
+                      selected: _bucket == 'all',
+                      onTap: () => setState(() => _bucket = 'all'),
+                    ),
+                    AppSpacing.hGapSm,
+                    AppChip(
+                      label: tr(ref, 'barberMyClients.days07', '0-7 kun'),
+                      selected: _bucket == '0-7',
+                      onTap: () => setState(() => _bucket = '0-7'),
+                    ),
+                    AppSpacing.hGapSm,
+                    AppChip(
+                      label: tr(ref, 'barberMyClients.days820',
+                          '8-20 kun'),
+                      selected: _bucket == '8-20',
+                      onTap: () => setState(() => _bucket = '8-20'),
+                    ),
+                    AppSpacing.hGapSm,
+                    AppChip(
+                      label: tr(ref, 'barberMyClients.days2160',
+                          '21-60 kun'),
+                      selected: _bucket == '21-60',
+                      onTap: () => setState(() => _bucket = '21-60'),
+                    ),
+                    AppSpacing.hGapSm,
+                    AppChip(
+                      label: tr(ref, 'barberMyClients.days60plus',
+                          '60+ kun'),
+                      selected: _bucket == '60+',
+                      onTap: () => setState(() => _bucket = '60+'),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 6),
-
+              AppSpacing.gapSm,
               if (filtered.isEmpty)
                 Expanded(
                   child: AppEmptyState(
@@ -99,91 +159,114 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                         ? tr(ref, 'mobile.barber.clients.empty',
                             "Hali mijoz yo'q")
                         : tr(ref, 'common.noResults',
-                            "Filterga mos mijoz topilmadi"),
+                            'Filterga mos mijoz topilmadi'),
                     message: list.isEmpty
-                        ? tr(
-                            ref,
-                            'mobile.barber.clients.emptyHint',
-                            "Mijozlar sizga bir marta yozilganidan keyin bu yerda paydo bo'ladi.",
-                          )
-                        : tr(
-                            ref,
-                            'common.noResultsHint',
-                            "Qidiruvni tozalab yoki filtrni o'zgartirib ko'ring.",
-                          ),
+                        ? tr(ref, 'mobile.barber.clients.emptyHint',
+                            "Mijozlar sizga bir marta yozilganidan keyin bu yerda paydo bo'ladi.")
+                        : tr(ref, 'common.noResultsHint',
+                            "Qidiruvni tozalab yoki filtrni o'zgartirib ko'ring."),
                   ),
                 )
               else
                 Expanded(
                   child: RefreshIndicator(
                     color: AppColors.primary,
-                    onRefresh: () async => ref.refresh(barberClientsProvider(user.id).future),
+                    onRefresh: () async =>
+                        ref.refresh(barberClientsProvider(user.id).future),
                     child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.sm,
+                        AppSpacing.lg,
+                        AppSpacing.xxl,
+                      ),
                       itemCount: filtered.length,
-                      separatorBuilder: (context, i) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => AppSpacing.gapSm,
                       itemBuilder: (context, i) {
                         final c = filtered[i];
-                        return Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
-                          ),
+                        return AppCard(
+                          variant: AppCardVariant.outlined,
+                          padding: AppSpacing.cardPadding,
                           child: Row(children: [
                             Container(
-                              width: 44, height: 44,
+                              width: 48,
+                              height: 48,
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.12),
+                                gradient: AppColors.primaryGradient,
                                 shape: BoxShape.circle,
                               ),
                               alignment: Alignment.center,
                               child: Text(
-                                (c.name.isNotEmpty ? c.name[0] : (c.phone.isNotEmpty ? c.phone[c.phone.length - 1] : '?')).toUpperCase(),
-                                style: const TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w600),
+                                (c.name.isNotEmpty
+                                        ? c.name[0]
+                                        : (c.phone.isNotEmpty
+                                            ? c.phone[c.phone.length - 1]
+                                            : '?'))
+                                    .toUpperCase(),
+                                style: AppText.titleMd
+                                    .copyWith(color: Colors.white),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            AppSpacing.hGapMd,
                             Expanded(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   Text(c.name.isEmpty ? c.phone : c.name,
-                                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                                      style: AppText.titleSm),
                                   if (c.phone.isNotEmpty)
-                                    Text(c.phone, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                                  const SizedBox(height: 4),
-                                  Row(children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.success.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(20),
+                                    Text(c.phone,
+                                        style: AppText.caption),
+                                  const SizedBox(height: 6),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 4,
+                                    children: [
+                                      AppBadge(
+                                        label:
+                                            "${c.bookingsCount} ${tr(ref, 'barberMyClients.bookingsShort', 'bron')}",
+                                        variant: AppBadgeVariant.success,
                                       ),
-                                      child: Text("${c.bookingsCount} ${tr(ref, 'barberMyClients.bookingsShort', 'bron')}",
-                                          style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w600, fontSize: 10)),
-                                    ),
-                                    if (c.lastVisit != null) ...[
-                                      const SizedBox(width: 6),
-                                      Text("• ${_df.format(c.lastVisit!.toLocal())}",
-                                          style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                                      if (c.lastVisit != null)
+                                        Text(
+                                          "· ${_df.format(c.lastVisit!.toLocal())}",
+                                          style: AppText.caption,
+                                        ),
+                                      if (c.totalSpent > 0)
+                                        Text(
+                                          "· ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
+                                          style: AppText.caption.copyWith(
+                                            color: AppColors.warning,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
                                     ],
-                                    if (c.totalSpent > 0) ...[
-                                      const SizedBox(width: 6),
-                                      Text("• ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
-                                          style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w600, fontSize: 11)),
-                                    ],
-                                  ]),
+                                  ),
                                 ],
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.phone_outlined, color: AppColors.primary, size: 20),
-                              onPressed: c.phone.isEmpty ? null : () => _call(c.phone),
+                            AppSpacing.hGapSm,
+                            TapScale(
+                              onTap: c.phone.isEmpty
+                                  ? null
+                                  : () => _call(c.phone),
+                              scale: 0.9,
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.phone_outlined,
+                                    color: AppColors.primary, size: 18),
+                              ),
                             ),
                           ]),
-                        ).animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);
+                        ).animate().fadeIn(
+                            duration: 250.ms, delay: (i * 25).ms);
                       },
                     ),
                   ),
@@ -196,6 +279,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
   }
 
   Future<void> _call(String phone) async {
+    AppHaptics.light();
     final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
     final uri = Uri(scheme: 'tel', path: clean);
     if (await canLaunchUrl(uri)) await launchUrl(uri);
@@ -210,24 +294,5 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.on, required this.onTap});
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: on,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primary.withValues(alpha: 0.25),
-      ),
-    );
   }
 }
