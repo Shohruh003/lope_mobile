@@ -4,15 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/lopepay_repository.dart';
 
-/// Mirrors web `ShopProducts.tsx`:
-///   - Search input
-///   - Add/Edit dialog (name, default price, isActive toggle on edit)
-///   - Per-card: icon, name + Inactive badge, price, "{N} marta ishlatildi" count
-///   - Pencil (edit) + Trash (delete) actions per card
 class LopepayProductsScreen extends ConsumerStatefulWidget {
   const LopepayProductsScreen({super.key});
   @override
@@ -28,28 +23,47 @@ class _LopepayProductsScreenState
   Widget build(BuildContext context) {
     final async = ref.watch(lopepayProductsFilteredProvider(_query));
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.lopepay.products.title',
-          "Mahsulotlar"))),
+      appBar: AppBar(
+          title: Text(tr(ref, 'mobile.lopepay.products.title', "Mahsulotlar"),
+              style: AppText.titleMd)),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primary,
-        onPressed: () => _showForm(context, null),
-        icon: const Icon(Icons.add),
-        label: Text(tr(ref, 'mobile.lopepay.products.addBtn',
-            "Mahsulot qo'shish")),
+        onPressed: () {
+          AppHaptics.medium();
+          _showForm(context, null);
+        },
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+            tr(ref, 'mobile.lopepay.products.addBtn', "Mahsulot qo'shish"),
+            style: AppText.button.copyWith(color: Colors.white)),
       ),
       body: Column(children: [
-        // ===== Search bar =====
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: TextField(
-            onChanged: (v) => setState(() => _query = v),
-            style: const TextStyle(color: AppColors.textBright),
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search,
-                  color: AppColors.textMuted, size: 22),
-              hintText: tr(ref, 'mobile.lopepay.products.searchHint',
-                  "Mahsulot nomi"),
-              isDense: true,
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xs),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: AppRadius.rMd,
+              border: Border.all(color: AppColors.border),
+            ),
+            child: TextField(
+              onChanged: (v) => setState(() => _query = v),
+              style: AppText.body,
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                prefixIcon: const Icon(Icons.search,
+                    color: AppColors.textMuted, size: 20),
+                hintText:
+                    tr(ref, 'mobile.lopepay.products.searchHint', "Mahsulot nomi"),
+                hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
+              ),
             ),
           ),
         ),
@@ -83,34 +97,38 @@ class _LopepayProductsScreenState
                   ref.invalidate(lopepayProductsProvider);
                 },
                 child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 96),
                   itemCount: list.length,
                   separatorBuilder: (context, i) =>
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (context, i) {
                     final p = list[i];
                     return Opacity(
                       opacity: p.isActive ? 1.0 : 0.6,
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border),
-                        ),
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         child: Row(children: [
                           Container(
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primary.withValues(alpha: 0.25),
+                                  AppColors.primary.withValues(alpha: 0.1),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: AppRadius.rMd,
                             ),
                             alignment: Alignment.center,
                             child: const Icon(Icons.shopping_bag_outlined,
                                 color: AppColors.primary, size: 22),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,29 +138,15 @@ class _LopepayProductsScreenState
                                     child: Text(p.name,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 16)),
+                                        style: AppText.titleSm),
                                   ),
                                   if (!p.isActive) ...[
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.textMuted
-                                            .withValues(alpha: 0.15),
-                                        borderRadius:
-                                            BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                          tr(ref,
-                                              'mobile.lopepay.products.inactive',
-                                              "Faol emas"),
-                                          style: const TextStyle(
-                                              color: AppColors.textMuted,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600)),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    AppBadge(
+                                      label: tr(ref,
+                                          'mobile.lopepay.products.inactive',
+                                          "Faol emas"),
+                                      variant: AppBadgeVariant.neutral,
                                     ),
                                   ],
                                 ]),
@@ -150,31 +154,30 @@ class _LopepayProductsScreenState
                                   const SizedBox(height: 2),
                                   Text(
                                       "${_fmt(p.price)} ${tr(ref, 'common.currency', "so'm")}",
-                                      style: const TextStyle(
-                                          color: AppColors.textMuted,
-                                          fontSize: 13)),
+                                      style: AppText.bodySm.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textBright)),
                                 ],
                                 Text(
-                                    tr(ref,
+                                    tr(
+                                        ref,
                                         'mobile.lopepay.products.usedTimes',
-                                        "{{n}} marta ishlatilgan", {
-                                      'n': '${p.installmentsCount}'
-                                    }),
-                                    style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 12)),
+                                        "{{n}} marta ishlatilgan",
+                                        {'n': '${p.installmentsCount}'}),
+                                    style: AppText.caption),
                               ],
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined,
-                                color: AppColors.textMuted, size: 20),
-                            onPressed: () => _showForm(context, p),
+                          _RoundBtn(
+                            icon: Icons.edit_outlined,
+                            color: AppColors.textMuted,
+                            onTap: () => _showForm(context, p),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline,
-                                color: AppColors.danger, size: 20),
-                            onPressed: () => _delete(context, p),
+                          const SizedBox(width: AppSpacing.xs),
+                          _RoundBtn(
+                            icon: Icons.delete_outline,
+                            color: AppColors.danger,
+                            onTap: () => _delete(context, p),
                           ),
                         ]),
                       ),
@@ -199,35 +202,61 @@ class _LopepayProductsScreenState
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => StatefulBuilder(builder: (sheetCtx, setSheet) {
         return Padding(
           padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            top: AppSpacing.lg,
+            bottom: AppSpacing.xl + MediaQuery.of(sheetCtx).viewInsets.bottom,
           ),
           child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                    isEdit
-                        ? tr(ref, 'mobile.lopepay.products.editTitle',
-                            "Mahsulotni tahrirlash")
-                        : tr(ref, 'mobile.lopepay.products.newProduct',
-                            "Yangi mahsulot"),
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-                const SizedBox(height: 14),
+                Center(
+                  child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                          color: AppColors.border,
+                          borderRadius: BorderRadius.circular(2))),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: AppRadius.rMd,
+                    ),
+                    child: Icon(
+                        isEdit
+                            ? Icons.edit_outlined
+                            : Icons.shopping_bag_outlined,
+                        color: AppColors.primary,
+                        size: 20),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                        isEdit
+                            ? tr(ref, 'mobile.lopepay.products.editTitle',
+                                "Mahsulotni tahrirlash")
+                            : tr(ref, 'mobile.lopepay.products.newProduct',
+                                "Yangi mahsulot"),
+                        style: AppText.titleMd),
+                  ),
+                ]),
+                const SizedBox(height: AppSpacing.md),
                 TextField(
                     controller: name,
                     decoration: InputDecoration(
-                        hintText: tr(ref, 'mobile.lopepay.products.namePh',
-                            "Nomi"))),
-                const SizedBox(height: 10),
+                        hintText:
+                            tr(ref, 'mobile.lopepay.products.namePh', "Nomi"))),
+                const SizedBox(height: AppSpacing.sm),
                 TextField(
                   controller: price,
                   keyboardType: TextInputType.number,
@@ -239,22 +268,22 @@ class _LopepayProductsScreenState
                   const SizedBox(height: 6),
                   SwitchListTile(
                     value: active,
-                    onChanged: (v) => setSheet(() => active = v),
+                    onChanged: (v) {
+                      AppHaptics.selection();
+                      setSheet(() => active = v);
+                    },
                     activeThumbColor: AppColors.primary,
                     contentPadding: EdgeInsets.zero,
                     title: Text(
                         tr(ref, 'mobile.lopepay.products.active', "Faol"),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
+                        style: AppText.titleSm.copyWith(fontSize: 14)),
                   ),
                 ],
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(sheetCtx).pop(true),
-                    child: Text(tr(ref, 'common.save', "Saqlash")),
-                  ),
+                const SizedBox(height: AppSpacing.md),
+                AppButton(
+                  label: tr(ref, 'common.save', "Saqlash"),
+                  onPressed: () => Navigator.of(sheetCtx).pop(true),
+                  fullWidth: true,
                 ),
               ]),
         );
@@ -290,9 +319,13 @@ class _LopepayProductsScreenState
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(tr(ref, 'mobile.lopepay.products.deleteTitle',
-            "Mahsulotni o'chirish?")),
-        content: Text(p.name),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'mobile.lopepay.products.deleteTitle',
+                "Mahsulotni o'chirish?"),
+            style: AppText.titleMd),
+        content: Text(p.name, style: AppText.body),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(dCtx).pop(false),
@@ -326,5 +359,29 @@ class _LopepayProductsScreenState
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return buf.toString();
+  }
+}
+
+class _RoundBtn extends StatelessWidget {
+  const _RoundBtn(
+      {required this.icon, required this.color, required this.onTap});
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.light,
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: AppRadius.rSm,
+        ),
+        child: Icon(icon, color: color, size: 16),
+      ),
+    );
   }
 }
