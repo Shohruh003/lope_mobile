@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1037,50 +1036,23 @@ class _StickyGenerateBar extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────────────────────
 // Loading + Result + Error banner
 // ─────────────────────────────────────────────────────────────────────────
+/// AI generation is a 10-30 s wait — swap the generic circular spinner
+/// for the branded loader so users see the same Lope Style animation
+/// that greets them at startup. Kept the message + hint copy intact.
 class _LoadingView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.rXl,
-        border: Border.all(color: AppColors.border),
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+      child: SizedBox(
+        height: 320,
+        child: BrandedLoader(
+          message: tr(ref, 'aiStyle.generating',
+              "Sizning yangi stilingiz tayyorlanmoqda..."),
+        ),
       ),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: CircularProgressIndicator(
-                    strokeWidth: 4,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primary.withValues(alpha: 0.35))),
-              ),
-              const Icon(Icons.auto_awesome,
-                  size: 32, color: AppColors.primary),
-            ],
-          ),
-          AppSpacing.gapLg,
-          Text(
-            tr(ref, 'aiStyle.generating',
-                "Sizning yangi stilingiz tayyorlanmoqda..."),
-            style: AppText.body.copyWith(color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            tr(ref, 'mobile.aiStyle.generatingHint',
-                "Bu 10-30 soniya oladi"),
-            style: AppText.caption,
-          ),
-        ],
-      ),
-    ).animate(onPlay: (c) => c.repeat()).fade(
-        begin: 0.7, end: 1, duration: 1200.ms);
+    );
   }
 }
 
