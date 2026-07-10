@@ -5,16 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/shop_repository.dart';
 
-/// Mirrors web `BarbershopTransactions.tsx`:
-///   - Balance hero up top
-///   - Filter chips (All / +Income / -Expense / Topup / SMS / AI / Bonus)
-///     → mapped to server-side type+direction params
-///   - Filter button → collapsible panel: barber, smsType, from/to dates
-///   - Server-side pagination + Prev/Next
 class ShopTransactionsScreen extends ConsumerStatefulWidget {
   const ShopTransactionsScreen({super.key});
   @override
@@ -28,7 +22,7 @@ class _ShopTransactionsScreenState
   static final _ymd = DateFormat('yyyy-MM-dd');
   static const _pageSize = 20;
 
-  String _chip = 'all'; // ui-only — maps to type/direction below
+  String _chip = 'all';
   String? _barberId;
   String _smsType = 'all';
   DateTime? _from;
@@ -88,6 +82,7 @@ class _ShopTransactionsScreenState
   }
 
   void _resetAdvancedFilters() {
+    AppHaptics.selection();
     setState(() {
       _barberId = null;
       _smsType = 'all';
@@ -154,14 +149,18 @@ class _ShopTransactionsScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.customer.transactions.history',
-            "Tranzaktsiyalar")),
+        title: Text(
+            tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"),
+            style: AppText.titleMd),
         actions: [
           IconButton(
             icon: Icon(
                 _filtersOpen ? Icons.filter_list_off : Icons.filter_list,
                 color: _filtersOpen ? AppColors.primary : null),
-            onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
+            onPressed: () {
+              AppHaptics.selection();
+              setState(() => _filtersOpen = !_filtersOpen);
+            },
           ),
         ],
       ),
@@ -173,122 +172,77 @@ class _ShopTransactionsScreenState
           ref.invalidate(shopBalanceProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            // ===== Balance card =====
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.account_balance_wallet,
-                      color: Colors.white, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                          tr(ref, 'mobile.lopepay.home.balance', "Balans"),
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 12)),
-                      const SizedBox(height: 2),
-                      balanceAsync.when(
-                        loading: () => const Text("…",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.3)),
-                        error: (_, _) => const Text("—",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.3)),
-                        data: (b) => Text(
-                            "${_fmt(b)} ${tr(ref, 'common.currency', "so'm")}",
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.3)),
-                      ),
-                    ],
-                  ),
-                ),
-              ]),
+            _BalanceHero(
+              balanceAsync: balanceAsync,
+              formatter: _fmt,
+              label: tr(ref, 'mobile.lopepay.home.balance', "Balans"),
+              currency: tr(ref, 'common.currency', "so'm"),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.lg),
 
-            // ===== Filter chips =====
             SizedBox(
-              height: 38,
+              height: 40,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  _Chip(
+                  AppChip(
                       label: tr(ref, 'common.all', "Hammasi"),
-                      on: _chip == 'all',
+                      selected: _chip == 'all',
                       onTap: () => setState(() {
                             _chip = 'all';
                             _page = 1;
                           })),
-                  _Chip(
-                      label:
-                          "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} +",
-                      on: _chip == 'in',
+                  const SizedBox(width: AppSpacing.sm),
+                  AppChip(
+                      label: "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} +",
+                      selected: _chip == 'in',
                       onTap: () => setState(() {
                             _chip = 'in';
                             _page = 1;
                           })),
-                  _Chip(
-                      label:
-                          "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} −",
-                      on: _chip == 'out',
+                  const SizedBox(width: AppSpacing.sm),
+                  AppChip(
+                      label: "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} −",
+                      selected: _chip == 'out',
                       onTap: () => setState(() {
                             _chip = 'out';
                             _page = 1;
                           })),
-                  _Chip(
+                  const SizedBox(width: AppSpacing.sm),
+                  AppChip(
                       label: tr(ref, 'mobile.customer.transactions.topUp',
                           "To'ldirish"),
-                      on: _chip == 'topup',
+                      selected: _chip == 'topup',
                       onTap: () => setState(() {
                             _chip = 'topup';
                             _page = 1;
                           })),
-                  _Chip(
+                  const SizedBox(width: AppSpacing.sm),
+                  AppChip(
                       label: 'SMS',
-                      on: _chip == 'sms',
+                      selected: _chip == 'sms',
                       onTap: () => setState(() {
                             _chip = 'sms';
                             _page = 1;
                           })),
-                  _Chip(
+                  const SizedBox(width: AppSpacing.sm),
+                  AppChip(
                       label: 'AI',
-                      on: _chip == 'ai',
+                      selected: _chip == 'ai',
                       onTap: () => setState(() {
                             _chip = 'ai';
                             _page = 1;
                           })),
-                  _Chip(
+                  const SizedBox(width: AppSpacing.sm),
+                  AppChip(
                       label: tr(ref,
                           'mobile.customer.transactions.methodReferral',
                           "Bonus"),
-                      on: _chip == 'bonus',
+                      selected: _chip == 'bonus',
                       onTap: () => setState(() {
                             _chip = 'bonus';
                             _page = 1;
@@ -297,16 +251,11 @@ class _ShopTransactionsScreenState
               ),
             ),
 
-            // ===== Advanced filter panel =====
             if (_filtersOpen) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.border),
-                ),
+              const SizedBox(height: AppSpacing.md),
+              AppCard(
+                variant: AppCardVariant.flat,
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -336,9 +285,7 @@ class _ShopTransactionsScreenState
                           }),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      // smsType only meaningful when SMS chip is selected;
-                      // shown unconditionally for parity with web.
+                      const SizedBox(height: AppSpacing.sm),
                       DropdownButtonFormField<String>(
                         isDense: true,
                         initialValue: _smsType,
@@ -364,7 +311,7 @@ class _ShopTransactionsScreenState
                           _page = 1;
                         }),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppSpacing.sm),
                       Row(children: [
                         Expanded(
                             child: _DatePill(
@@ -372,11 +319,11 @@ class _ShopTransactionsScreenState
                                     ? tr(ref, 'shop.filter.from', "Dan")
                                     : _ymd.format(_from!),
                                 onTap: () => _pickDate(true))),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         const Text("—",
                             style:
                                 TextStyle(color: AppColors.textMuted)),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                             child: _DatePill(
                                 label: _to == null
@@ -384,23 +331,20 @@ class _ShopTransactionsScreenState
                                     : _ymd.format(_to!),
                                 onTap: () => _pickDate(false))),
                       ]),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            icon: const Icon(Icons.refresh, size: 16),
-                            label:
-                                Text(tr(ref, 'common.reset', "Tozalash")),
-                            onPressed: _resetAdvancedFilters,
-                          ),
-                        ),
-                      ]),
+                      const SizedBox(height: AppSpacing.sm),
+                      AppButton(
+                        label: tr(ref, 'common.reset', "Tozalash"),
+                        leadingIcon: Icons.refresh,
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.sm,
+                        fullWidth: true,
+                        onPressed: _resetAdvancedFilters,
+                      ),
                     ]),
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
-            // ===== List =====
             async.when(
               loading: () => const AppListSkeleton(itemCount: 5),
               error: (e, _) => SizedBox(
@@ -429,24 +373,25 @@ class _ShopTransactionsScreenState
                   ...list.asMap().entries.map((e) {
                     final t = e.value;
                     final inflow = t.direction == 'in' || t.amount > 0;
+                    final color = inflow ? AppColors.success : AppColors.danger;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border),
-                        ),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: AppCard(
+                        variant: AppCardVariant.flat,
+                        padding: const EdgeInsets.all(AppSpacing.md),
                         child: Row(children: [
                           Container(
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: (inflow
-                                      ? AppColors.success
-                                      : AppColors.danger)
-                                  .withValues(alpha: 0.15),
+                              gradient: LinearGradient(
+                                colors: [
+                                  color.withValues(alpha: 0.22),
+                                  color.withValues(alpha: 0.08),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -454,11 +399,9 @@ class _ShopTransactionsScreenState
                                     ? Icons.arrow_downward
                                     : Icons.arrow_upward,
                                 size: 18,
-                                color: inflow
-                                    ? AppColors.success
-                                    : AppColors.danger),
+                                color: color),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,52 +409,59 @@ class _ShopTransactionsScreenState
                                 Text(
                                     t.description ??
                                         _methodLabel(ref, t.method),
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 14)),
+                                    style: AppText.titleSm
+                                        .copyWith(fontSize: 14)),
                                 const SizedBox(height: 2),
                                 Text(_df.format(t.createdAt.toLocal()),
-                                    style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 12)),
+                                    style: AppText.caption),
                               ],
                             ),
                           ),
                           Text(
                               "${inflow ? '+' : '−'}${_fmt(t.amount)} ${tr(ref, 'common.currency', "so'm")}",
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: inflow
-                                      ? AppColors.success
-                                      : AppColors.danger)),
+                              style: AppText.titleSm.copyWith(
+                                  fontSize: 14, color: color)),
                         ]),
                       ).animate().fadeIn(
                           duration: 250.ms, delay: (e.key * 25).ms),
                     );
                   }),
                   if (pages > 1) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        OutlinedButton(
+                        AppButton(
+                          label: tr(ref, 'common.prev', "Oldingi"),
+                          variant: AppButtonVariant.secondary,
+                          size: AppButtonSize.sm,
+                          leadingIcon: Icons.chevron_left,
                           onPressed: _page <= 1
                               ? null
                               : () => setState(() => _page--),
-                          child: Text(tr(ref, 'common.prev', "Oldingi")),
                         ),
-                        const SizedBox(width: 12),
-                        Text("$_page / $pages",
-                            style: const TextStyle(
-                                color: AppColors.textMuted,
-                                fontWeight: FontWeight.w700)),
-                        const SizedBox(width: 12),
-                        OutlinedButton(
+                        const SizedBox(width: AppSpacing.md),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                              vertical: AppSpacing.xs),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: AppRadius.rPill,
+                          ),
+                          child: Text("$_page / $pages",
+                              style: AppText.button
+                                  .copyWith(color: AppColors.primary)),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        AppButton(
+                          label: tr(ref, 'common.next', "Keyingi"),
+                          variant: AppButtonVariant.secondary,
+                          size: AppButtonSize.sm,
+                          trailingIcon: Icons.chevron_right,
                           onPressed: _page >= pages
                               ? null
                               : () => setState(() => _page++),
-                          child: Text(tr(ref, 'common.next', "Keyingi")),
                         ),
                       ],
                     ),
@@ -526,36 +476,60 @@ class _ShopTransactionsScreenState
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.on, required this.onTap});
+class _BalanceHero extends StatelessWidget {
+  const _BalanceHero({
+    required this.balanceAsync,
+    required this.formatter,
+    required this.label,
+    required this.currency,
+  });
+  final AsyncValue<int> balanceAsync;
+  final String Function(int) formatter;
   final String label;
-  final bool on;
-  final VoidCallback onTap;
+  final String currency;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: on
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.background,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-                color: on ? AppColors.primary : AppColors.border),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                  color: on ? AppColors.primary : AppColors.textMuted)),
-        ),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: AppRadius.rLg,
+        boxShadow: AppShadows.primaryGlow(AppColors.primary),
       ),
+      child: Row(children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: const Icon(Icons.account_balance_wallet,
+              color: Colors.white, size: 24),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: AppText.overline
+                      .copyWith(color: Colors.white70)),
+              const SizedBox(height: 2),
+              balanceAsync.when(
+                loading: () => Text("…",
+                    style: AppText.titleLg.copyWith(color: Colors.white)),
+                error: (_, _) => Text("—",
+                    style: AppText.titleLg.copyWith(color: Colors.white)),
+                data: (b) => Text("${formatter(b)} $currency",
+                    style: AppText.titleLg.copyWith(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      ]),
     );
   }
 }
@@ -566,14 +540,15 @@ class _DatePill extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return TapScale(
       onTap: onTap,
+      haptic: HapticStrength.light,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.surface,
+          borderRadius: AppRadius.rSm,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
@@ -584,8 +559,7 @@ class _DatePill extends StatelessWidget {
             child: Text(label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style:
-                    const TextStyle(color: AppColors.textBright, fontSize: 12)),
+                style: AppText.body.copyWith(fontSize: 12)),
           ),
         ]),
       ),
