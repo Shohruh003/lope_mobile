@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/barber_profile_repository.dart';
 
-/// 7-day schedule + slot-duration picker.
-///
-/// Backend (PATCH /barbers/:id) expects:
-///   workingHours: { monday: {isOpen, open, close}, ... sunday },
-///   slotDuration: int in {15, 20, 30, 45, 60, 90}
-///
-/// The old payload {day, start, end, enabled} doesn't match anything the
-/// backend writes — it silently no-op'd Prisma's update.
 class BarberWorkingHoursScreen extends ConsumerStatefulWidget {
   const BarberWorkingHoursScreen({super.key, required this.barberId});
   final String barberId;
@@ -57,9 +49,6 @@ class _BarberWorkingHoursScreenState
     if (_seeded) return;
     _seeded = true;
     final raw = barber['workingHours'];
-    // Backend stores workingHours as a Map<DayKey, {isOpen, open, close}>.
-    // The legacy List<{day, start, end, enabled}> shape is still accepted
-    // for older records — parse both.
     if (raw is Map) {
       for (var i = 0; i < _dayKeys.length; i++) {
         final v = raw[_dayKeys[i]];
@@ -94,12 +83,14 @@ class _BarberWorkingHoursScreenState
   }
 
   Future<void> _pickTime(int i, bool isOpen) async {
+    AppHaptics.light();
     final current = isOpen ? _config[i].open : _config[i].close;
     final parts = current.split(':');
     final initial = TimeOfDay(
         hour: int.tryParse(parts[0]) ?? 9,
         minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
-    final picked = await showTimePicker(context: context, initialTime: initial);
+    final picked =
+        await showTimePicker(context: context, initialTime: initial);
     if (picked == null) return;
     setState(() {
       final s =
@@ -111,6 +102,7 @@ class _BarberWorkingHoursScreenState
   }
 
   Future<void> _save() async {
+    AppHaptics.medium();
     setState(() => _saving = true);
     try {
       final workingHours = <String, dynamic>{
@@ -118,19 +110,24 @@ class _BarberWorkingHoursScreenState
           d.day: {'isOpen': d.isOpen, 'open': d.open, 'close': d.close}
       };
       await ref.read(barberProfileRepositoryProvider).updateBarber(
-          widget.barberId, {
-        'workingHours': workingHours,
-        'slotDuration': _slotDuration,
-      });
+        widget.barberId,
+        {
+          'workingHours': workingHours,
+          'slotDuration': _slotDuration,
+        },
+      );
       ref.invalidate(barberProfileProvider(widget.barberId));
+      AppHaptics.success();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+            content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
       }
     } catch (e) {
+      AppHaptics.error();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -141,125 +138,148 @@ class _BarberWorkingHoursScreenState
   Widget build(BuildContext context) {
     final async = ref.watch(barberProfileProvider(widget.barberId));
     return Scaffold(
-      appBar:
-          AppBar(title: Text(tr(ref, 'mobile.barber.hours.title', "Ish soatlari"))),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'mobile.barber.hours.title', 'Ish soatlari'),
+          style: AppText.titleMd,
+        ),
+      ),
       body: async.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) =>
-            AppErrorState(message: humanize(e)),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (barber) {
           _seedFromBarber(barber);
           final days = trList(ref, 'mobile.dates.weekDaysShort', _days);
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             children: [
               for (var i = 0; i < 7; i++)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 28,
-                        child: Text(days[i],
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 14)),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            _TimeChip(
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: AppCard(
+                    variant: AppCardVariant.outlined,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
+                    color: _config[i].isOpen
+                        ? null
+                        : AppColors.surfaceElevated
+                            .withValues(alpha: 0.4),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 36,
+                          child: Text(
+                            days[i],
+                            style: AppText.titleSm.copyWith(
+                              color: _config[i].isOpen
+                                  ? AppColors.textBright
+                                  : AppColors.textMuted,
+                            ),
+                          ),
+                        ),
+                        AppSpacing.hGapSm,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              _TimeChip(
                                 label: _config[i].open,
                                 enabled: _config[i].isOpen,
-                                onTap: () => _pickTime(i, true)),
-                            const SizedBox(width: 6),
-                            const Text("—",
-                                style: TextStyle(color: AppColors.textMuted)),
-                            const SizedBox(width: 6),
-                            _TimeChip(
+                                onTap: () => _pickTime(i, true),
+                              ),
+                              AppSpacing.hGapXs,
+                              const Text('—',
+                                  style: TextStyle(
+                                      color: AppColors.textMuted)),
+                              AppSpacing.hGapXs,
+                              _TimeChip(
                                 label: _config[i].close,
                                 enabled: _config[i].isOpen,
-                                onTap: () => _pickTime(i, false)),
-                          ],
+                                onTap: () => _pickTime(i, false),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Switch(
-                        value: _config[i].isOpen,
-                        activeThumbColor: AppColors.primary,
-                        onChanged: (v) => setState(() =>
-                            _config[i] = _config[i].copyWith(isOpen: v)),
-                      ),
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 18),
-
-              // ===== Slot duration picker (matches web 15/20/30/45/60/90) =====
-              Text(
-                  tr(ref, 'profile.slotInterval',
-                      "Slot oralig'i (daqiqa)"),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: AppColors.textBright)),
-              const SizedBox(height: 4),
-              Text(
-                  tr(ref, 'profile.slotIntervalDescription',
-                      "Mijozlar shu oraliqdan vaqt tanlaydi"),
-                  style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 12)),
-              const SizedBox(height: 10),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final d in _slotOptions)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () => setState(() => _slotDuration = d),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _slotDuration == d
-                            ? AppColors.primary
-                            : AppColors.background,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: _slotDuration == d
-                                ? AppColors.primary
-                                : AppColors.border),
-                      ),
-                      child: Text(
-                          "$d ${tr(ref, 'profile.minutesShort', 'daq')}",
-                          style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: _slotDuration == d
-                                  ? Colors.white
-                                  : AppColors.textBright)),
+                        Switch(
+                          value: _config[i].isOpen,
+                          activeThumbColor: AppColors.primary,
+                          onChanged: (v) {
+                            AppHaptics.selection();
+                            setState(() => _config[i] =
+                                _config[i].copyWith(isOpen: v));
+                          },
+                        ),
+                      ],
                     ),
                   ),
-              ]),
-              const SizedBox(height: 22),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : Text(tr(ref, 'mobile.common.save', "Saqlash")),
                 ),
+              AppSpacing.gapXl,
+              AppCard(
+                variant: AppCardVariant.outlined,
+                padding: AppSpacing.cardPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.warning
+                              .withValues(alpha: 0.15),
+                          borderRadius: AppRadius.rSm,
+                        ),
+                        child: const Icon(Icons.timer_outlined,
+                            color: AppColors.warning, size: 18),
+                      ),
+                      AppSpacing.hGapSm,
+                      Expanded(
+                        child: Text(
+                          tr(ref, 'profile.slotInterval',
+                              "Slot oralig'i (daqiqa)"),
+                          style: AppText.titleSm,
+                        ),
+                      ),
+                    ]),
+                    const SizedBox(height: 4),
+                    Text(
+                      tr(ref, 'profile.slotIntervalDescription',
+                          'Mijozlar shu oraliqdan vaqt tanlaydi'),
+                      style: AppText.bodySm,
+                    ),
+                    AppSpacing.gapMd,
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        for (final d in _slotOptions)
+                          AppChip(
+                            label:
+                                "$d ${tr(ref, 'profile.minutesShort', 'daq')}",
+                            selected: _slotDuration == d,
+                            onTap: () =>
+                                setState(() => _slotDuration = d),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              AppSpacing.gapXl,
+              AppButton(
+                label: tr(ref, 'mobile.common.save', 'Saqlash'),
+                leadingIcon: Icons.check,
+                variant: AppButtonVariant.primary,
+                size: AppButtonSize.lg,
+                fullWidth: true,
+                loading: _saving,
+                onPressed: _saving ? null : _save,
               ),
             ],
           );
@@ -274,12 +294,14 @@ class _DayConfig {
   final String open;
   final String close;
   final bool isOpen;
-  const _DayConfig(
-      {required this.day,
-      required this.open,
-      required this.close,
-      required this.isOpen});
-  _DayConfig copyWith({String? day, String? open, String? close, bool? isOpen}) =>
+  const _DayConfig({
+    required this.day,
+    required this.open,
+    required this.close,
+    required this.isOpen,
+  });
+  _DayConfig copyWith(
+          {String? day, String? open, String? close, bool? isOpen}) =>
       _DayConfig(
           day: day ?? this.day,
           open: open ?? this.open,
@@ -288,34 +310,43 @@ class _DayConfig {
 }
 
 class _TimeChip extends StatelessWidget {
-  const _TimeChip(
-      {required this.label, required this.enabled, required this.onTap});
+  const _TimeChip({
+    required this.label,
+    required this.enabled,
+    required this.onTap,
+  });
   final String label;
   final bool enabled;
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return TapScale(
       onTap: enabled ? onTap : null,
+      scale: 0.95,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
           color: enabled
               ? AppColors.primary.withValues(alpha: 0.12)
-              : AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+              : AppColors.surfaceElevated,
+          borderRadius: AppRadius.rSm,
           border: Border.all(
-              color: enabled
-                  ? AppColors.primary.withValues(alpha: 0.4)
-                  : AppColors.border),
+            color: enabled
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : AppColors.border,
+          ),
         ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: enabled ? AppColors.primary : AppColors.textMuted,
-                fontFeatures: const [FontFeature.tabularFigures()])),
+        child: Text(
+          label,
+          style: AppText.body.copyWith(
+            fontWeight: FontWeight.w700,
+            color: enabled ? AppColors.primary : AppColors.textMuted,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
       ),
     );
   }

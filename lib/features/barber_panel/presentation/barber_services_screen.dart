@@ -1,16 +1,13 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/barber_profile_repository.dart';
 
-/// Services CRUD: list + add/edit/delete. Each service has a name, price (so'm),
-/// and duration (minutes). Web equivalent: BarberProfileEditScreen's Services
-/// tab.
 class BarberServicesScreen extends ConsumerWidget {
   const BarberServicesScreen({super.key, required this.barberId});
   final String barberId;
@@ -19,12 +16,34 @@ class BarberServicesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(barberServicesProvider(barberId));
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.barber.services.title', "Xizmatlarim"))),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        onPressed: () => _openEditor(context, ref),
-        icon: const Icon(Icons.add),
-        label: Text(tr(ref, 'mobile.barber.services.addBtn', "Yangi xizmat")),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'mobile.barber.services.title', 'Xizmatlarim'),
+          style: AppText.titleMd,
+        ),
+      ),
+      floatingActionButton: TapScale(
+        onTap: () => _openEditor(context, ref),
+        scale: 0.94,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: AppRadius.rPill,
+            boxShadow: AppShadows.primaryGlow(AppColors.primary),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.add, color: Colors.white, size: 20),
+            AppSpacing.hGapSm,
+            Text(
+              tr(ref, 'mobile.barber.services.addBtn', 'Yangi xizmat'),
+              style: AppText.button.copyWith(color: Colors.white),
+            ),
+          ]),
+        ),
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
@@ -41,62 +60,103 @@ class BarberServicesScreen extends ConsumerWidget {
           }
           return RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () async => ref.refresh(barberServicesProvider(barberId).future),
+            onRefresh: () async =>
+                ref.refresh(barberServicesProvider(barberId).future),
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                96,
+              ),
               itemCount: list.length,
-              separatorBuilder: (context, i) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => AppSpacing.gapSm,
               itemBuilder: (context, i) {
                 final svc = list[i];
-                final name = (svc['nameUz'] ?? svc['name'] ?? '').toString();
+                final name =
+                    (svc['nameUz'] ?? svc['name'] ?? '').toString();
                 final price = ((svc['price'] ?? 0) as num).toInt();
                 final dur = ((svc['duration'] ?? 30) as num).toInt();
                 final iconText = (svc['icon'] ?? '').toString();
-                return Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
-                  ),
+                return AppCard(
+                  variant: AppCardVariant.outlined,
+                  padding: AppSpacing.cardPadding,
                   child: Row(
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
+                          color:
+                              AppColors.primary.withValues(alpha: 0.15),
+                          borderRadius: AppRadius.rMd,
                         ),
                         alignment: Alignment.center,
                         child: iconText.isNotEmpty
                             ? Text(iconText,
-                                style: const TextStyle(fontSize: 22))
+                                style: const TextStyle(fontSize: 26))
                             : const Icon(Icons.content_cut,
-                                color: AppColors.primary),
+                                color: AppColors.primary, size: 24),
                       ),
-                      const SizedBox(width: 12),
+                      AppSpacing.hGapMd,
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(name,
-                                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                            Text(name, style: AppText.titleSm),
                             const SizedBox(height: 2),
-                            Text("${_fmt(price)} ${tr(ref, 'common.currency', "so'm")}  •  $dur ${tr(ref, 'booking.duration', 'daq')}",
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                            Row(children: [
+                              Text(
+                                "${_fmt(price)} ${tr(ref, 'common.currency', "so'm")}",
+                                style: AppText.body.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              AppSpacing.hGapSm,
+                              Text('·', style: AppText.caption),
+                              AppSpacing.hGapSm,
+                              const Icon(Icons.access_time_outlined,
+                                  size: 12,
+                                  color: AppColors.textMuted),
+                              AppSpacing.hGapXs,
+                              Text(
+                                "$dur ${tr(ref, 'booking.duration', 'daq')}",
+                                style: AppText.caption,
+                              ),
+                            ]),
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined,
-                            color: AppColors.textSecondary, size: 20),
-                        onPressed: () => _openEditor(context, ref, existing: svc),
+                      TapScale(
+                        onTap: () =>
+                            _openEditor(context, ref, existing: svc),
+                        scale: 0.9,
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceElevated,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit_outlined,
+                              color: AppColors.textSecondary, size: 18),
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline,
-                            color: AppColors.danger, size: 20),
-                        onPressed: () => _confirmDelete(context, ref, svc),
+                      AppSpacing.hGapXs,
+                      TapScale(
+                        onTap: () => _confirmDelete(context, ref, svc),
+                        scale: 0.9,
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.delete_outline,
+                              color: AppColors.danger, size: 18),
+                        ),
                       ),
                     ],
                   ),
@@ -114,94 +174,134 @@ class BarberServicesScreen extends ConsumerWidget {
 
   Future<void> _openEditor(BuildContext context, WidgetRef ref,
       {Map<String, dynamic>? existing}) async {
-    final name = TextEditingController(text: (existing?['nameUz'] ?? existing?['name'] ?? '').toString());
-    final nameRu = TextEditingController(text: (existing?['nameRu'] ?? '').toString());
-    final icon = TextEditingController(text: (existing?['icon'] ?? '').toString());
-    final price = TextEditingController(text: existing?['price']?.toString() ?? '');
-    final priceMax = TextEditingController(text: existing?['priceMax']?.toString() ?? '');
-    final dur = TextEditingController(text: existing?['duration']?.toString() ?? '30');
+    AppHaptics.light();
+    final name = TextEditingController(
+        text: (existing?['nameUz'] ?? existing?['name'] ?? '').toString());
+    final nameRu =
+        TextEditingController(text: (existing?['nameRu'] ?? '').toString());
+    final icon =
+        TextEditingController(text: (existing?['icon'] ?? '').toString());
+    final price =
+        TextEditingController(text: existing?['price']?.toString() ?? '');
+    final priceMax = TextEditingController(
+        text: existing?['priceMax']?.toString() ?? '');
+    final dur = TextEditingController(
+        text: existing?['duration']?.toString() ?? '30');
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => Padding(
         padding: EdgeInsets.only(
-          left: 20, right: 20, top: 20,
-          bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+          left: AppSpacing.lg,
+          right: AppSpacing.lg,
+          top: AppSpacing.md,
+          bottom:
+              AppSpacing.lg + MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: AppRadius.rPill,
+                ),
+              ),
+            ),
+            AppSpacing.gapMd,
             Text(
-                existing == null
-                    ? tr(ref, 'mobile.barber.services.newTitle', "Yangi xizmat")
-                    : tr(ref, 'mobile.barber.services.editTitle', "Xizmatni tahrirlash"),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-            const SizedBox(height: 14),
+              existing == null
+                  ? tr(ref, 'mobile.barber.services.newTitle',
+                      'Yangi xizmat')
+                  : tr(ref, 'mobile.barber.services.editTitle',
+                      'Xizmatni tahrirlash'),
+              style: AppText.titleMd,
+            ),
+            AppSpacing.gapLg,
             Row(children: [
               SizedBox(
-                width: 60,
+                width: 68,
                 child: TextField(
-                    controller: icon,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 22),
-                    decoration: const InputDecoration(
-                        hintText: "✂️",
-                        contentPadding: EdgeInsets.symmetric(vertical: 8))),
+                  controller: icon,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 26),
+                  decoration: const InputDecoration(
+                    hintText: '✂️',
+                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
               ),
-              const SizedBox(width: 10),
+              AppSpacing.hGapMd,
               Expanded(
                 child: TextField(
-                    controller: name,
-                    decoration: InputDecoration(
-                        labelText: tr(ref, 'mobile.barber.services.namePh',
-                            "Nomi (UZ)"))),
+                  controller: name,
+                  style: AppText.body,
+                  decoration: InputDecoration(
+                    labelText: tr(ref,
+                        'mobile.barber.services.namePh', 'Nomi (UZ)'),
+                  ),
+                ),
               ),
             ]),
-            const SizedBox(height: 10),
+            AppSpacing.gapSm,
             TextField(
-                controller: nameRu,
-                decoration: const InputDecoration(
-                    labelText: "Название (RU)",
-                    hintText: "Стрижка")),
-            const SizedBox(height: 12),
+              controller: nameRu,
+              style: AppText.body,
+              decoration: const InputDecoration(
+                  labelText: 'Название (RU)', hintText: 'Стрижка'),
+            ),
+            AppSpacing.gapMd,
             Row(children: [
               Expanded(
                 child: TextField(
-                    controller: price,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                        labelText: tr(ref, 'mobile.barber.services.pricePh',
-                            "Narxi (so'm)"))),
+                  controller: price,
+                  keyboardType: TextInputType.number,
+                  style: AppText.body,
+                  decoration: InputDecoration(
+                    labelText: tr(ref, 'mobile.barber.services.pricePh',
+                        "Narxi (so'm)"),
+                  ),
+                ),
               ),
-              const SizedBox(width: 10),
+              AppSpacing.hGapSm,
               Expanded(
                 child: TextField(
-                    controller: priceMax,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                        labelText: tr(ref,
-                            'mobile.barber.services.priceMaxPh',
-                            "Maks (ixtiyoriy)"))),
+                  controller: priceMax,
+                  keyboardType: TextInputType.number,
+                  style: AppText.body,
+                  decoration: InputDecoration(
+                    labelText: tr(
+                        ref,
+                        'mobile.barber.services.priceMaxPh',
+                        'Maks (ixtiyoriy)'),
+                  ),
+                ),
               ),
             ]),
-            const SizedBox(height: 12),
+            AppSpacing.gapMd,
             TextField(
-                controller: dur,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                    hintText: tr(ref, 'mobile.barber.services.durationPh',
-                        "Davomiyligi (daqiqa)"))),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(sheetCtx).pop(true),
-                child: Text(tr(ref, 'common.save', "Saqlash")),
+              controller: dur,
+              keyboardType: TextInputType.number,
+              style: AppText.body,
+              decoration: InputDecoration(
+                labelText: tr(ref,
+                    'mobile.barber.services.durationPh',
+                    'Davomiyligi (daqiqa)'),
               ),
+            ),
+            AppSpacing.gapLg,
+            AppButton(
+              label: tr(ref, 'common.save', 'Saqlash'),
+              variant: AppButtonVariant.primary,
+              size: AppButtonSize.lg,
+              fullWidth: true,
+              onPressed: () => Navigator.of(sheetCtx).pop(true),
             ),
           ],
         ),
@@ -215,13 +315,9 @@ class BarberServicesScreen extends ConsumerWidget {
       final body = <String, dynamic>{
         'nameUz': name.text.trim(),
         'name': name.text.trim(),
-        // Send empty string when cleared so backend resets the field
-        // (avoids the 'never cleared once set' bug).
         'nameRu': nameRuText,
         'icon': iconText.isEmpty ? '✂️' : iconText,
         'price': int.tryParse(price.text.trim()) ?? 0,
-        // Send priceMax only when it's set AND larger than price — null
-        // clears any previous range so the service goes back to single-price.
         'priceMax': pMax != null && pMax > 0 ? pMax : null,
         'duration': int.tryParse(dur.text.trim()) ?? 30,
       };
@@ -231,14 +327,16 @@ class BarberServicesScreen extends ConsumerWidget {
       } else {
         await repo.updateService(barberId, existing['id'] as String, body);
       }
+      AppHaptics.success();
       ref.invalidate(barberServicesProvider(barberId));
     } catch (e) {
+      AppHaptics.error();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
-      // Release the six modal-local controllers — without this every open
-      // of the new/edit-service sheet leaks them until the GC catches up.
       name.dispose();
       nameRu.dispose();
       icon.dispose();
@@ -248,35 +346,73 @@ class BarberServicesScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmDelete(
-      BuildContext context, WidgetRef ref, Map<String, dynamic> svc) async {
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref,
+      Map<String, dynamic> svc) async {
+    AppHaptics.light();
     final ok = await showDialog<bool>(
       context: context,
-      builder: (dCtx) => AlertDialog(
+      builder: (dCtx) => Dialog(
         backgroundColor: AppColors.surface,
-        title: Text(tr(ref, 'mobile.barber.services.deleteTitle', "Xizmatni o'chirish?")),
-        content: Text(tr(ref, 'mobile.barber.services.deleteAsk',
-            "\"{{name}}\" o'chirilsinmi?",
-            {'name': (svc['nameUz'] ?? svc['name'] ?? '').toString()})),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(dCtx).pop(false),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            onPressed: () => Navigator.of(dCtx).pop(true),
-            child: Text(tr(ref, 'common.delete', "O'chirish")),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr(ref, 'mobile.barber.services.deleteTitle',
+                    "Xizmatni o'chirish?"),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapSm,
+              Text(
+                tr(
+                    ref,
+                    'mobile.barber.services.deleteAsk',
+                    '"{{name}}" o\'chirilsinmi?',
+                    {
+                      'name': (svc['nameUz'] ?? svc['name'] ?? '')
+                          .toString()
+                    }),
+                style: AppText.bodySm,
+              ),
+              AppSpacing.gapLg,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.cancel', 'Bekor'),
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.pop(dCtx, false),
+                    fullWidth: true,
+                  ),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.delete', "O'chirish"),
+                    variant: AppButtonVariant.danger,
+                    onPressed: () => Navigator.pop(dCtx, true),
+                    fullWidth: true,
+                  ),
+                ),
+              ]),
+            ],
           ),
-        ],
+        ),
       ),
     );
     if (ok != true) return;
     try {
-      await ref.read(barberProfileRepositoryProvider).deleteService(barberId, svc['id'] as String);
+      await ref
+          .read(barberProfileRepositoryProvider)
+          .deleteService(barberId, svc['id'] as String);
       ref.invalidate(barberServicesProvider(barberId));
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     }
   }
