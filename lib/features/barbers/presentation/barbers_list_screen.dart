@@ -3,22 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../../core/asset_url.dart';
 import '../../../core/errors.dart';
 import '../../../core/location_service.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../favorites/data/favorites_repository.dart';
 import '../data/barber_repository.dart';
 import '../data/public_barbershop_repository.dart';
 import '../domain/barber.dart';
 
-/// Customer-facing barber discovery feed — mirrors the web's
-/// CustomerBarbersScreen exactly: sticky search + chip filters + sort chips +
-/// 2-column grid of compact cards (h-24 photo strip + h-11 avatar overlap).
+/// Redesigned customer-facing barber discovery feed. Uzum/Click darajasidagi
+/// polish maqsadida:
+///
+///   1) Sarlavha — 3 qator chip o'rniga bitta qator: 3 ta asosiy filter
+///      (Sevimlilar/Barchasi/Bo'sh) + tuner iconi. Sort va gender endi
+///      bottom sheet ichida — hech narsa sig'may qolmaydi.
+///   2) Kartochkalar — barber va salon uchun bir xil "shell" (AppCard).
+///      Farqi faqat: barber — avatar, salon — building icon + usta soni badge.
+///   3) Status badge — yashil dot bilan aniq "Bo'sh/Band" ko'rsatuvchi
+///      AppBadge (top-right). Bir qarashda ko'rinadi.
+///   4) TapScale — har kartochka tap qilinganda ozgina 0.96 scale + haptik.
 class BarbersListScreen extends ConsumerStatefulWidget {
   const BarbersListScreen({super.key});
 
@@ -30,11 +37,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   String _filter = 'all'; // 'all' | 'favorites' | 'available'
-  // 'rating' | 'name' | 'experience' | 'price' | 'distance' — matches web's
-  // CustomerBarbersScreen. 'distance' uses the cached location provider; if
-  // the user denies the permission, items without a known location bucket
-  // to the bottom and the order falls back to rating.
-  String _sort = 'rating';
+  String _sort = 'rating'; // 'rating' | 'name' | 'experience' | 'price' | 'distance'
   String _gender = 'ALL'; // 'ALL' | 'MALE' | 'FEMALE'
   bool _filterDefaulted = false;
 
@@ -44,8 +47,6 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
     super.dispose();
   }
 
-  /// Parse the loose `experience` field (server returns either an int year
-  /// count or a free-text string like "5 yil") into a sortable number.
   int _parseExperience(dynamic raw) {
     if (raw is num) return raw.toInt();
     if (raw is String) {
@@ -55,21 +56,37 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
     return 0;
   }
 
-  /// Min service price across the barber's services. Returns a very large
-  /// number when there are no services so price-sort buckets them at the end.
   int _minPrice(Barber b) {
     if (b.services.isEmpty) return 1 << 30;
     return b.services.map((s) => s.price).reduce((a, b) => a < b ? a : b);
   }
 
-  /// Haversine distance to a barber, or +infinity when their location is
-  /// missing so they sort to the bottom under distance order.
   double _distOrInf(LatLng me, double? lat, double? lng) {
     if (lat == null || lng == null) return double.infinity;
     return haversineKm(me, LatLng(lat, lng));
   }
 
   String _avatarUrl(String avatar) => assetUrl(avatar);
+
+  Future<void> _openTuner() async {
+    AppHaptics.light();
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
+      isScrollControlled: true,
+      builder: (_) => _TunerSheet(
+        sort: _sort,
+        gender: _gender,
+        onApply: (s, g) => setState(() {
+          _sort = s;
+          _gender = g;
+        }),
+      ),
+    );
+  }
+
+  bool get _tunerActive => _sort != 'rating' || _gender != 'ALL';
 
   @override
   Widget build(BuildContext context) {
@@ -80,37 +97,26 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
         onRefresh: () async => ref.refresh(barbersListProvider.future),
         child: CustomScrollView(
           slivers: [
-            // Sticky search + filter chips
             SliverPersistentHeader(
               pinned: true,
               delegate: _StickyFilterHeader(
                 searchController: _searchController,
                 query: _query,
                 filter: _filter,
-                sort: _sort,
-                gender: _gender,
+                tunerActive: _tunerActive,
                 searchHint: '${tr(ref, 'common.search', 'Qidirish')}...',
                 allLabel: tr(ref, 'common.all', 'Hammasi'),
                 favoritesLabel: tr(ref, 'customerApp.favorites', "Sevimlilar"),
                 availableLabel: tr(ref, 'barbers.available', "Bo'sh"),
-                ratingLabel: tr(ref, 'barbers.rating', "Reyting"),
-                nameLabel: tr(ref, 'barbers.sortByName', "Ism"),
-                experienceLabel: tr(ref, 'barbers.experience', "Tajriba"),
-                priceLabel: tr(ref, 'booking.price', "Narx"),
-                distanceLabel: tr(ref, 'barbers.nearest', "Eng yaqin"),
-                maleLabel: tr(ref, 'barbers.genderMale', "Erkak"),
-                femaleLabel: tr(ref, 'barbers.genderFemale', "Ayol"),
                 onSearch: (v) => setState(() => _query = v.trim().toLowerCase()),
                 onClearSearch: () {
                   _searchController.clear();
                   setState(() => _query = '');
                 },
                 onFilter: (f) => setState(() => _filter = f),
-                onSort: (s) => setState(() => _sort = s),
-                onGender: (g) => setState(() => _gender = g),
+                onOpenTuner: _openTuner,
               ),
             ),
-
             async.when(
               loading: () => const SliverToBoxAdapter(child: _LoadingGrid()),
               error: (e, _) => SliverToBoxAdapter(
@@ -123,10 +129,9 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 ),
               ),
               data: (list) {
-                // Default the filter to 'favorites' on first load if the user
-                // has any — same default web's CustomerBarbersScreen uses.
                 if (!_filterDefaulted) {
-                  final favs = ref.read(favoritesProvider).asData?.value ?? const [];
+                  final favs =
+                      ref.read(favoritesProvider).asData?.value ?? const [];
                   if (favs.isNotEmpty && _filter == 'all') {
                     _filter = 'favorites';
                   }
@@ -142,17 +147,17 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 if (_filter == 'available') {
                   filtered = filtered.where((b) => b.isAvailable).toList();
                 } else if (_filter == 'favorites') {
-                  final favs = ref.watch(favoritesProvider).asData?.value ?? const [];
+                  final favs =
+                      ref.watch(favoritesProvider).asData?.value ?? const [];
                   final favIds = favs.map((b) => b.id).toSet();
-                  filtered = filtered.where((b) => favIds.contains(b.id)).toList();
+                  filtered =
+                      filtered.where((b) => favIds.contains(b.id)).toList();
                 }
-                // Gender filter — barber.targetGender is 'MALE_ONLY' / 'FEMALE_ONLY'
-                // / null. A null (no preference) barber serves anyone, so they
-                // appear in every gender bucket. Same semantics web uses.
                 if (_gender == 'MALE') {
                   filtered = filtered
-                      .where(
-                          (b) => b.targetGender == null || b.targetGender == 'MALE_ONLY')
+                      .where((b) =>
+                          b.targetGender == null ||
+                          b.targetGender == 'MALE_ONLY')
                       .toList();
                 } else if (_gender == 'FEMALE') {
                   filtered = filtered
@@ -168,8 +173,8 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                     filtered.sort((a, b) => a.name.compareTo(b.name));
                     break;
                   case 'experience':
-                    filtered.sort((a, b) =>
-                        _parseExperience(b.experience).compareTo(_parseExperience(a.experience)));
+                    filtered.sort((a, b) => _parseExperience(b.experience)
+                        .compareTo(_parseExperience(a.experience)));
                     break;
                   case 'price':
                     filtered.sort((a, b) => _minPrice(a).compareTo(_minPrice(b)));
@@ -189,11 +194,9 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                   default:
                     filtered.sort((a, b) => b.rating.compareTo(a.rating));
                 }
-                // Merge in public barbershops — the customer feed shows
-                // standalone barbers AND whole shops in one grid (mirrors
-                // web's CustomerBarbersScreen). Shops are hidden when the
-                // filter is 'favorites'.
-                final shops = ref.watch(publicBarbershopsProvider).asData?.value ?? const [];
+                final shops =
+                    ref.watch(publicBarbershopsProvider).asData?.value ??
+                        const [];
                 final mergedShops = (_filter == 'favorites')
                     ? const <PublicBarbershop>[]
                     : (_query.isEmpty
@@ -208,8 +211,6 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                   ...mergedShops.map((s) => _FeedItem.shop(s)),
                 ];
                 if (_sort == 'distance' && me != null) {
-                  // Re-sort the merged list so shops mingle with barbers
-                  // by distance — same web behaviour.
                   items.sort((a, b) {
                     final aLat = a.barber?.lat ?? a.shop?.lat;
                     final aLng = a.barber?.lng ?? a.shop?.lng;
@@ -219,15 +220,23 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                         .compareTo(_distOrInf(me, bLat, bLng));
                   });
                 }
-                if (items.isEmpty) return const SliverToBoxAdapter(child: _EmptyState());
+                if (items.isEmpty) {
+                  return const SliverToBoxAdapter(child: _EmptyState());
+                }
                 return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.xxl,
+                  ),
                   sliver: SliverGrid.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.74,
+                      mainAxisSpacing: AppSpacing.md,
+                      crossAxisSpacing: AppSpacing.md,
+                      childAspectRatio: 0.72,
                     ),
                     itemCount: items.length,
                     itemBuilder: (context, i) {
@@ -238,7 +247,11 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                               barber: item.barber!,
                               avatarUrl: _avatarUrl(item.barber!.avatar),
                             );
-                      return child.animate().fadeIn(duration: 250.ms, delay: (i * 25).ms);
+                      return child.animate().fadeIn(
+                            duration: 250.ms,
+                            delay: (i * 25).ms,
+                            curve: AppMotion.emphasized,
+                          );
                     },
                   ),
                 );
@@ -251,255 +264,309 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Sticky filter header — search + primary chips + tuner button
+// ─────────────────────────────────────────────────────────────────────────
 class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
   _StickyFilterHeader({
     required this.searchController,
     required this.query,
     required this.filter,
-    required this.sort,
-    required this.gender,
+    required this.tunerActive,
     required this.searchHint,
     required this.allLabel,
     required this.favoritesLabel,
     required this.availableLabel,
-    required this.ratingLabel,
-    required this.nameLabel,
-    required this.experienceLabel,
-    required this.priceLabel,
-    required this.distanceLabel,
-    required this.maleLabel,
-    required this.femaleLabel,
     required this.onSearch,
     required this.onClearSearch,
     required this.onFilter,
-    required this.onSort,
-    required this.onGender,
+    required this.onOpenTuner,
   });
   final TextEditingController searchController;
   final String query;
   final String filter;
-  final String sort;
-  final String gender;
+  final bool tunerActive;
   final String searchHint;
   final String allLabel;
   final String favoritesLabel;
   final String availableLabel;
-  final String ratingLabel;
-  final String nameLabel;
-  final String experienceLabel;
-  final String priceLabel;
-  final String distanceLabel;
-  final String maleLabel;
-  final String femaleLabel;
   final ValueChanged<String> onSearch;
   final VoidCallback onClearSearch;
   final ValueChanged<String> onFilter;
-  final ValueChanged<String> onSort;
-  final ValueChanged<String> onGender;
+  final VoidCallback onOpenTuner;
 
   @override
-  double get maxExtent => 142;
+  double get maxExtent => 108;
   @override
-  double get minExtent => 142;
+  double get minExtent => 108;
   @override
   bool shouldRebuild(_StickyFilterHeader old) =>
       query != old.query ||
       filter != old.filter ||
-      sort != old.sort ||
-      gender != old.gender ||
-      searchHint != old.searchHint ||
-      allLabel != old.allLabel;
+      tunerActive != old.tunerActive ||
+      searchHint != old.searchHint;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: AppColors.background,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Search bar — h-10 (40px) with pl-9 left icon
-        SizedBox(
-          height: 40,
+        // Search bar
+        Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: AppRadius.rMd,
+            border: Border.all(color: AppColors.border),
+          ),
           child: TextField(
             controller: searchController,
             onChanged: onSearch,
-            style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
+            style: AppText.body.copyWith(color: AppColors.textBright),
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: EdgeInsets.zero,
-              prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 16),
-              prefixIconConstraints: const BoxConstraints(minWidth: 36),
+              filled: false,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              prefixIcon: const Icon(Icons.search,
+                  color: AppColors.textMuted, size: 20),
               hintText: searchHint,
+              hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
               suffixIcon: query.isNotEmpty
-                  ? GestureDetector(
-                      onTap: onClearSearch,
-                      child: const Icon(Icons.close, color: AppColors.textMuted, size: 16),
+                  ? IconButton(
+                      icon: const Icon(Icons.close,
+                          color: AppColors.textMuted, size: 18),
+                      onPressed: () {
+                        AppHaptics.light();
+                        onClearSearch();
+                      },
                     )
                   : null,
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        // Filter pills — rounded-full px-3 py-1.5 text-xs
-        SizedBox(
-          height: 30,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _Pill(
-                label: favoritesLabel,
-                on: filter == 'favorites',
-                onTap: () => onFilter('favorites'),
-                onColor: AppColors.danger,
+        AppSpacing.gapSm,
+        // Filter chips + tuner
+        Row(children: [
+          Expanded(
+            child: SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  AppChip(
+                    label: favoritesLabel,
+                    selected: filter == 'favorites',
+                    leadingIcon: Icons.favorite,
+                    onTap: () => onFilter('favorites'),
+                  ),
+                  AppSpacing.hGapSm,
+                  AppChip(
+                    label: allLabel,
+                    selected: filter == 'all',
+                    onTap: () => onFilter('all'),
+                  ),
+                  AppSpacing.hGapSm,
+                  AppChip(
+                    label: availableLabel,
+                    selected: filter == 'available',
+                    onTap: () => onFilter('available'),
+                  ),
+                ],
               ),
-              _Pill(
-                label: allLabel,
-                on: filter == 'all',
-                onTap: () => onFilter('all'),
-                onColor: AppColors.primary,
-              ),
-              _Pill(
-                label: availableLabel,
-                on: filter == 'available',
-                onTap: () => onFilter('available'),
-                onColor: AppColors.primary,
-              ),
-              const _Sep(),
-              _Pill(
-                label: distanceLabel,
-                on: sort == 'distance',
-                onTap: () => onSort('distance'),
-                onColor: const Color(0xFF3B82F6),
-                tintBg: true,
-              ),
-              _Pill(
-                label: ratingLabel,
-                on: sort == 'rating',
-                onTap: () => onSort('rating'),
-                onColor: const Color(0xFF3B82F6),
-                tintBg: true,
-              ),
-              _Pill(
-                label: nameLabel,
-                on: sort == 'name',
-                onTap: () => onSort('name'),
-                onColor: const Color(0xFF3B82F6),
-                tintBg: true,
-              ),
-              _Pill(
-                label: experienceLabel,
-                on: sort == 'experience',
-                onTap: () => onSort('experience'),
-                onColor: const Color(0xFF3B82F6),
-                tintBg: true,
-              ),
-              _Pill(
-                label: priceLabel,
-                on: sort == 'price',
-                onTap: () => onSort('price'),
-                onColor: const Color(0xFF3B82F6),
-                tintBg: true,
-              ),
-            ],
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        // Gender pills — match web's ALL/MALE/FEMALE target gender filter
-        SizedBox(
-          height: 28,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _Pill(
-                label: allLabel,
-                on: gender == 'ALL',
-                onTap: () => onGender('ALL'),
-                onColor: const Color(0xFFEC4899),
-                tintBg: true,
+          AppSpacing.hGapSm,
+          // Tuner button — opens bottom sheet with sort + gender
+          TapScale(
+            onTap: onOpenTuner,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: tunerActive
+                    ? AppColors.primary
+                    : AppColors.surfaceElevated,
+                borderRadius: AppRadius.rPill,
+                border: Border.all(
+                  color: tunerActive ? AppColors.primary : AppColors.border,
+                ),
               ),
-              _Pill(
-                label: maleLabel,
-                on: gender == 'MALE',
-                onTap: () => onGender('MALE'),
-                onColor: const Color(0xFFEC4899),
-                tintBg: true,
+              child: Icon(
+                Icons.tune,
+                size: 16,
+                color: tunerActive ? Colors.white : AppColors.textPrimary,
               ),
-              _Pill(
-                label: femaleLabel,
-                on: gender == 'FEMALE',
-                onTap: () => onGender('FEMALE'),
-                onColor: const Color(0xFFEC4899),
-                tintBg: true,
-              ),
-            ],
+            ),
           ),
-        ),
+        ]),
       ]),
     );
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({
-    required this.label,
-    required this.on,
-    required this.onTap,
-    required this.onColor,
-    this.tintBg = false,
+// ─────────────────────────────────────────────────────────────────────────
+// Tuner bottom sheet — sort + gender in one dialog
+// ─────────────────────────────────────────────────────────────────────────
+class _TunerSheet extends ConsumerStatefulWidget {
+  const _TunerSheet({
+    required this.sort,
+    required this.gender,
+    required this.onApply,
   });
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  final Color onColor;
-  final bool tintBg;
+  final String sort;
+  final String gender;
+  final void Function(String sort, String gender) onApply;
+
+  @override
+  ConsumerState<_TunerSheet> createState() => _TunerSheetState();
+}
+
+class _TunerSheetState extends ConsumerState<_TunerSheet> {
+  late String _sort = widget.sort;
+  late String _gender = widget.gender;
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(
-            color: on
-                ? (tintBg ? onColor.withValues(alpha: 0.1) : onColor)
-                : AppColors.background,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: on ? onColor : AppColors.border,
-            ),
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.lg,
           ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: on
-                    ? (tintBg ? onColor : Colors.white)
-                    : AppColors.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Sheet handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: AppRadius.rPill,
+                  ),
+                ),
               ),
-            ),
+              AppSpacing.gapLg,
+              Text(
+                tr(ref, 'mobile.barbers.tunerTitle', "Saralash va filter"),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapLg,
+              // Sort
+              Text(
+                tr(ref, 'mobile.barbers.sortLabel', 'Saralash'),
+                style: AppText.overline,
+              ),
+              AppSpacing.gapSm,
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  _sortChip('rating', tr(ref, 'barbers.rating', 'Reyting'),
+                      Icons.star),
+                  _sortChip('distance',
+                      tr(ref, 'barbers.nearest', 'Eng yaqin'), Icons.near_me),
+                  _sortChip(
+                      'name', tr(ref, 'barbers.sortByName', 'Ism'), Icons.sort_by_alpha),
+                  _sortChip('experience',
+                      tr(ref, 'barbers.experience', 'Tajriba'), Icons.workspace_premium),
+                  _sortChip(
+                      'price', tr(ref, 'booking.price', 'Narx'), Icons.payments),
+                ],
+              ),
+              AppSpacing.gapLg,
+              // Gender
+              Text(
+                tr(ref, 'mobile.barbers.genderLabel', 'Jinsi'),
+                style: AppText.overline,
+              ),
+              AppSpacing.gapSm,
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  _genderChip(
+                      'ALL', tr(ref, 'common.all', 'Hammasi')),
+                  _genderChip(
+                      'MALE', "👨 ${tr(ref, 'barbers.genderMale', 'Erkak')}"),
+                  _genderChip('FEMALE',
+                      "👩 ${tr(ref, 'barbers.genderFemale', 'Ayol')}"),
+                ],
+              ),
+              AppSpacing.gapXl,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.reset', 'Tozalash'),
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () {
+                      AppHaptics.light();
+                      setState(() {
+                        _sort = 'rating';
+                        _gender = 'ALL';
+                      });
+                    },
+                    fullWidth: true,
+                  ),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.apply', "Qo'llash"),
+                    variant: AppButtonVariant.primary,
+                    onPressed: () {
+                      widget.onApply(_sort, _gender);
+                      Navigator.pop(context);
+                    },
+                    fullWidth: true,
+                  ),
+                ),
+              ]),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _sortChip(String key, String label, IconData icon) {
+    return AppChip(
+      label: label,
+      leadingIcon: icon,
+      selected: _sort == key,
+      onTap: () => setState(() => _sort = key),
+    );
+  }
+
+  Widget _genderChip(String key, String label) {
+    return AppChip(
+      label: label,
+      selected: _gender == key,
+      onTap: () => setState(() => _gender = key),
+    );
+  }
 }
 
-class _Sep extends StatelessWidget {
-  const _Sep();
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 1,
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        color: AppColors.border,
-      );
-}
-
-/// Discriminator wrapper used by the merged barbers+shops grid. Exactly one
-/// of [barber] or [shop] is non-null.
+// ─────────────────────────────────────────────────────────────────────────
+// Feed item + unified cards
+// ─────────────────────────────────────────────────────────────────────────
 class _FeedItem {
   _FeedItem.barber(Barber b)
       : barber = b,
@@ -511,105 +578,146 @@ class _FeedItem {
   final PublicBarbershop? shop;
 }
 
-/// Barbershop card — same dimensions as _BarberCard so the grid looks even.
-/// Header shows a building gradient; body shows shop name + barber count +
-/// address (or geoAddress). Tapping routes to /barbershop/:id.
-class _ShopCard extends StatelessWidget {
+class _ShopCard extends ConsumerWidget {
   const _ShopCard({required this.shop});
   final PublicBarbershop shop;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final addr = shop.address.isEmpty ? (shop.geoAddress ?? '') : shop.address;
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: InkWell(
-        onTap: () => context.push('/barbershop/${shop.id}'),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SizedBox(
-            height: 96,
-            child: Stack(children: [
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF8B5CF6).withValues(alpha: 0.25),
-                      const Color(0xFF6366F1).withValues(alpha: 0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(Icons.storefront,
-                    size: 44, color: Color(0xFFA78BFA)),
-              ),
-              Positioned(
-                top: 6, right: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: EdgeInsets.zero,
+      radius: AppRadius.lg,
+      onTap: () => context.push('/barbershop/${shop.id}'),
+      child: ClipRRect(
+        borderRadius: AppRadius.rLg,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header — building gradient + count badge
+            SizedBox(
+              height: 96,
+              child: Stack(children: [
+                Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6),
-                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                        const Color(0xFF6366F1).withValues(alpha: 0.08),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
-                  child: Text(
-                    '${shop.barberCount} 👤',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.storefront,
+                      size: 42, color: Color(0xFFA78BFA)),
+                ),
+                // Shop marker top-left
+                Positioned(
+                  top: AppSpacing.sm,
+                  left: AppSpacing.sm,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: AppRadius.rPill,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.business,
+                            size: 10, color: Colors.white),
+                        AppSpacing.hGapXs,
+                        Text(
+                          tr(ref, 'mobile.barbers.salonBadge', 'Salon'),
+                          style: AppText.caption
+                              .copyWith(color: Colors.white, fontSize: 10),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ]),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  shop.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-                const SizedBox(height: 4),
-                Row(children: [
-                  const Icon(Icons.location_on,
-                      size: 12, color: AppColors.textMuted),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(addr,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 12)),
+                // Barber count badge top-right
+                Positioned(
+                  top: AppSpacing.sm,
+                  right: AppSpacing.sm,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6),
+                      borderRadius: AppRadius.rPill,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.groups,
+                            size: 12, color: Colors.white),
+                        AppSpacing.hGapXs,
+                        Text(
+                          '${shop.barberCount}',
+                          style: AppText.caption.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ]),
-              ],
+                ),
+              ]),
             ),
-          ),
-        ]),
+            // Body
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    shop.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.titleSm,
+                  ),
+                  const SizedBox(height: 6),
+                  if (addr.isNotEmpty)
+                    Row(children: [
+                      const Icon(Icons.location_on_outlined,
+                          size: 12, color: AppColors.textMuted),
+                      AppSpacing.hGapXs,
+                      Expanded(
+                        child: Text(
+                          addr,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.caption,
+                        ),
+                      ),
+                    ]),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Compact 2-column grid card matching the web exactly:
-///   - h-24 (96px) photo strip with primary-tinted gradient + first gallery
-///     image at 60% opacity
-///   - Heart icon top-left in rounded bg-background/70 backdrop
-///   - Status badge top-right (10px font)
-///   - Body: avatar h-11 (44px) overlapping with -mt-6, title text-sm, then
-///     rating/location sub-line
 class _BarberCard extends ConsumerWidget {
   const _BarberCard({required this.barber, required this.avatarUrl});
   final Barber barber;
@@ -618,53 +726,52 @@ class _BarberCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firstGallery = barber.gallery.isNotEmpty ? barber.gallery.first : '';
+    final favsAsync = ref.watch(favoritesProvider);
+    final isFav = favsAsync.maybeWhen<bool>(
+        data: (l) => l.any((b) => b.id == barber.id), orElse: () => false);
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: InkWell(
-        onTap: () => context.push('/barber/${barber.id}'),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          // Header strip h-24 (96px)
-          SizedBox(
-            height: 96,
-            child: Stack(children: [
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.2),
-                      AppColors.primary.withValues(alpha: 0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: EdgeInsets.zero,
+      radius: AppRadius.lg,
+      onTap: () => context.push('/barber/${barber.id}'),
+      child: ClipRRect(
+        borderRadius: AppRadius.rLg,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header — gallery photo + heart + status
+            SizedBox(
+              height: 96,
+              child: Stack(children: [
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.2),
+                        AppColors.primary.withValues(alpha: 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
-                ),
-                child: firstGallery.isEmpty
-                    ? null
-                    : Opacity(
-                        opacity: 0.6,
-                        child: CachedNetworkImage(
-                          imageUrl: firstGallery,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
+                  child: firstGallery.isEmpty
+                      ? null
+                      : Opacity(
+                          opacity: 0.6,
+                          child: CachedNetworkImage(
+                            imageUrl: firstGallery,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
                         ),
-                      ),
-              ),
-              // Heart top-left
-              Positioned(
-                top: 6, left: 6,
-                child: Consumer(builder: (context, ref, _) {
-                  final favsAsync = ref.watch(favoritesProvider);
-                  final isFav = favsAsync.maybeWhen<bool>(
-                      data: (l) => l.any((b) => b.id == barber.id),
-                      orElse: () => false);
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(14),
+                ),
+                // Heart top-left
+                Positioned(
+                  top: AppSpacing.sm,
+                  left: AppSpacing.sm,
+                  child: TapScale(
+                    scale: 0.85,
                     onTap: () async {
                       try {
                         await ref
@@ -674,108 +781,147 @@ class _BarberCard extends ConsumerWidget {
                       } catch (_) {}
                     },
                     child: Container(
-                      width: 28, height: 28,
+                      width: 30,
+                      height: 30,
                       decoration: BoxDecoration(
-                        color: AppColors.background.withValues(alpha: 0.7),
+                        color: Colors.black.withValues(alpha: 0.35),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                          isFav ? Icons.favorite : Icons.favorite_border,
-                          size: 16,
-                          color: isFav ? AppColors.danger : AppColors.textPrimary),
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        size: 16,
+                        color: isFav ? AppColors.danger : Colors.white,
+                      ),
                     ),
-                  );
-                }),
-              ),
-              // Status badge top-right
-              Positioned(
-                top: 6, right: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: barber.isAvailable
-                        ? AppColors.success
-                        : AppColors.surfaceElevated,
-                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(
-                    barber.isAvailable
+                ),
+                // Status badge top-right
+                Positioned(
+                  top: AppSpacing.sm,
+                  right: AppSpacing.sm,
+                  child: AppBadge(
+                    label: barber.isAvailable
                         ? tr(ref, 'barbers.available', "Bo'sh")
                         : tr(ref, 'barbers.unavailable', "Band"),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    variant: barber.isAvailable
+                        ? AppBadgeVariant.success
+                        : AppBadgeVariant.neutral,
+                    dot: true,
                   ),
                 ),
-              ),
-            ]),
-          ),
-
-          // Body — relative -mt-6 so avatar overlaps
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Transform.translate(
-                  offset: const Offset(0, -22),
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.background,
-                      shape: BoxShape.circle,
-                    ),
-                    padding: const EdgeInsets.all(3),
-                    child: ClipOval(
-                      child: avatarUrl.isEmpty
-                          ? _AvatarFallback(name: barber.name)
-                          : CachedNetworkImage(
-                              imageUrl: avatarUrl,
-                              width: 44, height: 44,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const _AvatarShimmer(),
-                              errorWidget: (context, url, err) => _AvatarFallback(name: barber.name),
-                            ),
+                // Gender preference indicator (bottom-left)
+                if (barber.targetGender != null)
+                  Positioned(
+                    bottom: AppSpacing.sm,
+                    left: AppSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: AppRadius.rPill,
+                      ),
+                      child: Text(
+                        barber.targetGender == 'MALE_ONLY' ? '👨' : '👩',
+                        style: const TextStyle(fontSize: 10),
+                      ),
                     ),
                   ),
-                ),
-                Transform.translate(
-                  offset: const Offset(0, -16),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(barber.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright)),
-                    const SizedBox(height: 4),
-                    // Rating row (web shows this for barbers)
-                    Row(children: [
-                      const Icon(Icons.star, size: 12, color: Color(0xFFFBBF24)),
-                      const SizedBox(width: 4),
-                      Text(barber.rating.toStringAsFixed(1),
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-                      const SizedBox(width: 4),
-                      Text("(${barber.reviewCount})",
-                          style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                    ]),
-                    if (barber.location.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Row(children: [
-                        const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textMuted),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(barber.location,
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                        ),
-                      ]),
-                    ],
-                  ]),
-                ),
               ]),
             ),
-          ),
-        ]),
+            // Body — avatar overlaps
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Transform.translate(
+                      offset: const Offset(0, -22),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          shape: BoxShape.circle,
+                          boxShadow: AppShadows.subtle,
+                        ),
+                        padding: const EdgeInsets.all(3),
+                        child: ClipOval(
+                          child: avatarUrl.isEmpty
+                              ? _AvatarFallback(name: barber.name)
+                              : CachedNetworkImage(
+                                  imageUrl: avatarUrl,
+                                  width: 44,
+                                  height: 44,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) =>
+                                      const SkeletonCircle(size: 44),
+                                  errorWidget: (context, url, err) =>
+                                      _AvatarFallback(name: barber.name),
+                                ),
+                        ),
+                      ),
+                    ),
+                    Transform.translate(
+                      offset: const Offset(0, -16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            barber.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.titleSm,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(children: [
+                            const Icon(Icons.star,
+                                size: 12, color: Color(0xFFFBBF24)),
+                            AppSpacing.hGapXs,
+                            Text(
+                              barber.rating.toStringAsFixed(1),
+                              style: AppText.caption.copyWith(
+                                color: AppColors.textBright,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            AppSpacing.hGapXs,
+                            Text(
+                              '(${barber.reviewCount})',
+                              style: AppText.caption,
+                            ),
+                          ]),
+                          if (barber.location.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Row(children: [
+                              const Icon(Icons.location_on_outlined,
+                                  size: 12, color: AppColors.textMuted),
+                              AppSpacing.hGapXs,
+                              Expanded(
+                                child: Text(
+                                  barber.location,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppText.caption,
+                                ),
+                              ),
+                            ]),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -788,58 +934,51 @@ class _AvatarFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
     return Container(
-      width: 44, height: 44,
-      color: AppColors.surfaceElevated,
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(gradient: AppColors.primaryGradient),
       alignment: Alignment.center,
-      child: Text(initial,
-          style: const TextStyle(color: AppColors.textBright, fontSize: 18, fontWeight: FontWeight.w700)),
-    );
-  }
-}
-
-class _AvatarShimmer extends StatelessWidget {
-  const _AvatarShimmer();
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: AppColors.surfaceElevated,
-      highlightColor: AppColors.border,
-      child: Container(width: 44, height: 44, color: AppColors.surfaceElevated),
-    );
-  }
-}
-
-class _LoadingGrid extends StatelessWidget {
-  const _LoadingGrid();
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 0.74,
-        ),
-        itemCount: 6,
-        itemBuilder: (context, _) => Shimmer.fromColors(
-          baseColor: AppColors.surfaceElevated,
-          highlightColor: AppColors.border,
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.surfaceElevated,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
+      child: Text(
+        initial,
+        style: AppText.titleMd.copyWith(color: Colors.white),
       ),
     );
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Loading grid — proper skeleton (not just blank shimmer)
+// ─────────────────────────────────────────────────────────────────────────
+class _LoadingGrid extends StatelessWidget {
+  const _LoadingGrid();
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: 0.72,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, _) => const SkeletonBarberCard(),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Empty state
+// ─────────────────────────────────────────────────────────────────────────
 class _EmptyState extends ConsumerWidget {
   const _EmptyState();
   @override
