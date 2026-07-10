@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
-import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
@@ -61,7 +60,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       ),
     ];
     return Scaffold(
-      drawer: const AppDrawer(),
+      // No side drawer for customers — pro apps (Uzum/Click/Instagram)
+      // route secondary destinations through the Profile tab and header
+      // shortcuts instead of a hamburger menu.
       body: Column(
         children: [
           const _CustomerHeader(),
@@ -97,15 +98,6 @@ class _CustomerHeader extends ConsumerWidget {
           AppSpacing.sm,
         ),
         child: Row(children: [
-          // Hamburger — leading position matches drawer edge (left-side)
-          _CircleIconButton(
-            icon: Icons.menu_rounded,
-            onTap: () {
-              AppHaptics.selection();
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-          AppSpacing.hGapSm,
           // Brand — gradient icon + wordmark
           Container(
             width: 34,
@@ -128,7 +120,7 @@ class _CustomerHeader extends ConsumerWidget {
           ),
           const Spacer(),
           _CircleIconButton(
-            icon: Icons.favorite_border,
+            icon: Icons.bookmark_border,
             onTap: () {
               AppHaptics.selection();
               context.push('/favorites');

@@ -128,8 +128,35 @@ class ProfileScreen extends ConsumerWidget {
             AppSpacing.gapLg,
 
             // ═════════════ Menu links ═════════════
+            // Since we dropped the hamburger drawer, every non-tab
+            // destination lives here — this is the customer's single
+            // "everything else" surface (Uzum/Click pattern).
             if (user != null) ...[
               _MenuGroup(children: [
+                if (user.role == 'user') ...[
+                  _LinkTile(
+                    icon: Icons.bookmark_border,
+                    iconColor: AppColors.danger,
+                    label: tr(ref, 'profile.favorites', 'Sevimlilar'),
+                    onTap: () => context.push('/favorites'),
+                  ),
+                  _LinkTile(
+                    icon: Icons.location_on_outlined,
+                    iconColor: AppColors.success,
+                    label:
+                        tr(ref, 'mobile.map.title', 'Yaqin atrofda'),
+                    onTap: () => context.push('/map'),
+                  ),
+                ],
+                _LinkTile(
+                  icon: Icons.person_outline,
+                  iconColor: AppColors.primary,
+                  label: tr(
+                      ref, 'profile.editProfile', 'Profilni tahrirlash'),
+                  onTap: () => context.push(isBarberRole(user.role)
+                      ? '/barber/profile'
+                      : '/profile-edit'),
+                ),
                 _LinkTile(
                   icon: Icons.card_giftcard,
                   iconColor: AppColors.warning,
@@ -150,13 +177,12 @@ class ProfileScreen extends ConsumerWidget {
                       ref, 'barberApp.notifications', 'Bildirishnomalar'),
                   onTap: () => context.push('/notifications'),
                 ),
-                if (user.role == 'user')
-                  _LinkTile(
-                    icon: Icons.favorite_outline,
-                    iconColor: AppColors.danger,
-                    label: tr(ref, 'profile.favorites', 'Sevimlilar'),
-                    onTap: () => context.push('/favorites'),
-                  ),
+                _LinkTile(
+                  icon: Icons.settings_outlined,
+                  iconColor: AppColors.textMuted,
+                  label: tr(ref, 'barberApp.settings', 'Sozlamalar'),
+                  onTap: () => context.push('/settings'),
+                ),
               ]),
               AppSpacing.gapLg,
             ],
