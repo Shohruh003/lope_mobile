@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/colors.dart';
+import '../theme/lope_colors.dart';
 
 /// Foydalanuvchi ko'radigan xatolik holati — Click/Payme uslubida: ikon +
 /// qisqa sarlavha + hikoya + "Qayta urinish" tugmasi. Xech qachon
@@ -22,6 +23,7 @@ class AppErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -40,8 +42,8 @@ class AppErrorState extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               title ?? "Xatolik yuz berdi",
-              style: const TextStyle(
-                color: AppColors.textBright,
+              style: TextStyle(
+                color: palette.textBright,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -50,8 +52,8 @@ class AppErrorState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: const TextStyle(
-                color: AppColors.textMuted,
+              style: TextStyle(
+                color: palette.textMuted,
                 fontSize: 14,
                 height: 1.5,
               ),
@@ -101,6 +103,7 @@ class AppEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.colors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -126,8 +129,8 @@ class AppEmptyState extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               title,
-              style: const TextStyle(
-                color: AppColors.textBright,
+              style: TextStyle(
+                color: palette.textBright,
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
               ),
@@ -137,8 +140,8 @@ class AppEmptyState extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 message!,
-                style: const TextStyle(
-                  color: AppColors.textMuted,
+                style: TextStyle(
+                  color: palette.textMuted,
                   fontSize: 14,
                   height: 1.5,
                 ),
@@ -207,6 +210,7 @@ class _AppSkeletonState extends State<AppSkeleton>
 
   @override
   Widget build(BuildContext context) {
+    final border = context.colors.border;
     return Container(
       width: widget.width,
       height: widget.height,
@@ -219,9 +223,9 @@ class _AppSkeletonState extends State<AppSkeleton>
               begin: Alignment(-1 + _c.value * 2, 0),
               end: Alignment(1 + _c.value * 2, 0),
               colors: [
-                AppColors.border.withValues(alpha: 0.3),
-                AppColors.border.withValues(alpha: 0.6),
-                AppColors.border.withValues(alpha: 0.3),
+                border.withValues(alpha: 0.3),
+                border.withValues(alpha: 0.6),
+                border.withValues(alpha: 0.3),
               ],
             ),
             borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -239,6 +243,7 @@ class AppListSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.colors;
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: itemCount,
@@ -246,9 +251,9 @@ class AppListSkeleton extends StatelessWidget {
       itemBuilder: (_, _) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: palette.background,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: palette.border),
         ),
         child: Row(
           children: [

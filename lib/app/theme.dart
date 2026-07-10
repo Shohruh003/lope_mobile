@@ -4,76 +4,96 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../shared/theme/colors.dart';
+import '../shared/theme/lope_colors.dart';
 
-/// Dark theme matching the web's shadcn/ui defaults. Key points:
-///   - Card background = scaffold background; differentiation is by 1px
-///     border, not a different fill. This is what makes web-shadcn dark
-///     mode look so calm.
-///   - Radius is small (10px) — not the pillow-soft 20px we had before.
-///   - Inputs sit on top of the scaffold with a thin border + subtle inner
-///     fill. Focus ring is the primary blue.
-///   - Buttons are flat (no elevation) with rounded-md corners.
-ThemeData buildAppTheme() {
+/// App theme. Accepts a brightness so we can build both a dark and a
+/// light [ThemeData] from the same tokens. Widgets that read colours
+/// through `context.colors.xxx` will pick up the right palette
+/// automatically because both ThemeData objects register a matching
+/// [LopeColors] extension.
+///
+/// Semantic colours (primary, success, danger, warning) live on
+/// `AppColors` and stay identical in both modes — they're brand tokens.
+ThemeData buildAppTheme([Brightness brightness = Brightness.dark]) {
+  final palette = brightness == Brightness.dark
+      ? LopeColors.dark
+      : LopeColors.light;
+
   final base = ThemeData(
     useMaterial3: true,
-    brightness: Brightness.dark,
-    colorScheme: const ColorScheme.dark(
-      primary: AppColors.primary,
-      onPrimary: Colors.white,
-      secondary: AppColors.primary,
-      surface: AppColors.surface,
-      onSurface: AppColors.textPrimary,
-      error: AppColors.danger,
-    ),
-    scaffoldBackgroundColor: AppColors.background,
-    canvasColor: AppColors.background,
+    brightness: brightness,
+    colorScheme: brightness == Brightness.dark
+        ? ColorScheme.dark(
+            primary: AppColors.primary,
+            onPrimary: Colors.white,
+            secondary: AppColors.primary,
+            surface: palette.surface,
+            onSurface: palette.textPrimary,
+            error: AppColors.danger,
+          )
+        : ColorScheme.light(
+            primary: AppColors.primary,
+            onPrimary: Colors.white,
+            secondary: AppColors.primary,
+            surface: palette.surface,
+            onSurface: palette.textPrimary,
+            error: AppColors.danger,
+          ),
+    scaffoldBackgroundColor: palette.background,
+    canvasColor: palette.background,
+    extensions: <ThemeExtension<dynamic>>[palette],
   );
 
   return base.copyWith(
     textTheme: GoogleFonts.interTextTheme(base.textTheme).apply(
-      bodyColor: AppColors.textPrimary,
-      displayColor: AppColors.textPrimary,
+      bodyColor: palette.textPrimary,
+      displayColor: palette.textPrimary,
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.background,
+    appBarTheme: AppBarTheme(
+      backgroundColor: palette.background,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: TextStyle(
-        color: AppColors.textBright,
+        color: palette.textBright,
         fontSize: 18,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.3,
       ),
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarIconBrightness:
+            brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: brightness,
       ),
     ),
     cardTheme: CardThemeData(
-      color: AppColors.surface,
+      color: palette.surface,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: const BorderSide(color: AppColors.border, width: 1),
+        side: BorderSide(color: palette.border, width: 1),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      // Subtle fill — slightly lighter than the scaffold but still flat.
-      fillColor: AppColors.surfaceElevated,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14, fontWeight: FontWeight.w400),
-      labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w500),
+      fillColor: palette.surfaceElevated,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      hintStyle: TextStyle(
+          color: palette.textMuted, fontSize: 14, fontWeight: FontWeight.w400),
+      labelStyle: TextStyle(
+          color: palette.textSecondary,
+          fontSize: 14,
+          fontWeight: FontWeight.w500),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.border, width: 1),
+        borderSide: BorderSide(color: palette.border, width: 1),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.border, width: 1),
+        borderSide: BorderSide(color: palette.border, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
@@ -88,22 +108,24 @@ ThemeData buildAppTheme() {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        disabledBackgroundColor: AppColors.surfaceElevated,
-        disabledForegroundColor: AppColors.textMuted,
+        disabledBackgroundColor: palette.surfaceElevated,
+        disabledForegroundColor: palette.textMuted,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         minimumSize: const Size.fromHeight(40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8)),
         textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.textPrimary,
-        side: const BorderSide(color: AppColors.border),
+        foregroundColor: palette.textPrimary,
+        side: BorderSide(color: palette.border),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         minimumSize: const Size.fromHeight(40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8)),
         textStyle: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
       ),
     ),
@@ -114,25 +136,27 @@ ThemeData buildAppTheme() {
       ),
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: AppColors.surfaceElevated,
+      backgroundColor: palette.surfaceElevated,
       selectedColor: AppColors.primary,
-      labelStyle: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500),
-      secondaryLabelStyle: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-      side: const BorderSide(color: AppColors.border),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      labelStyle: TextStyle(
+          color: palette.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w500),
+      secondaryLabelStyle: const TextStyle(
+          color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+      side: BorderSide(color: palette.border),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
     ),
-    dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1, space: 1),
-    // Barcha sahifalar orasidagi o'tishlar bir xil — yumshoq zoom (iOS-uslub)
-    // Android'ning "sekin slide" default'ini almashtiradi. Har bir push
-    // yumshoq va bir xilda his qilinadi.
+    dividerTheme:
+        DividerThemeData(color: palette.border, thickness: 1, space: 1),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: ZoomPageTransitionsBuilder(),
         TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       },
     ),
-    // Ripple effekti radiusi standart tugma radiusiga mos.
     splashFactory: InkRipple.splashFactory,
   );
 }

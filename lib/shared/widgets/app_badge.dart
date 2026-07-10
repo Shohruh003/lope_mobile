@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/colors.dart';
+import '../theme/lope_colors.dart';
 import '../theme/radius.dart';
 import '../theme/spacing.dart';
 import '../theme/typography.dart';
@@ -25,18 +26,18 @@ class AppBadge extends StatelessWidget {
   /// Chap tomonda kichik doira ko'rsatish (bo'sh/band uchun mos).
   final bool dot;
 
-  Color get _color => switch (variant) {
+  Color _colorFor(LopeColors palette) => switch (variant) {
         AppBadgeVariant.success => AppColors.success,
         AppBadgeVariant.warning => AppColors.warning,
         AppBadgeVariant.danger => AppColors.danger,
         AppBadgeVariant.info => AppColors.primary,
-        AppBadgeVariant.neutral => AppColors.textMuted,
+        AppBadgeVariant.neutral => palette.textMuted,
         AppBadgeVariant.primary => AppColors.primary,
       };
 
   @override
   Widget build(BuildContext context) {
-    final color = _color;
+    final color = _colorFor(context.colors);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,

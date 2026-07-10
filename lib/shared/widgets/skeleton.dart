@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../theme/colors.dart';
+import '../theme/lope_colors.dart';
 import '../theme/radius.dart';
 import '../theme/spacing.dart';
 
@@ -9,17 +9,6 @@ import '../theme/spacing.dart';
 /// yo'q" empty ekrannni ko'rsatish o'rniga elementlar shakli aksini
 /// beramiz. Uzum Bank / Click darajasidagi ilova hech qachon
 /// CircularProgressIndicator o'rtasida "aylanish" bilan yuklanmaydi.
-///
-/// Ishlatish:
-/// ```
-/// // Bir qator matn
-/// SkeletonLine(width: 200)
-///
-/// // Bir necha element
-/// SkeletonBox(
-///   child: Column(...),
-/// )
-/// ```
 class SkeletonBox extends StatelessWidget {
   const SkeletonBox({
     super.key,
@@ -33,9 +22,10 @@ class SkeletonBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!enabled) return child;
+    final palette = context.colors;
     return Shimmer.fromColors(
-      baseColor: AppColors.surfaceElevated,
-      highlightColor: AppColors.border,
+      baseColor: palette.surfaceElevated,
+      highlightColor: palette.border,
       period: const Duration(milliseconds: 1400),
       child: child,
     );
@@ -62,7 +52,7 @@ class SkeletonLine extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.surfaceElevated,
+          color: context.colors.surfaceElevated,
           borderRadius: BorderRadius.circular(radius),
         ),
       ),
@@ -82,8 +72,8 @@ class SkeletonCircle extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceElevated,
+        decoration: BoxDecoration(
+          color: context.colors.surfaceElevated,
           shape: BoxShape.circle,
         ),
       ),
@@ -111,7 +101,7 @@ class SkeletonRect extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.surfaceElevated,
+          color: context.colors.surfaceElevated,
           borderRadius: BorderRadius.circular(radius),
         ),
       ),
@@ -125,12 +115,13 @@ class SkeletonBarberCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.colors;
     return Container(
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: palette.surface,
         borderRadius: AppRadius.rLg,
-        border: Border.all(color: AppColors.border, width: 1),
+        border: Border.all(color: palette.border, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

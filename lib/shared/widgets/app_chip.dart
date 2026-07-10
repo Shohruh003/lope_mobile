@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../haptics.dart';
 import '../theme/colors.dart';
+import '../theme/lope_colors.dart';
 import '../theme/motion.dart';
 import '../theme/radius.dart';
 import '../theme/spacing.dart';
@@ -35,12 +36,13 @@ class _AppChipState extends State<AppChip> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.colors;
     final disabled = widget.onTap == null;
     final selected = widget.selected;
 
-    final bg = selected ? AppColors.primary : AppColors.surfaceElevated;
-    final fg = selected ? Colors.white : AppColors.textPrimary;
-    final borderColor = selected ? AppColors.primary : AppColors.border;
+    final bg = selected ? AppColors.primary : palette.surfaceElevated;
+    final fg = selected ? Colors.white : palette.textPrimary;
+    final borderColor = selected ? AppColors.primary : palette.border;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -90,7 +92,7 @@ class _AppChipState extends State<AppChip> {
                   decoration: BoxDecoration(
                     color: selected
                         ? Colors.white.withValues(alpha: 0.25)
-                        : AppColors.background,
+                        : palette.background,
                     borderRadius: AppRadius.rPill,
                   ),
                   child: Text(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/colors.dart';
+import '../theme/lope_colors.dart';
 import '../theme/radius.dart';
 import '../theme/shadows.dart';
 import '../theme/spacing.dart';
@@ -43,8 +43,9 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = color ?? AppColors.surface;
-    final effectiveBorder = borderColor ?? AppColors.border;
+    final palette = context.colors;
+    final effectiveColor = color ?? palette.surface;
+    final effectiveBorder = borderColor ?? palette.border;
 
     final decoration = BoxDecoration(
       color: gradient == null ? effectiveColor : null,

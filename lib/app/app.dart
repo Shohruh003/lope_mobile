@@ -31,20 +31,19 @@ class _LopeAppState extends ConsumerState<LopeApp> {
       });
     }
 
-    // themeMode preference is kept in place (persists in shared prefs +
-    // shows in the picker) but the whole palette is still hard-coded
-    // dark via `AppColors.*` constants which the framework can't swap
-    // at runtime. Fully honouring light mode needs migrating AppColors
-    // to a ThemeExtension — planned separately. Until then, force dark
-    // so the UI stays readable.
-    final _ = ref.watch(themeModeProvider);
-    final darkTheme = buildAppTheme();
+    // Real light-mode: buildAppTheme() returns a ThemeData that
+    // registers a LopeColors extension for the requested brightness so
+    // widgets that read `context.colors.xxx` follow the active mode.
+    // MaterialApp switches between the two automatically based on the
+    // stored preference.
+    final mode =
+        ref.watch(themeModeProvider).asData?.value ?? ThemeMode.dark;
     return MaterialApp.router(
       title: 'Lope Style',
       debugShowCheckedModeBanner: false,
-      theme: darkTheme,
-      darkTheme: darkTheme,
-      themeMode: ThemeMode.dark,
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
+      themeMode: mode,
       routerConfig: router,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

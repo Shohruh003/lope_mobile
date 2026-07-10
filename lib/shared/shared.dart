@@ -10,6 +10,7 @@ library;
 
 // Tokenlar
 export 'theme/colors.dart';
+export 'theme/lope_colors.dart';
 export 'theme/spacing.dart';
 export 'theme/radius.dart';
 export 'theme/motion.dart';

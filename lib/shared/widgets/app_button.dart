@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../haptics.dart';
 import '../theme/colors.dart';
+import '../theme/lope_colors.dart';
 import '../theme/motion.dart';
 import '../theme/radius.dart';
 import '../theme/shadows.dart';
@@ -58,41 +59,41 @@ class _AppButtonState extends State<AppButton> {
         AppButtonSize.lg => const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       };
 
-  TextStyle get _textStyle {
+  TextStyle _textStyle(LopeColors palette) {
     final base = widget.size == AppButtonSize.lg ? AppText.buttonLg : AppText.button;
-    return base.copyWith(color: _fg);
+    return base.copyWith(color: _fg(palette));
   }
 
-  Color get _bg {
-    if (widget.onPressed == null) return AppColors.surfaceElevated;
+  Color _bg(LopeColors palette) {
+    if (widget.onPressed == null) return palette.surfaceElevated;
     return switch (widget.variant) {
       AppButtonVariant.primary => AppColors.primary,
-      AppButtonVariant.secondary => AppColors.surfaceElevated,
+      AppButtonVariant.secondary => palette.surfaceElevated,
       AppButtonVariant.ghost => Colors.transparent,
       AppButtonVariant.danger => AppColors.danger,
       AppButtonVariant.success => AppColors.success,
     };
   }
 
-  Color get _fg {
-    if (widget.onPressed == null) return AppColors.textMuted;
+  Color _fg(LopeColors palette) {
+    if (widget.onPressed == null) return palette.textMuted;
     return switch (widget.variant) {
       AppButtonVariant.primary => Colors.white,
-      AppButtonVariant.secondary => AppColors.textPrimary,
+      AppButtonVariant.secondary => palette.textPrimary,
       AppButtonVariant.ghost => AppColors.primary,
       AppButtonVariant.danger => Colors.white,
       AppButtonVariant.success => Colors.white,
     };
   }
 
-  Border? get _border {
+  Border? _border(LopeColors palette) {
     if (widget.variant == AppButtonVariant.secondary) {
-      return Border.all(color: AppColors.border, width: 1);
+      return Border.all(color: palette.border, width: 1);
     }
     return null;
   }
 
-  List<BoxShadow>? get _shadow {
+  List<BoxShadow>? _shadow() {
     if (widget.onPressed == null) return null;
     if (widget.variant == AppButtonVariant.primary && !_pressed) {
       return AppShadows.primaryGlow(AppColors.primary);
@@ -118,6 +119,8 @@ class _AppButtonState extends State<AppButton> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.colors;
+    final fg = _fg(palette);
     final disabled = widget.onPressed == null || widget.loading;
 
     final child = AnimatedContainer(
@@ -126,10 +129,10 @@ class _AppButtonState extends State<AppButton> {
       height: _height,
       padding: _padding,
       decoration: BoxDecoration(
-        color: _bg,
+        color: _bg(palette),
         borderRadius: AppRadius.rMd,
-        border: _border,
-        boxShadow: _shadow,
+        border: _border(palette),
+        boxShadow: _shadow(),
       ),
       child: Row(
         mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
@@ -141,18 +144,18 @@ class _AppButtonState extends State<AppButton> {
               height: 18,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: _fg,
+                color: fg,
               ),
             )
           else ...[
             if (widget.leadingIcon != null) ...[
-              Icon(widget.leadingIcon, size: 18, color: _fg),
+              Icon(widget.leadingIcon, size: 18, color: fg),
               const SizedBox(width: AppSpacing.sm),
             ],
-            Text(widget.label, style: _textStyle),
+            Text(widget.label, style: _textStyle(palette)),
             if (widget.trailingIcon != null) ...[
               const SizedBox(width: AppSpacing.sm),
-              Icon(widget.trailingIcon, size: 18, color: _fg),
+              Icon(widget.trailingIcon, size: 18, color: fg),
             ],
           ],
         ],

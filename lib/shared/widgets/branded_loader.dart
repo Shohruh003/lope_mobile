@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../theme/colors.dart';
+import '../theme/lope_colors.dart';
 import '../theme/radius.dart';
 import '../theme/shadows.dart';
 import '../theme/spacing.dart';
@@ -45,7 +46,7 @@ class BrandedLoader extends StatelessWidget {
           radius: 1.2,
           colors: [
             AppColors.primary.withValues(alpha: 0.12),
-            AppColors.background,
+            context.colors.background,
           ],
         ),
       ),
