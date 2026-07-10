@@ -1,25 +1,16 @@
 import 'package:fl_chart/fl_chart.dart';
-import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
-import '../../../shared/widgets/shadcn.dart';
 import '../data/shop_repository.dart';
 
-/// Mirrors web `BarbershopDashboard.tsx`:
-///   - Salon name + address header with date-range picker
-///   - "Bugungi tushum" emerald card (today's revenue, separate from period)
-///   - 4 KPI cards: Bookings / Revenue / Unique Clients / New Clients
-///   - 4 Shortcut cards: Barbers / Due for reminder / SMS sent / From SMS
-///   - Bookings over time area chart
-///   - New clients growth line chart
-///   - Navigation tile group (existing)
 class ShopDashboardScreen extends ConsumerStatefulWidget {
   const ShopDashboardScreen({super.key});
   @override
@@ -34,6 +25,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
   late DateTime _to = DateTime.now();
 
   Future<void> _pickFrom() async {
+    AppHaptics.light();
     final picked = await showDatePicker(
       context: context,
       initialDate: _from,
@@ -44,6 +36,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
   }
 
   Future<void> _pickTo() async {
+    AppHaptics.light();
     final picked = await showDatePicker(
       context: context,
       initialDate: _to,
@@ -68,40 +61,52 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
             ref.invalidate(shopStatsFilteredProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             children: [
-              // ===== Salon header =====
               me.when(
                 loading: () => const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
-                data: (m) => ShadCard(
-                  padding: const EdgeInsets.all(14),
+                data: (m) => AppCard(
+                  variant: AppCardVariant.outlined,
+                  padding: AppSpacing.cardPadding,
                   child: Row(children: [
-                    const ShadIconBubble(icon: Icons.storefront_outlined),
-                    const SizedBox(width: 12),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: AppRadius.rSm,
+                        boxShadow:
+                            AppShadows.primaryGlow(AppColors.primary),
+                      ),
+                      child: const Icon(Icons.storefront_outlined,
+                          color: Colors.white, size: 22),
+                    ),
+                    AppSpacing.hGapMd,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                              tr(ref, 'mobile.shop.dashboard.salonLabel',
-                                  "Salonim"),
-                              style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5)),
+                            tr(ref,
+                                'mobile.shop.dashboard.salonLabel',
+                                'Salonim'),
+                            style: AppText.overline,
+                          ),
                           const SizedBox(height: 2),
                           Text((m['name'] ?? '').toString(),
-                              style: const TextStyle(
-                                  color: AppColors.textBright,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w700)),
-                          if ((m['address'] ?? '').toString().isNotEmpty) ...[
+                              style: AppText.titleMd),
+                          if ((m['address'] ?? '')
+                              .toString()
+                              .isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text((m['address']).toString(),
-                                style: const TextStyle(
-                                    color: AppColors.textMuted, fontSize: 12)),
+                                style: AppText.caption),
                           ],
                         ],
                       ),
@@ -109,36 +114,44 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                   ]),
                 ),
               ),
-              const SizedBox(height: 12),
-
-              // ===== Date range pickers =====
+              AppSpacing.gapMd,
               Row(children: [
-                Expanded(child: _DatePill(label: _ymd.format(_from), onTap: _pickFrom)),
-                const SizedBox(width: 8),
-                const Text("—",
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
-                const SizedBox(width: 8),
-                Expanded(child: _DatePill(label: _ymd.format(_to), onTap: _pickTo)),
+                Expanded(
+                    child: _DatePill(
+                        label: _ymd.format(_from), onTap: _pickFrom)),
+                AppSpacing.hGapSm,
+                const Text('—',
+                    style: TextStyle(color: AppColors.textMuted)),
+                AppSpacing.hGapSm,
+                Expanded(
+                    child: _DatePill(
+                        label: _ymd.format(_to), onTap: _pickTo)),
               ]),
-              const SizedBox(height: 16),
-
-              // ===== Today's cash card (independent of period) =====
+              AppSpacing.gapLg,
               stats.when(
                 loading: () => const Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AppSkeleton(height: 110, borderRadius: 12),
-                    SizedBox(height: 12),
+                    SkeletonRect(height: 120, radius: AppRadius.xl),
+                    SizedBox(height: AppSpacing.md),
                     Row(children: [
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
-                      SizedBox(width: 8),
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      Expanded(
+                          child: SkeletonRect(
+                              height: 96, radius: AppRadius.md)),
+                      SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                          child: SkeletonRect(
+                              height: 96, radius: AppRadius.md)),
                     ]),
-                    SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.sm),
                     Row(children: [
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
-                      SizedBox(width: 8),
-                      Expanded(child: AppSkeleton(height: 92, borderRadius: 12)),
+                      Expanded(
+                          child: SkeletonRect(
+                              height: 96, radius: AppRadius.md)),
+                      SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                          child: SkeletonRect(
+                              height: 96, radius: AppRadius.md)),
                     ]),
                   ],
                 ),
@@ -146,99 +159,119 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                   height: 320,
                   child: AppErrorState(
                     message: humanize(e),
-                    onRetry: () => ref.invalidate(shopStatsFilteredProvider),
+                    onRetry: () =>
+                        ref.invalidate(shopStatsFilteredProvider),
                   ),
                 ),
                 data: (s) => Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _TodayCashCard(stats: s),
-                    const SizedBox(height: 14),
-
-                    // ===== KPI cards row 1 (4 cards: Bookings/Revenue/Unique/New) =====
+                    AppSpacing.gapLg,
                     _kpiGrid([
                       _Kpi(
-                          icon: Icons.event_available,
-                          label: tr(ref, 'shop.stats.bookings', 'Bronlar'),
-                          value: _fmtNum.format(s.bookings),
-                          color: AppColors.primary),
+                        icon: Icons.event_available,
+                        label: tr(ref, 'shop.stats.bookings', 'Bronlar'),
+                        value: _fmtNum.format(s.bookings),
+                        color: AppColors.primary,
+                      ),
                       _Kpi(
-                          icon: Icons.attach_money,
-                          label: tr(ref, 'shop.stats.revenue', 'Daromad'),
-                          value:
-                              "${_fmtNum.format(s.revenue)} ${tr(ref, 'common.currency', "so'm")}",
-                          color: AppColors.success),
+                        icon: Icons.attach_money,
+                        label: tr(ref, 'shop.stats.revenue', 'Daromad'),
+                        value:
+                            "${_fmtNum.format(s.revenue)} ${tr(ref, 'common.currency', "so'm")}",
+                        color: AppColors.success,
+                      ),
                       _Kpi(
-                          icon: Icons.people_outline,
-                          label: tr(ref, 'shop.stats.uniqueClients',
-                              'Mijozlar'),
-                          value: _fmtNum.format(s.uniqueClients),
-                          color: const Color(0xFF8B5CF6)),
+                        icon: Icons.people_outline,
+                        label: tr(ref, 'shop.stats.uniqueClients',
+                            'Mijozlar'),
+                        value: _fmtNum.format(s.uniqueClients),
+                        color: const Color(0xFF8B5CF6),
+                      ),
                       _Kpi(
-                          icon: Icons.person_add_outlined,
-                          label: tr(ref, 'shop.stats.newClients',
-                              'Yangi mijozlar'),
-                          value: _fmtNum.format(s.newClients),
-                          color: AppColors.warning),
+                        icon: Icons.person_add_outlined,
+                        label: tr(ref, 'shop.stats.newClients',
+                            'Yangi mijozlar'),
+                        value: _fmtNum.format(s.newClients),
+                        color: AppColors.warning,
+                      ),
                     ]),
-                    const SizedBox(height: 10),
-
-                    // ===== KPI cards row 2 (shortcuts) =====
+                    AppSpacing.gapMd,
                     _kpiGrid([
                       _Kpi(
-                          icon: Icons.content_cut,
-                          label: tr(ref, 'shop.nav.barbers', 'Masterlar'),
-                          value:
-                              "${s.barbersCount} ${tr(ref, 'common.pcs', 'ta')}",
-                          color: AppColors.primary,
-                          onTap: () => context.go('/shop?tab=1')),
+                        icon: Icons.content_cut,
+                        label:
+                            tr(ref, 'shop.nav.barbers', 'Masterlar'),
+                        value:
+                            "${s.barbersCount} ${tr(ref, 'common.pcs', 'ta')}",
+                        color: AppColors.primary,
+                        onTap: () => context.go('/shop?tab=1'),
+                      ),
                       _Kpi(
-                          icon: Icons.notifications_active_outlined,
-                          label: tr(ref, 'shop.stats.dueForReminder',
-                              'Eslatma kutilmoqda'),
-                          value:
-                              "${s.clientsDueForReminder} ${tr(ref, 'common.pcs', 'ta')}",
-                          color: const Color(0xFFF97316),
-                          onTap: () => context.push('/shop/reminders')),
+                        icon: Icons.notifications_active_outlined,
+                        label: tr(ref, 'shop.stats.dueForReminder',
+                            'Eslatma kutilmoqda'),
+                        value:
+                            "${s.clientsDueForReminder} ${tr(ref, 'common.pcs', 'ta')}",
+                        color: const Color(0xFFF97316),
+                        onTap: () => context.push('/shop/reminders'),
+                      ),
                       _Kpi(
-                          icon: Icons.sms_outlined,
-                          label: tr(ref, 'shop.stats.smsSent', 'SMS yuborildi'),
-                          value:
-                              "${s.messages} ${tr(ref, 'common.pcs', 'ta')}",
-                          color: const Color(0xFF8B5CF6),
-                          onTap: () => context.push('/shop/sms')),
+                        icon: Icons.sms_outlined,
+                        label: tr(
+                            ref, 'shop.stats.smsSent', 'SMS yuborildi'),
+                        value:
+                            "${s.messages} ${tr(ref, 'common.pcs', 'ta')}",
+                        color: const Color(0xFF8B5CF6),
+                        onTap: () => context.push('/shop/sms'),
+                      ),
                       _Kpi(
-                          icon: Icons.trending_up,
-                          label:
-                              tr(ref, 'shop.stats.fromSms', "SMS'dan"),
-                          value:
-                              "${s.fromSmsBookings} ${tr(ref, 'common.pcs', 'ta')}",
-                          color: AppColors.success,
-                          onTap: () => context.push('/shop/sms')),
+                        icon: Icons.trending_up,
+                        label: tr(ref, 'shop.stats.fromSms', "SMS'dan"),
+                        value:
+                            "${s.fromSmsBookings} ${tr(ref, 'common.pcs', 'ta')}",
+                        color: AppColors.success,
+                        onTap: () => context.push('/shop/sms'),
+                      ),
                     ]),
-
                     if (s.daily.isNotEmpty) ...[
-                      const SizedBox(height: 18),
+                      AppSpacing.gapXl,
                       _SectionTitle(
                           icon: Icons.trending_up,
-                          label: tr(ref, 'shop.chart.bookingsOverTime',
-                              'Bronlar vaqt bo\'yicha')),
-                      const SizedBox(height: 8),
-                      ShadCard(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                          label: tr(
+                              ref,
+                              'shop.chart.bookingsOverTime',
+                              "Bronlar vaqt bo'yicha")),
+                      AppSpacing.gapSm,
+                      AppCard(
+                        variant: AppCardVariant.outlined,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.sm,
+                        ),
                         child: SizedBox(
                           height: 200,
                           child: _BookingsChart(daily: s.daily),
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      AppSpacing.gapMd,
                       _SectionTitle(
                           icon: Icons.person_add,
-                          label: tr(ref, 'shop.chart.newClientsGrowth',
-                              "Yangi mijozlar")),
-                      const SizedBox(height: 8),
-                      ShadCard(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                          label: tr(ref,
+                              'shop.chart.newClientsGrowth',
+                              'Yangi mijozlar')),
+                      AppSpacing.gapSm,
+                      AppCard(
+                        variant: AppCardVariant.outlined,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.sm,
+                        ),
                         child: SizedBox(
                           height: 180,
                           child: _NewClientsChart(daily: s.daily),
@@ -248,41 +281,86 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                   ],
                 ),
               ),
-
-              const SizedBox(height: 22),
-              ShadSectionLabel(tr(ref, 'mobile.shop.dashboard.navManagement',
-                  "BOSHQARUV")),
-              const SizedBox(height: 8),
-              ShadTileGroup(children: [
-                ShadTile(
+              AppSpacing.gapXl,
+              Text(
+                tr(ref, 'mobile.shop.dashboard.navManagement',
+                    'BOSHQARUV'),
+                style: AppText.overline,
+              ),
+              AppSpacing.gapSm,
+              AppCard(
+                variant: AppCardVariant.outlined,
+                padding: EdgeInsets.zero,
+                child: Column(children: [
+                  _NavTile(
                     icon: Icons.people_alt_outlined,
+                    color: AppColors.primary,
                     label: tr(ref, 'mobile.shop.dashboard.navMasters',
-                        "Mastera (Barberlar)"),
-                    onTap: () => context.go('/shop?tab=1')),
-                ShadTile(
+                        'Mastera (Barberlar)'),
+                    onTap: () => context.go('/shop?tab=1'),
+                  ),
+                  const Divider(
+                    color: AppColors.border,
+                    height: 1,
+                    indent: AppSpacing.xxl + AppSpacing.md,
+                  ),
+                  _NavTile(
                     icon: Icons.event_note_outlined,
+                    color: AppColors.warning,
                     label: tr(ref, 'mobile.shop.dashboard.navBookings',
-                        "Salon bronlari"),
-                    onTap: () => context.go('/shop?tab=2')),
-                ShadTile(
+                        'Salon bronlari'),
+                    onTap: () => context.go('/shop?tab=2'),
+                  ),
+                  const Divider(
+                    color: AppColors.border,
+                    height: 1,
+                    indent: AppSpacing.xxl + AppSpacing.md,
+                  ),
+                  _NavTile(
                     icon: Icons.people_outline,
-                    label: tr(ref, 'shop.nav.clients', "Mijozlar"),
-                    onTap: () => context.push('/shop/clients')),
-                ShadTile(
+                    color: AppColors.success,
+                    label: tr(ref, 'shop.nav.clients', 'Mijozlar'),
+                    onTap: () => context.push('/shop/clients'),
+                  ),
+                  const Divider(
+                    color: AppColors.border,
+                    height: 1,
+                    indent: AppSpacing.xxl + AppSpacing.md,
+                  ),
+                  _NavTile(
                     icon: Icons.account_balance_wallet_outlined,
-                    label: tr(ref, 'mobile.shop.dashboard.navTransactions',
+                    color: AppColors.primary,
+                    label: tr(ref,
+                        'mobile.shop.dashboard.navTransactions',
                         "Hisob va to'lovlar"),
-                    onTap: () => context.push('/shop/transactions')),
-                ShadTile(
+                    onTap: () => context.push('/shop/transactions'),
+                  ),
+                  const Divider(
+                    color: AppColors.border,
+                    height: 1,
+                    indent: AppSpacing.xxl + AppSpacing.md,
+                  ),
+                  _NavTile(
                     icon: Icons.sms_outlined,
+                    color: AppColors.primary,
                     label: tr(ref, 'mobile.shop.dashboard.navSms',
-                        "SMS tarixi"),
-                    onTap: () => context.push('/shop/sms')),
-                ShadTile(
+                        'SMS tarixi'),
+                    onTap: () => context.push('/shop/sms'),
+                  ),
+                  const Divider(
+                    color: AppColors.border,
+                    height: 1,
+                    indent: AppSpacing.xxl + AppSpacing.md,
+                  ),
+                  _NavTile(
                     icon: Icons.storefront_outlined,
-                    label: tr(ref, 'profile.barberProfile', "Salon profili"),
-                    onTap: () => context.push('/shop/profile')),
-              ]),
+                    color: AppColors.primary,
+                    label: tr(ref, 'profile.barberProfile',
+                        'Salon profili'),
+                    onTap: () => context.push('/shop/profile'),
+                  ),
+                ]),
+              ),
             ],
           ),
         ),
@@ -295,41 +373,51 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 1.7,
+      mainAxisSpacing: AppSpacing.sm,
+      crossAxisSpacing: AppSpacing.sm,
+      childAspectRatio: 1.65,
       children: items
-          .map((k) => InkWell(
-                borderRadius: BorderRadius.circular(12),
+          .map((k) => TapScale(
                 onTap: k.onTap,
+                scale: 0.97,
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: AppSpacing.cardPadding,
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppRadius.rLg,
                     border: Border.all(
-                        color: k.color.withValues(alpha: 0.2)),
+                      color: k.color.withValues(alpha: 0.25),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(k.icon, color: k.color, size: 20),
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: k.color.withValues(alpha: 0.15),
+                          borderRadius: AppRadius.rSm,
+                        ),
+                        child:
+                            Icon(k.icon, color: k.color, size: 18),
+                      ),
                       const Spacer(),
-                      Text(k.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500)),
+                      Text(
+                        k.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.caption,
+                      ),
                       const SizedBox(height: 4),
-                      Text(k.value,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: AppColors.textBright,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18)),
+                      Text(
+                        k.value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.titleMd.copyWith(
+                          fontSize: 18,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -340,12 +428,13 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
 }
 
 class _Kpi {
-  _Kpi(
-      {required this.icon,
-      required this.label,
-      required this.value,
-      required this.color,
-      this.onTap});
+  _Kpi({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    this.onTap,
+  });
   final IconData icon;
   final String label;
   final String value;
@@ -359,25 +448,24 @@ class _DatePill extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
+    return TapScale(
       onTap: onTap,
+      scale: 0.97,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.rMd,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
           const Icon(Icons.event_outlined,
               size: 16, color: AppColors.textMuted),
-          const SizedBox(width: 6),
-          Text(label,
-              style: const TextStyle(
-                  color: AppColors.textBright,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500)),
+          AppSpacing.hGapSm,
+          Text(label, style: AppText.body),
         ]),
       ),
     );
@@ -392,19 +480,20 @@ class _TodayCashCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fmt = NumberFormat.decimalPattern('ru_RU');
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppSpacing.cardPaddingLg,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.success.withValues(alpha: 0.25),
-            AppColors.success.withValues(alpha: 0.05),
-          ],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF10B981), Color(0xFF059669)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(14),
-        border:
-            Border.all(color: AppColors.success.withValues(alpha: 0.35)),
+        borderRadius: AppRadius.rXl,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.success.withValues(alpha: 0.35),
+            blurRadius: 24,
+          ),
+        ],
       ),
       child: Row(children: [
         Expanded(
@@ -412,42 +501,48 @@ class _TodayCashCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                  tr(ref, 'mobile.shop.dashboard.todayCashLabel',
-                      "BUGUNGI TUSHUM"),
-                  style: const TextStyle(
-                      color: AppColors.success,
-                      fontSize: 12,
-                      letterSpacing: 1,
-                      fontWeight: FontWeight.w600)),
+                tr(ref, 'mobile.shop.dashboard.todayCashLabel',
+                    'BUGUNGI TUSHUM'),
+                style: AppText.overline.copyWith(
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
               const SizedBox(height: 6),
               Text(
-                  "${fmt.format(stats.todayRevenue)} ${tr(ref, 'common.currency', "so'm")}",
-                  style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textBright)),
+                "${fmt.format(stats.todayRevenue)} ${tr(ref, 'common.currency', "so'm")}",
+                style: AppText.display.copyWith(
+                  color: Colors.white,
+                  fontSize: 30,
+                ),
+              ),
               const SizedBox(height: 4),
               Text(
-                  tr(ref, 'mobile.shop.dashboard.todayBreakdown',
-                      "{{c}} yakunlangan · {{t}} jami buyurtma", {
+                tr(
+                  ref,
+                  'mobile.shop.dashboard.todayBreakdown',
+                  '{{c}} yakunlangan · {{t}} jami buyurtma',
+                  {
                     'c': '${stats.todayCompleted}',
                     't': '${stats.todayBookings}',
-                  }),
-                  style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 12)),
+                  },
+                ),
+                style: AppText.bodySm.copyWith(
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+              ),
             ],
           ),
         ),
         Container(
-          width: 52,
-          height: 52,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
-            color: AppColors.success.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(14),
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: AppRadius.rLg,
           ),
           alignment: Alignment.center,
-          child:
-              const Icon(Icons.account_balance_wallet, color: AppColors.success),
+          child: const Icon(Icons.account_balance_wallet,
+              color: Colors.white, size: 26),
         ),
       ]),
     ).animate().fadeIn(duration: 250.ms);
@@ -461,15 +556,59 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      Icon(icon, color: AppColors.primary, size: 20),
-      const SizedBox(width: 8),
-      Text(label,
-          style: const TextStyle(
-              color: AppColors.textBright,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.3)),
+      Icon(icon, color: AppColors.primary, size: 18),
+      AppSpacing.hGapSm,
+      Text(label, style: AppText.titleSm),
     ]);
+  }
+}
+
+class _NavTile extends StatelessWidget {
+  const _NavTile({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.onTap,
+  });
+  final IconData icon;
+  final Color color;
+  final String label;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      scale: 0.98,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        child: Row(children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: AppRadius.rSm,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          AppSpacing.hGapMd,
+          Expanded(
+            child: Text(
+              label,
+              style: AppText.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textBright,
+              ),
+            ),
+          ),
+          const Icon(Icons.chevron_right,
+              color: AppColors.textMuted, size: 18),
+        ]),
+      ),
+    );
   }
 }
 
@@ -482,8 +621,7 @@ class _BookingsChart extends StatelessWidget {
     for (var i = 0; i < daily.length; i++) {
       spots.add(FlSpot(i.toDouble(), daily[i].bookings.toDouble()));
     }
-    final maxY = spots.fold<double>(
-        0, (m, s) => s.y > m ? s.y : m);
+    final maxY = spots.fold<double>(0, (m, s) => s.y > m ? s.y : m);
     return LineChart(
       LineChartData(
         minY: 0,
@@ -492,11 +630,12 @@ class _BookingsChart extends StatelessWidget {
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 28,
-                getTitlesWidget: (v, _) => Text(v.toInt().toString(),
-                    style: const TextStyle(
-                        fontSize: 10, color: AppColors.textMuted))),
+              showTitles: true,
+              reservedSize: 28,
+              getTitlesWidget: (v, _) => Text(v.toInt().toString(),
+                  style: const TextStyle(
+                      fontSize: 10, color: AppColors.textMuted)),
+            ),
           ),
           rightTitles:
               const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -549,8 +688,7 @@ class _NewClientsChart extends StatelessWidget {
     for (var i = 0; i < daily.length; i++) {
       spots.add(FlSpot(i.toDouble(), daily[i].newClients.toDouble()));
     }
-    final maxY = spots.fold<double>(
-        0, (m, s) => s.y > m ? s.y : m);
+    final maxY = spots.fold<double>(0, (m, s) => s.y > m ? s.y : m);
     return LineChart(
       LineChartData(
         minY: 0,
@@ -559,11 +697,12 @@ class _NewClientsChart extends StatelessWidget {
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 24,
-                getTitlesWidget: (v, _) => Text(v.toInt().toString(),
-                    style: const TextStyle(
-                        fontSize: 10, color: AppColors.textMuted))),
+              showTitles: true,
+              reservedSize: 24,
+              getTitlesWidget: (v, _) => Text(v.toInt().toString(),
+                  style: const TextStyle(
+                      fontSize: 10, color: AppColors.textMuted)),
+            ),
           ),
           rightTitles:
               const AxisTitles(sideTitles: SideTitles(showTitles: false)),
