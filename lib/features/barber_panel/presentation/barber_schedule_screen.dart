@@ -9,20 +9,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/barber_panel_repository.dart';
 
-/// Mirrors the web `BarberScheduleScreen.tsx` 1:1:
-///   1. Voice booking card at the top (hold-to-record mic button)
-///   2. Horizontal 30-day date scroller — selected pill = primary bg, days
-///      with slots = normal border, empty days = opacity 40%
-///   3. Day header "12-yanvar, dushanba"
-///   4. Either empty state with "Jadval yaratish" CTA OR a 3-column slot
-///      grid with status-tinted buttons (green=available, blue=booked,
-///      red=blocked) — lock icon top-right on blocked
 class BarberScheduleScreen extends ConsumerStatefulWidget {
   const BarberScheduleScreen({super.key});
 
@@ -34,7 +26,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     with WidgetsBindingObserver {
   late DateTime _selectedDate;
 
-  // Voice recording state
   final _recorder = AudioRecorder();
   bool _isRecording = false;
   bool _voiceLoading = false;
@@ -62,10 +53,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     super.dispose();
   }
 
-  /// When the app returns to the foreground, refetch bookings + blocked
-  /// slots so a customer's cancel/reschedule that happened while we were
-  /// backgrounded shows up immediately. Mirrors web fix d080184 which
-  /// added the same visibilitychange listener for the WebView case.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
@@ -136,86 +123,100 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
   }
 
   Future<void> _openSlotAction(String barberId, String time, String status) async {
+    AppHaptics.selection();
     final picked = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
       builder: (sheetCtx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 12),
-          Container(width: 36, height: 4,
-              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: AppSpacing.md),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-            child: Text(time,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textBright, letterSpacing: -0.3)),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Row(children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.rMd,
+                ),
+                child: const Icon(Icons.schedule, size: 20, color: AppColors.primary),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: Text(time, style: AppText.titleMd)),
+            ]),
           ),
-          const Divider(height: 1, color: AppColors.border),
+          const SizedBox(height: AppSpacing.md),
           if (status == 'available')
-            ListTile(
-              leading: const Icon(Icons.person_add_alt_1, color: AppColors.primary),
-              title: Text(tr(ref, 'mobile.barber.schedule.addClient', "Mijoz qo'shish"),
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: Text(tr(ref, 'mobile.barber.schedule.manualBooking', "Mijoz yozish"),
-                  style: const TextStyle(fontSize: 12)),
+            _SheetAction(
+              icon: Icons.person_add_alt_1,
+              tint: AppColors.primary,
+              title: tr(ref, 'mobile.barber.schedule.addClient', "Mijoz qo'shish"),
+              subtitle: tr(ref, 'mobile.barber.schedule.manualBooking', "Mijoz yozish"),
               onTap: () => Navigator.of(sheetCtx).pop('book'),
             ),
           if (status == 'booked') ...[
-            ListTile(
-              leading: const Icon(Icons.check_circle_outline, color: AppColors.success),
-              title: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            _SheetAction(
+              icon: Icons.check_circle_outline,
+              tint: AppColors.success,
+              title: tr(ref, 'myBookings.complete', "Yakunlash"),
               onTap: () => Navigator.of(sheetCtx).pop('complete'),
             ),
-            ListTile(
-              leading: const Icon(Icons.event_repeat, color: AppColors.primary),
-              title: Text(
-                  tr(ref, 'mobile.shop.barber.reschedule',
-                      "Boshqa vaqtga ko'chirish"),
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            _SheetAction(
+              icon: Icons.event_repeat,
+              tint: AppColors.primary,
+              title: tr(ref, 'mobile.shop.barber.reschedule', "Boshqa vaqtga ko'chirish"),
               onTap: () => Navigator.of(sheetCtx).pop('reschedule'),
             ),
-            ListTile(
-              leading: const Icon(Icons.timer_outlined,
-                  color: AppColors.primary),
-              title: Text(
-                  tr(ref, 'mobile.shop.barber.extend',
-                      "Vaqtni uzaytirish"),
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            _SheetAction(
+              icon: Icons.timer_outlined,
+              tint: AppColors.primary,
+              title: tr(ref, 'mobile.shop.barber.extend', "Vaqtni uzaytirish"),
               onTap: () => Navigator.of(sheetCtx).pop('extend'),
             ),
-            ListTile(
-              leading: const Icon(Icons.close, color: AppColors.danger),
-              title: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            _SheetAction(
+              icon: Icons.close,
+              tint: AppColors.danger,
+              title: tr(ref, 'myBookings.cancel', "Bekor qilish"),
               onTap: () => Navigator.of(sheetCtx).pop('cancelBooking'),
             ),
           ],
           if (status != 'blocked' && status != 'booked')
-            ListTile(
-              leading: const Icon(Icons.lock_outline, color: AppColors.danger),
-              title: Text(tr(ref, 'mobile.barber.schedule.blockSlot', "Slotni bloklash")),
+            _SheetAction(
+              icon: Icons.lock_outline,
+              tint: AppColors.danger,
+              title: tr(ref, 'mobile.barber.schedule.blockSlot', "Slotni bloklash"),
               onTap: () => Navigator.of(sheetCtx).pop('block'),
             ),
           if (status == 'blocked')
-            ListTile(
-              leading: const Icon(Icons.lock_open, color: AppColors.success),
-              title: Text(tr(ref, 'mobile.barber.schedule.unblockSlot', "Blokni olib tashlash")),
+            _SheetAction(
+              icon: Icons.lock_open,
+              tint: AppColors.success,
+              title: tr(ref, 'mobile.barber.schedule.unblockSlot', "Blokni olib tashlash"),
               onTap: () => Navigator.of(sheetCtx).pop('unblock'),
             ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline, color: AppColors.danger),
-            title: Text(tr(ref, 'mobile.barber.schedule.deleteSlot', "Slotni o'chirish")),
+          _SheetAction(
+            icon: Icons.delete_outline,
+            tint: AppColors.danger,
+            title: tr(ref, 'mobile.barber.schedule.deleteSlot', "Slotni o'chirish"),
             onTap: () => Navigator.of(sheetCtx).pop('delete'),
           ),
-          ListTile(
-            leading: const Icon(Icons.close, color: AppColors.textMuted),
-            title: Text(tr(ref, 'common.close', "Yopish")),
+          _SheetAction(
+            icon: Icons.close,
+            tint: AppColors.textMuted,
+            title: tr(ref, 'common.close', "Yopish"),
             onTap: () => Navigator.of(sheetCtx).pop(null),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.md),
         ]),
       ),
     );
@@ -248,9 +249,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
   }
 
-  /// Look up the booking that owns [time] on [dateStr] and ask the
-  /// barber to confirm before completing or cancelling it. Falls back
-  /// to a SnackBar if the booking can't be found (e.g. stale cache).
   Future<void> _handleBookingAction(
       String barberId, String dateStr, String time, String action) async {
     final repo = ref.read(barberPanelRepositoryProvider);
@@ -269,8 +267,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
     if (!mounted) return;
 
-    // Reschedule + extend take their own dedicated flows — short-circuit
-    // before the complete/cancel dialog below.
     if (action == 'reschedule') {
       await _rescheduleBooking(booking, dateStr, barberId);
       return;
@@ -288,25 +284,25 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: Text(isComplete
-            ? tr(ref, 'myBookings.completeConfirmTitle', "Bronni yakunlash?")
-            : tr(ref, 'myBookings.cancelConfirmTitle',
-                "Bronni bekor qilasizmi?")),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            isComplete
+                ? tr(ref, 'myBookings.completeConfirmTitle', "Bronni yakunlash?")
+                : tr(ref, 'myBookings.cancelConfirmTitle', "Bronni bekor qilasizmi?"),
+            style: AppText.titleMd),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(isComplete
-              ? tr(ref, 'myBookings.completeConfirmMsg',
-                  "Bron yakunlangan deb belgilanadi.")
-              : tr(ref, 'myBookings.cancelConfirmMsg',
-                  "Bekor qilingach, qaytarib bo'lmaydi.")),
-          // Optional total override on complete — mirrors web (tip/discount).
+          Text(
+              isComplete
+                  ? tr(ref, 'myBookings.completeConfirmMsg', "Bron yakunlangan deb belgilanadi.")
+                  : tr(ref, 'myBookings.cancelConfirmMsg', "Bekor qilingach, qaytarib bo'lmaydi."),
+              style: AppText.body),
           if (isComplete) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             TextField(
               controller: priceCtrl,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: tr(ref, 'myBookings.totalPriceLabel',
-                    "Olingan summa (ixtiyoriy)"),
+                labelText: tr(ref, 'myBookings.totalPriceLabel', "Olingan summa (ixtiyoriy)"),
                 hintText: '0',
                 suffixText: tr(ref, 'common.currency', "so'm"),
               ),
@@ -318,8 +314,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               onPressed: () => Navigator.pop(dCtx, false),
               child: Text(tr(ref, 'common.cancel', "Bekor"))),
           TextButton(
-              style: TextButton.styleFrom(
-                  foregroundColor: isComplete ? null : AppColors.danger),
+              style: TextButton.styleFrom(foregroundColor: isComplete ? null : AppColors.danger),
               onPressed: () {
                 if (isComplete) {
                   overrideTotal = int.tryParse(priceCtrl.text.trim());
@@ -372,8 +367,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final initTime = TimeOfDay(
         hour: int.tryParse(parts[0]) ?? 9,
         minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
-    final pickedTime =
-        await showTimePicker(context: context, initialTime: initTime);
+    final pickedTime = await showTimePicker(context: context, initialTime: initTime);
     if (pickedTime == null) return;
     final newDate =
         "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
@@ -390,15 +384,12 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           content: Text(tr(ref, 'common.saved', "Saqlandi"))));
     } on DioException catch (e) {
       if (!mounted) return;
-      // Backend reschedule throws ConflictException with
-      // {code: 'SLOT_TAKEN'} when the new slot is already booked.
       final body = e.response?.data;
       final code = body is Map ? (body['code'] ?? '').toString() : '';
       final msg = code == 'SLOT_TAKEN' || e.response?.statusCode == 409
           ? tr(ref, 'booking.slotTaken', "Bu vaqt allaqachon band qilingan")
           : tr(ref, 'common.error', 'Xatolik');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -412,8 +403,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'mobile.shop.barber.extendTitle',
-            "Vaqtni uzaytirish (daqiqa)")),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'mobile.shop.barber.extendTitle', "Vaqtni uzaytirish (daqiqa)"),
+            style: AppText.titleMd),
         content: StatefulBuilder(builder: (sCtx, setSt) {
           return DropdownButtonFormField<int>(
             initialValue: minutes,
@@ -449,10 +442,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           content: Text(tr(ref, 'common.saved', "Saqlandi"))));
     } on DioException catch (e) {
       if (!mounted) return;
-      // Backend extend throws {code: 'MIN_DURATION', minMinutes: N} when
-      // the extra-minutes value would shrink the booking below the
-      // barber's slot duration (bookings.service.ts:1645). Surface the
-      // limit so the barber knows why the extend didn't apply.
       final body = e.response?.data;
       final code = body is Map ? (body['code'] ?? '').toString() : '';
       final minMinutes = body is Map ? body['minMinutes'] : null;
@@ -462,13 +451,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             'Davomiyligi {{min}} daqiqadan kam bo\'lmasligi kerak',
             {'min': '${minMinutes.toInt()}'});
       } else if (code == 'SLOT_TAKEN' || e.response?.statusCode == 409) {
-        msg = tr(ref, 'booking.slotTaken',
-            "Bu vaqt allaqachon band qilingan");
+        msg = tr(ref, 'booking.slotTaken', "Bu vaqt allaqachon band qilingan");
       } else {
         msg = tr(ref, 'common.error', 'Xatolik');
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(msg)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -476,9 +463,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
   }
 
-  /// Manual booking dialog — barber types client name + phone, selects
-  /// services from their list, and submits POST /bookings/manual with the
-  /// pre-filled time.
   Future<void> _openManualBookingDialog(String barberId, String dateStr, String time) async {
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
@@ -492,31 +476,39 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       isScrollControlled: true,
       backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
       builder: (sheetCtx) => StatefulBuilder(
         builder: (sheetCtx, setSheet) => Padding(
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            top: AppSpacing.lg,
+            bottom: AppSpacing.xl + MediaQuery.of(sheetCtx).viewInsets.bottom,
           ),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(
+                  child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                          color: AppColors.border,
+                          borderRadius: BorderRadius.circular(2))),
+                ),
+                const SizedBox(height: AppSpacing.md),
                 Row(children: [
                   Expanded(
                     child: Text(
                         tr(ref, 'mobile.barber.schedule.addClientForTime',
                             "{{time}} uchun mijoz qo'shish",
                             {'time': time}),
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textBright)),
+                        style: AppText.titleMd),
                   ),
-                  TextButton.icon(
-                    onPressed: () async {
+                  TapScale(
+                    onTap: () async {
                       final picked = await _pickContact();
                       if (picked == null) return;
                       setSheet(() {
@@ -524,17 +516,32 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                         if (picked.phone.isNotEmpty) phoneCtrl.text = picked.phone;
                       });
                     },
-                    icon: const Icon(Icons.perm_contact_calendar_outlined, size: 16),
-                    label: Text(tr(ref, 'mobile.barber.schedule.contact', "Kontakt")),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: AppRadius.rMd,
+                      ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.perm_contact_calendar_outlined,
+                            size: 14, color: AppColors.primary),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                            tr(ref, 'mobile.barber.schedule.contact', "Kontakt"),
+                            style: AppText.button.copyWith(
+                                color: AppColors.primary, fontSize: 12)),
+                      ]),
+                    ),
                   ),
                 ]),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.md),
                 TextField(
                   controller: nameCtrl,
                   decoration: InputDecoration(
                       hintText: tr(ref, 'mobile.barber.schedule.clientName', "Mijoz ismi")),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: AppSpacing.sm),
                 TextField(
                   controller: phoneCtrl,
                   keyboardType: TextInputType.phone,
@@ -542,8 +549,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       hintText: tr(ref, 'mobile.barber.schedule.phoneOptional', "Telefon (ixtiyoriy)")),
                   onChanged: (v) async {
                     final cleaned = v.replaceAll(RegExp(r'[^\d+]'), '');
-                    // Mirror web: only probe when we have a plausibly
-                    // complete phone (8+ digits / +998xxxxxxxxx).
                     if (cleaned.length < 8) return;
                     if (nameCtrl.text.trim().isNotEmpty) return;
                     final hit = await ref
@@ -556,44 +561,42 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                     }
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 if (services.isEmpty)
-                  Text(tr(ref, 'mobile.barber.schedule.noServicesSet', "Xizmatlar belgilanmagan"),
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12))
+                  Text(
+                      tr(ref, 'mobile.barber.schedule.noServicesSet', "Xizmatlar belgilanmagan"),
+                      style: AppText.caption)
                 else ...[
                   Text(tr(ref, 'booking.service', "Xizmat"),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
-                          fontSize: 13)),
-                  const SizedBox(height: 6),
+                      style: AppText.overline
+                          .copyWith(color: AppColors.textSecondary)),
+                  const SizedBox(height: AppSpacing.sm),
                   Wrap(
-                    spacing: 6, runSpacing: 6,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
                     children: services.map((s) {
                       final id = s['id'] as String;
                       final name = (s['nameUz'] ?? s['name'] ?? '').toString();
                       final on = selected.contains(id);
-                      return FilterChip(
-                        label: Text(name),
+                      return AppChip(
+                        label: name,
                         selected: on,
-                        onSelected: (v) => setSheet(() {
-                          if (v) {
-                            selected.add(id);
-                          } else {
+                        onTap: () => setSheet(() {
+                          if (on) {
                             selected.remove(id);
+                          } else {
+                            selected.add(id);
                           }
                         }),
                       );
                     }).toList(),
                   ),
                 ],
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(sheetCtx).pop(true),
-                    child: Text(tr(ref, 'common.save', "Saqlash")),
-                  ),
+                const SizedBox(height: AppSpacing.xl),
+                AppButton(
+                  label: tr(ref, 'common.save', "Saqlash"),
+                  onPressed: () => Navigator.of(sheetCtx).pop(true),
+                  fullWidth: true,
                 ),
               ],
             ),
@@ -603,9 +606,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     );
     try {
       if (saved != true) return;
-      // Snapshot the FULL service rows the backend expects (price + duration
-      // come from these, not from a lookup). Sending just IDs left
-      // totalPrice/totalDuration at 0 and the booking with empty service rows.
       final picked = services
           .where((s) => selected.contains((s['id'] ?? '').toString()))
           .toList();
@@ -658,10 +658,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
   }
 
-  /// "Kunni yopish" tugmasi bosilganda ishga tushadi. Aktiv bronlar sonini
-  /// hisoblab, barberga aniqlik bilan tasdiqlash ("N ta bron bekor bo'ladi")
-  /// ko'rsatadi. Tasdiqlangach backend endpoint bir bosishda hammasini
-  /// bekor qiladi + jadvalni bo'shatadi.
   Future<void> _confirmCloseDay(String barberId) async {
     final dateStr = _dateStr(_selectedDate);
     final repo = ref.read(barberPanelRepositoryProvider);
@@ -670,16 +666,17 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     try {
       final bookings = await repo.byDay(barberId: barberId, date: dateStr);
       activeBookings = bookings.where((b) => b.status == 'confirmed').length;
-    } catch (_) {
-      // ignore — dialogda faqat "kunni yopamizmi" so'raymiz.
-    }
+    } catch (_) {}
 
     if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'mobile.barber.schedule.closeDayTitle', "Kunni yopamizmi?")),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'mobile.barber.schedule.closeDayTitle', "Kunni yopamizmi?"),
+            style: AppText.titleMd),
         content: Text(
           activeBookings > 0
               ? tr(
@@ -693,6 +690,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   'mobile.barber.schedule.closeDayNoBookings',
                   "Bu kundagi barcha slotlar o'chiriladi. Davom etamizmi?",
                 ),
+          style: AppText.body,
         ),
         actions: [
           TextButton(
@@ -734,43 +732,55 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
   }
 
   Future<void> _openAddSchedule(String barberId) async {
-    // Pick: generator or single slot
+    AppHaptics.selection();
     final choice = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
       builder: (sheetCtx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: 12),
-          Container(width: 36, height: 4,
-              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: AppSpacing.md),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(tr(ref, 'mobile.barber.schedule.addSchedule', "Jadval qo'shish"),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textBright)),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Text(
+                tr(ref, 'mobile.barber.schedule.addSchedule', "Jadval qo'shish"),
+                style: AppText.titleMd),
           ),
-          const SizedBox(height: 8),
-          ListTile(
-            leading: const Icon(Icons.auto_awesome_motion, color: AppColors.primary),
-            title: Text(tr(ref, 'mobile.barber.schedule.autoInterval', "Avtomatik (vaqt oralig'i)")),
-            subtitle: Text(tr(ref, 'mobile.barber.schedule.autoIntervalHint', "Boshlanish va tugash vaqtidan slotlar generatsiya")),
+          const SizedBox(height: AppSpacing.md),
+          _SheetAction(
+            icon: Icons.auto_awesome_motion,
+            tint: AppColors.primary,
+            title: tr(ref, 'mobile.barber.schedule.autoInterval',
+                "Avtomatik (vaqt oralig'i)"),
+            subtitle: tr(ref, 'mobile.barber.schedule.autoIntervalHint',
+                "Boshlanish va tugash vaqtidan slotlar generatsiya"),
             onTap: () => Navigator.of(sheetCtx).pop('generator'),
           ),
-          ListTile(
-            leading: const Icon(Icons.add, color: AppColors.primary),
-            title: Text(tr(ref, 'mobile.barber.schedule.singleSlot', "Bitta slot qo'shish")),
-            subtitle: Text(tr(ref, 'mobile.barber.schedule.singleSlotHint', "Aniq bir HH:MM vaqtni qo'shish")),
+          _SheetAction(
+            icon: Icons.add,
+            tint: AppColors.primary,
+            title: tr(ref, 'mobile.barber.schedule.singleSlot',
+                "Bitta slot qo'shish"),
+            subtitle: tr(ref, 'mobile.barber.schedule.singleSlotHint',
+                "Aniq bir HH:MM vaqtni qo'shish"),
             onTap: () => Navigator.of(sheetCtx).pop('single'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
         ]),
       ),
     );
     if (choice == 'single') {
       if (!mounted) return;
-      final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
+      final picked = await showTimePicker(
+          context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
       if (picked == null) return;
       final time = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       try {
@@ -805,70 +815,27 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final weekDays = trList(ref, 'mobile.dates.weekDaysShort', _weekDays);
     final weekDaysLong = trList(ref, 'mobile.dates.weekDaysLong', _weekDaysLong);
     final selectedWeekday = weekDaysLong[_selectedDate.weekday - 1];
-    final dateHeader = "${_selectedDate.day}-${months[_selectedDate.month - 1].toLowerCase()}, ${selectedWeekday.toLowerCase()}";
+    final dateHeader =
+        "${_selectedDate.day}-${months[_selectedDate.month - 1].toLowerCase()}, ${selectedWeekday.toLowerCase()}";
 
     return Scaffold(
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
         children: [
-          // ===== Voice booking card =====
-          InkWell(
-            borderRadius: BorderRadius.circular(12),
+          _VoiceBookingCard(
+            isRecording: _isRecording,
+            loading: _voiceLoading,
             onTap: _voiceLoading ? null : () => _toggleRecording(barberId),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: _isRecording
-                    ? AppColors.danger.withValues(alpha: 0.1)
-                    : AppColors.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _isRecording
-                      ? AppColors.danger.withValues(alpha: 0.4)
-                      : AppColors.primary.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _isRecording
-                            ? "Yozilmoqda..."
-                            : (_voiceLoading ? "Tahlil qilinmoqda..." : "Ovoz bilan bron"),
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textBright),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _isRecording
-                            ? "To'xtatish uchun yana bosing"
-                            : "Mikrofonni bosib, ismni, vaqtni ayting",
-                        style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 48, height: 48,
-                  decoration: BoxDecoration(
-                    color: _isRecording ? AppColors.danger : AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: _voiceLoading
-                      ? const Center(
-                          child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-                        )
-                      : Icon(_isRecording ? Icons.mic_off : Icons.mic, color: Colors.white, size: 22),
-                ),
-              ]),
-            ),
+            titleIdle: tr(ref, 'mobile.barber.schedule.voiceTitle', "Ovoz bilan bron"),
+            titleRecording: tr(ref, 'mobile.barber.schedule.voiceRecording', "Yozilmoqda..."),
+            titleAnalysing: tr(ref, 'mobile.barber.schedule.voiceAnalysing', "Tahlil qilinmoqda..."),
+            subtitleIdle: tr(ref, 'mobile.barber.schedule.voiceSubIdle',
+                "Mikrofonni bosib, ismni, vaqtni ayting"),
+            subtitleRecording: tr(ref, 'mobile.barber.schedule.voiceSubRec',
+                "To'xtatish uchun yana bosing"),
           ),
-
-          const SizedBox(height: 14),
-
-          // ===== Date scroller (30 days) =====
+          const SizedBox(height: AppSpacing.lg),
           SizedBox(
             height: 96,
             child: ListView.builder(
@@ -877,82 +844,42 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               itemBuilder: (context, i) {
                 final d = DateTime.now().add(Duration(days: i));
                 final dateOnly = DateTime(d.year, d.month, d.day);
-                final selectedOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+                final selectedOnly =
+                    DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
                 final isSelected = dateOnly.isAtSameMomentAs(selectedOnly);
                 final isToday = i == 0;
 
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () => setState(() => _selectedDate = dateOnly),
-                    child: Container(
-                      width: 64,
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.primary
-                              : (isToday ? AppColors.primary.withValues(alpha: 0.4) : AppColors.border),
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            weekDays[d.weekday - 1],
-                            style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                                color: isSelected ? Colors.white70 : AppColors.textMuted),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            d.day.toString(),
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: isSelected ? Colors.white : AppColors.textBright),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            months[d.month - 1].substring(0, 3).toLowerCase(),
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: isSelected ? Colors.white70 : AppColors.textMuted),
-                          ),
-                        ],
-                      ),
-                    ),
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: _DatePill(
+                    weekday: weekDays[d.weekday - 1],
+                    day: d.day.toString(),
+                    month: months[d.month - 1].substring(0, 3).toLowerCase(),
+                    selected: isSelected,
+                    today: isToday,
+                    onTap: () {
+                      AppHaptics.selection();
+                      setState(() => _selectedDate = dateOnly);
+                    },
                   ),
                 );
               },
             ),
           ),
-
-          const SizedBox(height: 14),
-
-          // ===== Day header =====
-          Text(dateHeader,
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textBright, letterSpacing: -0.3)),
-          const SizedBox(height: 10),
-
-          // ===== Slot grid OR empty state =====
+          const SizedBox(height: AppSpacing.lg),
+          Text(dateHeader, style: AppText.titleSm),
+          const SizedBox(height: AppSpacing.md),
           slotsAsync.when(
             loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  AppSkeleton(height: 56, borderRadius: 10),
-                  SizedBox(height: 8),
-                  AppSkeleton(height: 56, borderRadius: 10),
-                  SizedBox(height: 8),
-                  AppSkeleton(height: 56, borderRadius: 10),
+                  AppSkeleton(height: 56, borderRadius: AppRadius.md),
+                  SizedBox(height: AppSpacing.sm),
+                  AppSkeleton(height: 56, borderRadius: AppRadius.md),
+                  SizedBox(height: AppSpacing.sm),
+                  AppSkeleton(height: 56, borderRadius: AppRadius.md),
                 ],
               ),
             ),
@@ -962,113 +889,71 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             ),
             data: (slots) {
               if (slots.isEmpty) {
-                // Empty state — dashed box + button
                 return _EmptyState(onAdd: () => _openAddSchedule(barberId));
               }
 
-              final booked = bookedAsync.maybeWhen(data: (v) => v, orElse: () => <String>[]);
-              final blocked = blockedAsync.maybeWhen(data: (v) => v, orElse: () => <String>[]);
+              final booked = bookedAsync.maybeWhen(
+                  data: (v) => v, orElse: () => <String>[]);
+              final blocked = blockedAsync.maybeWhen(
+                  data: (v) => v, orElse: () => <String>[]);
 
               return Column(children: [
-                // Legend + Close-day + Add buttons
-                Row(children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 10,
-                      children: [
-                        _LegendDot(
-                            color: const Color(0xFF22C55E),
-                            label: tr(ref, 'mobile.barber.schedule.legendFree', "Bo'sh")),
-                        _LegendDot(
-                            color: const Color(0xFF3B82F6),
-                            label: tr(ref, 'mobile.barber.schedule.legendBooked', "Band")),
-                        _LegendDot(
-                            color: const Color(0xFFEF4444),
-                            label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
-                      ],
+                AppCard(
+                  variant: AppCardVariant.flat,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  child: Row(children: [
+                    Expanded(
+                      child: Wrap(
+                        spacing: AppSpacing.md,
+                        runSpacing: AppSpacing.xs,
+                        children: [
+                          _LegendDot(
+                              color: AppColors.success,
+                              label: tr(ref, 'mobile.barber.schedule.legendFree', "Bo'sh")),
+                          _LegendDot(
+                              color: AppColors.primary,
+                              label: tr(ref, 'mobile.barber.schedule.legendBooked', "Band")),
+                          _LegendDot(
+                              color: AppColors.danger,
+                              label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
+                        ],
+                      ),
                     ),
-                  ),
-                  InkWell(
-                    onTap: () => _confirmCloseDay(barberId),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.event_busy_outlined, size: 14, color: AppColors.danger),
-                        const SizedBox(width: 2),
-                        Text(
-                          tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
-                          style: const TextStyle(
-                              color: AppColors.danger, fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                      ]),
+                    _TinyAction(
+                      icon: Icons.event_busy_outlined,
+                      color: AppColors.danger,
+                      label: tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
+                      onTap: () => _confirmCloseDay(barberId),
                     ),
-                  ),
-                  InkWell(
-                    onTap: () => _openAddSchedule(barberId),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.add, size: 14, color: AppColors.primary),
-                        const SizedBox(width: 2),
-                        Text(tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
-                            style: const TextStyle(
-                                color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
-                      ]),
+                    const SizedBox(width: AppSpacing.xs),
+                    _TinyAction(
+                      icon: Icons.add,
+                      color: AppColors.primary,
+                      label: tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
+                      onTap: () => _openAddSchedule(barberId),
                     ),
-                  ),
-                ]),
-
-                const SizedBox(height: 10),
-
-                // 3-column slot grid
+                  ]),
+                ),
+                const SizedBox(height: AppSpacing.md),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
+                    mainAxisSpacing: AppSpacing.sm,
+                    crossAxisSpacing: AppSpacing.sm,
                     childAspectRatio: 1.8,
                   ),
                   itemCount: slots.length,
                   itemBuilder: (context, i) {
                     final time = slots[i];
                     final status = _slotStatus(time, booked, blocked);
-                    final color = status == 'booked'
-                        ? const Color(0xFF3B82F6)
-                        : status == 'blocked'
-                            ? const Color(0xFFEF4444)
-                            : const Color(0xFF22C55E);
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(10),
+                    return _SlotTile(
+                      time: time,
+                      status: status,
+                      bookedLabel: tr(ref, 'mobile.barber.schedule.legendBooked', "Band"),
                       onTap: () => _openSlotAction(barberId, time, status),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: color.withValues(alpha: 0.5)),
-                        ),
-                        child: Stack(children: [
-                          Center(
-                            child: Text(time,
-                                style: TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.w700, color: color)),
-                          ),
-                          if (status == 'blocked')
-                            Positioned(
-                              top: 2, right: 4,
-                              child: Icon(Icons.lock, size: 11, color: color.withValues(alpha: 0.7)),
-                            ),
-                          if (status == 'booked')
-                            Positioned(
-                              top: 2, right: 4,
-                              child: Text(
-                                  tr(ref, 'mobile.barber.schedule.legendBooked', "Band").toUpperCase(),
-                                  style: TextStyle(
-                                      fontSize: 9, fontWeight: FontWeight.w600, color: color, letterSpacing: 0.5)),
-                            ),
-                        ]),
-                      ),
                     ).animate().fadeIn(duration: 150.ms, delay: (i * 15).ms);
                   },
                 ),
@@ -1080,12 +965,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     );
   }
 
-  /// Open the OS contact picker and return the first chosen contact's
-  /// (name, phone) tuple. Returns `null` on cancel or denied permission.
-  /// Phone is normalised to digits-only with optional leading "+".
   Future<_PickedContact?> _pickContact() async {
-    // The picker itself is permissionless on both platforms, BUT to read the
-    // chosen contact's phone numbers on Android we need READ_CONTACTS.
     final status = await FlutterContacts.permissions.request(PermissionType.read);
     final hasPerm = status == PermissionStatus.granted ||
         status == PermissionStatus.limited;
@@ -1121,34 +1001,287 @@ class _PickedContact {
   final String phone;
 }
 
+/// Voice booking hero card with pulsing mic when recording.
+class _VoiceBookingCard extends StatelessWidget {
+  const _VoiceBookingCard({
+    required this.isRecording,
+    required this.loading,
+    required this.onTap,
+    required this.titleIdle,
+    required this.titleRecording,
+    required this.titleAnalysing,
+    required this.subtitleIdle,
+    required this.subtitleRecording,
+  });
+
+  final bool isRecording;
+  final bool loading;
+  final VoidCallback? onTap;
+  final String titleIdle;
+  final String titleRecording;
+  final String titleAnalysing;
+  final String subtitleIdle;
+  final String subtitleRecording;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = isRecording
+        ? LinearGradient(
+            colors: [
+              AppColors.danger.withValues(alpha: 0.18),
+              AppColors.danger.withValues(alpha: 0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : LinearGradient(
+            colors: [
+              AppColors.primary.withValues(alpha: 0.14),
+              AppColors.primary.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+    final borderColor = isRecording
+        ? AppColors.danger.withValues(alpha: 0.4)
+        : AppColors.primary.withValues(alpha: 0.25);
+    final micColor = isRecording ? AppColors.danger : AppColors.primary;
+
+    final title = loading
+        ? titleAnalysing
+        : (isRecording ? titleRecording : titleIdle);
+    final subtitle = isRecording ? subtitleRecording : subtitleIdle;
+
+    Widget micBtn = Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: micColor,
+        shape: BoxShape.circle,
+        boxShadow: AppShadows.primaryGlow(micColor),
+      ),
+      child: loading
+          ? const Center(
+              child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2.2, color: Colors.white)),
+            )
+          : Icon(isRecording ? Icons.mic_off : Icons.mic,
+              color: Colors.white, size: 24),
+    );
+    if (isRecording) {
+      micBtn = micBtn
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .scale(
+              duration: 700.ms,
+              begin: const Offset(1, 1),
+              end: const Offset(1.08, 1.08),
+              curve: Curves.easeInOut);
+    }
+
+    return AppCard(
+      onTap: onTap,
+      gradient: gradient,
+      borderColor: borderColor,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: micColor.withValues(alpha: 0.15),
+            borderRadius: AppRadius.rMd,
+          ),
+          child: Icon(Icons.graphic_eq, color: micColor, size: 20),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppText.titleSm),
+              const SizedBox(height: 2),
+              Text(subtitle,
+                  style: AppText.caption,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        micBtn,
+      ]),
+    );
+  }
+}
+
+class _DatePill extends StatelessWidget {
+  const _DatePill({
+    required this.weekday,
+    required this.day,
+    required this.month,
+    required this.selected,
+    required this.today,
+    required this.onTap,
+  });
+
+  final String weekday;
+  final String day;
+  final String month;
+  final bool selected;
+  final bool today;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = selected ? AppColors.primaryGradient : null;
+    final borderColor = selected
+        ? Colors.transparent
+        : (today
+            ? AppColors.primary.withValues(alpha: 0.4)
+            : AppColors.border);
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.none,
+      child: Container(
+        width: 62,
+        padding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.md, horizontal: AppSpacing.xs),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          color: selected ? null : AppColors.surface,
+          borderRadius: AppRadius.rLg,
+          border: Border.all(color: borderColor),
+          boxShadow: selected
+              ? AppShadows.primaryGlow(AppColors.primary)
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(weekday,
+                style: AppText.overline.copyWith(
+                    fontSize: 10,
+                    color: selected ? Colors.white70 : AppColors.textMuted)),
+            const SizedBox(height: 2),
+            Text(day,
+                style: AppText.numeric.copyWith(
+                    fontSize: 20,
+                    color: selected ? Colors.white : AppColors.textBright)),
+            const SizedBox(height: 2),
+            Text(month,
+                style: AppText.overline.copyWith(
+                    fontSize: 10,
+                    color: selected ? Colors.white70 : AppColors.textMuted)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SlotTile extends StatelessWidget {
+  const _SlotTile({
+    required this.time,
+    required this.status,
+    required this.bookedLabel,
+    required this.onTap,
+  });
+
+  final String time;
+  final String status;
+  final String bookedLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (status) {
+      'booked' => AppColors.primary,
+      'blocked' => AppColors.danger,
+      _ => AppColors.success,
+    };
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.selection,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.16),
+              color.withValues(alpha: 0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: AppRadius.rMd,
+          border: Border.all(color: color.withValues(alpha: 0.5)),
+        ),
+        child: Stack(children: [
+          Center(
+            child: Text(time,
+                style: AppText.titleSm.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15)),
+          ),
+          if (status == 'blocked')
+            Positioned(
+              top: 4,
+              right: 6,
+              child: Icon(Icons.lock,
+                  size: 11, color: color.withValues(alpha: 0.7)),
+            ),
+          if (status == 'booked')
+            Positioned(
+              top: 4,
+              right: 6,
+              child: Text(bookedLabel.toUpperCase(),
+                  style: AppText.overline.copyWith(
+                      fontSize: 9,
+                      color: color,
+                      letterSpacing: 0.5)),
+            ),
+        ]),
+      ),
+    );
+  }
+}
+
 class _EmptyState extends ConsumerWidget {
   const _EmptyState({required this.onAdd});
   final VoidCallback onAdd;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceElevated.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, style: BorderStyle.solid),
-      ),
+    return AppCard(
+      variant: AppCardVariant.flat,
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      color: AppColors.surfaceElevated.withValues(alpha: 0.3),
       child: Column(children: [
-        const Icon(Icons.access_time, color: AppColors.textMuted, size: 40),
-        const SizedBox(height: 8),
-        Text(tr(ref, 'mobile.barber.schedule.empty', "Jadval yo'q"),
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textBright)),
-        const SizedBox(height: 4),
-        Text(tr(ref, 'mobile.barber.schedule.emptyHint', "Ish vaqtingizni belgilang"),
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.add, size: 16),
-            label: Text(tr(ref, 'mobile.barber.schedule.addSchedule', "Jadval qo'shish")),
-            onPressed: onAdd,
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
           ),
+          child: const Icon(Icons.access_time,
+              color: AppColors.primary, size: 32),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(tr(ref, 'mobile.barber.schedule.empty', "Jadval yo'q"),
+            style: AppText.titleSm),
+        const SizedBox(height: AppSpacing.xs),
+        Text(tr(ref, 'mobile.barber.schedule.emptyHint', "Ish vaqtingizni belgilang"),
+            style: AppText.bodySm, textAlign: TextAlign.center),
+        const SizedBox(height: AppSpacing.lg),
+        AppButton(
+          label: tr(ref, 'mobile.barber.schedule.addSchedule', "Jadval qo'shish"),
+          leadingIcon: Icons.add,
+          onPressed: onAdd,
+          fullWidth: true,
         ),
       ]),
     );
@@ -1162,9 +1295,108 @@ class _LegendDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-      const SizedBox(width: 4),
-      Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+      Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                  color: color.withValues(alpha: 0.5),
+                  blurRadius: 4,
+                  spreadRadius: 0.5),
+            ],
+          )),
+      const SizedBox(width: AppSpacing.xs),
+      Text(label, style: AppText.caption.copyWith(fontSize: 10)),
     ]);
+  }
+}
+
+class _TinyAction extends StatelessWidget {
+  const _TinyAction({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.onTap,
+  });
+  final IconData icon;
+  final Color color;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.light,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: AppRadius.rSm,
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 3),
+          Text(label,
+              style: AppText.button.copyWith(color: color, fontSize: 11)),
+        ]),
+      ),
+    );
+  }
+}
+
+class _SheetAction extends StatelessWidget {
+  const _SheetAction({
+    required this.icon,
+    required this.tint,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+  });
+  final IconData icon;
+  final Color tint;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.selection,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
+        child: Row(children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: tint.withValues(alpha: 0.12),
+              borderRadius: AppRadius.rMd,
+            ),
+            child: Icon(icon, color: tint, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: AppText.titleSm.copyWith(fontSize: 15)),
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle!, style: AppText.caption),
+                ],
+              ],
+            ),
+          ),
+        ]),
+      ),
+    );
   }
 }
