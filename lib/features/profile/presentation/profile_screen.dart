@@ -136,8 +136,8 @@ class ProfileScreen extends ConsumerWidget {
                 if (user.role == 'user') ...[
                   _LinkTile(
                     icon: Icons.bookmark_border,
-                    iconColor: AppColors.danger,
-                    label: tr(ref, 'profile.favorites', 'Sevimlilar'),
+                    iconColor: AppColors.primary,
+                    label: tr(ref, 'profile.favorites', 'Masterim'),
                     onTap: () => context.push('/favorites'),
                   ),
                   _LinkTile(

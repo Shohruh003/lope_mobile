@@ -20,7 +20,7 @@ class FavoritesScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          tr(ref, 'mobile.customer.favorites.title', 'Sevimlilar'),
+          tr(ref, 'mobile.customer.favorites.title', 'Masterim'),
           style: AppText.titleMd,
         ),
       ),
@@ -35,13 +35,13 @@ class FavoritesScreen extends ConsumerWidget {
         data: (list) {
           if (list.isEmpty) {
             return AppEmptyState(
-              icon: Icons.favorite_border_rounded,
+              icon: Icons.bookmark_border,
               title: tr(ref, 'mobile.customer.favorites.empty',
-                  "Sevimlilar ro'yxati bo'sh"),
+                  "Masterlaringiz yo'q"),
               message: tr(
                 ref,
                 'mobile.customer.favorites.emptyHint',
-                "Sartaroshni sevimliga qo'shish uchun uning profilida yurak belgisini bosing.",
+                "Sartaroshni masterlaringizga qo'shish uchun uning kartochkasida bookmark belgisini bosing.",
               ),
             );
           }
@@ -143,11 +143,11 @@ class FavoritesScreen extends ConsumerWidget {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: AppColors.danger.withValues(alpha: 0.15),
+                            color: AppColors.primary.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.favorite,
-                              color: AppColors.danger, size: 18),
+                          child: const Icon(Icons.bookmark,
+                              color: AppColors.primary, size: 18),
                         ),
                       ),
                     ],

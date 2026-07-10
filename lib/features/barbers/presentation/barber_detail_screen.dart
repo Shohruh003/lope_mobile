@@ -628,8 +628,8 @@ class _TopBar extends ConsumerWidget {
                 ),
               )
             : _CircleButton(
-                icon: isFav ? Icons.favorite : Icons.favorite_border,
-                iconColor: isFav ? AppColors.danger : AppColors.textPrimary,
+                icon: isFav ? Icons.bookmark : Icons.bookmark_border,
+                iconColor: isFav ? AppColors.primary : AppColors.textPrimary,
                 onTap: onFavorite,
               ),
       ]),

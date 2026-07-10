@@ -119,41 +119,20 @@ class _CustomerHeader extends ConsumerWidget {
             ),
           ),
           const Spacer(),
-          _CircleIconButton(
-            icon: Icons.bookmark_border,
-            onTap: () {
+          // Match NotificationBell's plain-IconButton look — no circular
+          // chip around the icon so both header actions read as one row.
+          IconButton(
+            tooltip: tr(ref, 'profile.favorites', 'Masterim'),
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.bookmark_border,
+                color: AppColors.textPrimary, size: 22),
+            onPressed: () {
               AppHaptics.selection();
               context.push('/favorites');
             },
           ),
-          AppSpacing.hGapXs,
           const NotificationBell(),
         ]),
-      ),
-    );
-  }
-}
-
-class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({required this.icon, required this.onTap});
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return TapScale(
-      onTap: onTap,
-      scale: 0.9,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.border),
-        ),
-        alignment: Alignment.center,
-        child: Icon(icon, color: AppColors.textPrimary, size: 20),
       ),
     );
   }

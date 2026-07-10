@@ -755,7 +755,13 @@ class _BarberCard extends ConsumerWidget {
                       : Opacity(
                           opacity: 0.6,
                           child: CachedNetworkImage(
-                            imageUrl: firstGallery,
+                            // Backend stores gallery as relative paths
+                            // (`/uploads/gallery/foo.jpg`) — must prepend
+                            // the API base via assetUrl or the image
+                            // silently 404s and the gradient falls back
+                            // to solid. Was the reason backgrounds
+                            // stopped appearing after the redesign.
+                            imageUrl: assetUrl(firstGallery),
                             fit: BoxFit.cover,
                             width: double.infinity,
                             // Broken image → let the gradient show through
@@ -766,7 +772,8 @@ class _BarberCard extends ConsumerWidget {
                           ),
                         ),
                 ),
-                // Heart top-left
+                // Bookmark top-left (was a heart) — matches the header
+                // shortcut. Flips optimistically via FavoritesController.
                 Positioned(
                   top: AppSpacing.sm,
                   left: AppSpacing.sm,
@@ -783,9 +790,9 @@ class _BarberCard extends ConsumerWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        isFav ? Icons.favorite : Icons.favorite_border,
+                        isFav ? Icons.bookmark : Icons.bookmark_border,
                         size: 16,
-                        color: isFav ? AppColors.danger : Colors.white,
+                        color: isFav ? AppColors.primary : Colors.white,
                       ),
                     ),
                   ),
@@ -804,26 +811,10 @@ class _BarberCard extends ConsumerWidget {
                     dot: true,
                   ),
                 ),
-                // Gender preference indicator (bottom-left)
-                if (barber.targetGender != null)
-                  Positioned(
-                    bottom: AppSpacing.sm,
-                    left: AppSpacing.sm,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        borderRadius: AppRadius.rPill,
-                      ),
-                      child: Text(
-                        barber.targetGender == 'MALE_ONLY' ? '👨' : '👩',
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                    ),
-                  ),
+                // (Gender emoji indicator removed — was showing 👨/👩 as
+                // a floating pill that looked like a random artefact on
+                // the card. Filter/sort UI in the tuner sheet is enough
+                // signal for gender-preferred masters.)
               ]),
             ),
             // Body — avatar overlaps
@@ -908,6 +899,11 @@ class _BarberCard extends ConsumerWidget {
                               ),
                             ]),
                           ],
+                          const SizedBox(height: AppSpacing.sm),
+                          // Yozilish CTA — one tap straight into the
+                          // booking flow, skips the detail bounce for
+                          // users who just want to pick a slot.
+                          _BookNowButton(barberId: barber.id),
                         ],
                       ),
                     ),
@@ -936,6 +932,51 @@ class _AvatarFallback extends StatelessWidget {
       child: Text(
         initial,
         style: AppText.titleMd.copyWith(color: Colors.white),
+      ),
+    );
+  }
+}
+
+/// Compact primary CTA on each barber card — jumps straight into the
+/// booking flow so the customer skips one navigation step.
+class _BookNowButton extends ConsumerWidget {
+  const _BookNowButton({required this.barberId});
+  final String barberId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return TapScale(
+      onTap: () {
+        AppHaptics.selection();
+        context.push('/barber/$barberId/book');
+      },
+      scale: 0.96,
+      child: Container(
+        height: 32,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: AppRadius.rSm,
+          boxShadow: AppShadows.primaryGlow(AppColors.primary),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.calendar_month,
+                size: 14, color: Colors.white),
+            AppSpacing.hGapXs,
+            Text(
+              tr(ref, 'booking.title', 'Yozilish'),
+              style: AppText.button.copyWith(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
