@@ -1,13 +1,13 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/asset_url.dart';
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/shop_repository.dart';
 
@@ -15,7 +15,8 @@ class ShopBarbersScreen extends ConsumerStatefulWidget {
   const ShopBarbersScreen({super.key});
 
   @override
-  ConsumerState<ShopBarbersScreen> createState() => _ShopBarbersScreenState();
+  ConsumerState<ShopBarbersScreen> createState() =>
+      _ShopBarbersScreenState();
 }
 
 class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
@@ -31,12 +32,34 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(shopBarbersPagedProvider(_key));
     return Scaffold(
-      appBar: AppBar(title: Text(tr(ref, 'mobile.shop.masters.title', "Mastera"))),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        onPressed: () => _openEditor(context, ref),
-        icon: const Icon(Icons.add),
-        label: Text(tr(ref, 'mobile.shop.masters.addBtn', "Qo'shish")),
+      appBar: AppBar(
+        title: Text(
+          tr(ref, 'mobile.shop.masters.title', 'Mastera'),
+          style: AppText.titleMd,
+        ),
+      ),
+      floatingActionButton: TapScale(
+        onTap: () => _openEditor(context, ref),
+        scale: 0.94,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: AppRadius.rPill,
+            boxShadow: AppShadows.primaryGlow(AppColors.primary),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.add, color: Colors.white, size: 20),
+            AppSpacing.hGapSm,
+            Text(
+              tr(ref, 'mobile.shop.masters.addBtn', "Qo'shish"),
+              style: AppText.button.copyWith(color: Colors.white),
+            ),
+          ]),
+        ),
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
@@ -45,19 +68,10 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
           final list = res.data;
           final totalPages = res.totalPages;
           if (list.isEmpty && _query.isEmpty && _page == 1) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.people_alt_outlined, size: 60, color: AppColors.textMuted),
-                    const SizedBox(height: 14),
-                    Text(tr(ref, 'mobile.shop.masters.empty', "Hali masterlar qo'shilmagan"),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
-                  ],
-                ),
-              ),
+            return AppEmptyState(
+              icon: Icons.people_alt_outlined,
+              title: tr(ref, 'mobile.shop.masters.empty',
+                  "Hali masterlar qo'shilmagan"),
             );
           }
           return RefreshIndicator(
@@ -68,106 +82,216 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
             },
             child: Column(children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: TextField(
-                  onChanged: (v) => setState(() {
-                    _query = v;
-                    _page = 1;
-                  }),
-                  style: const TextStyle(fontSize: 14, color: AppColors.textBright, fontWeight: FontWeight.w500),
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: AppColors.textMuted, size: 18),
-                    prefixIconConstraints: const BoxConstraints(minWidth: 40),
-                    hintText: tr(ref, 'mobile.lopepay.customers.searchHint', "Ism yoki telefon"),
-                    isDense: true,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                ),
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.rMd,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: TextField(
+                    onChanged: (v) => setState(() {
+                      _query = v;
+                      _page = 1;
+                    }),
+                    style: AppText.body,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12),
+                      prefixIcon: const Icon(Icons.search,
+                          color: AppColors.textMuted, size: 20),
+                      hintText: tr(ref,
+                          'mobile.lopepay.customers.searchHint',
+                          'Ism yoki telefon'),
+                      hintStyle: AppText.body
+                          .copyWith(color: AppColors.textMuted),
+                    ),
                   ),
                 ),
               ),
               Expanded(
                 child: list.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Text(tr(ref, 'common.noResults', "Hech narsa topilmadi"),
-                              style: const TextStyle(color: AppColors.textMuted)),
-                        ),
+                    ? AppEmptyState(
+                        icon: Icons.search_off,
+                        title: tr(ref, 'common.noResults',
+                            'Hech narsa topilmadi'),
                       )
                     : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-              itemCount: list.length,
-              separatorBuilder: (context, i) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final b = list[i];
-                return InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () => context.push('/shop/barbers/${b.id}'),
-                  child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(children: [
-                    ClipOval(
-                      child: (b.avatar != null && b.avatar!.isNotEmpty)
-                          ? CachedNetworkImage(imageUrl: assetUrl(b.avatar), width: 48, height: 48, fit: BoxFit.cover)
-                          : Container(width: 48, height: 48, color: AppColors.background, child: const Icon(Icons.person, color: AppColors.textMuted)),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(b.name, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
-                          const SizedBox(height: 2),
-                          if (b.experience.isNotEmpty)
-                            Text(tr(ref, 'mobile.shop.masters.experience',
-                                'Tajriba: {{value}}', {'value': b.experience}),
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                          if (b.phone?.isNotEmpty == true)
-                            Text(b.phone!,
-                                style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                        ],
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.lg,
+                          AppSpacing.sm,
+                          AppSpacing.lg,
+                          96,
+                        ),
+                        itemCount: list.length,
+                        separatorBuilder: (_, _) => AppSpacing.gapSm,
+                        itemBuilder: (context, i) {
+                          final b = list[i];
+                          return AppCard(
+                            variant: AppCardVariant.outlined,
+                            padding: AppSpacing.cardPadding,
+                            onTap: () =>
+                                context.push('/shop/barbers/${b.id}'),
+                            child: Row(children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.primaryGradient,
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(2),
+                                child: ClipOval(
+                                  child: (b.avatar != null &&
+                                          b.avatar!.isNotEmpty)
+                                      ? CachedNetworkImage(
+                                          imageUrl: assetUrl(b.avatar),
+                                          width: 48,
+                                          height: 48,
+                                          fit: BoxFit.cover,
+                                          placeholder: (_, _) =>
+                                              const SkeletonCircle(
+                                                  size: 48),
+                                        )
+                                      : Container(
+                                          width: 48,
+                                          height: 48,
+                                          color: AppColors.surface,
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            (b.name.isNotEmpty
+                                                    ? b.name[0]
+                                                    : '?')
+                                                .toUpperCase(),
+                                            style: AppText.titleMd,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              AppSpacing.hGapMd,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(b.name,
+                                        style: AppText.titleSm),
+                                    if (b.experience.isNotEmpty) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        tr(
+                                            ref,
+                                            'mobile.shop.masters.experience',
+                                            'Tajriba: {{value}}',
+                                            {
+                                              'value': b.experience
+                                            }),
+                                        style: AppText.caption,
+                                      ),
+                                    ],
+                                    if (b.phone?.isNotEmpty ==
+                                        true) ...[
+                                      const SizedBox(height: 2),
+                                      Text(b.phone!,
+                                          style: AppText.caption),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              AppSpacing.hGapSm,
+                              TapScale(
+                                onTap: () => _openEditor(context, ref,
+                                    existing: b),
+                                scale: 0.9,
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceElevated,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                      Icons.edit_outlined,
+                                      color:
+                                          AppColors.textSecondary,
+                                      size: 18),
+                                ),
+                              ),
+                              AppSpacing.hGapXs,
+                              TapScale(
+                                onTap: () =>
+                                    _confirmDelete(context, ref, b),
+                                scale: 0.9,
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.danger
+                                        .withValues(alpha: 0.12),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                      Icons.delete_outline,
+                                      color: AppColors.danger,
+                                      size: 18),
+                                ),
+                              ),
+                            ]),
+                          )
+                              .animate()
+                              .fadeIn(
+                                  duration: 250.ms,
+                                  delay: (i * 30).ms)
+                              .slideY(begin: 0.1, end: 0);
+                        },
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 20),
-                      onPressed: () => _openEditor(context, ref, existing: b),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: AppColors.danger, size: 20),
-                      onPressed: () => _confirmDelete(context, ref, b),
-                    ),
-                  ]),
-                  ),
-                ).animate().fadeIn(duration: 250.ms, delay: (i * 30).ms).slideY(begin: 0.1, end: 0);
-              },
-            ),
               ),
               if (totalPages > 1)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xs,
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      OutlinedButton(
+                      AppButton(
+                        label: tr(ref, 'common.prev', 'Oldingi'),
+                        leadingIcon: Icons.chevron_left,
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.sm,
                         onPressed: _page <= 1
                             ? null
                             : () => setState(() => _page--),
-                        child: Text(tr(ref, 'common.prev', "Oldingi")),
                       ),
-                      const SizedBox(width: 12),
-                      Text("$_page / $totalPages",
-                          style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(width: 12),
-                      OutlinedButton(
+                      AppSpacing.hGapMd,
+                      Text(
+                        '$_page / $totalPages',
+                        style: AppText.body.copyWith(
+                          color: AppColors.textMuted,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      AppSpacing.hGapMd,
+                      AppButton(
+                        label: tr(ref, 'common.next', 'Keyingi'),
+                        trailingIcon: Icons.chevron_right,
+                        variant: AppButtonVariant.secondary,
+                        size: AppButtonSize.sm,
                         onPressed: _page >= totalPages
                             ? null
                             : () => setState(() => _page++),
-                        child: Text(tr(ref, 'common.next', "Keyingi")),
                       ),
                     ],
                   ),
@@ -179,16 +303,16 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     );
   }
 
-  Future<void> _openEditor(BuildContext context, WidgetRef ref, {ShopBarber? existing}) async {
+  Future<void> _openEditor(BuildContext context, WidgetRef ref,
+      {ShopBarber? existing}) async {
+    AppHaptics.light();
     final name = TextEditingController(text: existing?.name ?? '');
     final exp = TextEditingController(text: existing?.experience ?? '');
     final phone = TextEditingController(text: existing?.phone ?? '');
-    // Jinsi: null (tanlanmagan) / 'MALE' / 'FEMALE'. StatefulBuilder ichida
-    // qayta chizishi uchun mahalliy o'zgaruvchi.
-    String? gender = (existing?.gender == 'MALE' || existing?.gender == 'FEMALE')
-        ? existing!.gender
-        : null;
-    // Kasb: existing barberda role bo'lsa o'shani ol, aks holda default sartarosh.
+    String? gender =
+        (existing?.gender == 'MALE' || existing?.gender == 'FEMALE')
+            ? existing!.gender
+            : null;
     String role = existing?.role == 'stylist'
         ? 'stylist'
         : existing?.role == 'cosmetologist'
@@ -198,148 +322,126 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
           padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            top: AppSpacing.md,
+            bottom:
+                AppSpacing.lg + MediaQuery.of(sheetCtx).viewInsets.bottom,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: AppRadius.rPill,
+                  ),
+                ),
+              ),
+              AppSpacing.gapMd,
               Text(
-                  existing == null
-                      ? tr(ref, 'mobile.shop.masters.newTitle', "Yangi master")
-                      : tr(ref, 'mobile.shop.masters.editTitle', "Tahrirlash"),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-              const SizedBox(height: 14),
+                existing == null
+                    ? tr(ref, 'mobile.shop.masters.newTitle',
+                        'Yangi master')
+                    : tr(ref, 'mobile.shop.masters.editTitle',
+                        'Tahrirlash'),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapLg,
               TextField(
-                  controller: name,
-                  decoration: InputDecoration(hintText: tr(ref, 'mobile.shop.masters.namePh', "Ism"))),
-              const SizedBox(height: 10),
+                controller: name,
+                style: AppText.body,
+                decoration: InputDecoration(
+                  labelText:
+                      tr(ref, 'mobile.shop.masters.namePh', 'Ism'),
+                ),
+              ),
+              AppSpacing.gapSm,
               TextField(
-                  controller: exp,
-                  decoration: InputDecoration(
-                      hintText: tr(ref, 'mobile.shop.masters.expPh',
-                          "Tajriba (masalan: 3 yil)"))),
-              const SizedBox(height: 10),
+                controller: exp,
+                style: AppText.body,
+                decoration: InputDecoration(
+                  labelText: tr(ref, 'mobile.shop.masters.expPh',
+                      'Tajriba (masalan: 3 yil)'),
+                ),
+              ),
+              AppSpacing.gapSm,
               TextField(
-                  controller: phone,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                      hintText: tr(ref, 'mobile.shop.masters.phonePh',
-                          "Telefon (ixtiyoriy)"))),
-              const SizedBox(height: 12),
+                controller: phone,
+                keyboardType: TextInputType.phone,
+                style: AppText.body,
+                decoration: InputDecoration(
+                  labelText: tr(ref, 'mobile.shop.masters.phonePh',
+                      'Telefon (ixtiyoriy)'),
+                ),
+              ),
+              AppSpacing.gapMd,
               Text(
-                tr(ref, 'mobile.shop.masters.gender', "Jinsi"),
-                style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                tr(ref, 'mobile.shop.masters.gender', 'Jinsi'),
+                style: AppText.overline,
               ),
               const SizedBox(height: 6),
               Row(children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Text('👨', style: TextStyle(fontSize: 14)),
-                    label: Text(tr(ref, 'admin.filterGenderMale', "Erkak")),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: gender == 'MALE'
-                          ? AppColors.primary.withValues(alpha: 0.15)
-                          : null,
-                      side: BorderSide(
-                        color: gender == 'MALE'
-                            ? AppColors.primary
-                            : AppColors.border,
-                      ),
-                      foregroundColor: gender == 'MALE'
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                    ),
-                    onPressed: () => setSheetState(
-                        () => gender = gender == 'MALE' ? null : 'MALE'),
+                  child: _PickerBtn(
+                    label:
+                        "👨 ${tr(ref, 'admin.filterGenderMale', 'Erkak')}",
+                    on: gender == 'MALE',
+                    onTap: () => setSheetState(() =>
+                        gender = gender == 'MALE' ? null : 'MALE'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                AppSpacing.hGapSm,
                 Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Text('👩', style: TextStyle(fontSize: 14)),
-                    label: Text(tr(ref, 'admin.filterGenderFemale', "Ayol")),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: gender == 'FEMALE'
-                          ? AppColors.primary.withValues(alpha: 0.15)
-                          : null,
-                      side: BorderSide(
-                        color: gender == 'FEMALE'
-                            ? AppColors.primary
-                            : AppColors.border,
-                      ),
-                      foregroundColor: gender == 'FEMALE'
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                    ),
-                    onPressed: () => setSheetState(
-                        () => gender = gender == 'FEMALE' ? null : 'FEMALE'),
+                  child: _PickerBtn(
+                    label:
+                        "👩 ${tr(ref, 'admin.filterGenderFemale', 'Ayol')}",
+                    on: gender == 'FEMALE',
+                    onTap: () => setSheetState(() => gender =
+                        gender == 'FEMALE' ? null : 'FEMALE'),
                   ),
                 ),
               ]),
-              const SizedBox(height: 14),
+              AppSpacing.gapMd,
               Text(
-                tr(ref, 'mobile.shop.masters.role', "Kasbi"),
-                style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                tr(ref, 'mobile.shop.masters.role', 'Kasbi'),
+                style: AppText.overline,
               ),
               const SizedBox(height: 6),
               Row(children: [
                 Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: role == 'barber'
-                          ? AppColors.primary.withValues(alpha: 0.15)
-                          : null,
-                      side: BorderSide(
-                        color: role == 'barber' ? AppColors.primary : AppColors.border,
-                      ),
-                      foregroundColor: role == 'barber'
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                    ),
-                    onPressed: () => setSheetState(() => role = 'barber'),
-                    child: Text(tr(ref, 'auth.roleBarber', "Sartarosh")),
+                  child: _PickerBtn(
+                    label: tr(ref, 'auth.roleBarber', 'Sartarosh'),
+                    on: role == 'barber',
+                    onTap: () =>
+                        setSheetState(() => role = 'barber'),
                   ),
                 ),
-                const SizedBox(width: 6),
+                AppSpacing.hGapXs,
                 Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: role == 'stylist'
-                          ? AppColors.primary.withValues(alpha: 0.15)
-                          : null,
-                      side: BorderSide(
-                        color: role == 'stylist' ? AppColors.primary : AppColors.border,
-                      ),
-                      foregroundColor: role == 'stylist'
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                    ),
-                    onPressed: () => setSheetState(() => role = 'stylist'),
-                    child: Text(tr(ref, 'auth.roleStylist', "Stilist")),
+                  child: _PickerBtn(
+                    label: tr(ref, 'auth.roleStylist', 'Stilist'),
+                    on: role == 'stylist',
+                    onTap: () =>
+                        setSheetState(() => role = 'stylist'),
                   ),
                 ),
-                const SizedBox(width: 6),
+                AppSpacing.hGapXs,
                 Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: role == 'cosmetologist'
-                          ? AppColors.primary.withValues(alpha: 0.15)
-                          : null,
-                      side: BorderSide(
-                        color: role == 'cosmetologist' ? AppColors.primary : AppColors.border,
-                      ),
-                      foregroundColor: role == 'cosmetologist'
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
-                    ),
-                    onPressed: () => setSheetState(() => role = 'cosmetologist'),
-                    child: Text(tr(ref, 'auth.roleCosmetologist', "Kosmetolog")),
+                  child: _PickerBtn(
+                    label: tr(ref, 'auth.roleCosmetologist',
+                        'Kosmetolog'),
+                    on: role == 'cosmetologist',
+                    onTap: () => setSheetState(
+                        () => role = 'cosmetologist'),
                   ),
                 ),
               ]),
@@ -347,15 +449,15 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
               Text(
                 tr(ref, 'mobile.shop.masters.roleHint',
                     "Mijozlarga yuboriladigan SMS'da shu so'z ishlatiladi."),
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                style: AppText.caption,
               ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(sheetCtx).pop(true),
-                  child: Text(tr(ref, 'common.save', "Saqlash")),
-                ),
+              AppSpacing.gapLg,
+              AppButton(
+                label: tr(ref, 'common.save', 'Saqlash'),
+                variant: AppButtonVariant.primary,
+                size: AppButtonSize.lg,
+                fullWidth: true,
+                onPressed: () => Navigator.of(sheetCtx).pop(true),
               ),
             ],
           ),
@@ -377,16 +479,22 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
         await repo.updateBarber(existing.id, {
           'name': name.text.trim(),
           'experience': exp.text.trim(),
-          if (phone.text.trim().isNotEmpty) 'phone': phone.text.trim(),
-          if (gender == 'MALE' || gender == 'FEMALE') 'gender': gender,
+          if (phone.text.trim().isNotEmpty)
+            'phone': phone.text.trim(),
+          if (gender == 'MALE' || gender == 'FEMALE')
+            'gender': gender,
           'role': role,
         });
       }
+      AppHaptics.success();
       ref.invalidate(shopBarbersProvider);
       ref.invalidate(shopBarbersPagedProvider);
     } catch (e) {
+      AppHaptics.error();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } finally {
       name.dispose();
@@ -395,24 +503,57 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     }
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, ShopBarber b) async {
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, ShopBarber b) async {
+    AppHaptics.light();
     final ok = await showDialog<bool>(
       context: context,
-      builder: (dCtx) => AlertDialog(
+      builder: (dCtx) => Dialog(
         backgroundColor: AppColors.surface,
-        title: Text(tr(ref, 'mobile.shop.masters.deleteTitle', "Masterni o'chirish?")),
-        content: Text(tr(ref, 'mobile.shop.masters.deleteAsk',
-            "\"{{name}}\" salondan olib tashlansinmi?", {'name': b.name})),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(dCtx).pop(false),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            onPressed: () => Navigator.of(dCtx).pop(true),
-            child: Text(tr(ref, 'common.delete', "O'chirish")),
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr(ref, 'mobile.shop.masters.deleteTitle',
+                    "Masterni o'chirish?"),
+                style: AppText.titleMd,
+              ),
+              AppSpacing.gapSm,
+              Text(
+                tr(
+                    ref,
+                    'mobile.shop.masters.deleteAsk',
+                    '"{{name}}" salondan olib tashlansinmi?',
+                    {'name': b.name}),
+                style: AppText.bodySm,
+              ),
+              AppSpacing.gapLg,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.cancel', 'Bekor'),
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.pop(dCtx, false),
+                    fullWidth: true,
+                  ),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.delete', "O'chirish"),
+                    variant: AppButtonVariant.danger,
+                    onPressed: () => Navigator.pop(dCtx, true),
+                    fullWidth: true,
+                  ),
+                ),
+              ]),
+            ],
           ),
-        ],
+        ),
       ),
     );
     if (ok != true) return;
@@ -422,8 +563,57 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
       ref.invalidate(shopBarbersPagedProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     }
+  }
+}
+
+class _PickerBtn extends StatelessWidget {
+  const _PickerBtn({
+    required this.label,
+    required this.on,
+    required this.onTap,
+  });
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: () {
+        AppHaptics.selection();
+        onTap();
+      },
+      scale: 0.96,
+      child: AnimatedContainer(
+        duration: AppMotion.base,
+        curve: AppMotion.emphasized,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        decoration: BoxDecoration(
+          gradient: on ? AppColors.primaryGradient : null,
+          color: on ? null : AppColors.surface,
+          borderRadius: AppRadius.rMd,
+          border: Border.all(
+            color: on ? AppColors.primary : AppColors.border,
+            width: on ? 2 : 1,
+          ),
+          boxShadow:
+              on ? AppShadows.primaryGlow(AppColors.primary) : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: AppText.body.copyWith(
+            color: on ? Colors.white : AppColors.textPrimary,
+            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 }
