@@ -8,19 +8,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/asset_url.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../barber_panel/data/barber_panel_repository.dart';
 import '../../bookings/data/booking_repository.dart';
 import '../data/shop_repository.dart';
 import 'shop_bookings_screen.dart' show shopBookingsFilteredProvider;
 
-/// Shop-owner view of a single barber inside their salon. Mirrors the
-/// web `BarbershopBarberDetail.tsx` flow — header with master info,
-/// switchable Schedule / Clients tabs, date picker on the schedule
-/// tab and the day's bookings. Mobile leaves the booking-row write
-/// actions (reschedule / extend / cancel) for a follow-up; this is
-/// the read-side first.
 class ShopBarberDetailScreen extends ConsumerStatefulWidget {
   const ShopBarberDetailScreen({super.key, required this.barberId});
   final String barberId;
@@ -32,7 +26,7 @@ class ShopBarberDetailScreen extends ConsumerStatefulWidget {
 
 class _ShopBarberDetailScreenState
     extends ConsumerState<ShopBarberDetailScreen> {
-  int _tab = 0; // 0 = schedule, 1 = clients
+  int _tab = 0;
   late DateTime _date;
 
   @override
@@ -55,6 +49,7 @@ class _ShopBarberDetailScreenState
   }
 
   Future<void> _call(String phone) async {
+    AppHaptics.light();
     final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
     final uri = Uri(scheme: 'tel', path: clean);
     if (await canLaunchUrl(uri)) await launchUrl(uri);
@@ -65,13 +60,12 @@ class _ShopBarberDetailScreenState
     final barberAsync = ref.watch(_shopBarberByIdProvider(widget.barberId));
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.shop.barberDetail.title', "Sartarosh")),
+        title: Text(tr(ref, 'mobile.shop.barberDetail.title', "Sartarosh"),
+            style: AppText.titleMd),
       ),
       body: barberAsync.when(
         loading: () => const AppListSkeleton(),
-        error: (e, _) => Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                style: const TextStyle(color: AppColors.textMuted))),
+        error: (e, _) => AppErrorState(message: humanize(e)),
         data: (b) {
           final phone = (b.phone ?? '');
           final showPhone = phone.isNotEmpty && !phone.startsWith('shop:');
@@ -79,80 +73,27 @@ class _ShopBarberDetailScreenState
             color: AppColors.primary,
             onRefresh: () async {
               ref.invalidate(_shopBarberByIdProvider(widget.barberId));
-              ref.invalidate(
-                  _shopBarberBookingsProvider((id: widget.barberId, date: _dateStr(_date))));
+              ref.invalidate(_shopBarberBookingsProvider(
+                  (id: widget.barberId, date: _dateStr(_date))));
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
               children: [
-                // ===== Header =====
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  ClipOval(
-                    child: (b.avatar?.isNotEmpty ?? false)
-                        ? CachedNetworkImage(
-                            imageUrl: assetUrl(b.avatar),
-                            width: 64, height: 64, fit: BoxFit.cover)
-                        : Container(
-                            width: 64, height: 64,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.12),
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              (b.name.isNotEmpty ? b.name[0] : '?').toUpperCase(),
-                              style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(b.name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 20,
-                                color: AppColors.textBright,
-                                letterSpacing: -0.3)),
-                        if (b.experience.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(b.experience,
-                              style: const TextStyle(
-                                  color: AppColors.textMuted, fontSize: 14)),
-                        ],
-                        if (showPhone) ...[
-                          const SizedBox(height: 4),
-                          InkWell(
-                            onTap: () => _call(phone),
-                            child: Row(children: [
-                              const Icon(Icons.phone,
-                                  size: 14, color: AppColors.primary),
-                              const SizedBox(width: 4),
-                              Text(phone,
-                                  style: const TextStyle(
-                                      color: AppColors.primary, fontSize: 14)),
-                            ]),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ]),
-
-                const SizedBox(height: 16),
-
-                // ===== Tabs =====
+                _BarberHero(
+                  name: b.name,
+                  experience: b.experience,
+                  avatar: b.avatar ?? '',
+                  phone: showPhone ? phone : null,
+                  onCall: showPhone ? () => _call(phone) : null,
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceElevated,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: AppRadius.rMd,
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Row(children: [
@@ -168,8 +109,7 @@ class _ShopBarberDetailScreenState
                     ),
                   ]),
                 ),
-                const SizedBox(height: 14),
-
+                const SizedBox(height: AppSpacing.md),
                 if (_tab == 0)
                   _ScheduleTab(
                     barberId: widget.barberId,
@@ -187,6 +127,101 @@ class _ShopBarberDetailScreenState
   }
 }
 
+class _BarberHero extends StatelessWidget {
+  const _BarberHero({
+    required this.name,
+    required this.experience,
+    required this.avatar,
+    required this.phone,
+    required this.onCall,
+  });
+  final String name;
+  final String experience;
+  final String avatar;
+  final String? phone;
+  final VoidCallback? onCall;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      gradient: LinearGradient(
+        colors: [
+          AppColors.primary.withValues(alpha: 0.14),
+          AppColors.primary.withValues(alpha: 0.04),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderColor: AppColors.primary.withValues(alpha: 0.2),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            shape: BoxShape.circle,
+          ),
+          child: ClipOval(
+            child: avatar.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: assetUrl(avatar),
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover)
+                : Container(
+                    width: 64,
+                    height: 64,
+                    color: AppColors.surface,
+                    alignment: Alignment.center,
+                    child: Text(
+                      (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+                      style: AppText.titleLg
+                          .copyWith(color: AppColors.primary),
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, style: AppText.titleMd),
+              if (experience.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(experience, style: AppText.bodySm),
+              ],
+              if (phone != null && phone!.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                TapScale(
+                  onTap: onCall,
+                  haptic: HapticStrength.light,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      borderRadius: AppRadius.rPill,
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.phone,
+                          size: 12, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Text(phone!,
+                          style: AppText.button.copyWith(
+                              color: AppColors.primary, fontSize: 12)),
+                    ]),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
 class _TabBtn extends StatelessWidget {
   const _TabBtn({required this.label, required this.on, required this.onTap});
   final String label;
@@ -195,22 +230,34 @@ class _TabBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+      child: TapScale(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+        haptic: HapticStrength.selection,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           decoration: BoxDecoration(
-            color: on ? AppColors.background : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            border: on ? Border.all(color: AppColors.border) : null,
+            gradient: on
+                ? LinearGradient(
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.15),
+                      AppColors.primary.withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            borderRadius: AppRadius.rSm,
+            border: on
+                ? Border.all(color: AppColors.primary.withValues(alpha: 0.3))
+                : null,
           ),
           alignment: Alignment.center,
           child: Text(label,
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: on ? FontWeight.w600 : FontWeight.w500,
-                  color: on ? AppColors.textBright : AppColors.textMuted)),
+              style: AppText.button.copyWith(
+                  color: on ? AppColors.primary : AppColors.textMuted,
+                  fontSize: 13)),
         ),
       ),
     );
@@ -235,50 +282,54 @@ class _ScheduleTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InkWell(
+        TapScale(
           onTap: onPickDate,
-          borderRadius: BorderRadius.circular(10),
+          haptic: HapticStrength.light,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: AppRadius.rMd,
               border: Border.all(color: AppColors.border),
             ),
             child: Row(children: [
-              const Icon(Icons.calendar_today,
-                  size: 16, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(_df.format(date),
-                  style: const TextStyle(
-                      color: AppColors.textBright, fontWeight: FontWeight.w500, fontSize: 14)),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.rSm,
+                ),
+                child: const Icon(Icons.calendar_today,
+                    size: 15, color: AppColors.primary),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Text(_df.format(date), style: AppText.titleSm.copyWith(fontSize: 14)),
               const Spacer(),
-              const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
+              const Icon(Icons.chevron_right,
+                  color: AppColors.textMuted, size: 18),
             ]),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         async.when(
           loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
             child: Center(child: CircularProgressIndicator()),
           ),
           error: (e, _) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            child: Center(
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                    style: const TextStyle(color: AppColors.textMuted))),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+            child: AppErrorState(message: humanize(e)),
           ),
           data: (list) {
             if (list.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Text(
-                      tr(ref, 'mobile.shop.bookings.emptyForDay',
-                          "Bu sanada bronlar yo'q"),
-                      style: const TextStyle(color: AppColors.textMuted)),
-                ),
+              return AppEmptyState(
+                icon: Icons.event_available_rounded,
+                title: tr(ref, 'mobile.shop.bookings.emptyForDay',
+                    "Bu sanada bronlar yo'q"),
+                message: tr(ref, 'mobile.shop.bookings.emptyForDayHint',
+                    "Mijozlar yozilishi bilan barcha barberlarning bronlari shu yerda ko'rinadi."),
               );
             }
             final sorted = [...list]..sort((a, b) => a.time.compareTo(b.time));
@@ -287,10 +338,12 @@ class _ScheduleTab extends ConsumerWidget {
                   .asMap()
                   .entries
                   .map((e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                         child: _BookingRow(b: e.value, dateStr: dateStr)
                             .animate()
-                            .fadeIn(duration: 200.ms, delay: (e.key * 25).ms),
+                            .fadeIn(
+                                duration: 200.ms,
+                                delay: (e.key * 25).ms),
                       ))
                   .toList(),
             );
@@ -324,7 +377,18 @@ class _BookingRow extends ConsumerWidget {
       case 'cancelled':
         return AppColors.danger;
       default:
-        return const Color(0xFF3B82F6);
+        return AppColors.primary;
+    }
+  }
+
+  AppBadgeVariant _statusVariant() {
+    switch (b.status) {
+      case 'completed':
+        return AppBadgeVariant.success;
+      case 'cancelled':
+        return AppBadgeVariant.danger;
+      default:
+        return AppBadgeVariant.info;
     }
   }
 
@@ -343,56 +407,48 @@ class _BookingRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final color = _statusColor();
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
+        color: AppColors.surface,
+        borderRadius: AppRadius.rMd,
         border: Border(left: BorderSide(color: color, width: 3)),
+        boxShadow: AppShadows.subtle,
       ),
       child: Row(children: [
         Container(
           width: 60,
           padding: const EdgeInsets.symmetric(vertical: 6),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
+            gradient: LinearGradient(
+              colors: [
+                color.withValues(alpha: 0.18),
+                color.withValues(alpha: 0.06),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: AppRadius.rSm,
           ),
           alignment: Alignment.center,
           child: Text(b.time,
-              style: TextStyle(
-                  color: color, fontWeight: FontWeight.w600, fontSize: 14)),
+              style: AppText.button.copyWith(color: color, fontSize: 14)),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(b.userName,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w500, fontSize: 14)),
+                  style: AppText.titleSm.copyWith(fontSize: 14)),
               const SizedBox(height: 4),
               Row(children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(_statusLabel(ref),
-                      style: TextStyle(
-                          color: color,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600)),
-                ),
+                AppBadge(label: _statusLabel(ref), variant: _statusVariant()),
                 if (b.totalPrice > 0) ...[
-                  const SizedBox(width: 6),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                       "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
-                      style: const TextStyle(
-                          color: AppColors.warning,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12)),
+                      style: AppText.button.copyWith(
+                          color: AppColors.warning, fontSize: 12)),
                 ],
               ]),
             ],
@@ -402,6 +458,9 @@ class _BookingRow extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert,
                 color: AppColors.textMuted, size: 20),
+            color: AppColors.surface,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md)),
             onSelected: (value) async {
               switch (value) {
                 case 'reschedule':
@@ -420,8 +479,8 @@ class _BookingRow extends ConsumerWidget {
                 value: 'reschedule',
                 child: Row(children: [
                   const Icon(Icons.event_repeat,
-                      size: 16, color: AppColors.textBright),
-                  const SizedBox(width: 8),
+                      size: 16, color: AppColors.primary),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(tr(ref, 'mobile.shop.barber.reschedule',
                       "Boshqa vaqtga ko'chirish")),
                 ]),
@@ -430,8 +489,8 @@ class _BookingRow extends ConsumerWidget {
                 value: 'extend',
                 child: Row(children: [
                   const Icon(Icons.timer_outlined,
-                      size: 16, color: AppColors.textBright),
-                  const SizedBox(width: 8),
+                      size: 16, color: AppColors.primary),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(tr(ref, 'mobile.shop.barber.extend',
                       "Vaqtni uzaytirish")),
                 ]),
@@ -441,7 +500,7 @@ class _BookingRow extends ConsumerWidget {
                 child: Row(children: [
                   const Icon(Icons.close,
                       size: 16, color: AppColors.danger),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
                       style: const TextStyle(color: AppColors.danger)),
                 ]),
@@ -457,8 +516,12 @@ class _BookingRow extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(tr(ref, 'myBookings.cancelConfirmTitle',
-            "Bronni bekor qilasizmi?")),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'myBookings.cancelConfirmTitle',
+                "Bronni bekor qilasizmi?"),
+            style: AppText.titleMd),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dCtx, false),
@@ -523,8 +586,12 @@ class _BookingRow extends ConsumerWidget {
       context: context,
       builder: (dCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(tr(ref, 'mobile.shop.barber.extendTitle',
-            "Vaqtni uzaytirish (daqiqa)")),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text(
+            tr(ref, 'mobile.shop.barber.extendTitle',
+                "Vaqtni uzaytirish (daqiqa)"),
+            style: AppText.titleMd),
         content: StatefulBuilder(builder: (sCtx, setSt) {
           return DropdownButtonFormField<int>(
             initialValue: minutes,
@@ -572,25 +639,19 @@ class _ClientsTab extends ConsumerWidget {
     final async = ref.watch(_shopBarberClientsProvider(barberId));
     return async.when(
       loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
         child: Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32),
-        child: Center(
-            child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                style: const TextStyle(color: AppColors.textMuted))),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+        child: AppErrorState(message: humanize(e)),
       ),
       data: (list) {
         if (list.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            child: Center(
-              child: Text(
-                  tr(ref, 'mobile.shop.barberDetail.noClients',
-                      "Mijozlar topilmadi"),
-                  style: const TextStyle(color: AppColors.textMuted)),
-            ),
+          return AppEmptyState(
+            icon: Icons.people_outline_rounded,
+            title: tr(ref, 'mobile.shop.barberDetail.noClients',
+                "Mijozlar topilmadi"),
           );
         }
         return Column(
@@ -598,20 +659,24 @@ class _ClientsTab extends ConsumerWidget {
               .asMap()
               .entries
               .map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
-                      ),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: AppCard(
+                      variant: AppCardVariant.flat,
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       child: Row(children: [
                         Container(
-                          width: 36, height: 36,
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary.withValues(alpha: 0.25),
+                                AppColors.primary.withValues(alpha: 0.1),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: AppRadius.rMd,
                           ),
                           alignment: Alignment.center,
                           child: Text(
@@ -619,44 +684,32 @@ class _ClientsTab extends ConsumerWidget {
                                     ? (e.value['name'] as String)[0]
                                     : '?')
                                 .toUpperCase(),
-                            style: const TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600),
+                            style: AppText.titleSm
+                                .copyWith(color: AppColors.primary),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text((e.value['name'] ?? '').toString().isEmpty
+                              Text(
+                                  (e.value['name'] ?? '').toString().isEmpty
                                       ? (e.value['phone'] ?? '').toString()
                                       : (e.value['name'] ?? '').toString(),
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14)),
+                                  style: AppText.titleSm
+                                      .copyWith(fontSize: 14)),
                               if ((e.value['phone'] ?? '').toString().isNotEmpty)
                                 Text((e.value['phone'] ?? '').toString(),
-                                    style: const TextStyle(
-                                        color: AppColors.textMuted, fontSize: 13)),
+                                    style: AppText.caption),
                             ],
                           ),
                         ),
                         if (((e.value['totalVisits'] ?? e.value['bookingsCount'] ?? 0) as num) > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.success.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
+                          AppBadge(
+                            label:
                                 "${((e.value['totalVisits'] ?? e.value['bookingsCount'] ?? 0) as num).toInt()}",
-                                style: const TextStyle(
-                                    color: AppColors.success,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 11)),
+                            variant: AppBadgeVariant.success,
                           ),
                       ]),
                     ).animate().fadeIn(duration: 200.ms, delay: (e.key * 25).ms),
