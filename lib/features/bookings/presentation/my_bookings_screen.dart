@@ -1,23 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/asset_url.dart';
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../reviews/data/reviews_repository.dart';
 import '../data/booking_repository.dart';
 import '../domain/booking.dart';
 
-/// 1:1 port of the web `CustomerBookingsScreen.tsx`:
-///   - "Bronlar" title
-///   - 3-tab row (Upcoming/Past/Cancelled) with counts in parens
-///   - Booking cards: 44px avatar + name + status pill + services line +
-///     date/time/price row + (for confirmed) Complete + Cancel buttons
+/// Redesigned "Bronlar" screen. State/API logic same as before (infinite
+/// scroll pagination, refresh on resume, review prompt after complete);
+/// only the UI is rebuilt on the new design system.
 class MyBookingsScreen extends ConsumerStatefulWidget {
   const MyBookingsScreen({super.key});
 
@@ -29,8 +27,6 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
     with WidgetsBindingObserver {
   int _tab = 0; // 0 = upcoming, 1 = past, 2 = cancelled
 
-  // Accumulated infinite-scroll state — page 1 loads on first build,
-  // subsequent pages append when the user scrolls near the bottom.
   final List<Booking> _all = [];
   int _page = 1;
   bool _hasMore = true;
@@ -55,10 +51,6 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
     super.dispose();
   }
 
-  /// On app resume, refetch page 1 so a barber's confirm/reschedule/cancel
-  /// that happened while the app was backgrounded shows up immediately.
-  /// Push payloads land in the system tray but don't auto-trigger the
-  /// FutureProvider here.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -79,11 +71,9 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
     if (_loading) return;
     setState(() => _loading = true);
     try {
-      final res = await ref
-          .read(bookingRepositoryProvider)
-          .minePaged(
-              ref.read(authControllerProvider).user?.id ?? '',
-              page: page);
+      final res = await ref.read(bookingRepositoryProvider).minePaged(
+          ref.read(authControllerProvider).user?.id ?? '',
+          page: page);
       if (!mounted) return;
       setState(() {
         if (page == 1) _all.clear();
@@ -116,14 +106,19 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
           onRefresh: _refresh,
           child: ListView(
             controller: _scroll,
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
             children: [
-              Text(tr(ref, 'myBookings.title', "Bronlar"),
-                  style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textBright)),
-              const SizedBox(height: 14),
+              // ===== Header =====
+              Text(
+                tr(ref, 'myBookings.title', 'Bronlar'),
+                style: AppText.titleLg,
+              ),
+              AppSpacing.gapMd,
 
               Builder(builder: (_) {
                 if (_initial && _loading) {
@@ -139,99 +134,82 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
                   );
                 }
                 final list = _all;
-                  final upcoming = list.where((b) => b.status == 'confirmed').toList();
-                  final past = list.where((b) => b.status == 'completed').toList();
-                  final cancelled = list.where((b) => b.status == 'cancelled').toList();
+                final upcoming =
+                    list.where((b) => b.status == 'confirmed').toList();
+                final past =
+                    list.where((b) => b.status == 'completed').toList();
+                final cancelled =
+                    list.where((b) => b.status == 'cancelled').toList();
 
-                  final tabsCounts = [upcoming.length, past.length, cancelled.length];
-                  final tabsLabels = [
-                    tr(ref, 'profile.upcoming', "Kelayotgan"),
-                    tr(ref, 'profile.past', "O'tgan"),
-                    tr(ref, 'profile.cancelled', "Bekor"),
-                  ];
-                  final visible = _tab == 0 ? upcoming : (_tab == 1 ? past : cancelled);
+                final tabsCounts = [
+                  upcoming.length,
+                  past.length,
+                  cancelled.length
+                ];
+                final tabsLabels = [
+                  tr(ref, 'profile.upcoming', 'Kelayotgan'),
+                  tr(ref, 'profile.past', "O'tgan"),
+                  tr(ref, 'profile.cancelled', 'Bekor'),
+                ];
+                final visible =
+                    _tab == 0 ? upcoming : (_tab == 1 ? past : cancelled);
 
-                  return Column(children: [
-                    // ===== Tabs Row =====
-                    Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceElevated,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.border),
+                return Column(children: [
+                  // ===== Tabs =====
+                  _SegmentedTabs(
+                    labels: tabsLabels,
+                    counts: tabsCounts,
+                    selected: _tab,
+                    onChange: (i) => setState(() => _tab = i),
+                  ),
+                  AppSpacing.gapLg,
+
+                  // ===== Body =====
+                  if (visible.isEmpty)
+                    SizedBox(
+                      height: 320,
+                      child: AppEmptyState(
+                        icon: _tab == 2
+                            ? Icons.event_busy_rounded
+                            : (_tab == 1
+                                ? Icons.history_rounded
+                                : Icons.event_available_rounded),
+                        title: tr(ref, 'myBookings.empty', "Bron yo'q"),
+                        message: _tab == 0
+                            ? tr(ref, 'myBookings.emptyHint',
+                                "Sartaroshingizni tanlab, bron qiling")
+                            : (_tab == 1
+                                ? tr(ref, 'myBookings.emptyPastHint',
+                                    "Yakunlangan bronlar bu yerda ko'rinadi")
+                                : tr(ref, 'myBookings.emptyCancelledHint',
+                                    "Bekor qilingan bronlar bu yerda saqlanadi")),
                       ),
-                      child: Row(children: List.generate(3, (i) {
-                        final on = i == _tab;
-                        return Expanded(
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () => setState(() => _tab = i),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                color: on ? AppColors.background : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
-                                border: on ? Border.all(color: AppColors.border) : null,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "${tabsLabels[i]} (${tabsCounts[i]})",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                                    color: on ? AppColors.textBright : AppColors.textMuted,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      })),
+                    )
+                  else
+                    ...visible.asMap().entries.map((e) {
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: _BookingCard(b: e.value, onChanged: _refresh)
+                            .animate()
+                            .fadeIn(
+                                duration: 200.ms,
+                                delay: (e.key * 25).ms,
+                                curve: AppMotion.emphasized),
+                      );
+                    }),
+                  if (_loading && !_initial)
+                    const Padding(
+                      padding:
+                          EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                      child: Center(
+                          child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2))),
                     ),
-                    const SizedBox(height: 14),
-
-                    // ===== Body =====
-                    if (visible.isEmpty)
-                      SizedBox(
-                        height: 320,
-                        child: AppEmptyState(
-                          icon: _tab == 2
-                              ? Icons.event_busy_rounded
-                              : (_tab == 1
-                                  ? Icons.history_rounded
-                                  : Icons.event_available_rounded),
-                          title: tr(ref, 'myBookings.empty', "Bron yo'q"),
-                          message: _tab == 0
-                              ? tr(ref, 'myBookings.emptyHint',
-                                  "Sartaroshingizni tanlab, bron qiling")
-                              : (_tab == 1
-                                  ? tr(ref, 'myBookings.emptyPastHint',
-                                      "Yakunlangan bronlar bu yerda ko'rinadi")
-                                  : tr(ref, 'myBookings.emptyCancelledHint',
-                                      "Bekor qilingan bronlar bu yerda saqlanadi")),
-                        ),
-                      )
-                    else
-                      ...visible.asMap().entries.map((e) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _BookingCard(
-                                  b: e.value, onChanged: _refresh)
-                              .animate()
-                              .fadeIn(duration: 200.ms, delay: (e.key * 25).ms),
-                        );
-                      }),
-                    if (_loading && !_initial)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                            child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2))),
-                      ),
-                  ]);
+                ]);
               }),
             ],
           ),
@@ -241,42 +219,131 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Segmented tabs with count badges
+// ─────────────────────────────────────────────────────────────────────────
+class _SegmentedTabs extends StatelessWidget {
+  const _SegmentedTabs({
+    required this.labels,
+    required this.counts,
+    required this.selected,
+    required this.onChange,
+  });
+  final List<String> labels;
+  final List<int> counts;
+  final int selected;
+  final ValueChanged<int> onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: AppRadius.rMd,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: List.generate(labels.length, (i) {
+          final on = i == selected;
+          return Expanded(
+            child: TapScale(
+              onTap: () => onChange(i),
+              haptic: HapticStrength.selection,
+              scale: 0.97,
+              child: AnimatedContainer(
+                duration: AppMotion.base,
+                curve: AppMotion.emphasized,
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: on ? AppColors.background : Colors.transparent,
+                  borderRadius: AppRadius.rSm,
+                  border: on
+                      ? Border.all(color: AppColors.border)
+                      : null,
+                  boxShadow: on ? AppShadows.subtle : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      labels[i],
+                      style: AppText.caption.copyWith(
+                        fontSize: 12,
+                        fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                        color: on
+                            ? AppColors.textBright
+                            : AppColors.textMuted,
+                      ),
+                    ),
+                    AppSpacing.hGapXs,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: on
+                            ? AppColors.primary
+                            : AppColors.border,
+                        borderRadius: AppRadius.rPill,
+                      ),
+                      child: Text(
+                        '${counts[i]}',
+                        style: AppText.caption.copyWith(
+                          color: on ? Colors.white : AppColors.textMuted,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Booking card
+// ─────────────────────────────────────────────────────────────────────────
 class _BookingCard extends ConsumerWidget {
   const _BookingCard({required this.b, required this.onChanged});
   final Booking b;
   final Future<void> Function() onChanged;
 
-  Color get _statusColor {
+  ({AppBadgeVariant variant, String label}) _statusMeta(WidgetRef ref) {
     switch (b.status) {
       case 'completed':
-        return AppColors.success;
+        return (
+          variant: AppBadgeVariant.success,
+          label: tr(ref, 'myBookings.statusCompleted', 'Yakunlangan'),
+        );
       case 'cancelled':
-        return AppColors.danger;
+        return (
+          variant: AppBadgeVariant.danger,
+          label: tr(ref, 'myBookings.statusCancelled', 'Bekor qilingan'),
+        );
       default:
-        return AppColors.success;
-    }
-  }
-
-  String _statusText(WidgetRef ref) {
-    switch (b.status) {
-      case 'completed':
-        return tr(ref, 'myBookings.statusCompleted', 'Yakunlangan');
-      case 'cancelled':
-        return tr(ref, 'myBookings.statusCancelled', 'Bekor qilingan');
-      default:
-        return tr(ref, 'myBookings.statusConfirmed', 'Tasdiqlangan');
+        return (
+          variant: AppBadgeVariant.info,
+          label: tr(ref, 'myBookings.statusConfirmed', 'Tasdiqlangan'),
+        );
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border),
-      ),
+    final status = _statusMeta(ref);
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      radius: AppRadius.lg,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -285,119 +352,117 @@ class _BookingCard extends ConsumerWidget {
             child: b.barberAvatar.isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: assetUrl(b.barberAvatar),
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     fit: BoxFit.cover,
-                    errorWidget: (context, url, err) => _AvatarFallback(name: b.barberName),
+                    placeholder: (_, _) => const SkeletonCircle(size: 44),
+                    errorWidget: (_, _, _) =>
+                        _AvatarFallback(name: b.barberName),
                   )
                 : _AvatarFallback(name: b.barberName),
           ),
-          const SizedBox(width: 12),
+          AppSpacing.hGapMd,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
                   Expanded(
-                    child: Text(b.barberName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: AppColors.textBright)),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _statusColor,
-                      borderRadius: BorderRadius.circular(20),
+                    child: Text(
+                      b.barberName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.titleSm,
                     ),
-                    child: Text(_statusText(ref),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600)),
+                  ),
+                  AppSpacing.hGapSm,
+                  AppBadge(
+                    label: status.label,
+                    variant: status.variant,
+                    dot: b.status == 'confirmed',
                   ),
                 ]),
                 if (b.services.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
-                    b.services.map((s) => "${s.icon} ${s.name}").join(", "),
+                    b.services.map((s) => '${s.icon} ${s.name}').join(', '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textMuted),
+                    style: AppText.bodySm,
                   ),
                 ],
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.sm),
                 Row(children: [
-                  const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textMuted),
-                  const SizedBox(width: 4),
-                  Text(b.date,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                  const SizedBox(width: 12),
-                  Text(b.time,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                  const Icon(Icons.calendar_today_outlined,
+                      size: 12, color: AppColors.textMuted),
+                  AppSpacing.hGapXs,
+                  Text(b.date, style: AppText.caption),
+                  AppSpacing.hGapMd,
+                  const Icon(Icons.access_time_outlined,
+                      size: 12, color: AppColors.textMuted),
+                  AppSpacing.hGapXs,
+                  Text(b.time, style: AppText.caption),
                   const Spacer(),
                   if (b.totalPrice > 0)
-                    Text("${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
-                        style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary)),
+                    Text(
+                      "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
+                      style: AppText.body.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                 ]),
                 if (b.notes != null && b.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Icon(Icons.notes,
-                        size: 11, color: AppColors.textMuted),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(b.notes!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceElevated,
+                      borderRadius: AppRadius.rSm,
                     ),
-                  ]),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.sticky_note_2_outlined,
+                            size: 12, color: AppColors.textMuted),
+                        AppSpacing.hGapXs,
+                        Expanded(
+                          child: Text(
+                            b.notes!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.caption.copyWith(
+                              color: AppColors.textSecondary,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
                 if (b.status == 'confirmed') ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.md),
                   Row(children: [
-                    SizedBox(
-                      height: 32,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.check_circle_outline, size: 12),
-                        label: Text(tr(ref, 'myBookings.complete', "Yakunlash"),
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
-                        ),
+                    Expanded(
+                      child: AppButton(
+                        label: tr(ref, 'myBookings.complete', 'Yakunlash'),
+                        leadingIcon: Icons.check_circle_outline,
+                        variant: AppButtonVariant.success,
+                        size: AppButtonSize.sm,
+                        fullWidth: true,
                         onPressed: () => _complete(context, ref),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      height: 32,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.close, size: 12, color: AppColors.danger),
-                        label: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"),
-                            style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.danger,
-                                fontWeight: FontWeight.w500)),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          side: BorderSide(
-                              color: AppColors.danger.withValues(alpha: 0.5)),
-                          backgroundColor: AppColors.danger.withValues(alpha: 0.1),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
-                        ),
+                    AppSpacing.hGapSm,
+                    Expanded(
+                      child: AppButton(
+                        label: tr(ref, 'myBookings.cancel', 'Bekor qilish'),
+                        leadingIcon: Icons.close,
+                        variant: AppButtonVariant.danger,
+                        size: AppButtonSize.sm,
+                        fullWidth: true,
                         onPressed: () => _cancel(context, ref),
                       ),
                     ),
@@ -412,23 +477,16 @@ class _BookingCard extends ConsumerWidget {
   }
 
   Future<void> _complete(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'myBookings.completeConfirmTitle',
-            "Bronni yakunlash?")),
-        content: Text(tr(ref, 'myBookings.completeConfirmMsg',
-            "Bron yakunlangan deb belgilanadi.")),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx, false),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx, true),
-              child: Text(tr(ref, 'common.confirm', "Tasdiqlash"))),
-        ],
-      ),
+    AppHaptics.light();
+    final ok = await _confirmDialog(
+      context,
+      ref,
+      title:
+          tr(ref, 'myBookings.completeConfirmTitle', 'Bronni yakunlash?'),
+      message: tr(ref, 'myBookings.completeConfirmMsg',
+          'Bron yakunlangan deb belgilanadi.'),
+      confirmLabel: tr(ref, 'common.confirm', 'Tasdiqlash'),
+      confirmVariant: AppButtonVariant.primary,
     );
     if (ok != true) return;
     try {
@@ -436,16 +494,9 @@ class _BookingCard extends ConsumerWidget {
       ref.invalidate(myBookingsProvider);
       await onChanged();
       if (context.mounted) {
-        // Web flow: after completing, prompt the customer to rate
-        // the barber. They can also skip and just close.
         await _maybePromptReview(context, ref);
       }
     } catch (_) {
-      // Backend's /bookings/:id/complete is restricted to barber / admin /
-      // barbershop (bookings.controller.ts:276), so the customer-side
-      // complete tap always 403s. Keep parity with web (which renders the
-      // button regardless) but show a clean message instead of the raw
-      // DioException dump that validateStatus now lets through.
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'common.errorRetry',
@@ -459,131 +510,150 @@ class _BookingCard extends ConsumerWidget {
     final commentCtrl = TextEditingController();
     var submitting = false;
     try {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetCtx) => StatefulBuilder(builder: (sheetCtx, setSheet) {
-        Future<void> doSkip() async {
-          Navigator.of(sheetCtx).pop();
-        }
-
-        Future<void> doSubmit() async {
-          if (rating == 0) {
-            await doSkip();
-            return;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.surface,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
+        builder: (sheetCtx) => StatefulBuilder(builder: (sheetCtx, setSheet) {
+          Future<void> doSkip() async {
+            Navigator.of(sheetCtx).pop();
           }
-          setSheet(() => submitting = true);
-          try {
-            await ref.read(reviewsRepositoryProvider).submit(
-                  barberId: b.barberId,
-                  rating: rating,
-                  comment: commentCtrl.text.trim(),
-                  bookingId: b.id,
-                );
-            if (sheetCtx.mounted) Navigator.of(sheetCtx).pop();
-          } catch (e) {
-            if (sheetCtx.mounted) {
-              ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(
-                  content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+
+          Future<void> doSubmit() async {
+            if (rating == 0) {
+              await doSkip();
+              return;
             }
-          } finally {
-            setSheet(() => submitting = false);
+            setSheet(() => submitting = true);
+            try {
+              await ref.read(reviewsRepositoryProvider).submit(
+                    barberId: b.barberId,
+                    rating: rating,
+                    comment: commentCtrl.text.trim(),
+                    bookingId: b.id,
+                  );
+              if (sheetCtx.mounted) Navigator.of(sheetCtx).pop();
+            } catch (e) {
+              if (sheetCtx.mounted) {
+                ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(
+                    content: Text(
+                        "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+              }
+            } finally {
+              setSheet(() => submitting = false);
+            }
           }
-        }
 
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20, right: 20, top: 18,
-            bottom: 20 + MediaQuery.of(sheetCtx).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(tr(ref, 'mobile.reviews.leaveReview', "Sharh qoldirish"),
-                  style:
-                      const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.3)),
-              const SizedBox(height: 4),
-              Text(
+          return Padding(
+            padding: EdgeInsets.only(
+              left: AppSpacing.lg,
+              right: AppSpacing.lg,
+              top: AppSpacing.md,
+              bottom: AppSpacing.lg +
+                  MediaQuery.of(sheetCtx).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: AppRadius.rPill,
+                    ),
+                  ),
+                ),
+                AppSpacing.gapMd,
+                Text(
+                  tr(ref, 'mobile.reviews.leaveReview', 'Sharh qoldirish'),
+                  style: AppText.titleMd,
+                ),
+                const SizedBox(height: 4),
+                Text(
                   tr(ref, 'mobile.reviews.rateHint',
                       "{{name}}'ning ishini baholang",
                       {'name': b.barberName}),
-                  style: const TextStyle(
-                      color: AppColors.textMuted, fontSize: 14)),
-              const SizedBox(height: 16),
-              Center(
-                child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(5, (i) {
-                      final filled = i < rating;
-                      return IconButton(
-                        icon: Icon(filled ? Icons.star : Icons.star_border,
-                            color: AppColors.warning, size: 36),
-                        onPressed: () => setSheet(() => rating = i + 1),
-                      );
-                    })),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: commentCtrl,
-                maxLines: 3,
-                decoration: InputDecoration(
+                  style: AppText.bodySm,
+                ),
+                AppSpacing.gapLg,
+                Center(
+                  child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(5, (i) {
+                        final filled = i < rating;
+                        return TapScale(
+                          onTap: () {
+                            AppHaptics.selection();
+                            setSheet(() => rating = i + 1);
+                          },
+                          scale: 0.85,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Icon(
+                              filled ? Icons.star : Icons.star_border,
+                              color: AppColors.warning,
+                              size: 40,
+                            ),
+                          ),
+                        );
+                      })),
+                ),
+                AppSpacing.gapMd,
+                TextField(
+                  controller: commentCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
                     hintText: tr(ref, 'mobile.reviews.commentPlaceholder',
-                        "Sharhingiz (ixtiyoriy)")),
-              ),
-              const SizedBox(height: 14),
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: submitting ? null : doSkip,
-                    child: Text(tr(ref, 'mobile.reviews.skip', "O'tkazib yuborish")),
+                        'Sharhingiz (ixtiyoriy)'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: submitting ? null : doSubmit,
-                    child: submitting
-                        ? const SizedBox(
-                            width: 18, height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
-                        : Text(tr(ref, 'mobile.reviews.submit', "Yuborish")),
+                AppSpacing.gapLg,
+                Row(children: [
+                  Expanded(
+                    child: AppButton(
+                      label: tr(
+                          ref, 'mobile.reviews.skip', "O'tkazib yuborish"),
+                      variant: AppButtonVariant.secondary,
+                      onPressed: submitting ? null : doSkip,
+                      fullWidth: true,
+                    ),
                   ),
-                ),
-              ]),
-            ],
-          ),
-        );
-      }),
-    );
+                  AppSpacing.hGapMd,
+                  Expanded(
+                    child: AppButton(
+                      label: tr(ref, 'mobile.reviews.submit', 'Yuborish'),
+                      variant: AppButtonVariant.primary,
+                      loading: submitting,
+                      onPressed: submitting ? null : doSubmit,
+                      fullWidth: true,
+                    ),
+                  ),
+                ]),
+              ],
+            ),
+          );
+        }),
+      );
     } finally {
       commentCtrl.dispose();
     }
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
-        title: Text(tr(ref, 'myBookings.cancelConfirmTitle',
-            "Bronni bekor qilasizmi?")),
-        content: Text(tr(ref, 'myBookings.cancelConfirmMsg',
-            "Bekor qilingach, qaytarib bo'lmaydi.")),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx, false),
-              child: Text(tr(ref, 'common.close', "Yopish"))),
-          TextButton(
-              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-              onPressed: () => Navigator.pop(dCtx, true),
-              child: Text(tr(ref, 'myBookings.cancel', "Bekor qilish"))),
-        ],
-      ),
+    AppHaptics.light();
+    final ok = await _confirmDialog(
+      context,
+      ref,
+      title: tr(ref, 'myBookings.cancelConfirmTitle',
+          'Bronni bekor qilasizmi?'),
+      message: tr(ref, 'myBookings.cancelConfirmMsg',
+          "Bekor qilingach, qaytarib bo'lmaydi."),
+      confirmLabel: tr(ref, 'myBookings.cancel', 'Bekor qilish'),
+      confirmVariant: AppButtonVariant.danger,
     );
     if (ok != true) return;
     try {
@@ -593,7 +663,7 @@ class _BookingCard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'myBookings.cancelled',
-                "Bron bekor qilindi"))));
+                'Bron bekor qilindi'))));
       }
     } catch (_) {
       if (context.mounted) {
@@ -616,21 +686,72 @@ class _BookingCard extends ConsumerWidget {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Confirm dialog with new design system look
+// ─────────────────────────────────────────────────────────────────────────
+Future<bool?> _confirmDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  required AppButtonVariant confirmVariant,
+}) {
+  return showDialog<bool>(
+    context: context,
+    builder: (dCtx) => Dialog(
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: AppText.titleMd),
+            AppSpacing.gapSm,
+            Text(message, style: AppText.bodySm),
+            AppSpacing.gapLg,
+            Row(children: [
+              Expanded(
+                child: AppButton(
+                  label: tr(ref, 'common.cancel', 'Bekor'),
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => Navigator.pop(dCtx, false),
+                  fullWidth: true,
+                ),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: AppButton(
+                  label: confirmLabel,
+                  variant: confirmVariant,
+                  onPressed: () => Navigator.pop(dCtx, true),
+                  fullWidth: true,
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 class _AvatarFallback extends StatelessWidget {
   const _AvatarFallback({required this.name});
   final String name;
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 44, height: 44,
-      color: AppColors.primary.withValues(alpha: 0.1),
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(gradient: AppColors.primaryGradient),
       alignment: Alignment.center,
       child: Text(
         (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-        style: const TextStyle(
-            color: AppColors.primary,
-            fontSize: 18,
-            fontWeight: FontWeight.w700),
+        style: AppText.titleMd.copyWith(color: Colors.white),
       ),
     );
   }
