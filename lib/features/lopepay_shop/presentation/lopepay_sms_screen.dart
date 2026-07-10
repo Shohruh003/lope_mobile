@@ -5,15 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/tr.dart';
-import '../../../shared/theme/colors.dart';
+import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../data/lopepay_repository.dart';
 
-/// Mirrors web `ShopSmsHistory.tsx`:
-///   - Phone search input
-///   - Type filter chips (PRE_DUE / DUE / OVERDUE)
-///   - Filter button → collapsible panel with product dropdown + date range
-///   - Server-side filtering + pagination
 class LopepaySmsScreen extends ConsumerStatefulWidget {
   const LopepaySmsScreen({super.key});
   @override
@@ -55,6 +50,19 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
     }
   }
 
+  AppBadgeVariant _typeVariant(String t) {
+    switch (t) {
+      case 'INSTALLMENT_PRE_DUE':
+        return AppBadgeVariant.info;
+      case 'INSTALLMENT_DUE':
+        return AppBadgeVariant.warning;
+      case 'INSTALLMENT_OVERDUE':
+        return AppBadgeVariant.danger;
+      default:
+        return AppBadgeVariant.neutral;
+    }
+  }
+
   Future<void> _pickDate(bool isFrom) async {
     final init = (isFrom ? _from : _to) ?? DateTime.now();
     final picked = await showDatePicker(
@@ -75,6 +83,7 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
   }
 
   void _resetFilters() {
+    AppHaptics.selection();
     setState(() {
       _phone = '';
       _type = 'all';
@@ -92,67 +101,86 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr(ref, 'mobile.barber.sms.title', "SMS tarixi")),
+        title: Text(tr(ref, 'mobile.barber.sms.title', "SMS tarixi"),
+            style: AppText.titleMd),
         actions: [
           IconButton(
             icon: Icon(
                 _filtersOpen ? Icons.filter_list_off : Icons.filter_list,
                 color: _filtersOpen ? AppColors.primary : null),
-            onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
+            onPressed: () {
+              AppHaptics.selection();
+              setState(() => _filtersOpen = !_filtersOpen);
+            },
           ),
         ],
       ),
       body: Column(children: [
-        // Phone search
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: TextField(
-            onChanged: (v) => setState(() {
-              _phone = v;
-              _page = 1;
-            }),
-            style: const TextStyle(color: AppColors.textBright),
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search,
-                  color: AppColors.textMuted, size: 22),
-              hintText: tr(ref, 'lopePay.shop.filterPhone',
-                  "Telefon raqami"),
-              isDense: true,
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xs),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: AppRadius.rMd,
+              border: Border.all(color: AppColors.border),
+            ),
+            child: TextField(
+              onChanged: (v) => setState(() {
+                _phone = v;
+                _page = 1;
+              }),
+              style: AppText.body,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                prefixIcon: const Icon(Icons.search,
+                    color: AppColors.textMuted, size: 20),
+                hintText: tr(ref, 'lopePay.shop.filterPhone', "Telefon raqami"),
+                hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
+              ),
             ),
           ),
         ),
-        // Type chips
         SizedBox(
-          height: 40,
+          height: 44,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             children: [
-              _Chip(
+              AppChip(
                   label: tr(ref, 'common.all', "Hammasi"),
-                  on: _type == 'all',
+                  selected: _type == 'all',
                   onTap: () => setState(() {
                         _type = 'all';
                         _page = 1;
                       })),
-              _Chip(
+              const SizedBox(width: AppSpacing.sm),
+              AppChip(
                   label: _typeLabel(ref, 'INSTALLMENT_PRE_DUE'),
-                  on: _type == 'INSTALLMENT_PRE_DUE',
+                  selected: _type == 'INSTALLMENT_PRE_DUE',
                   onTap: () => setState(() {
                         _type = 'INSTALLMENT_PRE_DUE';
                         _page = 1;
                       })),
-              _Chip(
+              const SizedBox(width: AppSpacing.sm),
+              AppChip(
                   label: _typeLabel(ref, 'INSTALLMENT_DUE'),
-                  on: _type == 'INSTALLMENT_DUE',
+                  selected: _type == 'INSTALLMENT_DUE',
                   onTap: () => setState(() {
                         _type = 'INSTALLMENT_DUE';
                         _page = 1;
                       })),
-              _Chip(
+              const SizedBox(width: AppSpacing.sm),
+              AppChip(
                   label: _typeLabel(ref, 'INSTALLMENT_OVERDUE'),
-                  on: _type == 'INSTALLMENT_OVERDUE',
+                  selected: _type == 'INSTALLMENT_OVERDUE',
                   onTap: () => setState(() {
                         _type = 'INSTALLMENT_OVERDUE';
                         _page = 1;
@@ -160,93 +188,84 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
             ],
           ),
         ),
-        // Advanced filter panel
         if (_filtersOpen)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                productsAsync.when(
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                  data: (products) => DropdownButtonFormField<String?>(
-                    isDense: true,
-                    initialValue: _productId,
-                    decoration: InputDecoration(
-                      labelText: tr(ref, 'lopePay.shop.filterProduct',
-                          "Mahsulot"),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm,
+                AppSpacing.lg, AppSpacing.xs),
+            child: AppCard(
+              variant: AppCardVariant.flat,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    productsAsync.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, _) => const SizedBox.shrink(),
+                      data: (products) => DropdownButtonFormField<String?>(
+                        isDense: true,
+                        initialValue: _productId,
+                        decoration: InputDecoration(
+                          labelText: tr(ref, 'lopePay.shop.filterProduct',
+                              "Mahsulot"),
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                              value: null,
+                              child:
+                                  Text(tr(ref, 'common.all', "Hammasi"))),
+                          ...products.map((p) => DropdownMenuItem(
+                              value: p.id,
+                              child: Text(p.name,
+                                  overflow: TextOverflow.ellipsis))),
+                        ],
+                        onChanged: (v) => setState(() {
+                          _productId = v;
+                          _page = 1;
+                        }),
+                      ),
                     ),
-                    items: [
-                      DropdownMenuItem(
-                          value: null,
-                          child: Text(tr(ref, 'common.all', "Hammasi"))),
-                      ...products.map((p) => DropdownMenuItem(
-                          value: p.id,
-                          child: Text(p.name,
-                              overflow: TextOverflow.ellipsis))),
-                    ],
-                    onChanged: (v) => setState(() {
-                      _productId = v;
-                      _page = 1;
-                    }),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(
-                      child: _DatePill(
-                          label: _from == null
-                              ? tr(ref, 'lopePay.shop.filterFrom', "Dan")
-                              : _ymd.format(_from!),
-                          onTap: () => _pickDate(true))),
-                  const SizedBox(width: 8),
-                  const Text("—",
-                      style: TextStyle(color: AppColors.textMuted)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                      child: _DatePill(
-                          label: _to == null
-                              ? tr(ref, 'lopePay.shop.filterTo', "Gacha")
-                              : _ymd.format(_to!),
-                          onTap: () => _pickDate(false))),
-                ]),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: Text(tr(ref, 'common.reset', "Tozalash")),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(children: [
+                      Expanded(
+                          child: _DatePill(
+                              label: _from == null
+                                  ? tr(ref, 'lopePay.shop.filterFrom', "Dan")
+                                  : _ymd.format(_from!),
+                              onTap: () => _pickDate(true))),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Text("—",
+                          style: TextStyle(color: AppColors.textMuted)),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                          child: _DatePill(
+                              label: _to == null
+                                  ? tr(ref, 'lopePay.shop.filterTo', "Gacha")
+                                  : _ymd.format(_to!),
+                              onTap: () => _pickDate(false))),
+                    ]),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppButton(
+                      label: tr(ref, 'common.reset', "Tozalash"),
+                      leadingIcon: Icons.refresh,
+                      variant: AppButtonVariant.secondary,
+                      size: AppButtonSize.sm,
+                      fullWidth: true,
                       onPressed: _resetFilters,
                     ),
-                  ),
-                ]),
-              ]),
+                  ]),
             ),
           ),
-
         Expanded(
           child: async.when(
             loading: () => const AppListSkeleton(),
-            error: (e, _) => Center(
-                child: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}",
-                    style: const TextStyle(color: AppColors.textMuted))),
+            error: (e, _) => AppErrorState(message: humanize(e)),
             data: (res) {
               final list = res.data;
               final pages = (res.total / _pageSize).ceil();
               if (list.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Text(
-                        tr(ref, 'mobile.barber.sms.empty', "SMS yo'q"),
-                        style: const TextStyle(color: AppColors.textMuted)),
-                  ),
+                return AppEmptyState(
+                  icon: Icons.sms_outlined,
+                  title: tr(ref, 'mobile.barber.sms.empty', "SMS yo'q"),
                 );
               }
               return RefreshIndicator(
@@ -256,17 +275,13 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                   ref.invalidate(lopepaySmsProvider);
                 },
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     ...list.asMap().entries.map((entry) {
                       final i = entry.key;
                       final s = entry.value;
-                      // Backend returns InstallmentSmsLog rows with the
-                      // installment nested (shop-history.service.ts:74).
-                      // No `status` field — all logged rows are SMS that
-                      // went out successfully (failures land in
-                      // SmsFailedAttempt instead).
                       final type = (s['type'] ?? '').toString();
                       final inst = s['installment'] is Map
                           ? (s['installment'] as Map).cast<String, dynamic>()
@@ -276,108 +291,102 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                               '')
                           .toString();
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.border),
-                          ),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: AppCard(
+                          variant: AppCardVariant.flat,
+                          padding: const EdgeInsets.all(AppSpacing.md),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(children: [
-                                Expanded(
-                                    child: Text(phone,
-                                        style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500))),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 3),
+                                  width: 32,
+                                  height: 32,
                                   decoration: BoxDecoration(
                                     color: AppColors.success
                                         .withValues(alpha: 0.15),
-                                    borderRadius:
-                                        BorderRadius.circular(20),
+                                    borderRadius: AppRadius.rSm,
                                   ),
-                                  child: Text(
-                                      tr(ref,
-                                          'mobile.barber.sms.statusOk',
-                                          'delivered'),
-                                      style: const TextStyle(
-                                          color: AppColors.success,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600)),
+                                  child: const Icon(Icons.mark_email_read,
+                                      size: 16, color: AppColors.success),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                    child: Text(phone,
+                                        style: AppText.titleSm
+                                            .copyWith(fontSize: 14))),
+                                AppBadge(
+                                  label: tr(ref, 'mobile.barber.sms.statusOk',
+                                      'delivered'),
+                                  variant: AppBadgeVariant.success,
                                 ),
                               ]),
                               if (type.isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.10),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(_typeLabel(ref, type),
-                                      style: const TextStyle(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 10)),
+                                const SizedBox(height: AppSpacing.sm),
+                                AppBadge(
+                                  label: _typeLabel(ref, type),
+                                  variant: _typeVariant(type),
                                 ),
                               ],
-                              const SizedBox(height: 6),
+                              const SizedBox(height: AppSpacing.sm),
                               Text((s['message'] ?? '').toString(),
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 14,
-                                      height: 1.4)),
+                                  style: AppText.bodySm),
                               if ((s['sentAt'] ?? s['createdAt']) != null) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                    _df.format(DateTime.parse(
-                                            (s['sentAt'] ??
-                                                    s['createdAt'])
-                                                .toString())
-                                        .toLocal()),
-                                    style: const TextStyle(
-                                        color: AppColors.textMuted,
-                                        fontSize: 12)),
+                                const SizedBox(height: AppSpacing.sm),
+                                Row(children: [
+                                  const Icon(Icons.schedule,
+                                      size: 12, color: AppColors.textMuted),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                      _df.format(DateTime.parse(
+                                              (s['sentAt'] ??
+                                                      s['createdAt'])
+                                                  .toString())
+                                          .toLocal()),
+                                      style: AppText.caption),
+                                ]),
                               ],
                             ],
                           ),
                         ),
-                      ).animate().fadeIn(
-                          duration: 200.ms, delay: (i * 20).ms);
+                      ).animate().fadeIn(duration: 200.ms, delay: (i * 20).ms);
                     }),
-
                     if (pages > 1) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppSpacing.sm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          OutlinedButton(
+                          AppButton(
+                            label: tr(ref, 'common.prev', "Oldingi"),
+                            variant: AppButtonVariant.secondary,
+                            size: AppButtonSize.sm,
+                            leadingIcon: Icons.chevron_left,
                             onPressed: _page <= 1
                                 ? null
                                 : () => setState(() => _page--),
-                            child:
-                                Text(tr(ref, 'common.prev', "Oldingi")),
                           ),
-                          const SizedBox(width: 12),
-                          Text("$_page / $pages",
-                              style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontWeight: FontWeight.w700)),
-                          const SizedBox(width: 12),
-                          OutlinedButton(
+                          const SizedBox(width: AppSpacing.md),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.xs),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.rPill,
+                            ),
+                            child: Text("$_page / $pages",
+                                style: AppText.button
+                                    .copyWith(color: AppColors.primary)),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          AppButton(
+                            label: tr(ref, 'common.next', "Keyingi"),
+                            variant: AppButtonVariant.secondary,
+                            size: AppButtonSize.sm,
+                            trailingIcon: Icons.chevron_right,
                             onPressed: _page >= pages
                                 ? null
                                 : () => setState(() => _page++),
-                            child:
-                                Text(tr(ref, 'common.next', "Keyingi")),
                           ),
                         ],
                       ),
@@ -393,53 +402,21 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.on, required this.onTap});
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: on
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.background,
-            borderRadius: BorderRadius.circular(18),
-            border:
-                Border.all(color: on ? AppColors.primary : AppColors.border),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                  color: on ? AppColors.primary : AppColors.textMuted)),
-        ),
-      ),
-    );
-  }
-}
-
 class _DatePill extends StatelessWidget {
   const _DatePill({required this.label, required this.onTap});
   final String label;
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
+    return TapScale(
       onTap: onTap,
+      haptic: HapticStrength.light,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
+          color: AppColors.surface,
+          borderRadius: AppRadius.rSm,
           border: Border.all(color: AppColors.border),
         ),
         child: Row(children: [
@@ -450,8 +427,7 @@ class _DatePill extends StatelessWidget {
             child: Text(label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style:
-                    const TextStyle(color: AppColors.textBright, fontSize: 12)),
+                style: AppText.body.copyWith(fontSize: 12)),
           ),
         ]),
       ),
