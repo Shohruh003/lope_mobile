@@ -883,6 +883,19 @@ class _BarberCard extends ConsumerWidget {
                     dot: true,
                   ),
                 ),
+                // Bottom-left avatar bubble — matches the shop card's
+                // monogram avatar so both card types carry a consistent
+                // "brand mark" element. Shows the barber's uploaded
+                // profile photo (or a gradient monogram if none) even
+                // when the header itself is a gallery shot.
+                Positioned(
+                  bottom: AppSpacing.sm,
+                  left: AppSpacing.sm,
+                  child: _AvatarBubble(
+                    avatarUrl: avatarUrl,
+                    name: barber.name,
+                  ),
+                ),
               ]),
             ),
             // Body — no more Transform.translate; content sits neatly
@@ -1028,6 +1041,72 @@ class _MonogramFallback extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.85),
           fontSize: 44,
           fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+/// Small circular avatar bubble pinned to the bottom-left of the barber
+/// card header. Prefers the barber's profile photo; falls back to a
+/// gradient monogram of the first letter when there's no avatar. White
+/// border + soft shadow so it stays legible on both light and dark
+/// gallery photos behind it.
+class _AvatarBubble extends StatelessWidget {
+  const _AvatarBubble({required this.avatarUrl, required this.name});
+  final String avatarUrl;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: context.colors.background,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: avatarUrl.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: avatarUrl,
+                fit: BoxFit.cover,
+                placeholder: (_, _) => _AvatarMonogram(name: name),
+                errorWidget: (_, _, _) => _AvatarMonogram(name: name),
+              )
+            : _AvatarMonogram(name: name),
+      ),
+    );
+  }
+}
+
+/// Compact monogram used inside [_AvatarBubble] — same visual language
+/// as [_MonogramFallback] but sized for the smaller circular container.
+class _AvatarMonogram extends StatelessWidget {
+  const _AvatarMonogram({required this.name});
+  final String name;
+  @override
+  Widget build(BuildContext context) {
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    return DecoratedBox(
+      decoration: BoxDecoration(gradient: AppColors.primaryGradient),
+      child: Center(
+        child: Text(
+          initial,
+          style: AppText.titleMd.copyWith(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            height: 1,
+          ),
         ),
       ),
     );
