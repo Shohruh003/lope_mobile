@@ -592,14 +592,22 @@ class _StepHeader extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: AppText.titleMd.copyWith(fontSize: 17),
+                style: AppText.titleMd.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: context.colors.textBright,
+                ),
               ),
             ),
           ],
         ),
         if (subtitle != null) ...[
           const SizedBox(height: 6),
-          Text(subtitle!, style: AppText.bodySm),
+          Text(
+            subtitle!,
+            style: AppText.bodySm
+                .copyWith(color: context.colors.textSecondary),
+          ),
         ],
       ],
     );
