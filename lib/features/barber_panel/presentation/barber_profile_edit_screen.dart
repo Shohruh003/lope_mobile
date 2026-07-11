@@ -39,6 +39,7 @@ class _BarberProfileEditScreenState
   String? _seedKey;
   bool _saving = false;
   bool _uploadingAvatar = false;
+  bool _togglingAvailability = false;
 
   @override
   void dispose() {
@@ -288,26 +289,54 @@ class _BarberProfileEditScreenState
                       ],
                     ),
                   ),
-                  Switch(
-                    value: isAvailable,
-                    activeThumbColor: AppColors.success,
-                    onChanged: (_) async {
-                      AppHaptics.selection();
-                      try {
-                        await ref
-                            .read(barberPanelRepositoryProvider)
-                            .toggleAvailability(user.id);
-                        ref.invalidate(barberProfileProvider(user.id));
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                      "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
-                        }
-                      }
-                    },
-                  ),
+                  // While the network request is in-flight the switch
+                  // is disabled and shows a compact spinner instead —
+                  // otherwise the barber taps once, sees the toggle
+                  // stay in the old position for a moment, and either
+                  // second-taps (double-fires the call) or thinks it
+                  // failed.
+                  _togglingAvailability
+                      ? const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: Center(
+                            child: SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.success,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Switch(
+                          value: isAvailable,
+                          activeThumbColor: AppColors.success,
+                          onChanged: (_) async {
+                            AppHaptics.selection();
+                            setState(() => _togglingAvailability = true);
+                            try {
+                              await ref
+                                  .read(barberPanelRepositoryProvider)
+                                  .toggleAvailability(user.id);
+                              ref.invalidate(
+                                  barberProfileProvider(user.id));
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(
+                                    () => _togglingAvailability = false);
+                              }
+                            }
+                          },
+                        ),
                 ]),
               ),
               AppSpacing.gapLg,
@@ -472,8 +501,10 @@ class _BarberProfileEditScreenState
             controller: _bioRuCtrl,
             maxLines: 4,
             style: AppText.body,
-            decoration: const InputDecoration(
-                hintText: 'Кратко о себе (для русскоязычных клиентов)'),
+            decoration: InputDecoration(
+              hintText: tr(ref, 'mobile.barber.profileEdit.bioPlaceholderRu',
+                  'Кратко о себе (для русскоязычных клиентов)'),
+            ),
           ),
           AppSpacing.gapMd,
           _lbl(
@@ -495,8 +526,11 @@ class _BarberProfileEditScreenState
           TextField(
             controller: _locationRuCtrl,
             style: AppText.body,
-            decoration:
-                const InputDecoration(hintText: 'Ташкент, Юнусабад'),
+            decoration: InputDecoration(
+              hintText: tr(ref,
+                  'mobile.barber.profileEdit.locationPlaceholderRu',
+                  'Ташкент, Юнусабад'),
+            ),
           ),
           AppSpacing.gapMd,
           _lbl(tr(ref, 'profile.targetGender', 'Mijoz turi')),
@@ -523,7 +557,11 @@ class _BarberProfileEditScreenState
           TextField(
             controller: _experienceCtrl,
             style: AppText.body,
-            decoration: const InputDecoration(hintText: '5, 8+, 10+'),
+            decoration: InputDecoration(
+              hintText: tr(ref,
+                  'mobile.barber.profileEdit.experiencePlaceholder',
+                  'Yillar: 5, 8+, 10+'),
+            ),
           ),
           AppSpacing.gapMd,
           _lbl(tr(ref, 'profile.instagram', 'Instagram')),
@@ -531,7 +569,11 @@ class _BarberProfileEditScreenState
           TextField(
             controller: _instagramCtrl,
             style: AppText.body,
-            decoration: const InputDecoration(hintText: 'username'),
+            decoration: InputDecoration(
+              hintText: tr(ref,
+                  'mobile.barber.profileEdit.usernamePlaceholder',
+                  'username'),
+            ),
           ),
           AppSpacing.gapSm,
           _lbl(tr(ref, 'profile.telegram', 'Telegram')),
@@ -539,7 +581,11 @@ class _BarberProfileEditScreenState
           TextField(
             controller: _telegramCtrl,
             style: AppText.body,
-            decoration: const InputDecoration(hintText: 'username'),
+            decoration: InputDecoration(
+              hintText: tr(ref,
+                  'mobile.barber.profileEdit.usernamePlaceholder',
+                  'username'),
+            ),
           ),
           AppSpacing.gapSm,
           _lbl(tr(ref, 'profile.facebook', 'Facebook')),
@@ -547,7 +593,11 @@ class _BarberProfileEditScreenState
           TextField(
             controller: _facebookCtrl,
             style: AppText.body,
-            decoration: const InputDecoration(hintText: 'username'),
+            decoration: InputDecoration(
+              hintText: tr(ref,
+                  'mobile.barber.profileEdit.usernamePlaceholder',
+                  'username'),
+            ),
           ),
           AppSpacing.gapLg,
           AppButton(

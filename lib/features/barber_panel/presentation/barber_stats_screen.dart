@@ -126,10 +126,21 @@ class BarberStatsScreen extends ConsumerWidget {
                       .where((b) =>
                           b.date == todayStr && b.status != 'cancelled')
                       .length;
+                  // Fall back to the booking's own id when neither the
+                  // client phone nor a name is set — otherwise several
+                  // anonymous guest bookings all collapse into a single
+                  // "Mijoz" entry and the unique-clients count is wrong.
                   final uniqueClients = list
                       .where((b) => b.status != 'cancelled')
-                      .map((b) =>
-                          b.userPhone ?? b.guestPhone ?? b.userName)
+                      .map((b) {
+                        final phone = b.userPhone ?? b.guestPhone;
+                        if (phone != null && phone.isNotEmpty) return phone;
+                        if (b.userName.isNotEmpty &&
+                            b.userName.toLowerCase() != 'mijoz') {
+                          return b.userName;
+                        }
+                        return 'guest:${b.id}';
+                      })
                       .toSet()
                       .length;
 
@@ -419,11 +430,20 @@ class _SummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: Text(label, style: AppText.bodySm)),
-        Text(
-          value,
-          style: AppText.body.copyWith(fontWeight: FontWeight.w700),
+        Expanded(
+          flex: 2,
+          child: Text(label, style: AppText.bodySm),
+        ),
+        AppSpacing.hGapSm,
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            style: AppText.body.copyWith(fontWeight: FontWeight.w700),
+            textAlign: TextAlign.end,
+          ),
         ),
       ],
     );

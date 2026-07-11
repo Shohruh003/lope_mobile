@@ -38,9 +38,11 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
     } catch (e) {
       AppHaptics.error();
       if (mounted) {
+        // humanize turns Dio's opaque exceptions into readable Uzbek
+        // messages — same treatment the _delete path already uses.
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'mobile.barber.gallery.uploadError',
-                'Yuklashda xato: {{msg}}', {'msg': '$e'}))));
+                'Yuklashda xato: {{msg}}', {'msg': humanize(e)}))));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -64,6 +66,12 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
                 tr(ref, 'mobile.barber.gallery.deleteTitle',
                     "Rasmni o'chirish?"),
                 style: AppText.titleMd,
+              ),
+              AppSpacing.gapSm,
+              Text(
+                tr(ref, 'mobile.barber.gallery.deleteBody',
+                    "Rasm portfolyodan butunlay o'chiriladi. Bu jarayonni bekor qilib bo'lmaydi."),
+                style: AppText.bodySm,
               ),
               AppSpacing.gapLg,
               Row(children: [
@@ -145,21 +153,36 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
           ]),
         ),
       ),
-      body: async.when(
-        loading: () => const AppListSkeleton(),
-        error: (e, _) => AppErrorState(message: humanize(e)),
-        data: (barber) {
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async =>
+            ref.refresh(barberProfileProvider(widget.barberId).future),
+        child: async.when(
+          loading: () => const AppListSkeleton(),
+          error: (e, _) => AppErrorState(message: humanize(e)),
+          data: (barber) {
           final gallery = ((barber['gallery'] as List?) ?? [])
               .map((e) => e.toString())
               .where((u) => u.isNotEmpty)
               .toList();
           if (gallery.isEmpty) {
-            return AppEmptyState(
-              icon: Icons.photo_library_outlined,
-              title: tr(ref, 'mobile.barber.gallery.empty',
-                  "Portfolio bo'sh"),
-              message: tr(ref, 'mobile.barber.gallery.emptyHint',
-                  "Ishlaringizdan rasm yuklang — mijozlar sizni tanlashda yordam beradi."),
+            // Scrollable wrapper so pull-to-refresh works on the empty
+            // portfolio too — the barber can retry after a bad upload
+            // without leaving the tab.
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: 400,
+                  child: AppEmptyState(
+                    icon: Icons.photo_library_outlined,
+                    title: tr(ref, 'mobile.barber.gallery.empty',
+                        "Portfolio bo'sh"),
+                    message: tr(ref, 'mobile.barber.gallery.emptyHint',
+                        "Ishlaringizdan rasm yuklang — mijozlar sizni tanlashda yordam beradi."),
+                  ),
+                ),
+              ],
             );
           }
           return GridView.builder(
@@ -204,19 +227,25 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
                   ),
                   Positioned(
                     top: 6,
-                    right: 6,
+                    right: 0,
                     child: TapScale(
                       onTap: () => _delete(url),
                       scale: 0.85,
-                      child: Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          shape: BoxShape.circle,
+                      // Outer 44px hit area with a smaller visual pill —
+                      // meets the Material touch-target minimum without
+                      // stealing space from the thumbnail.
+                      child: Padding(
+                        padding: const EdgeInsets.all(9),
+                        child: Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close,
+                              color: Colors.white, size: 14),
                         ),
-                        child: const Icon(Icons.close,
-                            color: Colors.white, size: 14),
                       ),
                     ),
                   ),
@@ -226,7 +255,8 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
                   .fadeIn(duration: 250.ms, delay: (i * 30).ms);
             },
           );
-        },
+          },
+        ),
       ),
     );
   }

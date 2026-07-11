@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors.dart';
@@ -20,9 +19,31 @@ class BarberClientsScreen extends ConsumerStatefulWidget {
 }
 
 class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
-  static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
   String _query = '';
   String _bucket = 'all';
+
+  /// Humanized "last visit" pill — locale-neutral. Says "Bugun /
+  /// Kecha / 3 kun oldin / 2 hafta oldin" instead of the previous
+  /// Russian-formatted `dd.MM.yyyy` string.
+  String _prettyLastVisit(DateTime dt, WidgetRef ref) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final visit = DateTime(dt.year, dt.month, dt.day);
+    final diff = today.difference(visit).inDays;
+    if (diff <= 0) return tr(ref, 'mobile.dates.today', 'Bugun');
+    if (diff == 1) return tr(ref, 'mobile.dates.yesterday', 'Kecha');
+    if (diff < 7) return '$diff ${tr(ref, 'mobile.dates.daysAgo', 'kun oldin')}';
+    if (diff < 30) {
+      final w = (diff / 7).floor();
+      return '$w ${tr(ref, 'mobile.dates.weeksAgo', 'hafta oldin')}';
+    }
+    if (diff < 365) {
+      final m = (diff / 30).floor();
+      return '$m ${tr(ref, 'mobile.dates.monthsAgo', 'oy oldin')}';
+    }
+    final y = (diff / 365).floor();
+    return '$y ${tr(ref, 'mobile.dates.yearsAgo', 'yil oldin')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -151,29 +172,38 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                 ),
               ),
               AppSpacing.gapSm,
-              if (filtered.isEmpty)
-                Expanded(
-                  child: AppEmptyState(
-                    icon: Icons.people_outline_rounded,
-                    title: list.isEmpty
-                        ? tr(ref, 'mobile.barber.clients.empty',
-                            "Hali mijoz yo'q")
-                        : tr(ref, 'common.noResults',
-                            'Filterga mos mijoz topilmadi'),
-                    message: list.isEmpty
-                        ? tr(ref, 'mobile.barber.clients.emptyHint',
-                            "Mijozlar sizga bir marta yozilganidan keyin bu yerda paydo bo'ladi.")
-                        : tr(ref, 'common.noResultsHint',
-                            "Qidiruvni tozalab yoki filtrni o'zgartirib ko'ring."),
-                  ),
-                )
-              else
-                Expanded(
-                  child: RefreshIndicator(
-                    color: AppColors.primary,
-                    onRefresh: () async =>
-                        ref.refresh(barberClientsProvider(user.id).future),
-                    child: ListView.separated(
+              Expanded(
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async =>
+                      ref.refresh(barberClientsProvider(user.id).future),
+                  child: filtered.isEmpty
+                      ? ListView(
+                          // Wrap the empty state in a scrollable so
+                          // pull-to-refresh works even when the list is
+                          // empty — previously the refresh was only
+                          // reachable on populated screens.
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            SizedBox(
+                              height: 360,
+                              child: AppEmptyState(
+                                icon: Icons.people_outline_rounded,
+                                title: list.isEmpty
+                                    ? tr(ref, 'mobile.barber.clients.empty',
+                                        "Hali mijoz yo'q")
+                                    : tr(ref, 'common.noResults',
+                                        'Filterga mos mijoz topilmadi'),
+                                message: list.isEmpty
+                                    ? tr(ref, 'mobile.barber.clients.emptyHint',
+                                        "Mijozlar sizga bir marta yozilganidan keyin bu yerda paydo bo'ladi.")
+                                    : tr(ref, 'common.noResultsHint',
+                                        "Qidiruvni tozalab yoki filtrni o'zgartirib ko'ring."),
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.lg,
                         AppSpacing.sm,
@@ -230,7 +260,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                                       ),
                                       if (c.lastVisit != null)
                                         Text(
-                                          "· ${_df.format(c.lastVisit!.toLocal())}",
+                                          "· ${_prettyLastVisit(c.lastVisit!.toLocal(), ref)}",
                                           style: AppText.caption,
                                         ),
                                       if (c.totalSpent > 0)
@@ -253,15 +283,15 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                                   : () => _call(c.phone),
                               scale: 0.9,
                               child: Container(
-                                width: 40,
-                                height: 40,
+                                width: 44,
+                                height: 44,
                                 decoration: BoxDecoration(
                                   color: AppColors.primary
                                       .withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.phone_outlined,
-                                    color: AppColors.primary, size: 18),
+                                    color: AppColors.primary, size: 20),
                               ),
                             ),
                           ]),
@@ -269,8 +299,8 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                             duration: 250.ms, delay: (i * 25).ms);
                       },
                     ),
-                  ),
                 ),
+              ),
             ],
           );
         },

@@ -411,11 +411,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           return DropdownButtonFormField<int>(
             initialValue: minutes,
             items: const [
-              DropdownMenuItem(value: 15, child: Text("+15")),
-              DropdownMenuItem(value: 30, child: Text("+30")),
-              DropdownMenuItem(value: 45, child: Text("+45")),
-              DropdownMenuItem(value: 60, child: Text("+60")),
-              DropdownMenuItem(value: 90, child: Text("+90")),
+              DropdownMenuItem(value: 15, child: Text("+15 daq")),
+              DropdownMenuItem(value: 30, child: Text("+30 daq")),
+              DropdownMenuItem(value: 45, child: Text("+45 daq")),
+              DropdownMenuItem(value: 60, child: Text("+1 soat")),
+              DropdownMenuItem(value: 90, child: Text("+1 soat 30 daq")),
             ],
             onChanged: (v) => setSt(() => minutes = v ?? 30),
           );

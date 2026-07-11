@@ -253,8 +253,12 @@ class BarberServicesScreen extends ConsumerWidget {
             TextField(
               controller: nameRu,
               style: AppText.body,
-              decoration: const InputDecoration(
-                  labelText: 'Название (RU)', hintText: 'Стрижка'),
+              decoration: InputDecoration(
+                labelText: tr(ref, 'mobile.barber.services.nameRuLabel',
+                    'Название (RU)'),
+                hintText: tr(ref,
+                    'mobile.barber.services.nameRuHint', 'Стрижка'),
+              ),
             ),
             AppSpacing.gapMd,
             Row(children: [

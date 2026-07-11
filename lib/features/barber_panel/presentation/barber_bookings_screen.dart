@@ -33,6 +33,32 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
   String _toDateStr(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
+  static const _monthsUz = [
+    'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+    'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr',
+  ];
+  static const _weekdaysUz = [
+    'dushanba', 'seshanba', 'chorshanba', 'payshanba',
+    'juma', 'shanba', 'yakshanba',
+  ];
+
+  /// Human-readable date shown in the header selector. Falls back to
+  /// "Bugun" / "Ertaga" / "Kecha" when applicable so a barber glances at
+  /// the strip and sees the right label instead of parsing an ISO date.
+  String _prettyDate(DateTime d, WidgetRef ref) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(d.year, d.month, d.day);
+    final diff = target.difference(today).inDays;
+    if (diff == 0) return tr(ref, 'mobile.dates.today', 'Bugun');
+    if (diff == 1) return tr(ref, 'mobile.dates.tomorrow', 'Ertaga');
+    if (diff == -1) return tr(ref, 'mobile.dates.yesterday', 'Kecha');
+    // Longer format: "11 iyul, shanba"
+    final weekday = _weekdaysUz[(d.weekday - 1) % 7];
+    final month = _monthsUz[d.month - 1];
+    return '${d.day} $month, $weekday';
+  }
+
   bool get _isToday {
     final now = DateTime.now();
     return _selectedDate.year == now.year &&
@@ -65,14 +91,20 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
     return Scaffold(
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.xxl,
-          ),
-          children: [
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async => ref.refresh(barberDayBookingsProvider(
+              (barberId: user.id, date: _toDateStr(_selectedDate)))
+              .future),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.xxl,
+            ),
+            children: [
             Row(children: [
               _IconBtn(
                 icon: Icons.chevron_left,
@@ -97,11 +129,15 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                       Icon(Icons.calendar_today_outlined,
                           size: 16, color: context.colors.textMuted),
                       AppSpacing.hGapSm,
-                      Text(_toDateStr(_selectedDate),
+                      Expanded(
+                        child: Text(
+                          _prettyDate(_selectedDate, ref),
                           style: AppText.body.copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures()
-                              ])),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ]),
                   ),
                 ),
@@ -239,6 +275,7 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
               },
             ),
           ],
+        ),
         ),
       ),
     );
