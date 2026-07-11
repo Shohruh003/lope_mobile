@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../shared/theme/colors.dart';
+import '../shared/shared.dart';
 import 'tr.dart';
 
 /// Thin wrapper around image_picker that lets callers pop a "kameradan
@@ -15,49 +15,95 @@ class ImagePickerService {
   static final instance = ImagePickerService._();
   final _picker = ImagePicker();
 
-  Future<File?> pickFromSheet(BuildContext context, {bool allowCamera = true, WidgetRef? ref}) async {
+  Future<File?> pickFromSheet(BuildContext context,
+      {bool allowCamera = true, WidgetRef? ref}) async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetCtx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 36, height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        final colors = sheetCtx.colors;
+        return Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: colors.border,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    ref == null
+                        ? "Rasm manbasini tanlang"
+                        : tr(ref, 'mobile.imagePicker.title',
+                            "Rasm manbasini tanlang"),
+                    style: AppText.titleSm,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    ref == null
+                        ? "Qayerdan rasm olmoqchisiz?"
+                        : tr(ref, 'mobile.imagePicker.subtitle',
+                            "Qayerdan rasm olmoqchisiz?"),
+                    style:
+                        AppText.bodySm.copyWith(color: colors.textMuted),
+                  ),
+                  const SizedBox(height: 20),
+                  if (allowCamera) ...[
+                    _SourceTile(
+                      icon: Icons.camera_alt_rounded,
+                      title: ref == null
+                          ? "Kamera"
+                          : tr(ref, 'mobile.imagePicker.camera', "Kamera"),
+                      subtitle: ref == null
+                          ? "Hozir yangi rasm oling"
+                          : tr(ref, 'mobile.imagePicker.cameraHint',
+                              "Hozir yangi rasm oling"),
+                      onTap: () =>
+                          Navigator.of(sheetCtx).pop(ImageSource.camera),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  _SourceTile(
+                    icon: Icons.photo_library_rounded,
+                    title: ref == null
+                        ? "Galereya"
+                        : tr(ref, 'mobile.imagePicker.gallery', "Galereya"),
+                    subtitle: ref == null
+                        ? "Mavjud rasmlardan tanlang"
+                        : tr(ref, 'mobile.imagePicker.galleryHint',
+                            "Mavjud rasmlardan tanlang"),
+                    onTap: () =>
+                        Navigator.of(sheetCtx).pop(ImageSource.gallery),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            if (allowCamera)
-              ListTile(
-                leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
-                title: Text(ref == null
-                    ? "Kamera"
-                    : tr(ref, 'mobile.imagePicker.camera', "Kamera")),
-                onTap: () => Navigator.of(sheetCtx).pop(ImageSource.camera),
-              ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
-              title: Text(ref == null
-                  ? "Galereya"
-                  : tr(ref, 'mobile.imagePicker.gallery', "Galereya")),
-              onTap: () => Navigator.of(sheetCtx).pop(ImageSource.gallery),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
     if (source == null) return null;
     try {
-      final res = await _picker.pickImage(source: source, maxWidth: 2048, imageQuality: 85);
+      final res = await _picker.pickImage(
+          source: source, maxWidth: 2048, imageQuality: 85);
       return res == null ? null : File(res.path);
     } catch (_) {
       return null;
@@ -66,12 +112,80 @@ class ImagePickerService {
 
   Future<List<File>> pickMulti({int? limit}) async {
     try {
-      final res = await _picker.pickMultiImage(maxWidth: 2048, imageQuality: 85);
+      final res =
+          await _picker.pickMultiImage(maxWidth: 2048, imageQuality: 85);
       final picked = res.map((x) => File(x.path)).toList();
-      if (limit != null && picked.length > limit) return picked.sublist(0, limit);
+      if (limit != null && picked.length > limit) {
+        return picked.sublist(0, limit);
+      }
       return picked;
     } catch (_) {
       return [];
     }
+  }
+}
+
+class _SourceTile extends StatelessWidget {
+  const _SourceTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return TapScale(
+      onTap: onTap,
+      scale: 0.97,
+      haptic: HapticStrength.selection,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colors.surfaceElevated,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: AppShadows.primaryGlow(AppColors.primary),
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppText.bodyLg
+                      .copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style:
+                      AppText.caption.copyWith(color: colors.textMuted),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios_rounded,
+              size: 14, color: colors.textMuted),
+        ]),
+      ),
+    );
   }
 }

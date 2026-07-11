@@ -46,8 +46,24 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
     _StyleOpt('eyelashes', 'Kiprik', '👁️'),
   ];
 
+  /// Gender is derived from the authenticated user's profile in [initState]
+  /// and never edited from this screen — asking again every session was
+  /// wasted vertical space when the account already carries the answer.
+  /// Falls back to 'male' for accounts registered before the schema had
+  /// a gender field.
   String _gender = 'male';
   final Set<String> _selectedStyles = {'hair'};
+
+  @override
+  void initState() {
+    super.initState();
+    final userGender = ref
+        .read(authControllerProvider)
+        .user
+        ?.gender
+        ?.toLowerCase();
+    if (userGender == 'female') _gender = 'female';
+  }
   File? _selfie;
   final Map<String, File> _refImages = {};
   bool _busy = false;
@@ -85,13 +101,22 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
   }
 
   /// Called when the user taps a hairstyle tile in the preset library.
-  /// If the preset ships with an [imageUrl] we download it once (cached
-  /// in the temp dir) and treat it as if the user had uploaded that
-  /// photo — same code path the manual picker uses. If the preset is
-  /// image-less we still record the choice so the AI receives the
-  /// preset key as a style hint.
+  /// Re-tapping the currently selected preset clears the selection so
+  /// the tile is a true toggle. If the preset ships with an [imageUrl]
+  /// we download it once (cached in the temp dir) and treat it as if
+  /// the user had uploaded that photo — same code path the manual
+  /// picker uses. If the preset is image-less we still record the
+  /// choice so the AI receives the preset key as a style hint.
   Future<void> _pickPreset(HairstylePreset preset) async {
     AppHaptics.selection();
+    // Same-preset re-tap = deselect.
+    if (_selectedPresets[preset.category]?.key == preset.key) {
+      setState(() {
+        _selectedPresets.remove(preset.category);
+        _refImages.remove(preset.category);
+      });
+      return;
+    }
     setState(() => _selectedPresets[preset.category] = preset);
     final url = preset.imageUrl;
     if (url == null || url.isEmpty) {
@@ -128,10 +153,13 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       return;
     }
     if (_selectedStyles.isEmpty) {
-      AppHaptics.error();
-      setState(() => _error = tr(ref, 'mobile.aiStyle.errorPickStyle',
-          "Kamida bitta stil tanlang"));
-      return;
+      // User skipped the category chips entirely — instead of erroring,
+      // ask them to pick a focus area right now via a bottom sheet.
+      // This preserves the "just upload and go" flow the user asked for
+      // while still guaranteeing the backend gets a non-empty styles[].
+      final picked = await _askFocusArea();
+      if (picked == null) return;
+      setState(() => _selectedStyles.add(picked));
     }
     setState(() {
       _busy = true;
@@ -173,6 +201,79 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// Bottom-sheet fallback for when the user hits Generate without
+  /// picking a style category first. Returns the selected key, or null
+  /// if the user dismissed. Shape mirrors the redesigned image picker
+  /// sheet for visual consistency.
+  Future<String?> _askFocusArea() async {
+    final options = _options;
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        final colors = sheetCtx.colors;
+        return Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: colors.border,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    tr(ref, 'mobile.aiStyle.focusTitle',
+                        "Nimani o'zgartiray?"),
+                    style: AppText.titleSm,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    tr(ref, 'mobile.aiStyle.focusSubtitle',
+                        "AI shu qismga e'tibor beradi"),
+                    style: AppText.bodySm
+                        .copyWith(color: colors.textMuted),
+                  ),
+                  const SizedBox(height: 20),
+                  for (var i = 0; i < options.length; i++) ...[
+                    _FocusTile(
+                      emoji: options[i].icon,
+                      title: tr(
+                          ref,
+                          'mobile.aiStyle.styles.${options[i].key}',
+                          options[i].label),
+                      onTap: () =>
+                          Navigator.of(sheetCtx).pop(options[i].key),
+                    ),
+                    if (i < options.length - 1)
+                      const SizedBox(height: 12),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _reset() {
@@ -234,17 +335,8 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                       number: 1,
                       title: tr(ref, 'mobile.aiStyle.step1',
                           "Nimani o'zgartirmoqchisiz?"),
-                    ),
-                    AppSpacing.gapMd,
-                    _GenderRow(
-                      gender: _gender,
-                      onChange: (g) => setState(() {
-                        _gender = g;
-                        _selectedStyles
-                          ..clear()
-                          ..add('hair');
-                        _refImages.clear();
-                      }),
+                      subtitle: tr(ref, 'mobile.aiStyle.step1Hint',
+                          "Xohlagan qismlarni tanlang yoki tashlab keting — AI o'zi tanlaydi"),
                     ),
                     AppSpacing.gapMd,
                     _StyleCategoryRow(
@@ -279,39 +371,23 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
 
                     AppSpacing.gapXxl,
 
-                    // ===== Qadam 3: kutubxona — tayyor namunalar =====
+                    // ===== Qadam 3: kutubxona — tayyor namunalar + o'z rasm =====
                     _StepHeader(
                       number: 3,
                       title: tr(ref, 'mobile.aiStyle.step3Library',
                           "Turmakni tanlang"),
                       subtitle: tr(ref, 'mobile.aiStyle.step3LibraryHint',
-                          "Ilova tomonidan taqdim etilgan namunalardan birini tanlang — AI shu uslubga taqlid qiladi"),
+                          "Namunalardan birini tanlang yoki oxirdagi tugma orqali o'z rasmingizni yuklang"),
                     ),
                     AppSpacing.gapMd,
                     _PresetLibrary(
                       gender: _gender,
                       selectedStyles: _selectedStyles,
                       selectedPresets: _selectedPresets,
+                      refImages: _refImages,
                       onPick: _pickPreset,
-                    ),
-
-                    AppSpacing.gapXxl,
-
-                    // ===== Qadam 4: o'z namunangiz (ixtiyoriy) =====
-                    _StepHeader(
-                      number: 4,
-                      title: tr(ref, 'mobile.aiStyle.step4',
-                          "Yoki o'z namunangiz (ixtiyoriy)"),
-                      subtitle: tr(ref, 'mobile.aiStyle.step4Hint',
-                          "Xohlagan soch turmagi rasmini yuklashingiz mumkin"),
-                    ),
-                    AppSpacing.gapMd,
-                    _ReferenceBlock(
-                      options: _options,
-                      selected: _selectedStyles,
-                      refs: _refImages,
-                      onPick: _pickRef,
-                      onRemove: (k) => setState(() {
+                      onUpload: _pickRef,
+                      onClearCustom: (k) => setState(() {
                         _refImages.remove(k);
                         _selectedPresets.remove(k);
                       }),
@@ -333,7 +409,7 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                 right: 0,
                 bottom: 0,
                 child: _StickyGenerateBar(
-                  enabled: _selfie != null && _selectedStyles.isNotEmpty,
+                  enabled: _selfie != null,
                   onTap: _generate,
                 ),
               ),
@@ -526,95 +602,6 @@ class _StepHeader extends StatelessWidget {
           Text(subtitle!, style: AppText.bodySm),
         ],
       ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// Step 1 — gender picker. Segmented pill toggle (Uzum-style) with a
-// gradient thumb sliding under the active option.
-// ─────────────────────────────────────────────────────────────────────────
-class _GenderRow extends ConsumerWidget {
-  const _GenderRow({required this.gender, required this.onChange});
-  final String gender;
-  final ValueChanged<String> onChange;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceElevated,
-        borderRadius: AppRadius.rXl,
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Row(children: [
-        Expanded(
-          child: _GenderSegment(
-            selected: gender == 'male',
-            emoji: '👨',
-            label: tr(ref, 'auth.genderMale', 'Erkak'),
-            onTap: () => onChange('male'),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Expanded(
-          child: _GenderSegment(
-            selected: gender == 'female',
-            emoji: '👩',
-            label: tr(ref, 'auth.genderFemale', 'Ayol'),
-            onTap: () => onChange('female'),
-          ),
-        ),
-      ]),
-    );
-  }
-}
-
-class _GenderSegment extends StatelessWidget {
-  const _GenderSegment({
-    required this.selected,
-    required this.emoji,
-    required this.label,
-    required this.onTap,
-  });
-  final bool selected;
-  final String emoji;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return TapScale(
-      onTap: onTap,
-      haptic: HapticStrength.selection,
-      scale: 0.96,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          gradient: selected ? AppColors.primaryGradient : null,
-          borderRadius: AppRadius.rLg,
-          boxShadow: selected
-              ? AppShadows.primaryGlow(AppColors.primary)
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 22)),
-            AppSpacing.hGapSm,
-            Text(
-              label,
-              style: AppText.body.copyWith(
-                fontWeight: FontWeight.w700,
-                color: selected ? Colors.white : context.colors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -851,222 +838,6 @@ class _SelfieBlock extends ConsumerWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Step 3 — reference images (the key UX fix)
-// ─────────────────────────────────────────────────────────────────────────
-class _ReferenceBlock extends ConsumerWidget {
-  const _ReferenceBlock({
-    required this.options,
-    required this.selected,
-    required this.refs,
-    required this.onPick,
-    required this.onRemove,
-  });
-  final List<_StyleOpt> options;
-  final Set<String> selected;
-  final Map<String, File> refs;
-  final ValueChanged<String> onPick;
-  final ValueChanged<String> onRemove;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final active = options.where((o) => selected.contains(o.key)).toList();
-    if (active.isEmpty) {
-      return AppCard(
-        variant: AppCardVariant.outlined,
-        padding: AppSpacing.cardPadding,
-        child: Row(
-          children: [
-            Icon(Icons.info_outline,
-                color: context.colors.textMuted, size: 18),
-            AppSpacing.hGapSm,
-            Expanded(
-              child: Text(
-                tr(ref, 'mobile.aiStyle.pickCategoryFirst',
-                    "Avval yuqoridan qismni tanlang"),
-                style: AppText.bodySm,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return AppCard(
-      variant: AppCardVariant.outlined,
-      padding: AppSpacing.cardPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.15),
-                  borderRadius: AppRadius.rSm,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.tips_and_updates,
-                        size: 12, color: AppColors.warning),
-                    AppSpacing.hGapXs,
-                    Text(
-                      tr(ref, 'mobile.aiStyle.proTip', 'Maslahat'),
-                      style: AppText.caption.copyWith(
-                        color: AppColors.warning,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          AppSpacing.gapSm,
-          Text(
-            tr(ref, 'mobile.aiStyle.refTip',
-                "Yoqtirgan namunani yuklang — AI shu uslubga taqlid qiladi"),
-            style: AppText.bodySm.copyWith(color: context.colors.textSecondary),
-          ),
-          AppSpacing.gapMd,
-          SizedBox(
-            height: 100,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: active.length,
-              separatorBuilder: (_, _) => AppSpacing.hGapMd,
-              itemBuilder: (context, i) {
-                final opt = active[i];
-                final img = refs[opt.key];
-                return _RefTile(
-                  emoji: opt.icon,
-                  label: tr(ref, 'mobile.aiStyle.styles.${opt.key}', opt.label),
-                  file: img,
-                  onPick: () => onPick(opt.key),
-                  onRemove: () => onRemove(opt.key),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RefTile extends StatelessWidget {
-  const _RefTile({
-    required this.emoji,
-    required this.label,
-    required this.file,
-    required this.onPick,
-    required this.onRemove,
-  });
-  final String emoji;
-  final String label;
-  final File? file;
-  final VoidCallback onPick;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    if (file != null) {
-      return SizedBox(
-        width: 92,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ClipRRect(
-              borderRadius: AppRadius.rMd,
-              child: Image.file(
-                file!,
-                width: 92,
-                height: 92,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned(
-              top: -6,
-              right: -6,
-              child: TapScale(
-                onTap: onRemove,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: const BoxDecoration(
-                    color: AppColors.danger,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close,
-                      size: 12, color: Colors.white),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(AppRadius.md),
-                    bottomRight: Radius.circular(AppRadius.md),
-                  ),
-                ),
-                child: Text(
-                  '$emoji $label',
-                  textAlign: TextAlign.center,
-                  style: AppText.caption.copyWith(
-                    color: Colors.white,
-                    fontSize: 10,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return SizedBox(
-      width: 92,
-      child: TapScale(
-        onTap: onPick,
-        child: Container(
-          width: 92,
-          height: 92,
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.rMd,
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.4),
-              width: 1.5,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 24)),
-              const SizedBox(height: 4),
-              const Icon(Icons.add_photo_alternate_outlined,
-                  size: 14, color: AppColors.primary),
-              const SizedBox(height: 2),
-              Text(label,
-                  style: AppText.caption
-                      .copyWith(color: context.colors.textMuted, fontSize: 10)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
 // Sticky generate CTA
 // ─────────────────────────────────────────────────────────────────────────
 class _StickyGenerateBar extends ConsumerWidget {
@@ -1269,13 +1040,19 @@ class _PresetLibrary extends ConsumerWidget {
     required this.gender,
     required this.selectedStyles,
     required this.selectedPresets,
+    required this.refImages,
     required this.onPick,
+    required this.onUpload,
+    required this.onClearCustom,
   });
 
   final String gender;
   final Set<String> selectedStyles;
   final Map<String, HairstylePreset> selectedPresets;
+  final Map<String, File> refImages;
   final ValueChanged<HairstylePreset> onPick;
+  final ValueChanged<String> onUpload;
+  final ValueChanged<String> onClearCustom;
 
   static const _categoryLabels = <String, String>{
     'hair': 'Soch turmagi',
@@ -1299,7 +1076,7 @@ class _PresetLibrary extends ConsumerWidget {
           Expanded(
             child: Text(
               tr(ref, 'mobile.aiStyle.pickCategoryFirst',
-                  "Avval yuqoridan qismni tanlang"),
+                  "Yuqoridan qismni tanlang yoki generatsiyani boshlang — AI o'zi so'raydi"),
               style: AppText.bodySm,
             ),
           ),
@@ -1311,10 +1088,19 @@ class _PresetLibrary extends ConsumerWidget {
       children: [
         for (final category in selectedStyles) ...[
           _CategoryRow(
+            category: category,
             title: _categoryLabels[category] ?? category,
             presets: presetsFor(gender, category),
             selected: selectedPresets[category],
+            // Only surface the ref as "custom" when it came from an
+            // upload — preset picks also populate refImages, but those
+            // are represented by the highlighted preset tile.
+            customRef: selectedPresets[category] == null
+                ? refImages[category]
+                : null,
             onPick: onPick,
+            onUpload: onUpload,
+            onClearCustom: onClearCustom,
           ),
           AppSpacing.gapMd,
         ],
@@ -1325,20 +1111,31 @@ class _PresetLibrary extends ConsumerWidget {
 
 class _CategoryRow extends ConsumerWidget {
   const _CategoryRow({
+    required this.category,
     required this.title,
     required this.presets,
     required this.selected,
+    required this.customRef,
     required this.onPick,
+    required this.onUpload,
+    required this.onClearCustom,
   });
 
+  final String category;
   final String title;
   final List<HairstylePreset> presets;
   final HairstylePreset? selected;
+  final File? customRef;
   final ValueChanged<HairstylePreset> onPick;
+  final ValueChanged<String> onUpload;
+  final ValueChanged<String> onClearCustom;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (presets.isEmpty) return const SizedBox.shrink();
+    // Always render at least the upload tile even if there are no
+    // curated presets for this category — keeps the row consistent
+    // across categories and gives the user a way to add their own.
+    final total = presets.length + 1; // +1 for upload-own tile
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1350,14 +1147,21 @@ class _CategoryRow extends ConsumerWidget {
           height: 140,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: presets.length,
+            itemCount: total,
             separatorBuilder: (_, _) => AppSpacing.hGapSm,
             itemBuilder: (context, i) {
-              final p = presets[i];
-              return _PresetTile(
-                preset: p,
-                isSelected: selected?.key == p.key,
-                onTap: () => onPick(p),
+              if (i < presets.length) {
+                final p = presets[i];
+                return _PresetTile(
+                  preset: p,
+                  isSelected: selected?.key == p.key,
+                  onTap: () => onPick(p),
+                );
+              }
+              return _UploadOwnTile(
+                customRef: customRef,
+                onTap: () => onUpload(category),
+                onRemove: () => onClearCustom(category),
               );
             },
           ),
@@ -1503,6 +1307,181 @@ class _GradientFallback extends StatelessWidget {
       ),
       child: const Center(
         child: Icon(Icons.content_cut, color: Colors.white70, size: 30),
+      ),
+    );
+  }
+}
+
+/// Trailing tile in each preset row that lets the user drop in their
+/// own reference photo. When [customRef] is null the tile shows a
+/// gradient "+" affordance; once populated it renders the actual image
+/// preview with a remove button so the user can revert to a preset.
+class _UploadOwnTile extends StatelessWidget {
+  const _UploadOwnTile({
+    required this.customRef,
+    required this.onTap,
+    required this.onRemove,
+  });
+
+  final File? customRef;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.colors;
+    final hasCustom = customRef != null;
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.selection,
+      scale: 0.94,
+      child: SizedBox(
+        width: 106,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              width: 106,
+              height: 106,
+              decoration: BoxDecoration(
+                borderRadius: AppRadius.rLg,
+                color: hasCustom ? null : palette.surfaceElevated,
+                border: Border.all(
+                  color: hasCustom ? AppColors.primary : palette.border,
+                  width: hasCustom ? 2.5 : 1.5,
+                ),
+                boxShadow: hasCustom
+                    ? AppShadows.primaryGlow(AppColors.primary)
+                    : null,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(
+                    hasCustom ? AppRadius.lg - 2 : AppRadius.lg - 1),
+                child: Stack(fit: StackFit.expand, children: [
+                  if (hasCustom)
+                    Image.file(customRef!, fit: BoxFit.cover)
+                  else
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              shape: BoxShape.circle,
+                              boxShadow: AppShadows.primaryGlow(
+                                  AppColors.primary),
+                            ),
+                            child: const Icon(
+                                Icons.add_photo_alternate_rounded,
+                                color: Colors.white,
+                                size: 22),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Ixtiyoriy",
+                            style: AppText.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: palette.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (hasCustom)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: onRemove,
+                        child: Container(
+                          width: 22,
+                          height: 22,
+                          decoration: const BoxDecoration(
+                            color: Colors.black87,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close,
+                              size: 12, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                ]),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              hasCustom ? "O'z rasm" : "Yuklash",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: AppText.caption.copyWith(
+                fontWeight: hasCustom ? FontWeight.w700 : FontWeight.w500,
+                color: hasCustom ? AppColors.primary : palette.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom-sheet row used in [_askFocusArea]. Same visual language as the
+/// image picker's source tiles — gradient icon bubble, big touch
+/// target, chevron on the right.
+class _FocusTile extends StatelessWidget {
+  const _FocusTile({
+    required this.emoji,
+    required this.title,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return TapScale(
+      onTap: onTap,
+      scale: 0.97,
+      haptic: HapticStrength.selection,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colors.surfaceElevated,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: colors.border),
+        ),
+        child: Row(children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: AppShadows.primaryGlow(AppColors.primary),
+            ),
+            child: Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 24)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              title,
+              style: AppText.bodyLg.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios_rounded,
+              size: 14, color: colors.textMuted),
+        ]),
       ),
     );
   }
