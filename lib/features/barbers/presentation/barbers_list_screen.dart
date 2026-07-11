@@ -212,6 +212,30 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                                 s.name.toLowerCase().contains(_query) ||
                                 s.address.toLowerCase().contains(_query))
                             .toList());
+                // Derive per-shop rating + review-count by aggregating
+                // over the shop's barbers in the unfiltered list. Backend
+                // doesn't expose these on the /barbershops payload, so we
+                // compute them client-side from data already in hand.
+                // Uses `list` (all barbers) instead of `filtered` so the
+                // shop's rating stays stable while the user toggles
+                // gender / availability filters.
+                final shopStats = <String, ({double rating, int reviewCount})>{};
+                for (final s in mergedShops) {
+                  final shopBarbers =
+                      list.where((b) => b.barbershopId == s.id).toList();
+                  if (shopBarbers.isEmpty) {
+                    shopStats[s.id] = (rating: 0.0, reviewCount: 0);
+                    continue;
+                  }
+                  final avg = shopBarbers
+                          .map((b) => b.rating)
+                          .reduce((a, b) => a + b) /
+                      shopBarbers.length;
+                  final reviews = shopBarbers
+                      .map((b) => b.reviewCount)
+                      .reduce((a, b) => a + b);
+                  shopStats[s.id] = (rating: avg, reviewCount: reviews);
+                }
                 final items = <_FeedItem>[
                   ...filtered.map((b) => _FeedItem.barber(b)),
                   ...mergedShops.map((s) => _FeedItem.shop(s)),
@@ -248,7 +272,11 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                     itemBuilder: (context, i) {
                       final item = items[i];
                       final child = item.shop != null
-                          ? _ShopCard(shop: item.shop!)
+                          ? _ShopCard(
+                              shop: item.shop!,
+                              stats: shopStats[item.shop!.id] ??
+                                  (rating: 0.0, reviewCount: 0),
+                            )
                           : _BarberCard(
                               barber: item.barber!,
                               avatarUrl: _avatarUrl(item.barber!.avatar),
@@ -581,12 +609,21 @@ class _FeedItem {
 }
 
 class _ShopCard extends ConsumerWidget {
-  const _ShopCard({required this.shop});
+  const _ShopCard({required this.shop, required this.stats});
   final PublicBarbershop shop;
+  final ({double rating, int reviewCount}) stats;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final addr = shop.address.isEmpty ? (shop.geoAddress ?? '') : shop.address;
+    // Distance to the customer — mirrors the barber card so shops don't
+    // look half-populated when a barber sitting next to them shows "1.2
+    // km". Falls back to null when we don't have geo OR the shop lacks
+    // coordinates (older seed records).
+    final me = ref.watch(currentLocationProvider).asData?.value;
+    final double? km = (me != null && shop.lat != null && shop.lng != null)
+        ? haversineKm(me, LatLng(shop.lat!, shop.lng!))
+        : null;
+
     return AppCard(
       variant: AppCardVariant.outlined,
       padding: EdgeInsets.zero,
@@ -597,9 +634,12 @@ class _ShopCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header — building gradient + count badge
-            SizedBox(
-              height: 96,
+            // Header — same 1.35 aspect ratio as barber cards so the two
+            // types of card have identical banner heights inside the
+            // grid. Previously this was a fixed 96px SizedBox and looked
+            // squashed next to the barber's tall photo.
+            AspectRatio(
+              aspectRatio: 1.35,
               child: Stack(children: [
                 Container(
                   decoration: BoxDecoration(
@@ -614,7 +654,7 @@ class _ShopCard extends ConsumerWidget {
                   ),
                   alignment: Alignment.center,
                   child: const Icon(Icons.storefront,
-                      size: 42, color: Color(0xFFA78BFA)),
+                      size: 52, color: Color(0xFFA78BFA)),
                 ),
                 // Shop marker top-left
                 Positioned(
@@ -677,11 +717,15 @@ class _ShopCard extends ConsumerWidget {
                 ),
               ]),
             ),
-            // Body
+            // Body — 1:1 with _BarberCard: name, rating row (rating +
+            // review count + distance), then CTA. Address was removed
+            // per user request — the detail screen has the full address
+            // and duplicating it here just made the two card types
+            // asymmetric.
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,
-                AppSpacing.md,
+                AppSpacing.sm,
                 AppSpacing.md,
                 AppSpacing.md,
               ),
@@ -695,21 +739,27 @@ class _ShopCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppText.titleSm,
                   ),
-                  const SizedBox(height: 6),
-                  if (addr.isNotEmpty)
-                    Row(children: [
-                      Icon(Icons.location_on_outlined,
-                          size: 12, color: context.colors.textMuted),
-                      AppSpacing.hGapXs,
-                      Expanded(
-                        child: Text(
-                          addr,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppText.caption,
-                        ),
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    const Icon(Icons.star,
+                        size: 12, color: Color(0xFFFBBF24)),
+                    AppSpacing.hGapXs,
+                    Text(
+                      stats.rating.toStringAsFixed(1),
+                      style: AppText.caption.copyWith(
+                        color: context.colors.textBright,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ]),
+                    ),
+                    AppSpacing.hGapXs,
+                    Text('(${stats.reviewCount})', style: AppText.caption),
+                    if (km != null) ...[
+                      AppSpacing.hGapSm,
+                      _DistancePill(km: km),
+                    ],
+                  ]),
+                  const SizedBox(height: AppSpacing.sm),
+                  _ShopBookButton(shopId: shop.id),
                 ],
               ),
             ),
@@ -1021,6 +1071,54 @@ class _BookNowButton extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.calendar_month,
+                size: 14, color: Colors.white),
+            AppSpacing.hGapXs,
+            Text(
+              tr(ref, 'booking.title', 'Yozilish'),
+              style: AppText.button.copyWith(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Shop card CTA — visually identical to [_BookNowButton] but routes to
+/// the shop detail where the customer picks a barber first. Kept as a
+/// separate widget so the label can differ (Yozilish → same word, but
+/// intent is "open the shop's barber list") without loading a `barberId`
+/// param that doesn't apply.
+class _ShopBookButton extends ConsumerWidget {
+  const _ShopBookButton({required this.shopId});
+  final String shopId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return TapScale(
+      onTap: () {
+        AppHaptics.selection();
+        context.push('/barbershop/$shopId');
+      },
+      scale: 0.96,
+      child: Container(
+        height: 32,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: AppRadius.rSm,
+          boxShadow: AppShadows.primaryGlow(AppColors.primary),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.storefront_rounded,
                 size: 14, color: Colors.white),
             AppSpacing.hGapXs,
             Text(
