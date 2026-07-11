@@ -344,8 +344,14 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                       selected: _selectedStyles,
                       onToggle: (k) => setState(() {
                         if (_selectedStyles.contains(k)) {
+                          // Clear all state tied to this category —
+                          // otherwise the preset selection lingers and
+                          // reappears with a stale glow when the user
+                          // re-checks the chip later, and the ref file
+                          // sticks around unused in _refImages.
                           _selectedStyles.remove(k);
                           _refImages.remove(k);
+                          _selectedPresets.remove(k);
                         } else {
                           _selectedStyles.add(k);
                         }
