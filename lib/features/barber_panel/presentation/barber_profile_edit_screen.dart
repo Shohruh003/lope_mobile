@@ -41,8 +41,81 @@ class _BarberProfileEditScreenState
   bool _uploadingAvatar = false;
   bool _togglingAvailability = false;
 
+  /// Snapshot of the form values at seed time. `_isDirty` compares
+  /// against this so the Save button stays disabled until the barber
+  /// actually edits something. Refreshed after every successful save.
+  Map<String, String> _snapshot = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Attach a single `setState` listener to every text controller so
+    // typing rebuilds the tree and _isDirty re-evaluates against the
+    // snapshot. Cheaper than a per-field onChanged in the tree.
+    for (final c in [
+      _nameCtrl,
+      _bioCtrl,
+      _bioRuCtrl,
+      _locationCtrl,
+      _locationRuCtrl,
+      _experienceCtrl,
+      _instagramCtrl,
+      _telegramCtrl,
+      _facebookCtrl,
+    ]) {
+      c.addListener(_bumpDirty);
+    }
+  }
+
+  void _bumpDirty() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _isDirty {
+    if (_snapshot.isEmpty) return false;
+    if (_snapshot['name'] != _nameCtrl.text) return true;
+    if (_snapshot['bio'] != _bioCtrl.text) return true;
+    if (_snapshot['bioRu'] != _bioRuCtrl.text) return true;
+    if (_snapshot['location'] != _locationCtrl.text) return true;
+    if (_snapshot['locationRu'] != _locationRuCtrl.text) return true;
+    if (_snapshot['experience'] != _experienceCtrl.text) return true;
+    if (_snapshot['instagram'] != _instagramCtrl.text) return true;
+    if (_snapshot['telegram'] != _telegramCtrl.text) return true;
+    if (_snapshot['facebook'] != _facebookCtrl.text) return true;
+    if (_snapshot['targetGender'] != _targetGender) return true;
+    return false;
+  }
+
+  void _rebuildSnapshot() {
+    _snapshot = {
+      'name': _nameCtrl.text,
+      'bio': _bioCtrl.text,
+      'bioRu': _bioRuCtrl.text,
+      'location': _locationCtrl.text,
+      'locationRu': _locationRuCtrl.text,
+      'experience': _experienceCtrl.text,
+      'instagram': _instagramCtrl.text,
+      'telegram': _telegramCtrl.text,
+      'facebook': _facebookCtrl.text,
+      'targetGender': _targetGender,
+    };
+  }
+
   @override
   void dispose() {
+    for (final c in [
+      _nameCtrl,
+      _bioCtrl,
+      _bioRuCtrl,
+      _locationCtrl,
+      _locationRuCtrl,
+      _experienceCtrl,
+      _instagramCtrl,
+      _telegramCtrl,
+      _facebookCtrl,
+    ]) {
+      c.removeListener(_bumpDirty);
+    }
     _nameCtrl.dispose();
     _bioCtrl.dispose();
     _bioRuCtrl.dispose();
@@ -84,6 +157,9 @@ class _BarberProfileEditScreenState
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
       }
+      // Reset the snapshot so the button is disabled again — user
+      // just saved everything they had typed.
+      _rebuildSnapshot();
     } catch (e) {
       AppHaptics.error();
       if (mounted) {
@@ -156,6 +232,10 @@ class _BarberProfileEditScreenState
             _instagramCtrl.text = (b['instagram'] ?? '').toString();
             _telegramCtrl.text = (b['telegram'] ?? '').toString();
             _facebookCtrl.text = (b['facebook'] ?? '').toString();
+            // Baseline the dirty tracker so the Save button starts
+            // disabled — it only enables once the barber actually
+            // edits something.
+            _rebuildSnapshot();
           }
           final avatarUrl =
               (b['avatar'] ?? nestedUser['avatar'] ?? '').toString();
@@ -608,7 +688,11 @@ class _BarberProfileEditScreenState
             size: AppButtonSize.lg,
             fullWidth: true,
             loading: _saving,
-            onPressed: _saving ? null : () => _saveBio(userId),
+            // Stays disabled until the barber actually edits something —
+            // no more accidentally re-POSTing the same profile.
+            onPressed: (_saving || !_isDirty)
+                ? null
+                : () => _saveBio(userId),
           ),
         ]).animate().fadeIn(duration: 200.ms);
   }

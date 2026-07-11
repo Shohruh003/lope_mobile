@@ -18,16 +18,44 @@ class _BarberAccountEditScreenState
     extends ConsumerState<BarberAccountEditScreen> {
   final _currentCtrl = TextEditingController();
   final _newCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
   bool _obscureCurrent = true;
   bool _obscureNew = true;
+  bool _obscureConfirm = true;
   bool _busy = false;
   String? _msg;
   bool _ok = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Rebuild on every character so `_isValid` re-evaluates and the
+    // Save button flips enabled once the user has entered a matching
+    // pair. Prevents accidental submits of an empty/half-typed form.
+    for (final c in [_currentCtrl, _newCtrl, _confirmCtrl]) {
+      c.addListener(_bump);
+    }
+  }
+
+  void _bump() {
+    if (mounted) setState(() {});
+  }
+
+  /// Valid = current filled, new ≥ 4 chars, confirm matches new.
+  bool get _isValid {
+    if (_currentCtrl.text.isEmpty) return false;
+    if (_newCtrl.text.length < 4) return false;
+    return _newCtrl.text == _confirmCtrl.text;
+  }
+
+  @override
   void dispose() {
+    for (final c in [_currentCtrl, _newCtrl, _confirmCtrl]) {
+      c.removeListener(_bump);
+    }
     _currentCtrl.dispose();
     _newCtrl.dispose();
+    _confirmCtrl.dispose();
     super.dispose();
   }
 
@@ -63,6 +91,7 @@ class _BarberAccountEditScreenState
       });
       _currentCtrl.clear();
       _newCtrl.clear();
+      _confirmCtrl.clear();
     } on DioException catch (e) {
       AppHaptics.error();
       if (!mounted) return;
@@ -199,6 +228,40 @@ class _BarberAccountEditScreenState
                     ),
                   ),
                 ),
+                AppSpacing.gapSm,
+                Text(
+                  tr(ref, 'mobile.barber.account.confirmPassword',
+                      "Yangi parolni tasdiqlash"),
+                  style: AppText.overline,
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _confirmCtrl,
+                  obscureText: _obscureConfirm,
+                  style: AppText.body,
+                  decoration: InputDecoration(
+                    hintText: '••••••',
+                    // Inline mismatch warning — shows only after the
+                    // user has typed something in confirm and it
+                    // doesn't match yet. Prevents cryptic "why is the
+                    // button disabled" moments.
+                    errorText: (_confirmCtrl.text.isNotEmpty &&
+                            _confirmCtrl.text != _newCtrl.text)
+                        ? tr(ref, 'auth.passwordMismatch',
+                            'Parollar mos kelmadi')
+                        : null,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                          _obscureConfirm
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                          color: context.colors.textMuted,
+                          size: 20),
+                      onPressed: () => setState(
+                          () => _obscureConfirm = !_obscureConfirm),
+                    ),
+                  ),
+                ),
                 if (_msg != null) ...[
                   AppSpacing.gapMd,
                   Container(
@@ -247,7 +310,7 @@ class _BarberAccountEditScreenState
             size: AppButtonSize.lg,
             fullWidth: true,
             loading: _busy,
-            onPressed: _busy ? null : _change,
+            onPressed: (_busy || !_isValid) ? null : _change,
           ),
         ],
       ),

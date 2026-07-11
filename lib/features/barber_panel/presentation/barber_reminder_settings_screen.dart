@@ -20,8 +20,12 @@ class _BarberReminderSettingsScreenState
     extends ConsumerState<BarberReminderSettingsScreen> {
   int _hours = 1;
   int _days = 14;
+  int _origHours = 1;
+  int _origDays = 14;
   bool _saving = false;
   bool _seeded = false;
+
+  bool get _isDirty => _hours != _origHours || _days != _origDays;
 
   Future<void> _save(String barberId) async {
     AppHaptics.medium();
@@ -35,6 +39,10 @@ class _BarberReminderSettingsScreenState
       });
       ref.invalidate(barberProfileProvider(barberId));
       AppHaptics.success();
+      // Reset the baseline so the Save button flips back to disabled
+      // until the next edit.
+      _origHours = _hours;
+      _origDays = _days;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
@@ -77,6 +85,10 @@ class _BarberReminderSettingsScreenState
                 ((b['reminderHoursBefore'] ?? 1) as num).toInt().clamp(1, 6);
             _days =
                 ((b['reminderDays'] ?? 14) as num).toInt().clamp(7, 30);
+            // Baseline so the Save button starts disabled — enables
+            // only when the barber actually bumps a stepper.
+            _origHours = _hours;
+            _origDays = _days;
           }
           final isShopManaged =
               (b['barbershopId'] ?? '').toString().isNotEmpty;
@@ -237,7 +249,9 @@ class _BarberReminderSettingsScreenState
                 size: AppButtonSize.lg,
                 fullWidth: true,
                 loading: _saving,
-                onPressed: _saving ? null : () => _save(user.id),
+                onPressed: (_saving || !_isDirty)
+                    ? null
+                    : () => _save(user.id),
               ),
             ],
           );

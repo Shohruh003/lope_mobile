@@ -17,13 +17,12 @@ class BarberSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
+    // No AppBar — the barber shell already renders a fixed header
+    // (Lope Style brand + share + bell) above the tab body, and the
+    // bottom nav shows "Profil" for this tab. Repeating the word at
+    // the top of the screen was a visual duplication the user asked
+    // us to remove.
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          tr(ref, 'barberApp.settings', 'Sozlamalar'),
-          style: AppText.titleMd,
-        ),
-      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.lg,

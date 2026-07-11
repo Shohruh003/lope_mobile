@@ -252,14 +252,37 @@ class _BarberPublicLinkScreenState
                         ],
                       ),
                     ),
-                    Switch(
-                      value: _notifyBySms,
-                      activeThumbColor: AppColors.primary,
-                      onChanged: (v) {
-                        AppHaptics.selection();
-                        setState(() => _notifyBySms = v);
-                      },
-                    ),
+                    // Auto-save the toggle instead of gating on a
+                    // separate Save button — the switch flip IS the
+                    // intent, so persisting immediately matches the
+                    // user's mental model. Small spinner while the
+                    // network call is in-flight prevents rapid-tap
+                    // double-fires.
+                    _saving
+                        ? const SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: Center(
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Switch(
+                            value: _notifyBySms,
+                            activeThumbColor: AppColors.primary,
+                            onChanged: (v) async {
+                              AppHaptics.selection();
+                              setState(() => _notifyBySms = v);
+                              await _save(user.id,
+                                  shopManaged: shopManaged);
+                            },
+                          ),
                   ]),
                 ),
               ],
@@ -299,19 +322,8 @@ class _BarberPublicLinkScreenState
                   ]),
                 ),
               ],
-              AppSpacing.gapXl,
-              AppButton(
-                label: tr(ref, 'common.save', 'Saqlash'),
-                leadingIcon: Icons.check,
-                variant: AppButtonVariant.primary,
-                size: AppButtonSize.lg,
-                fullWidth: true,
-                loading: _saving,
-                onPressed: _saving
-                    ? null
-                    : () =>
-                        _save(user.id, shopManaged: shopManaged),
-              ),
+              // Save button removed — the SMS switch auto-saves on
+              // change so a separate Save action is redundant.
             ],
             ),
           );
