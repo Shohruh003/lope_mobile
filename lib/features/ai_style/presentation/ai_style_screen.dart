@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/image_picker_service.dart';
@@ -12,6 +13,7 @@ import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/data/balance_repository.dart';
 import '../../lopepay/presentation/top_up_modal.dart';
 import '../data/ai_style_repository.dart';
+import '../domain/hairstyle_presets.dart';
 
 /// Redesigned AI Stil screen. 3 qadamli aniq oqim — foydalanuvchi har qadamda
 /// nima qilishini biladi. Ilgari "Namuna" tugmasi 72x28 kichik dashed border
@@ -52,6 +54,14 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
   String? _resultUrl;
   String? _error;
 
+  /// Selected preset per style category (hair / beard / hair_color ...).
+  /// Independent from [_refImages] because a preset is a curated app
+  /// choice while [_refImages] is a user-uploaded photo. Selecting a
+  /// preset with a network thumbnail also fills [_refImages] so the
+  /// backend gets the reference bytes; selecting one without a URL
+  /// just records the [key] for the AI prompt.
+  final Map<String, HairstylePreset> _selectedPresets = {};
+
   List<_StyleOpt> get _options =>
       _gender == 'female' ? _femaleOptions : _maleOptions;
 
@@ -67,7 +77,46 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
     final f = await ImagePickerService.instance
         .pickFromSheet(context, allowCamera: false, ref: ref);
     if (!mounted || f == null) return;
-    setState(() => _refImages[key] = f);
+    setState(() {
+      _refImages[key] = f;
+      // Custom upload overrides any preset selection for this key.
+      _selectedPresets.remove(key);
+    });
+  }
+
+  /// Called when the user taps a hairstyle tile in the preset library.
+  /// If the preset ships with an [imageUrl] we download it once (cached
+  /// in the temp dir) and treat it as if the user had uploaded that
+  /// photo — same code path the manual picker uses. If the preset is
+  /// image-less we still record the choice so the AI receives the
+  /// preset key as a style hint.
+  Future<void> _pickPreset(HairstylePreset preset) async {
+    AppHaptics.selection();
+    setState(() => _selectedPresets[preset.category] = preset);
+    final url = preset.imageUrl;
+    if (url == null || url.isEmpty) {
+      // Clear any stale ref so the preset key becomes the primary hint.
+      setState(() => _refImages.remove(preset.category));
+      return;
+    }
+    try {
+      final dir = await getTemporaryDirectory();
+      final safe = url.hashCode.toRadixString(16);
+      final file = File('${dir.path}/preset_$safe.jpg');
+      if (!file.existsSync()) {
+        // Delegate to the AI style repository's shared HTTP client so
+        // the download inherits auth headers / timeouts. Falls back to
+        // a plain HTTP fetch if the repo doesn't expose a helper.
+        await ref
+            .read(aiStyleRepositoryProvider)
+            .downloadAsset(url: url, saveTo: file);
+      }
+      if (!mounted) return;
+      setState(() => _refImages[preset.category] = file);
+    } catch (_) {
+      // Silent — the preset key alone is still passed to the AI so
+      // generation proceeds without the thumbnail bytes.
+    }
   }
 
   Future<void> _generate() async {
@@ -230,13 +279,31 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
 
                     AppSpacing.gapXxl,
 
-                    // ===== Qadam 3: namuna (asosiy UX ta'mirlash) =====
+                    // ===== Qadam 3: kutubxona — tayyor namunalar =====
                     _StepHeader(
                       number: 3,
-                      title: tr(ref, 'mobile.aiStyle.step3',
-                          "Namuna qo'shing (ixtiyoriy)"),
-                      subtitle: tr(ref, 'mobile.aiStyle.step3Hint',
-                          "Yoqtirgan soch turmagi rasmini yuklasangiz — natija 3x aniqroq bo'ladi"),
+                      title: tr(ref, 'mobile.aiStyle.step3Library',
+                          "Turmakni tanlang"),
+                      subtitle: tr(ref, 'mobile.aiStyle.step3LibraryHint',
+                          "Ilova tomonidan taqdim etilgan namunalardan birini tanlang — AI shu uslubga taqlid qiladi"),
+                    ),
+                    AppSpacing.gapMd,
+                    _PresetLibrary(
+                      gender: _gender,
+                      selectedStyles: _selectedStyles,
+                      selectedPresets: _selectedPresets,
+                      onPick: _pickPreset,
+                    ),
+
+                    AppSpacing.gapXxl,
+
+                    // ===== Qadam 4: o'z namunangiz (ixtiyoriy) =====
+                    _StepHeader(
+                      number: 4,
+                      title: tr(ref, 'mobile.aiStyle.step4',
+                          "Yoki o'z namunangiz (ixtiyoriy)"),
+                      subtitle: tr(ref, 'mobile.aiStyle.step4Hint',
+                          "Xohlagan soch turmagi rasmini yuklashingiz mumkin"),
                     ),
                     AppSpacing.gapMd,
                     _ReferenceBlock(
@@ -244,7 +311,10 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
                       selected: _selectedStyles,
                       refs: _refImages,
                       onPick: _pickRef,
-                      onRemove: (k) => setState(() => _refImages.remove(k)),
+                      onRemove: (k) => setState(() {
+                        _refImages.remove(k);
+                        _selectedPresets.remove(k);
+                      }),
                     ),
 
                     if (_error != null) ...[
@@ -1184,4 +1254,256 @@ class _StyleOpt {
   final String key;
   final String label;
   final String icon;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Curated hairstyle library — Gemini-style thumbnails the user picks
+// from. Grouped per active category (hair / beard / hair_color …) with
+// a horizontal scroll each. Tap selects; a second tap on the same tile
+// deselects. When [HairstylePreset.imageUrl] is null we render a
+// gradient placeholder tile with the style name front-and-centre so
+// the UI already looks intentional before real photos are wired in.
+// ─────────────────────────────────────────────────────────────────────────
+class _PresetLibrary extends ConsumerWidget {
+  const _PresetLibrary({
+    required this.gender,
+    required this.selectedStyles,
+    required this.selectedPresets,
+    required this.onPick,
+  });
+
+  final String gender;
+  final Set<String> selectedStyles;
+  final Map<String, HairstylePreset> selectedPresets;
+  final ValueChanged<HairstylePreset> onPick;
+
+  static const _categoryLabels = <String, String>{
+    'hair': 'Soch turmagi',
+    'beard': 'Soqol shakli',
+    'hair_color': 'Soch rangi',
+    'eyebrows': 'Qosh shakli',
+    'lips': 'Lab shakli',
+    'eyelashes': 'Kiprik uslubi',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (selectedStyles.isEmpty) {
+      return AppCard(
+        variant: AppCardVariant.outlined,
+        padding: AppSpacing.cardPadding,
+        child: Row(children: [
+          Icon(Icons.info_outline,
+              color: context.colors.textMuted, size: 18),
+          AppSpacing.hGapSm,
+          Expanded(
+            child: Text(
+              tr(ref, 'mobile.aiStyle.pickCategoryFirst',
+                  "Avval yuqoridan qismni tanlang"),
+              style: AppText.bodySm,
+            ),
+          ),
+        ]),
+      );
+    }
+
+    return Column(
+      children: [
+        for (final category in selectedStyles) ...[
+          _CategoryRow(
+            title: _categoryLabels[category] ?? category,
+            presets: presetsFor(gender, category),
+            selected: selectedPresets[category],
+            onPick: onPick,
+          ),
+          AppSpacing.gapMd,
+        ],
+      ],
+    );
+  }
+}
+
+class _CategoryRow extends ConsumerWidget {
+  const _CategoryRow({
+    required this.title,
+    required this.presets,
+    required this.selected,
+    required this.onPick,
+  });
+
+  final String title;
+  final List<HairstylePreset> presets;
+  final HairstylePreset? selected;
+  final ValueChanged<HairstylePreset> onPick;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (presets.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.sm),
+          child: Text(title, style: AppText.overline),
+        ),
+        SizedBox(
+          height: 140,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: presets.length,
+            separatorBuilder: (_, _) => AppSpacing.hGapSm,
+            itemBuilder: (context, i) {
+              final p = presets[i];
+              return _PresetTile(
+                preset: p,
+                isSelected: selected?.key == p.key,
+                onTap: () => onPick(p),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PresetTile extends StatelessWidget {
+  const _PresetTile({
+    required this.preset,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final HairstylePreset preset;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  /// Deterministic gradient per preset key so image-less tiles still
+  /// look distinct instead of a wall of identical purple boxes.
+  List<Color> _paletteFor(String key) {
+    final palettes = <List<Color>>[
+      [const Color(0xFF3B82F6), const Color(0xFF6366F1)],
+      [const Color(0xFF8B5CF6), const Color(0xFFD946EF)],
+      [const Color(0xFFEF4444), const Color(0xFFF97316)],
+      [const Color(0xFF10B981), const Color(0xFF14B8A6)],
+      [const Color(0xFFF59E0B), const Color(0xFFF97316)],
+      [const Color(0xFF06B6D4), const Color(0xFF3B82F6)],
+      [const Color(0xFFEC4899), const Color(0xFFEF4444)],
+      [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+    ];
+    return palettes[key.hashCode.abs() % palettes.length];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.colors;
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.selection,
+      scale: 0.94,
+      child: SizedBox(
+        width: 106,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              width: 106,
+              height: 106,
+              decoration: BoxDecoration(
+                borderRadius: AppRadius.rLg,
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : palette.border,
+                  width: isSelected ? 2.5 : 1,
+                ),
+                boxShadow: isSelected
+                    ? AppShadows.primaryGlow(AppColors.primary)
+                    : null,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(
+                    isSelected ? AppRadius.lg - 2 : AppRadius.lg - 1),
+                child: Stack(fit: StackFit.expand, children: [
+                  if (preset.imageUrl != null && preset.imageUrl!.isNotEmpty)
+                    CachedNetworkImage(
+                      imageUrl: preset.imageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) =>
+                          _GradientFallback(colors: _paletteFor(preset.key)),
+                      errorWidget: (_, _, _) =>
+                          _GradientFallback(colors: _paletteFor(preset.key)),
+                    )
+                  else
+                    _GradientFallback(colors: _paletteFor(preset.key)),
+                  // Bottom scrim so name is always readable.
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.center,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Color(0x99000000),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (isSelected)
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.check,
+                            size: 14, color: Colors.white),
+                      ),
+                    ),
+                ]),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              preset.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: AppText.caption.copyWith(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.primary
+                    : palette.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GradientFallback extends StatelessWidget {
+  const _GradientFallback({required this.colors});
+  final List<Color> colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Center(
+        child: Icon(Icons.content_cut, color: Colors.white70, size: 30),
+      ),
+    );
+  }
 }

@@ -86,6 +86,23 @@ class AiStyleRepository {
     if (raw is Map) return AiStyleResult.fromJson(Map<String, dynamic>.from(raw));
     return AiStyleResult(imageUrl: raw?.toString() ?? '');
   }
+
+  /// Fetches an external asset (curated preset thumbnail) and writes
+  /// it to [saveTo] as raw bytes. Used by the AI Style screen to turn
+  /// a HairstylePreset.imageUrl into a File that can be POSTed as a
+  /// reference. Uses a fresh Dio instance so the request bypasses the
+  /// authenticated `_dio` (external URL — no JWT needed).
+  Future<void> downloadAsset({required String url, required File saveTo}) async {
+    final client = Dio();
+    final res = await client.get<List<int>>(url,
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 15),
+        ));
+    final bytes = res.data;
+    if (bytes == null || bytes.isEmpty) return;
+    await saveTo.writeAsBytes(bytes, flush: true);
+  }
 }
 
 final aiStyleRepositoryProvider =
