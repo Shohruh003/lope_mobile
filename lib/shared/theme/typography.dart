@@ -75,29 +75,33 @@ class AppText {
         color: _palette.textPrimary,
       );
 
-  // Kichik body — sekundar matn, subtitle
+  // Kichik body — sekundar matn, subtitle. Bumped from 13 → 14 after
+  // user feedback that meta text was hard to read on phones ("kichkina,
+  // o'qishga qiyin").
   static TextStyle get bodySm => GoogleFonts.inter(
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: FontWeight.w400,
-        height: 1.45,
+        height: 1.5,
         color: _palette.textSecondary,
       );
 
-  // Caption — meta ma'lumot (sana, holat)
+  // Caption — meta ma'lumot (sana, holat). Bumped 12 → 13 for the same
+  // readability reason.
   static TextStyle get caption => GoogleFonts.inter(
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: FontWeight.w500,
         height: 1.4,
         letterSpacing: 0.1,
         color: _palette.textMuted,
       );
 
-  // Overline — kichik badge, tag
+  // Overline — kichik badge, tag. Bumped 11 → 12 so section labels
+  // don't disappear on smaller screens.
   static TextStyle get overline => GoogleFonts.inter(
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: FontWeight.w600,
         height: 1.4,
-        letterSpacing: 0.6,
+        letterSpacing: 0.5,
         color: _palette.textMuted,
       );
 

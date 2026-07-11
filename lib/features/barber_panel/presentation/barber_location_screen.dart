@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart' as ll;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors.dart';
@@ -22,17 +24,33 @@ class _BarberLocationScreenState
   final _latCtrl = TextEditingController();
   final _lngCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
+  final _mapController = MapController();
 
   bool _seeded = false;
   bool _editing = false;
   bool _saving = false;
+
+  /// Toshkent center — used as the initial map view when the barber
+  /// has never set coordinates before. Approx Chorsu.
+  static final _defaultCenter =
+      ll.LatLng(41.311081, 69.240562);
 
   @override
   void dispose() {
     _latCtrl.dispose();
     _lngCtrl.dispose();
     _addressCtrl.dispose();
+    _mapController.dispose();
     super.dispose();
+  }
+
+  /// Pulled every time the map settles on a new position — writes the
+  /// new lat/lng back into the text controllers so the barber can
+  /// see the exact numbers change as they pan / zoom.
+  void _syncCoordsFromMap() {
+    final c = _mapController.camera.center;
+    _latCtrl.text = c.latitude.toStringAsFixed(6);
+    _lngCtrl.text = c.longitude.toStringAsFixed(6);
   }
 
   Future<void> _save(String barberId) async {
@@ -162,6 +180,24 @@ class _BarberLocationScreenState
                       .copyWith(color: context.colors.textSecondary),
                 ),
                 AppSpacing.gapLg,
+                // Embedded interactive map — the barber pans the map,
+                // the fixed center pin marks the picked spot, and the
+                // lat/lng text fields update live. Replaces the old
+                // flow that dumped users into Yandex Maps to copy
+                // coordinates back by hand.
+                _LocationPickerMap(
+                  controller: _mapController,
+                  initial: () {
+                    final lat = double.tryParse(_latCtrl.text.trim());
+                    final lng = double.tryParse(_lngCtrl.text.trim());
+                    if (lat != null && lng != null) {
+                      return ll.LatLng(lat, lng);
+                    }
+                    return _defaultCenter;
+                  }(),
+                  onIdle: _syncCoordsFromMap,
+                ),
+                AppSpacing.gapMd,
                 AppCard(
                   variant: AppCardVariant.outlined,
                   padding: AppSpacing.cardPadding,
@@ -377,6 +413,110 @@ class _BarberLocationScreenState
           ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Embedded flutter_map card with a fixed center pin. The barber pans
+/// / zooms the map to place the pin over their shop; on every idle
+/// (drag end / zoom end) [onIdle] fires and the parent syncs the new
+/// centre into the lat/lng text fields.
+///
+/// Uses the same Stadia Alidade Smooth tiles as the customer map so
+/// the two features look like the same product.
+class _LocationPickerMap extends StatelessWidget {
+  const _LocationPickerMap({
+    required this.controller,
+    required this.initial,
+    required this.onIdle,
+  });
+
+  final MapController controller;
+  final ll.LatLng initial;
+  final VoidCallback onIdle;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      height: 240,
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.rLg,
+        border: Border.all(color: context.colors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.rLg,
+        child: Stack(children: [
+          FlutterMap(
+            mapController: controller,
+            options: MapOptions(
+              initialCenter: initial,
+              initialZoom: 15,
+              minZoom: 4,
+              maxZoom: 18,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+              ),
+              onPositionChanged: (camera, hasGesture) {
+                if (hasGesture) onIdle();
+              },
+              onTap: (tap, latlng) {
+                controller.move(latlng, controller.camera.zoom);
+                onIdle();
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: isDark
+                    ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+                    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
+                additionalOptions: const {'r': ''},
+                userAgentPackageName: 'uz.lopestyle.mobile',
+                maxZoom: 20,
+                retinaMode:
+                    MediaQuery.of(context).devicePixelRatio > 1.5,
+              ),
+            ],
+          ),
+          // Fixed centre pin — always at the geometric middle of the
+          // map viewport. The idle-camera position IS the picked
+          // location.
+          const IgnorePointer(
+            ignoring: true,
+            child: Center(
+              child: Padding(
+                // Nudge up by half the icon so the tip lands on the
+                // exact centre pixel.
+                padding: EdgeInsets.only(bottom: 32),
+                child: Icon(Icons.location_on,
+                    color: AppColors.primary, size: 40),
+              ),
+            ),
+          ),
+          // Bottom-right recentre hint pill so the user learns to
+          // just pan the map.
+          Positioned(
+            left: AppSpacing.sm,
+            bottom: AppSpacing.sm,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: AppRadius.rPill,
+              ),
+              child: const Text(
+                'Xaritani surib joyni belgilang',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ]),
       ),
     );
   }

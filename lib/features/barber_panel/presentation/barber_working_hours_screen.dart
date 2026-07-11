@@ -49,6 +49,14 @@ class _BarberWorkingHoursScreenState
     if (_seeded) return;
     _seeded = true;
     final raw = barber['workingHours'];
+    String? optStr(Map v, List<String> keys) {
+      for (final k in keys) {
+        final raw = v[k];
+        if (raw != null && raw.toString().isNotEmpty) return raw.toString();
+      }
+      return null;
+    }
+
     if (raw is Map) {
       for (var i = 0; i < _dayKeys.length; i++) {
         final v = raw[_dayKeys[i]];
@@ -58,6 +66,8 @@ class _BarberWorkingHoursScreenState
             open: (v['open'] ?? v['start'] ?? '09:00').toString(),
             close: (v['close'] ?? v['end'] ?? '20:00').toString(),
             isOpen: v['isOpen'] == true || v['enabled'] == true,
+            lunchStart: optStr(v, ['lunchStart', 'breakStart']),
+            lunchEnd: optStr(v, ['lunchEnd', 'breakEnd']),
           );
         }
       }
@@ -71,6 +81,8 @@ class _BarberWorkingHoursScreenState
             open: (item['open'] ?? item['start'] ?? '09:00').toString(),
             close: (item['close'] ?? item['end'] ?? '20:00').toString(),
             isOpen: item['isOpen'] == true || item['enabled'] == true,
+            lunchStart: optStr(item, ['lunchStart', 'breakStart']),
+            lunchEnd: optStr(item, ['lunchEnd', 'breakEnd']),
           );
         }
       }
@@ -98,6 +110,42 @@ class _BarberWorkingHoursScreenState
       _config[i] = _config[i].copyWith(
           open: isOpen ? s : _config[i].open,
           close: isOpen ? _config[i].close : s);
+    });
+  }
+
+  Future<void> _pickLunchTime(int i, bool isStart) async {
+    AppHaptics.light();
+    final current = isStart
+        ? (_config[i].lunchStart ?? '13:00')
+        : (_config[i].lunchEnd ?? '14:00');
+    final parts = current.split(':');
+    final initial = TimeOfDay(
+        hour: int.tryParse(parts[0]) ?? (isStart ? 13 : 14),
+        minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
+    final picked =
+        await AppTimePicker.show(context, ref: ref, initial: initial);
+    if (picked == null) return;
+    setState(() {
+      final s =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      _config[i] = _config[i].copyWith(
+        lunchStart: isStart ? s : _config[i].lunchStart,
+        lunchEnd: isStart ? _config[i].lunchEnd : s,
+      );
+    });
+  }
+
+  void _toggleLunch(int i, bool enable) {
+    AppHaptics.selection();
+    setState(() {
+      if (enable) {
+        _config[i] = _config[i].copyWith(
+          lunchStart: _config[i].lunchStart ?? '13:00',
+          lunchEnd: _config[i].lunchEnd ?? '14:00',
+        );
+      } else {
+        _config[i] = _config[i].copyWith(clearLunch: true);
+      }
     });
   }
 
@@ -138,7 +186,15 @@ class _BarberWorkingHoursScreenState
     try {
       final workingHours = <String, dynamic>{
         for (final d in _config)
-          d.day: {'isOpen': d.isOpen, 'open': d.open, 'close': d.close}
+          d.day: {
+            'isOpen': d.isOpen,
+            'open': d.open,
+            'close': d.close,
+            // Server persists lunch as nullable strings — omit the
+            // keys when there's no break so the payload stays clean.
+            if (d.hasLunch) 'lunchStart': d.lunchStart,
+            if (d.hasLunch) 'lunchEnd': d.lunchEnd,
+          }
       };
       await ref.read(barberProfileRepositoryProvider).updateBarber(
         widget.barberId,
@@ -210,50 +266,113 @@ class _BarberWorkingHoursScreenState
                         ? null
                         : context.colors.surfaceElevated
                             .withValues(alpha: 0.4),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          width: 36,
-                          child: Text(
-                            days[i],
-                            style: AppText.titleSm.copyWith(
-                              color: _config[i].isOpen
-                                  ? context.colors.textBright
-                                  : context.colors.textMuted,
-                            ),
-                          ),
-                        ),
-                        AppSpacing.hGapSm,
-                        Expanded(
-                          child: Row(
-                            children: [
-                              _TimeChip(
-                                label: _config[i].open,
-                                enabled: _config[i].isOpen,
-                                onTap: () => _pickTime(i, true),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 36,
+                              child: Text(
+                                days[i],
+                                style: AppText.titleSm.copyWith(
+                                  color: _config[i].isOpen
+                                      ? context.colors.textBright
+                                      : context.colors.textMuted,
+                                ),
                               ),
+                            ),
+                            AppSpacing.hGapSm,
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  _TimeChip(
+                                    label: _config[i].open,
+                                    enabled: _config[i].isOpen,
+                                    onTap: () => _pickTime(i, true),
+                                  ),
+                                  AppSpacing.hGapXs,
+                                  Text('—',
+                                      style: TextStyle(
+                                          color:
+                                              context.colors.textMuted)),
+                                  AppSpacing.hGapXs,
+                                  _TimeChip(
+                                    label: _config[i].close,
+                                    enabled: _config[i].isOpen,
+                                    onTap: () => _pickTime(i, false),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _config[i].isOpen,
+                              activeThumbColor: AppColors.primary,
+                              onChanged: (v) {
+                                AppHaptics.selection();
+                                setState(() => _config[i] =
+                                    _config[i].copyWith(isOpen: v));
+                              },
+                            ),
+                          ],
+                        ),
+                        // Per-day lunch break row — only surfaced when
+                        // the day itself is open. Tap the toggle to
+                        // add a break with sensible defaults (13:00 —
+                        // 14:00); tap either time chip to change it.
+                        if (_config[i].isOpen) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const SizedBox(width: 36),
+                              AppSpacing.hGapSm,
+                              Icon(Icons.restaurant_outlined,
+                                  size: 14,
+                                  color: _config[i].hasLunch
+                                      ? AppColors.warning
+                                      : context.colors.textMuted),
                               AppSpacing.hGapXs,
-                              Text('—',
-                                  style: TextStyle(
-                                      color: context.colors.textMuted)),
-                              AppSpacing.hGapXs,
-                              _TimeChip(
-                                label: _config[i].close,
-                                enabled: _config[i].isOpen,
-                                onTap: () => _pickTime(i, false),
+                              if (_config[i].hasLunch)
+                                Expanded(
+                                  child: Row(children: [
+                                    _TimeChip(
+                                      label: _config[i].lunchStart!,
+                                      enabled: true,
+                                      onTap: () => _pickLunchTime(i, true),
+                                    ),
+                                    AppSpacing.hGapXs,
+                                    Text('—',
+                                        style: TextStyle(
+                                            color: context.colors
+                                                .textMuted)),
+                                    AppSpacing.hGapXs,
+                                    _TimeChip(
+                                      label: _config[i].lunchEnd!,
+                                      enabled: true,
+                                      onTap: () => _pickLunchTime(i, false),
+                                    ),
+                                  ]),
+                                )
+                              else
+                                Expanded(
+                                  child: Text(
+                                    tr(
+                                        ref,
+                                        'mobile.barber.hours.noLunch',
+                                        'Tanaffus yo\'q'),
+                                    style: AppText.caption.copyWith(
+                                      color: context.colors.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              Switch(
+                                value: _config[i].hasLunch,
+                                activeThumbColor: AppColors.warning,
+                                onChanged: (v) => _toggleLunch(i, v),
                               ),
                             ],
                           ),
-                        ),
-                        Switch(
-                          value: _config[i].isOpen,
-                          activeThumbColor: AppColors.primary,
-                          onChanged: (v) {
-                            AppHaptics.selection();
-                            setState(() => _config[i] =
-                                _config[i].copyWith(isOpen: v));
-                          },
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -334,19 +453,45 @@ class _DayConfig {
   final String open;
   final String close;
   final bool isOpen;
+
+  /// Per-day lunch break. Optional — a nullable lunchStart/lunchEnd
+  /// pair means "no lunch on this day" (the previous version had a
+  /// single lunch window shared across the whole week, which didn't
+  /// match real barbershops where breaks vary per day).
+  final String? lunchStart;
+  final String? lunchEnd;
+  bool get hasLunch =>
+      lunchStart != null &&
+      lunchEnd != null &&
+      lunchStart!.isNotEmpty &&
+      lunchEnd!.isNotEmpty;
+
   const _DayConfig({
     required this.day,
     required this.open,
     required this.close,
     required this.isOpen,
+    this.lunchStart,
+    this.lunchEnd,
   });
-  _DayConfig copyWith(
-          {String? day, String? open, String? close, bool? isOpen}) =>
+
+  _DayConfig copyWith({
+    String? day,
+    String? open,
+    String? close,
+    bool? isOpen,
+    String? lunchStart,
+    String? lunchEnd,
+    bool clearLunch = false,
+  }) =>
       _DayConfig(
-          day: day ?? this.day,
-          open: open ?? this.open,
-          close: close ?? this.close,
-          isOpen: isOpen ?? this.isOpen);
+        day: day ?? this.day,
+        open: open ?? this.open,
+        close: close ?? this.close,
+        isOpen: isOpen ?? this.isOpen,
+        lunchStart: clearLunch ? null : (lunchStart ?? this.lunchStart),
+        lunchEnd: clearLunch ? null : (lunchEnd ?? this.lunchEnd),
+      );
 }
 
 class _TimeChip extends StatelessWidget {
