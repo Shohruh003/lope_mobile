@@ -106,15 +106,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 },
               ),
               children: [
-                // Stadia Alidade Smooth — clean Yandex/Google-style
-                // basemap with warm greys, clear road hierarchy and
-                // blue-teal water. Ships purpose-built light and dark
-                // variants so no ColorFilter hacks are needed. Free
-                // tier: 200k tiles/month with attribution. Domain-based
-                // auth handles localhost dev without an API key.
+                // Stadia Alidade Smooth for light + Alidade Smooth Dark
+                // for dark. Both are Yandex-flavoured OSM styles with
+                // clear road hierarchy and coloured POIs. Free tier
+                // covers dev / early prod (200k tiles/month, no API
+                // key on localhost). For the dark variant we push the
+                // tiles through a saturation + brightness boost so the
+                // canvas doesn't read "hira" (dull) - matches the
+                // navy-blue Yandex night map the user asked for.
                 Builder(builder: (ctx) {
                   final isDark = Theme.of(ctx).brightness == Brightness.dark;
-                  return TileLayer(
+                  final tiles = TileLayer(
                     urlTemplate: isDark
                         ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
                         : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
@@ -122,6 +124,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     userAgentPackageName: 'uz.lopestyle.mobile',
                     maxZoom: 20,
                     retinaMode: MediaQuery.of(ctx).devicePixelRatio > 1.5,
+                  );
+                  if (!isDark) return tiles;
+                  return ColorFiltered(
+                    // Saturation ~1.5x + slight brightness lift.
+                    // sat = 1.5, lum(R)=0.213, lum(G)=0.715, lum(B)=0.072
+                    // Row = lum + (1-lum) * sat matrix from Porterduff
+                    // color-boost table.
+                    colorFilter: const ColorFilter.matrix(<double>[
+                      1.463, -0.358, -0.036, 0, 14,
+                      -0.107, 1.213,  -0.036, 0, 14,
+                      -0.107, -0.358, 1.535,  0, 14,
+                      0,      0,       0,      1, 0,
+                    ]),
+                    child: tiles,
                   );
                 }),
                 if (myLL != null)
