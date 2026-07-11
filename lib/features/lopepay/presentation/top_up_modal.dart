@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -47,8 +48,14 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
     final uri = Uri.parse(_telegramBot);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (mounted) Navigator.of(context).pop();
+    } else if (mounted) {
+      // Was silent — user tapped support and nothing happened. Surface
+      // an error explaining Telegram isn't installed / launchable.
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.telegramNotInstalled',
+              'Telegram ilovasi topilmadi'))));
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _pay() async {
@@ -86,13 +93,24 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else if (mounted) {
+          // Was silent — user tapped Pay, nothing happened, no clue why.
+          // The payment URL didn't launch (missing browser, blocked
+          // intent). Surface it so the user knows to open the URL
+          // manually or retry.
+          setState(() => _error = tr(ref, 'common.cannotOpenLink',
+              "Havolani ochib bo'lmadi"));
+          return;
         }
       }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       AppHaptics.error();
+      // humanize(e) turns the Dio exception into a readable Uzbek
+      // message; the previous '$e' printed the raw DioException string
+      // which included the full stack trace on some errors.
       setState(() => _error =
-          '${tr(ref, 'topUp.payError', "To'lov tizimi bilan bog'lanishda xatolik")}: $e');
+          '${tr(ref, 'topUp.payError', "To'lov tizimi bilan bog'lanishda xatolik")}: ${humanize(e)}');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -313,7 +331,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
         onChanged: (_) => setState(() => _error = null),
         style: AppText.numeric.copyWith(fontSize: 22),
         decoration: InputDecoration(
-          hintText: '10 000',
+          hintText: tr(ref, 'topUp.amountHint', '10 000'),
           suffixText: tr(ref, 'common.currency', "so'm"),
           suffixStyle: AppText.body.copyWith(color: context.colors.textMuted),
         ),

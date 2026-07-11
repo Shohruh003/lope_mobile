@@ -25,6 +25,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
   final _nameCtrl = TextEditingController();
   final _selected = <String>{};
   DateTime _date = DateTime.now();
+  Future<List<String>>? _slotsFuture;
   String? _time;
   bool _busy = false;
   String? _error;
@@ -302,6 +303,12 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                         setState(() {
                           _date = DateTime(d.year, d.month, d.day);
                           _time = null;
+                          // Invalidate the cached slots future so the
+                          // FutureBuilder below re-fetches for the new
+                          // date. Without this, every parent rebuild
+                          // (chip toggle, keyboard focus) re-hits the
+                          // API even though the date hadn't changed.
+                          _slotsFuture = null;
                         });
                       },
                       haptic: HapticStrength.none,
@@ -351,7 +358,10 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
               const SizedBox(height: AppSpacing.sm),
               FutureBuilder<List<String>>(
                 key: ValueKey(_date.toIso8601String()),
-                future: _loadSlots(barberId),
+                // Cache the future so the API isn't re-hit on every
+                // parent rebuild — only recreate when it's been
+                // invalidated (date change / initial render).
+                future: _slotsFuture ??= _loadSlots(barberId),
                 builder: (context, snap) {
                   if (!snap.hasData) {
                     return const Padding(
@@ -446,13 +456,15 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(9)
                       ],
-                      decoration: const InputDecoration(
-                        prefix: Padding(
+                      decoration: InputDecoration(
+                        prefix: const Padding(
                             padding: EdgeInsets.only(right: 6),
                             child: Text("+998",
                                 style:
                                     TextStyle(fontWeight: FontWeight.w700))),
-                        hintText: "90 123 45 67",
+                        hintText: tr(ref,
+                            'mobile.publicBooking.phoneHint',
+                            '90 123 45 67'),
                       ),
                     ),
                   ],

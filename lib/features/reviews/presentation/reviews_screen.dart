@@ -13,7 +13,10 @@ class ReviewsScreen extends ConsumerWidget {
   const ReviewsScreen({super.key, required this.barberId});
   final String barberId;
 
-  static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
+  // Locale-neutral formatter — the pattern renders identically without
+  // the ru_RU locale, so dropping it removes an accidental "Russian
+  // date format" signal on a UZ-first app.
+  static final _df = DateFormat('dd.MM.yyyy');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,13 +60,27 @@ class ReviewsScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return AppEmptyState(
-              icon: Icons.rate_review_outlined,
-              title: tr(ref, 'mobile.reviews.empty', "Hali sharhlar yo'q"),
-              message: tr(
-                ref,
-                'mobile.reviews.emptyHint',
-                "Birinchi bo'lib sharh qoldiring — boshqa mijozlarga tanlashda yordam beradi.",
+            return RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async =>
+                  ref.refresh(barberReviewsProvider(barberId).future),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: 420,
+                    child: AppEmptyState(
+                      icon: Icons.rate_review_outlined,
+                      title: tr(ref, 'mobile.reviews.empty',
+                          "Hali sharhlar yo'q"),
+                      message: tr(
+                        ref,
+                        'mobile.reviews.emptyHint',
+                        "Birinchi bo'lib sharh qoldiring — boshqa mijozlarga tanlashda yordam beradi.",
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -121,7 +138,7 @@ class ReviewsScreen extends ConsumerWidget {
                                       idx < r.rating
                                           ? Icons.star
                                           : Icons.star_border,
-                                      color: const Color(0xFFFBBF24),
+                                      color: AppColors.warning,
                                       size: 14,
                                     ))),
                       ]),

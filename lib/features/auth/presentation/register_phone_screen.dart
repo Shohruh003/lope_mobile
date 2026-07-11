@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -52,12 +53,15 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
       context.push('/register-otp?phone=${Uri.encodeComponent(phone)}');
     } on Object catch (e) {
       AppHaptics.error();
+      final isDio = e is DioException;
+      final isOffline = isDio &&
+          (e).type == DioExceptionType.connectionError;
+      final isConflict = isDio && (e).response?.statusCode == 409;
       String msg = tr(ref, 'common.errorRetry',
           "Xatolik — qaytadan urinib ko'ring");
-      if (e.toString().contains('SocketException')) {
+      if (isOffline) {
         msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
-      }
-      if (e.toString().contains('409')) {
+      } else if (isConflict) {
         msg = tr(ref, 'auth.phoneAlreadyRegistered',
             "Bu raqam allaqachon ro'yxatdan o'tgan");
       }

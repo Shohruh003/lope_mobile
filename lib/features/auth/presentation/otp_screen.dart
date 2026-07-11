@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/errors.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../data/auth_repository.dart';
@@ -95,11 +97,20 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             content:
                 Text(tr(ref, 'auth.newCodeSent', 'Yangi kod yuborildi'))));
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.errorRetry',
-                "Xatolik — qaytadan urinib ko'ring"))));
+        // Was `catch (_)` — SMS-rate-limit / network / gateway errors
+        // all folded into one generic message. Surface humanize(e) so
+        // the user can distinguish "no internet" from "too many
+        // requests, wait a bit".
+        final isRateLimited =
+            e is DioException && e.response?.statusCode == 429;
+        final msg = isRateLimited
+            ? tr(ref, 'auth.otpRateLimited',
+                "Juda tez-tez so'radingiz — biroz kuting")
+            : humanize(e);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(msg)));
       }
     }
   }
@@ -295,7 +306,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             _focusNodes[i + 1].requestFocus();
           } else if (v.isEmpty && i > 0) {
             _focusNodes[i - 1].requestFocus();
-          } else if (v.isNotEmpty && i == 3) {
+          } else if (v.isNotEmpty && i == 3 && !_loading) {
+            // Guard against double-verify: without the _loading check
+            // the auto-submit fires while the previous verify is still
+            // in flight (e.g. autofill pasting the same code twice) and
+            // the backend rejects the retry as already-used.
             _focusNodes[i].unfocus();
             _submit();
           }

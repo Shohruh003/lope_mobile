@@ -34,14 +34,30 @@ class FavoritesScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return AppEmptyState(
-              icon: Icons.bookmark_border,
-              title: tr(ref, 'mobile.customer.favorites.empty',
-                  "Masterlaringiz yo'q"),
-              message: tr(
-                ref,
-                'mobile.customer.favorites.emptyHint',
-                "Sartaroshni masterlaringizga qo'shish uchun uning kartochkasida bookmark belgisini bosing.",
+            // Wrap the empty state in a scrollable so pull-to-refresh
+            // works even when there are no favorites — otherwise the
+            // user has no way to retry after a bad initial load.
+            return RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async =>
+                  ref.refresh(favoritesProvider.future),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: 420,
+                    child: AppEmptyState(
+                      icon: Icons.bookmark_border,
+                      title: tr(ref, 'mobile.customer.favorites.empty',
+                          "Masterlaringiz yo'q"),
+                      message: tr(
+                        ref,
+                        'mobile.customer.favorites.emptyHint',
+                        "Sartaroshni masterlaringizga qo'shish uchun uning kartochkasida bookmark belgisini bosing.",
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -140,14 +156,14 @@ class FavoritesScreen extends ConsumerWidget {
                         },
                         scale: 0.85,
                         child: Container(
-                          width: 36,
-                          height: 36,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.bookmark,
-                              color: AppColors.primary, size: 18),
+                              color: AppColors.primary, size: 20),
                         ),
                       ),
                     ],

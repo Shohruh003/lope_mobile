@@ -85,7 +85,10 @@ class _MyBookingsScreenState extends ConsumerState<MyBookingsScreen>
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      // Was `_error = e.toString()` — the user saw the raw Dio
+      // exception (`DioException [connection error]: ...`) instead of
+      // a readable message.
+      setState(() => _error = humanize(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -312,6 +315,28 @@ class _BookingCard extends ConsumerWidget {
   final Booking b;
   final Future<void> Function() onChanged;
 
+  static const _monthsUz = [
+    'yan', 'fev', 'mar', 'apr', 'may', 'iyn',
+    'iyl', 'avg', 'sen', 'okt', 'noy', 'dek',
+  ];
+
+  /// Humanized version of the raw ISO `b.date` — "Bugun / Ertaga / 11
+  /// iyl" so the card doesn't feel like a database row.
+  String _prettyDate(WidgetRef ref) {
+    final dt = DateTime.tryParse(b.date);
+    if (dt == null) return b.date;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(dt.year, dt.month, dt.day);
+    final diff = target.difference(today).inDays;
+    if (diff == 0) return tr(ref, 'mobile.dates.today', 'Bugun');
+    if (diff == 1) return tr(ref, 'mobile.dates.tomorrow', 'Ertaga');
+    if (diff == -1) return tr(ref, 'mobile.dates.yesterday', 'Kecha');
+    final month = _monthsUz[dt.month - 1];
+    if (dt.year != now.year) return '${dt.day} $month ${dt.year}';
+    return '${dt.day} $month';
+  }
+
   ({AppBadgeVariant variant, String label}) _statusMeta(WidgetRef ref) {
     switch (b.status) {
       case 'completed':
@@ -391,7 +416,7 @@ class _BookingCard extends ConsumerWidget {
                   Icon(Icons.calendar_today_outlined,
                       size: 12, color: context.colors.textMuted),
                   AppSpacing.hGapXs,
-                  Text(b.date, style: AppText.caption),
+                  Text(_prettyDate(ref), style: AppText.caption),
                   AppSpacing.hGapMd,
                   Icon(Icons.access_time_outlined,
                       size: 12, color: context.colors.textMuted),
@@ -491,11 +516,14 @@ class _BookingCard extends ConsumerWidget {
       if (context.mounted) {
         await _maybePromptReview(context, ref);
       }
-    } catch (_) {
+    } catch (e) {
+      // Was `catch (_)` — booking-complete failures collapsed to a
+      // generic retry hint. Surface the real reason so the user knows
+      // whether to retry or fix something first.
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.errorRetry',
-                "Xatolik — qaytadan urinib ko'ring"))));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     }
   }
@@ -660,11 +688,11 @@ class _BookingCard extends ConsumerWidget {
             content: Text(tr(ref, 'myBookings.cancelled',
                 'Bron bekor qilindi'))));
       }
-    } catch (_) {
+    } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.errorRetry',
-                "Xatolik — qaytadan urinib ko'ring"))));
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     }
   }

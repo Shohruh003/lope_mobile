@@ -26,7 +26,14 @@ class _PaymentCallbackScreenState
     if (user != null) ref.invalidate(myBalanceProvider(user.id));
     // ignore: unawaited_futures
     ref.read(authControllerProvider.notifier).refreshFromServer();
-    AppHaptics.success();
+    // Gate the haptic on the actual payment outcome — the old
+    // AppHaptics.success() fired even when the callback URL carried
+    // status=failed, making a rejected payment feel like it worked.
+    if (widget.status == 'success') {
+      AppHaptics.success();
+    } else {
+      AppHaptics.error();
+    }
   }
 
   @override

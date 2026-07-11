@@ -326,14 +326,22 @@ class _SelectedCard extends ConsumerWidget {
                   onTap: onClose,
                   scale: 0.85,
                   haptic: HapticStrength.light,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: context.colors.surfaceElevated,
-                      shape: BoxShape.circle,
+                  // Enlarged from ~18px to a 44px hit area with a
+                  // smaller visual pill — meets the touch-target
+                  // minimum without stealing space from the title.
+                  child: Padding(
+                    padding: const EdgeInsets.all(9),
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: context.colors.surfaceElevated,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.close,
+                          size: 14, color: context.colors.textMuted),
                     ),
-                    child: Icon(Icons.close,
-                        size: 14, color: context.colors.textMuted),
                   ),
                 ),
               ]),
@@ -396,17 +404,17 @@ class _SelectedCard extends ConsumerWidget {
                 ),
                 AppSpacing.hGapSm,
                 TapScale(
-                  onTap: () => _openDirections(barber),
+                  onTap: () => _openDirections(barber, context, ref),
                   scale: 0.9,
                   child: Container(
-                    width: 36,
-                    height: 36,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.directions,
-                        color: AppColors.primary, size: 18),
+                        color: AppColors.primary, size: 20),
                   ),
                 ),
               ]),
@@ -417,13 +425,22 @@ class _SelectedCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _openDirections(Barber b) async {
+  Future<void> _openDirections(
+      Barber b, BuildContext context, WidgetRef ref) async {
     AppHaptics.light();
     if (b.lat == null || b.lng == null) return;
     final uri = Uri.parse(
         'https://yandex.uz/maps/?rtext=~${b.lat},${b.lng}&rtt=auto');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (context.mounted) {
+      // Was silent — the user tapped Directions, Yandex Maps failed to
+      // launch (no browser / blocked intent) and there was zero
+      // feedback. Surface it so they can at least try again or open
+      // the URL manually.
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(ref, 'common.cannotOpenLink',
+              "Havolani ochib bo'lmadi"))));
     }
   }
 }

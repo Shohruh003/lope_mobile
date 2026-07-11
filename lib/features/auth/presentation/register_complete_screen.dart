@@ -126,12 +126,19 @@ class _RegisterCompleteScreenState
       routeToRoleHome(context, user);
     } on Object catch (e) {
       AppHaptics.error();
+      // Typed checks instead of the previous string sniffs — Dio's
+      // exception toString isn't stable across versions and matching
+      // "409" against a plain string false-positives on any error body
+      // that happens to contain those digits.
+      final isDio = e is DioException;
+      final isOffline = isDio &&
+          (e).type == DioExceptionType.connectionError;
+      final isConflict = isDio && (e).response?.statusCode == 409;
       String msg = tr(ref, 'auth.registrationError',
           "Ro'yxatdan o'tishda xato");
-      if (e.toString().contains('SocketException')) {
+      if (isOffline) {
         msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
-      }
-      if (e.toString().contains('409')) {
+      } else if (isConflict) {
         msg = tr(ref, 'auth.phoneAlreadyRegistered',
             "Bu raqam allaqachon ro'yxatdan o'tgan");
       }

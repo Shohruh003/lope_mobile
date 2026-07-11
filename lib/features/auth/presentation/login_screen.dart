@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -65,11 +66,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       routeToRoleHome(context, user);
     } on Object catch (e) {
       AppHaptics.error();
-      String msg = tr(ref, 'auth.invalidCredentials',
-          "Telefon yoki parol noto'g'ri");
-      if (e.toString().contains('SocketException')) {
-        msg = tr(ref, 'common.noInternet', "Internetga ulanish yo'q");
-      }
+      // Was `e.toString().contains('SocketException')` — Dio wraps
+      // network failures in a typed exception, so checking the type is
+      // both cheaper and doesn't break when the exception's toString
+      // changes.
+      final isOffline = e is DioException &&
+          e.type == DioExceptionType.connectionError;
+      final msg = isOffline
+          ? tr(ref, 'common.noInternet', "Internetga ulanish yo'q")
+          : tr(ref, 'auth.invalidCredentials',
+              "Telefon yoki parol noto'g'ri");
       setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
