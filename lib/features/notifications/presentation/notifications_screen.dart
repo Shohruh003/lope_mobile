@@ -40,41 +40,10 @@ class NotificationsScreen extends ConsumerWidget {
               if (unread == 0) return const SizedBox.shrink();
               return Padding(
                 padding: const EdgeInsets.only(right: AppSpacing.md),
-                child: TapScale(
-                  onTap: () async {
-                    AppHaptics.light();
-                    try {
-                      await ref
-                          .read(notificationsRepositoryProvider)
-                          .markAllRead(role: user.role, userId: user.id);
-                      ref.invalidate(notificationsProvider(user.role));
-                    } catch (_) {}
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      borderRadius: AppRadius.rPill,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.done_all,
-                            color: AppColors.primary, size: 16),
-                        AppSpacing.hGapXs,
-                        Text(
-                          '$unread',
-                          style: AppText.caption.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                child: _MarkAllReadChip(
+                  unread: unread,
+                  role: user.role,
+                  userId: user.id,
                 ),
               );
             },
@@ -92,12 +61,28 @@ class NotificationsScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
-            return AppEmptyState(
-              icon: Icons.notifications_off_rounded,
-              title: tr(ref, 'mobile.notifications.empty',
-                  "Bildirishnomalar yo'q"),
-              message: tr(ref, 'barberApp.noNotificationsHint',
-                  "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz"),
+            // Wrap the empty state in a scrollable so pull-to-refresh
+            // works even without any notifications — otherwise the
+            // barber can't force a re-fetch after a bad connection.
+            return RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: () async =>
+                  ref.refresh(notificationsProvider(user.role).future),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: 420,
+                    child: AppEmptyState(
+                      icon: Icons.notifications_off_rounded,
+                      title: tr(ref, 'mobile.notifications.empty',
+                          "Bildirishnomalar yo'q"),
+                      message: tr(ref, 'barberApp.noNotificationsHint',
+                          "Yangi bron yoki eslatma kelsa shu yerda ko'rasiz"),
+                    ),
+                  ),
+                ],
+              ),
             );
           }
 
@@ -150,7 +135,17 @@ class NotificationsScreen extends ConsumerWidget {
                                     .markRead(n.id, role: user.role);
                                 ref.invalidate(
                                     notificationsProvider(user.role));
-                              } catch (_) {}
+                              } catch (e) {
+                                // Was `catch (_) {}` — the tile stayed
+                                // visually unread on failure with no
+                                // feedback at all. Surface a snackbar
+                                // so the user knows to retry.
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+                              }
                             },
                           ),
                         ).animate().fadeIn(
@@ -357,5 +352,87 @@ class _NotifTile extends StatelessWidget {
     final hh = lt.hour.toString().padLeft(2, '0');
     final mm = lt.minute.toString().padLeft(2, '0');
     return '$hh:$mm';
+  }
+}
+
+/// AppBar action pill that runs the mark-all-read call with a busy
+/// state so rapid taps don't spam the endpoint (previously the tap
+/// callback awaited the call with no visual gating). Failures now
+/// surface via a snackbar instead of `catch (_) {}` swallowing them.
+class _MarkAllReadChip extends ConsumerStatefulWidget {
+  const _MarkAllReadChip({
+    required this.unread,
+    required this.role,
+    required this.userId,
+  });
+  final int unread;
+  final String role;
+  final String userId;
+
+  @override
+  ConsumerState<_MarkAllReadChip> createState() => _MarkAllReadChipState();
+}
+
+class _MarkAllReadChipState extends ConsumerState<_MarkAllReadChip> {
+  bool _busy = false;
+
+  Future<void> _run() async {
+    if (_busy) return;
+    AppHaptics.light();
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(notificationsRepositoryProvider)
+          .markAllRead(role: widget.role, userId: widget.userId);
+      ref.invalidate(notificationsProvider(widget.role));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: _busy ? null : _run,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.15),
+          borderRadius: AppRadius.rPill,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _busy
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  )
+                : const Icon(Icons.done_all,
+                    color: AppColors.primary, size: 16),
+            AppSpacing.hGapXs,
+            Text(
+              '${widget.unread}',
+              style: AppText.caption.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

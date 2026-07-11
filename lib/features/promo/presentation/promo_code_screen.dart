@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -24,15 +25,29 @@ class PromoCodeScreen extends ConsumerWidget {
         ),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            if (user != null) ...[
-              _MyReferralCard(user: user).animate().fadeIn(duration: 400.ms),
-              AppSpacing.gapLg,
-              _InviteHint(),
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async {
+            // Rehydrate the AppUser (referral code + count) — the code
+            // can be edited from web too, and referralsCount ticks up
+            // whenever an invitee registers.
+            await ref
+                .read(authControllerProvider.notifier)
+                .refreshFromServer();
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              if (user != null) ...[
+                _MyReferralCard(user: user)
+                    .animate()
+                    .fadeIn(duration: 400.ms),
+                AppSpacing.gapLg,
+                _InviteHint(),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -104,6 +119,7 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
     final next = _editCtrl.text.trim().toUpperCase();
     if (!_allowed.hasMatch(next)) {
       AppHaptics.error();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(ref, 'promoCode.invalidFormat',
               'Faqat A-Z va 0-9 (1-20 belgi)'))));
@@ -130,9 +146,14 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
     } catch (e) {
       AppHaptics.error();
       if (mounted) {
-        final msg = e.toString().contains('409')
+        // The old `e.toString().contains('409')` sniff was fragile —
+        // Dio's default toString doesn't include the status code
+        // literally. Read the response's status directly instead.
+        final isConflict =
+            e is DioException && e.response?.statusCode == 409;
+        final msg = isConflict
             ? tr(ref, 'promoCode.taken', 'Bu kod allaqachon olingan')
-            : "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}";
+            : humanize(e);
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(msg)));
       }
@@ -200,9 +221,11 @@ class _MyReferralCardState extends ConsumerState<_MyReferralCard> {
                           letterSpacing: 3,
                           fontSize: 24,
                         ),
-                        decoration: const InputDecoration(
-                          hintText: 'PROMO20',
-                          hintStyle: TextStyle(color: Colors.white54),
+                        decoration: InputDecoration(
+                          hintText: tr(ref,
+                              'mobile.promo.hintExample', 'PROMO20'),
+                          hintStyle: const TextStyle(
+                              color: Colors.white54),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,

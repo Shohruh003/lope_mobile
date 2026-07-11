@@ -19,8 +19,14 @@ class TransactionsScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
-  static final _df = DateFormat('dd.MM.yyyy HH:mm', 'ru_RU');
+  // Locale-neutral display formatter — pattern is language-agnostic
+  // so dropping the ru_RU locale doesn't change what the barber sees,
+  // it just stops advertising Russian formatting on a UZ-first app.
+  static final _df = DateFormat('dd.MM.yyyy HH:mm');
+  // ISO shape kept for the backend query params only.
   static final _ymd = DateFormat('yyyy-MM-dd');
+  // Human-facing shape for filter pills — never the ISO string.
+  static final _pretty = DateFormat('dd.MM.yyyy');
 
   String _direction = 'all';
   String _method = 'all';
@@ -331,7 +337,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         child: _DatePill(
                           label: _from == null
                               ? tr(ref, 'shop.filter.from', 'Dan')
-                              : _ymd.format(_from!),
+                              : _pretty.format(_from!),
                           onTap: () => _pickDate(true),
                         ),
                       ),
@@ -343,7 +349,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         child: _DatePill(
                           label: _to == null
                               ? tr(ref, 'shop.filter.to', 'Gacha')
-                              : _ymd.format(_to!),
+                              : _pretty.format(_to!),
                           onTap: () => _pickDate(false),
                         ),
                       ),
