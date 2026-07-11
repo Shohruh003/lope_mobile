@@ -293,26 +293,35 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    DropdownButtonFormField<String>(
-                      isDense: true,
-                      initialValue: _method,
-                      decoration: InputDecoration(
-                        labelText: tr(ref, 'lopePay.shop.filterType',
-                            "To'lov turi"),
-                      ),
-                      items: [
-                        for (final m in const [
-                          'all',
-                          'click',
-                          'payme',
-                          'telegram',
-                          'internal'
-                        ])
-                          DropdownMenuItem(
-                              value: m, child: Text(_methodLabel(m))),
+                    AppSelectField<String>(
+                      label: tr(ref, 'lopePay.shop.filterType',
+                          "To'lov turi"),
+                      icon: Icons.filter_alt_outlined,
+                      value: _method,
+                      options: [
+                        AppSelectOption(
+                            value: 'all',
+                            label: _methodLabel('all'),
+                            icon: Icons.all_inclusive),
+                        AppSelectOption(
+                            value: 'click',
+                            label: _methodLabel('click'),
+                            icon: Icons.credit_card),
+                        AppSelectOption(
+                            value: 'payme',
+                            label: _methodLabel('payme'),
+                            icon: Icons.account_balance_wallet),
+                        AppSelectOption(
+                            value: 'telegram',
+                            label: _methodLabel('telegram'),
+                            icon: Icons.send),
+                        AppSelectOption(
+                            value: 'internal',
+                            label: _methodLabel('internal'),
+                            icon: Icons.sync_alt),
                       ],
                       onChanged: (v) => setState(() {
-                        _method = v ?? 'all';
+                        _method = v;
                         _page = 1;
                       }),
                     ),

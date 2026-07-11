@@ -25,6 +25,7 @@ export 'widgets/tap_scale.dart';
 export 'widgets/app_card.dart';
 export 'widgets/app_button.dart';
 export 'widgets/app_chip.dart';
+export 'widgets/app_select_field.dart';
 export 'widgets/app_badge.dart';
 export 'widgets/skeleton.dart';
 export 'widgets/branded_loader.dart';
