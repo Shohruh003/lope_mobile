@@ -9,7 +9,16 @@ import '../data/barber_panel_repository.dart'
     show BarberBookingActions, barberPanelRepositoryProvider;
 
 class ScheduleGeneratorScreen extends ConsumerStatefulWidget {
-  const ScheduleGeneratorScreen({super.key});
+  const ScheduleGeneratorScreen({super.key, this.initialDate});
+
+  /// Optional pre-selected date passed via `?date=YYYY-MM-DD` from the
+  /// schedule screen. When set, the generator defaults `_from` and
+  /// `_to` to this single day — matches the barber's mental model
+  /// where they tap "Jadval qo'shish → Avtomatik" on a specific date
+  /// and expect the schedule to cover only that day (previously the
+  /// default was today→today+7, silently creating a week's worth).
+  final DateTime? initialDate;
+
   @override
   ConsumerState<ScheduleGeneratorScreen> createState() =>
       _ScheduleGeneratorScreenState();
@@ -17,8 +26,9 @@ class ScheduleGeneratorScreen extends ConsumerStatefulWidget {
 
 class _ScheduleGeneratorScreenState
     extends ConsumerState<ScheduleGeneratorScreen> {
-  DateTime _from = DateTime.now();
-  DateTime _to = DateTime.now().add(const Duration(days: 7));
+  late DateTime _from = widget.initialDate ?? DateTime.now();
+  late DateTime _to = widget.initialDate ??
+      DateTime.now().add(const Duration(days: 7));
   TimeOfDay _dayStart = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay _dayEnd = const TimeOfDay(hour: 20, minute: 0);
   int _slotMinutes = 30;
@@ -57,9 +67,10 @@ class _ScheduleGeneratorScreenState
 
   Future<void> _pickDate(bool start) async {
     AppHaptics.light();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: start ? _from : _to,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: start ? _from : _to,
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
@@ -77,7 +88,7 @@ class _ScheduleGeneratorScreenState
       _ => _lunchEnd,
     };
     final picked =
-        await showTimePicker(context: context, initialTime: initial);
+        await AppTimePicker.show(context, ref: ref, initial: initial);
     if (picked == null) return;
     setState(() {
       switch (which) {
@@ -122,10 +133,11 @@ class _ScheduleGeneratorScreenState
           );
       if (mounted) {
         AppHaptics.success();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'mobile.barber.scheduleGen.created',
-                'Jadval yaratildi'))));
-        Navigator.of(context).pop();
+        // Pop with `true` so the schedule screen can invalidate its
+        // slot provider immediately — the previous flow relied on the
+        // provider auto-refreshing, which felt like the schedule
+        // "appeared late" after the snackbar.
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       AppHaptics.error();

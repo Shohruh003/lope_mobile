@@ -179,6 +179,8 @@ class BarberServicesScreen extends ConsumerWidget {
         text: (existing?['nameUz'] ?? existing?['name'] ?? '').toString());
     final nameRu =
         TextEditingController(text: (existing?['nameRu'] ?? '').toString());
+    final nameEn =
+        TextEditingController(text: (existing?['nameEn'] ?? '').toString());
     final icon =
         TextEditingController(text: (existing?['icon'] ?? '').toString());
     final price =
@@ -260,6 +262,17 @@ class BarberServicesScreen extends ConsumerWidget {
                     'mobile.barber.services.nameRuHint', 'Стрижка'),
               ),
             ),
+            AppSpacing.gapSm,
+            TextField(
+              controller: nameEn,
+              style: AppText.body,
+              decoration: InputDecoration(
+                labelText: tr(ref,
+                    'mobile.barber.services.nameEnLabel', 'Name (EN)'),
+                hintText: tr(ref,
+                    'mobile.barber.services.nameEnHint', 'Haircut'),
+              ),
+            ),
             AppSpacing.gapMd,
             Row(children: [
               Expanded(
@@ -316,10 +329,12 @@ class BarberServicesScreen extends ConsumerWidget {
       final pMax = int.tryParse(priceMax.text.trim());
       final iconText = icon.text.trim();
       final nameRuText = nameRu.text.trim();
+      final nameEnText = nameEn.text.trim();
       final body = <String, dynamic>{
         'nameUz': name.text.trim(),
         'name': name.text.trim(),
         'nameRu': nameRuText,
+        'nameEn': nameEnText,
         'icon': iconText.isEmpty ? '✂️' : iconText,
         'price': int.tryParse(price.text.trim()) ?? 0,
         'priceMax': pMax != null && pMax > 0 ? pMax : null,
@@ -343,6 +358,7 @@ class BarberServicesScreen extends ConsumerWidget {
     } finally {
       name.dispose();
       nameRu.dispose();
+      nameEn.dispose();
       icon.dispose();
       price.dispose();
       priceMax.dispose();

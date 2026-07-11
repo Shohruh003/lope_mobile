@@ -204,7 +204,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/barber/account-edit', builder: (context, state) => const BarberAccountEditScreen()),
       GoRoute(path: '/barber/cards', builder: (context, state) => const BarberCardsScreen()),
       GoRoute(path: '/barber/promo-code', builder: (context, state) => const PromoCodeScreen()),
-      GoRoute(path: '/barber/schedule-generator', builder: (context, state) => const ScheduleGeneratorScreen()),
+      GoRoute(
+        path: '/barber/schedule-generator',
+        builder: (context, state) {
+          final raw = state.uri.queryParameters['date'];
+          final parsed = raw == null ? null : DateTime.tryParse(raw);
+          return ScheduleGeneratorScreen(initialDate: parsed);
+        },
+      ),
 
       // Shop feature paths
       GoRoute(

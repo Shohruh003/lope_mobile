@@ -35,9 +35,10 @@ class _BarberSmsHistoryScreenState
     final initial = (isFrom ? _from : _to) ?? DateTime.now();
     final first = DateTime(2024);
     final last = DateTime.now().add(const Duration(days: 1));
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initial,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: initial,
       firstDate: first,
       lastDate: last,
     );

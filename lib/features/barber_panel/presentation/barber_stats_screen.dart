@@ -581,9 +581,10 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
   Future<void> _pickDate(bool isFrom) async {
     AppHaptics.light();
     final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: (isFrom ? _from : _to) ?? now,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: (isFrom ? _from : _to) ?? now,
       firstDate: DateTime(now.year - 2),
       lastDate: DateTime(now.year, now.month, now.day),
     );

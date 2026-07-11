@@ -355,9 +355,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
   Future<void> _rescheduleBooking(
       BarberBooking booking, String currentDate, String barberId) async {
     final initialDate = DateTime.tryParse(currentDate) ?? DateTime.now();
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
+    final pickedDate = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: initialDate,
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
@@ -367,7 +368,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final initTime = TimeOfDay(
         hour: int.tryParse(parts[0]) ?? 9,
         minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
-    final pickedTime = await showTimePicker(context: context, initialTime: initTime);
+    final pickedTime =
+        await AppTimePicker.show(context, ref: ref, initial: initTime);
     if (pickedTime == null) return;
     final newDate =
         "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
@@ -779,8 +781,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     );
     if (choice == 'single') {
       if (!mounted) return;
-      final picked = await showTimePicker(
-          context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
+      final picked = await AppTimePicker.show(context,
+          ref: ref, initial: const TimeOfDay(hour: 9, minute: 0));
       if (picked == null) return;
       final time = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       try {
@@ -795,7 +797,18 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
     } else if (choice == 'generator') {
-      if (mounted) context.push('/barber/schedule-generator');
+      if (!mounted) return;
+      final dateStr = _dateStr(_selectedDate);
+      // Prefill the generator with the currently viewed date so the
+      // default range is that single day (previously today→today+7,
+      // silently creating a week when the barber only wanted one).
+      // Awaiting the push lets us invalidate the slot provider on
+      // return so the freshly generated schedule renders immediately.
+      final result = await context.push<bool>(
+          '/barber/schedule-generator?date=$dateStr');
+      if (result == true && mounted) {
+        _refreshDay(barberId);
+      }
     }
   }
 

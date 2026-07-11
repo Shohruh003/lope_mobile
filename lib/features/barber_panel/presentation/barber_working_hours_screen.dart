@@ -90,7 +90,7 @@ class _BarberWorkingHoursScreenState
         hour: int.tryParse(parts[0]) ?? 9,
         minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
     final picked =
-        await showTimePicker(context: context, initialTime: initial);
+        await AppTimePicker.show(context, ref: ref, initial: initial);
     if (picked == null) return;
     setState(() {
       final s =
