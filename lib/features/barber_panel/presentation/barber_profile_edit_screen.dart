@@ -203,7 +203,7 @@ class _BarberProfileEditScreenState
                           color: Colors.white,
                           shape: BoxShape.circle,
                           border: Border.all(
-                              color: AppColors.background, width: 3),
+                              color: context.colors.background, width: 3),
                         ),
                         alignment: Alignment.center,
                         child: _uploadingAvatar
@@ -246,7 +246,7 @@ class _BarberProfileEditScreenState
                     decoration: BoxDecoration(
                       color: (isAvailable
                               ? AppColors.success
-                              : AppColors.textMuted)
+                              : context.colors.textMuted)
                           .withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
@@ -256,7 +256,7 @@ class _BarberProfileEditScreenState
                           : Icons.visibility_off_outlined,
                       color: isAvailable
                           ? AppColors.success
-                          : AppColors.textMuted,
+                          : context.colors.textMuted,
                       size: 20,
                     ),
                   ),
@@ -314,9 +314,9 @@ class _BarberProfileEditScreenState
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceElevated,
+                  color: context.colors.surfaceElevated,
                   borderRadius: AppRadius.rMd,
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.colors.border),
                 ),
                 child: Row(children: List.generate(4, (i) {
                   final labels = [
@@ -341,10 +341,10 @@ class _BarberProfileEditScreenState
                             vertical: AppSpacing.sm),
                         decoration: BoxDecoration(
                           color:
-                              on ? AppColors.background : Colors.transparent,
+                              on ? context.colors.background : Colors.transparent,
                           borderRadius: AppRadius.rSm,
                           border: on
-                              ? Border.all(color: AppColors.border)
+                              ? Border.all(color: context.colors.border)
                               : null,
                           boxShadow: on ? AppShadows.subtle : null,
                         ),
@@ -357,8 +357,8 @@ class _BarberProfileEditScreenState
                                   ? FontWeight.w700
                                   : FontWeight.w500,
                               color: on
-                                  ? AppColors.textBright
-                                  : AppColors.textMuted,
+                                  ? context.colors.textBright
+                                  : context.colors.textMuted,
                             ),
                           ),
                         ),
@@ -420,10 +420,10 @@ class _BarberProfileEditScreenState
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
           gradient: on ? AppColors.primaryGradient : null,
-          color: on ? null : AppColors.surface,
+          color: on ? null : context.colors.surface,
           borderRadius: AppRadius.rMd,
           border: Border.all(
-            color: on ? AppColors.primary : AppColors.border,
+            color: on ? AppColors.primary : context.colors.border,
             width: on ? 2 : 1,
           ),
           boxShadow:
@@ -434,7 +434,7 @@ class _BarberProfileEditScreenState
           label,
           textAlign: TextAlign.center,
           style: AppText.body.copyWith(
-            color: on ? Colors.white : AppColors.textPrimary,
+            color: on ? Colors.white : context.colors.textPrimary,
             fontWeight: on ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -596,8 +596,8 @@ class _BarberProfileEditScreenState
             ],
           ),
         ),
-        const Icon(Icons.chevron_right,
-            color: AppColors.textMuted, size: 18),
+        Icon(Icons.chevron_right,
+            color: context.colors.textMuted, size: 18),
       ]),
     ).animate().fadeIn(duration: 200.ms);
   }
@@ -611,12 +611,12 @@ class _Fallback extends StatelessWidget {
     return Container(
       width: 112,
       height: 112,
-      color: AppColors.surface,
+      color: context.colors.surface,
       alignment: Alignment.center,
       child: Text(
         (name.isNotEmpty ? name[0] : '?').toUpperCase(),
         style: AppText.display.copyWith(
-          color: AppColors.textBright,
+          color: context.colors.textBright,
           fontSize: 40,
         ),
       ),

@@ -147,8 +147,8 @@ class _LopepayTransactionsScreenState
                                   : _ymd.format(_from!),
                               onTap: () => _pickDate(true))),
                       const SizedBox(width: AppSpacing.sm),
-                      const Text("—",
-                          style: TextStyle(color: AppColors.textMuted)),
+                      Text("—",
+                          style: TextStyle(color: context.colors.textMuted)),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                           child: _DatePill(
@@ -405,13 +405,13 @@ class _DatePill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rSm,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(children: [
-          const Icon(Icons.event_outlined,
-              size: 14, color: AppColors.textMuted),
+          Icon(Icons.event_outlined,
+              size: 14, color: context.colors.textMuted),
           const SizedBox(width: 5),
           Expanded(
             child: Text(label,

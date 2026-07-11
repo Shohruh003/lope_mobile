@@ -91,9 +91,9 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.background,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -135,13 +135,13 @@ class _Header extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.colors.surface,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.colors.border),
               ),
               alignment: Alignment.center,
-              child: const Icon(Icons.menu_rounded,
-                  color: AppColors.textPrimary, size: 20),
+              child: Icon(Icons.menu_rounded,
+                  color: context.colors.textPrimary, size: 20),
             ),
           ),
         ]),
@@ -163,8 +163,8 @@ class _BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        color: context.colors.background,
+        border: Border(top: BorderSide(color: context.colors.border)),
         boxShadow: AppShadows.subtle,
       ),
       child: SafeArea(
@@ -209,7 +209,7 @@ class _BottomBar extends StatelessWidget {
                             active ? item.activeIcon : item.icon,
                             color: active
                                 ? Colors.white
-                                : AppColors.textMuted,
+                                : context.colors.textMuted,
                             size: 22,
                           ),
                           if (active) ...[

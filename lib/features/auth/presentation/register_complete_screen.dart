@@ -185,7 +185,7 @@ class _RegisterCompleteScreenState
                     tr(ref, 'auth.yourInfoSub',
                         "Hisobni yakunlash uchun ma'lumotlaringizni kiriting"),
                     style: AppText.bodyLg
-                        .copyWith(color: AppColors.textMuted),
+                        .copyWith(color: context.colors.textMuted),
                     textAlign: TextAlign.center,
                   ),
                   AppSpacing.gapXxl,
@@ -266,7 +266,7 @@ class _RegisterCompleteScreenState
                                   _obscure
                                       ? Icons.visibility_outlined
                                       : Icons.visibility_off_outlined,
-                                  color: AppColors.textMuted,
+                                  color: context.colors.textMuted,
                                   size: 20),
                               onPressed: () =>
                                   setState(() => _obscure = !_obscure),
@@ -345,17 +345,17 @@ class _RegisterCompleteScreenState
                           padding: const EdgeInsets.symmetric(
                               horizontal: AppSpacing.md),
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceElevated,
+                            color: context.colors.surfaceElevated,
                             borderRadius: AppRadius.rMd,
                             border:
-                                Border.all(color: AppColors.border),
+                                Border.all(color: context.colors.border),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _role,
                               isExpanded: true,
-                              icon: const Icon(Icons.arrow_drop_down,
-                                  color: AppColors.textMuted),
+                              icon: Icon(Icons.arrow_drop_down,
+                                  color: context.colors.textMuted),
                               onChanged: (v) {
                                 if (v != null) {
                                   AppHaptics.selection();
@@ -459,10 +459,10 @@ class _RegisterCompleteScreenState
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
           gradient: on ? AppColors.primaryGradient : null,
-          color: on ? null : AppColors.surfaceElevated,
+          color: on ? null : context.colors.surfaceElevated,
           borderRadius: AppRadius.rMd,
           border: Border.all(
-            color: on ? AppColors.primary : AppColors.border,
+            color: on ? AppColors.primary : context.colors.border,
             width: on ? 2 : 1,
           ),
           boxShadow:
@@ -472,7 +472,7 @@ class _RegisterCompleteScreenState
         child: Text(
           label,
           style: AppText.body.copyWith(
-            color: on ? Colors.white : AppColors.textPrimary,
+            color: on ? Colors.white : context.colors.textPrimary,
             fontWeight: on ? FontWeight.w700 : FontWeight.w500,
           ),
         ),

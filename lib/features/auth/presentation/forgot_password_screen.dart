@@ -196,12 +196,12 @@ class _PhoneStepState extends ConsumerState<_PhoneStep> {
             LengthLimitingTextInputFormatter(9),
           ],
           style: AppText.body,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             prefixText: '+998 ',
             prefixStyle: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppColors.textMuted,
+              color: context.colors.textMuted,
             ),
             hintText: '901234567',
           ),
@@ -364,7 +364,7 @@ class _PasswordStepState extends ConsumerState<_PasswordStep> {
                   _obscure
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: AppColors.textMuted,
+                  color: context.colors.textMuted,
                   size: 20),
               onPressed: () => setState(() => _obscure = !_obscure),
             ),
@@ -383,7 +383,7 @@ class _PasswordStepState extends ConsumerState<_PasswordStep> {
                   _obscureConfirm
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: AppColors.textMuted,
+                  color: context.colors.textMuted,
                   size: 20),
               onPressed: () =>
                   setState(() => _obscureConfirm = !_obscureConfirm),
@@ -446,7 +446,7 @@ class _StepScaffold extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           subtitle,
-          style: AppText.bodyLg.copyWith(color: AppColors.textMuted),
+          style: AppText.bodyLg.copyWith(color: context.colors.textMuted),
           textAlign: TextAlign.center,
         ),
         AppSpacing.gapXxl,

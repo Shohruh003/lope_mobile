@@ -354,7 +354,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
     final isPaidOff = inst['isPaidOff'] == true;
     final picked = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -363,7 +363,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: context.colors.border,
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: AppSpacing.md),
           if (!isPaidOff)
@@ -384,7 +384,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
             ),
           _SheetAction(
             icon: Icons.edit_outlined,
-            tint: AppColors.textSecondary,
+            tint: context.colors.textSecondary,
             title: tr(ref, 'common.edit', "Tahrirlash"),
             onTap: () => Navigator.of(sheetCtx).pop('edit'),
           ),
@@ -397,7 +397,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           ),
           _SheetAction(
             icon: Icons.close,
-            tint: AppColors.textMuted,
+            tint: context.colors.textMuted,
             title: tr(ref, 'common.close', "Yopish"),
             onTap: () => Navigator.of(sheetCtx).pop(null),
           ),
@@ -428,7 +428,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
           markOk = await showDialog<int?>(
             context: context,
             builder: (dCtx) => AlertDialog(
-              backgroundColor: AppColors.background,
+              backgroundColor: context.colors.background,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.lg)),
               title: Text(
@@ -480,7 +480,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         final ok = await showDialog<bool>(
           context: context,
           builder: (dCtx) => AlertDialog(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.colors.background,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.lg)),
             title: Text(
@@ -509,7 +509,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         final ok = await showDialog<bool>(
           context: context,
           builder: (dCtx) => AlertDialog(
-            backgroundColor: AppColors.background,
+            backgroundColor: context.colors.background,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.lg)),
             title: Text(
@@ -587,16 +587,16 @@ class _MiniStat extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: context.colors.background,
         borderRadius: AppRadius.rSm,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
                 style: AppText.overline
-                    .copyWith(color: AppColors.textMuted, fontSize: 10)),
+                    .copyWith(color: context.colors.textMuted, fontSize: 10)),
             const SizedBox(height: 2),
             Text(value,
                 maxLines: 1,

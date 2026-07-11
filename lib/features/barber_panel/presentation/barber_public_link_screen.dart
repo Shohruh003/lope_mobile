@@ -112,7 +112,7 @@ class _BarberPublicLinkScreenState
                 tr(ref, 'mobile.barber.publicLink.hint',
                     'Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing.'),
                 style: AppText.bodyLg
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.colors.textSecondary),
               ),
               AppSpacing.gapLg,
               if (link == null)
@@ -360,7 +360,7 @@ class _LinkCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.surfaceElevated,
+              color: context.colors.surfaceElevated,
               borderRadius: AppRadius.rSm,
             ),
             child: Text(

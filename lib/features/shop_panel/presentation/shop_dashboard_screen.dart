@@ -120,8 +120,8 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                     child: _DatePill(
                         label: _ymd.format(_from), onTap: _pickFrom)),
                 AppSpacing.hGapSm,
-                const Text('—',
-                    style: TextStyle(color: AppColors.textMuted)),
+                Text('—',
+                    style: TextStyle(color: context.colors.textMuted)),
                 AppSpacing.hGapSm,
                 Expanded(
                     child: _DatePill(
@@ -299,8 +299,8 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                         'Mastera (Barberlar)'),
                     onTap: () => context.go('/shop?tab=1'),
                   ),
-                  const Divider(
-                    color: AppColors.border,
+                  Divider(
+                    color: context.colors.border,
                     height: 1,
                     indent: AppSpacing.xxl + AppSpacing.md,
                   ),
@@ -311,8 +311,8 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                         'Salon bronlari'),
                     onTap: () => context.go('/shop?tab=2'),
                   ),
-                  const Divider(
-                    color: AppColors.border,
+                  Divider(
+                    color: context.colors.border,
                     height: 1,
                     indent: AppSpacing.xxl + AppSpacing.md,
                   ),
@@ -322,8 +322,8 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                     label: tr(ref, 'shop.nav.clients', 'Mijozlar'),
                     onTap: () => context.push('/shop/clients'),
                   ),
-                  const Divider(
-                    color: AppColors.border,
+                  Divider(
+                    color: context.colors.border,
                     height: 1,
                     indent: AppSpacing.xxl + AppSpacing.md,
                   ),
@@ -335,8 +335,8 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                         "Hisob va to'lovlar"),
                     onTap: () => context.push('/shop/transactions'),
                   ),
-                  const Divider(
-                    color: AppColors.border,
+                  Divider(
+                    color: context.colors.border,
                     height: 1,
                     indent: AppSpacing.xxl + AppSpacing.md,
                   ),
@@ -347,8 +347,8 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                         'SMS tarixi'),
                     onTap: () => context.push('/shop/sms'),
                   ),
-                  const Divider(
-                    color: AppColors.border,
+                  Divider(
+                    color: context.colors.border,
                     height: 1,
                     indent: AppSpacing.xxl + AppSpacing.md,
                   ),
@@ -383,7 +383,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                 child: Container(
                   padding: AppSpacing.cardPadding,
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.colors.surface,
                     borderRadius: AppRadius.rLg,
                     border: Border.all(
                       color: k.color.withValues(alpha: 0.25),
@@ -457,13 +457,13 @@ class _DatePill extends StatelessWidget {
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rMd,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(children: [
-          const Icon(Icons.event_outlined,
-              size: 16, color: AppColors.textMuted),
+          Icon(Icons.event_outlined,
+              size: 16, color: context.colors.textMuted),
           AppSpacing.hGapSm,
           Text(label, style: AppText.body),
         ]),
@@ -600,12 +600,12 @@ class _NavTile extends StatelessWidget {
               label,
               style: AppText.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textBright,
+                color: context.colors.textBright,
               ),
             ),
           ),
-          const Icon(Icons.chevron_right,
-              color: AppColors.textMuted, size: 18),
+          Icon(Icons.chevron_right,
+              color: context.colors.textMuted, size: 18),
         ]),
       ),
     );
@@ -633,8 +633,8 @@ class _BookingsChart extends StatelessWidget {
               showTitles: true,
               reservedSize: 28,
               getTitlesWidget: (v, _) => Text(v.toInt().toString(),
-                  style: const TextStyle(
-                      fontSize: 10, color: AppColors.textMuted)),
+                  style: TextStyle(
+                      fontSize: 10, color: context.colors.textMuted)),
             ),
           ),
           rightTitles:
@@ -653,8 +653,8 @@ class _BookingsChart extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(d.length >= 10 ? d.substring(5) : d,
-                      style: const TextStyle(
-                          fontSize: 9, color: AppColors.textMuted)),
+                      style: TextStyle(
+                          fontSize: 9, color: context.colors.textMuted)),
                 );
               },
             ),
@@ -700,8 +700,8 @@ class _NewClientsChart extends StatelessWidget {
               showTitles: true,
               reservedSize: 24,
               getTitlesWidget: (v, _) => Text(v.toInt().toString(),
-                  style: const TextStyle(
-                      fontSize: 10, color: AppColors.textMuted)),
+                  style: TextStyle(
+                      fontSize: 10, color: context.colors.textMuted)),
             ),
           ),
           rightTitles:

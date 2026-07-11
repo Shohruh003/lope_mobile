@@ -81,8 +81,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     // Splash body reuses the shared BrandedLoader so it matches the web
     // pre-Flutter splash and any in-app hero loading state — one
     // consistent animation everywhere.
-    return const Scaffold(
-      backgroundColor: AppColors.background,
+    return Scaffold(
+      backgroundColor: context.colors.background,
       body: BrandedLoader(),
     );
   }

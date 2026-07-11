@@ -106,8 +106,8 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
       minChildSize: 0.4,
       expand: false,
       builder: (context, controller) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
+        decoration: BoxDecoration(
+          color: context.colors.surface,
           borderRadius: AppRadius.rTopXl,
         ),
         child: SingleChildScrollView(
@@ -127,7 +127,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.colors.border,
                     borderRadius: AppRadius.rPill,
                   ),
                 ),
@@ -160,11 +160,11 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: context.colors.surfaceElevated,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close,
-                        color: AppColors.textMuted, size: 16),
+                    child: Icon(Icons.close,
+                        color: context.colors.textMuted, size: 16),
                   ),
                 ),
               ]),
@@ -280,11 +280,11 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
                   decoration: BoxDecoration(
                     color: on
                         ? AppColors.primary.withValues(alpha: 0.15)
-                        : AppColors.surface,
+                        : context.colors.surface,
                     borderRadius: AppRadius.rMd,
                     border: Border.all(
                       color:
-                          on ? AppColors.primary : AppColors.border,
+                          on ? AppColors.primary : context.colors.border,
                       width: on ? 2 : 1,
                     ),
                   ),
@@ -295,7 +295,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
                         fontWeight: FontWeight.w800,
                         color: on
                             ? AppColors.primary
-                            : AppColors.textPrimary,
+                            : context.colors.textPrimary,
                       ),
                     ),
                   ),
@@ -315,7 +315,7 @@ class _TopUpModalState extends ConsumerState<TopUpModal> {
         decoration: InputDecoration(
           hintText: '10 000',
           suffixText: tr(ref, 'common.currency', "so'm"),
-          suffixStyle: AppText.body.copyWith(color: AppColors.textMuted),
+          suffixStyle: AppText.body.copyWith(color: context.colors.textMuted),
         ),
       ),
       if (_error != null) ...[
@@ -415,8 +415,8 @@ class _MethodBtn extends StatelessWidget {
             ],
           ),
         ),
-        const Icon(Icons.chevron_right,
-            color: AppColors.textMuted, size: 18),
+        Icon(Icons.chevron_right,
+            color: context.colors.textMuted, size: 18),
       ]),
     );
   }

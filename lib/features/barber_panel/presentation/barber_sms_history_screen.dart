@@ -169,13 +169,13 @@ class _BarberSmsHistoryScreenState
                               padding: const EdgeInsets.all(
                                   AppSpacing.sm),
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceElevated,
+                                color: context.colors.surfaceElevated,
                                 borderRadius: AppRadius.rSm,
                               ),
                               child: Text(
                                 s.message,
                                 style: AppText.bodySm.copyWith(
-                                  color: AppColors.textPrimary,
+                                  color: context.colors.textPrimary,
                                   height: 1.4,
                                 ),
                               ),
@@ -284,11 +284,11 @@ class _FilterBar extends StatelessWidget {
                   onTap: onFromTap,
                 ),
               ),
-              const Padding(
-                padding:
+              Padding(
+                padding: const
                     EdgeInsets.symmetric(horizontal: AppSpacing.xs),
                 child: Text('—',
-                    style: TextStyle(color: AppColors.textMuted)),
+                    style: TextStyle(color: context.colors.textMuted)),
               ),
               Expanded(
                 child: _DateField(
@@ -307,11 +307,11 @@ class _FilterBar extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: context.colors.surfaceElevated,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close,
-                        size: 16, color: AppColors.textMuted),
+                    child: Icon(Icons.close,
+                        size: 16, color: context.colors.textMuted),
                   ),
                 ),
               ],
@@ -338,14 +338,14 @@ class _DateField extends StatelessWidget {
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rMd,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today,
-                size: 14, color: AppColors.textMuted),
+            Icon(Icons.calendar_today,
+                size: 14, color: context.colors.textMuted),
             AppSpacing.hGapSm,
             Expanded(
               child: Text(label, style: AppText.bodySm),

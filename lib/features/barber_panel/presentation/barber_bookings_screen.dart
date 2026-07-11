@@ -89,13 +89,13 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: context.colors.surface,
                       borderRadius: AppRadius.rMd,
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                     child: Row(children: [
-                      const Icon(Icons.calendar_today_outlined,
-                          size: 16, color: AppColors.textMuted),
+                      Icon(Icons.calendar_today_outlined,
+                          size: 16, color: context.colors.textMuted),
                       AppSpacing.hGapSm,
                       Text(_toDateStr(_selectedDate),
                           style: AppText.body.copyWith(
@@ -140,9 +140,9 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
             Container(
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.colors.surface,
                 borderRadius: AppRadius.rMd,
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: context.colors.border),
               ),
               child: TextField(
                 onChanged: (v) =>
@@ -156,12 +156,12 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                   focusedBorder: InputBorder.none,
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 12),
-                  prefixIcon: const Icon(Icons.search,
-                      color: AppColors.textMuted, size: 20),
+                  prefixIcon: Icon(Icons.search,
+                      color: context.colors.textMuted, size: 20),
                   hintText: tr(ref, 'mobile.barber.bookings.searchPlaceholder',
                       'Mijoz nomi yoki telefon'),
                   hintStyle:
-                      AppText.body.copyWith(color: AppColors.textMuted),
+                      AppText.body.copyWith(color: context.colors.textMuted),
                 ),
               ),
             ),
@@ -217,8 +217,8 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: Row(children: [
-                      const Icon(Icons.people_outline,
-                          size: 16, color: AppColors.textMuted),
+                      Icon(Icons.people_outline,
+                          size: 16, color: context.colors.textMuted),
                       AppSpacing.hGapXs,
                       Text(
                           "${filtered.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
@@ -286,12 +286,12 @@ class _IconBtn extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rMd,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child:
-            Icon(icon, color: AppColors.textMuted, size: 18),
+            Icon(icon, color: context.colors.textMuted, size: 18),
       ),
     );
   }
@@ -323,9 +323,9 @@ class _StatusTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           decoration: BoxDecoration(
             borderRadius: AppRadius.rMd,
-            color: on ? color.withValues(alpha: 0.1) : AppColors.surface,
+            color: on ? color.withValues(alpha: 0.1) : context.colors.surface,
             border: Border.all(
-              color: on ? color : AppColors.border,
+              color: on ? color : context.colors.border,
               width: on ? 2 : 1,
             ),
           ),
@@ -334,14 +334,14 @@ class _StatusTab extends StatelessWidget {
               label,
               style: AppText.caption.copyWith(
                 fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                color: on ? color : AppColors.textMuted,
+                color: on ? color : context.colors.textMuted,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               '$count',
               style: AppText.numeric.copyWith(
-                color: on ? color : AppColors.textBright,
+                color: on ? color : context.colors.textBright,
                 fontSize: 18,
               ),
             ),
@@ -381,8 +381,8 @@ class _BookingTile extends ConsumerWidget {
                 child: Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
-                    color: AppColors.surface,
+                  decoration: BoxDecoration(
+                    color: context.colors.surface,
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
@@ -405,8 +405,8 @@ class _BookingTile extends ConsumerWidget {
                       ),
                     const SizedBox(height: 4),
                     Row(children: [
-                      const Icon(Icons.access_time,
-                          size: 12, color: AppColors.textMuted),
+                      Icon(Icons.access_time,
+                          size: 12, color: context.colors.textMuted),
                       AppSpacing.hGapXs,
                       Text(b.time, style: AppText.caption),
                       if (b.totalDuration > 0) ...[
@@ -431,15 +431,15 @@ class _BookingTile extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceElevated,
+                          color: context.colors.surfaceElevated,
                           borderRadius: AppRadius.rSm,
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.sticky_note_2_outlined,
+                            Icon(Icons.sticky_note_2_outlined,
                                 size: 12,
-                                color: AppColors.textMuted),
+                                color: context.colors.textMuted),
                             AppSpacing.hGapXs,
                             Expanded(
                               child: Text(
@@ -447,7 +447,7 @@ class _BookingTile extends ConsumerWidget {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: AppText.caption.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: context.colors.textSecondary,
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -525,12 +525,12 @@ class _BookingTile extends ConsumerWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: context.colors.surfaceElevated,
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.more_vert,
-                        size: 18, color: AppColors.textMuted),
+                    child: Icon(Icons.more_vert,
+                        size: 18, color: context.colors.textMuted),
                   ),
                   padding: EdgeInsets.zero,
                   onSelected: (value) async {
@@ -575,7 +575,7 @@ class _BookingTile extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -661,7 +661,7 @@ class _BookingTile extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -768,7 +768,7 @@ class _BookingTile extends ConsumerWidget {
     final ok = await showDialog<int>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),

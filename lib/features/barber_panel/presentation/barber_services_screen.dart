@@ -116,9 +116,9 @@ class BarberServicesScreen extends ConsumerWidget {
                               AppSpacing.hGapSm,
                               Text('·', style: AppText.caption),
                               AppSpacing.hGapSm,
-                              const Icon(Icons.access_time_outlined,
+                              Icon(Icons.access_time_outlined,
                                   size: 12,
-                                  color: AppColors.textMuted),
+                                  color: context.colors.textMuted),
                               AppSpacing.hGapXs,
                               Text(
                                 "$dur ${tr(ref, 'booking.duration', 'daq')}",
@@ -136,11 +136,11 @@ class BarberServicesScreen extends ConsumerWidget {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceElevated,
+                            color: context.colors.surfaceElevated,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.edit_outlined,
-                              color: AppColors.textSecondary, size: 18),
+                          child: Icon(Icons.edit_outlined,
+                              color: context.colors.textSecondary, size: 18),
                         ),
                       ),
                       AppSpacing.hGapXs,
@@ -190,7 +190,7 @@ class BarberServicesScreen extends ConsumerWidget {
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => Padding(
         padding: EdgeInsets.only(
@@ -209,7 +209,7 @@ class BarberServicesScreen extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: context.colors.border,
                   borderRadius: AppRadius.rPill,
                 ),
               ),
@@ -352,7 +352,7 @@ class BarberServicesScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),

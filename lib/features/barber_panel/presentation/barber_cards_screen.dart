@@ -53,7 +53,7 @@ class BarberCardsScreen extends ConsumerWidget {
                 tr(ref, 'mobile.barber.cards.hint',
                     'Pul olish uchun kartalaringizni boshqaring'),
                 style: AppText.bodyLg
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.colors.textSecondary),
               ),
               AppSpacing.gapLg,
               AppButton(
@@ -120,7 +120,7 @@ class BarberCardsScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -194,7 +194,7 @@ class BarberCardsScreen extends ConsumerWidget {
     final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => Padding(
         padding: EdgeInsets.only(
@@ -213,7 +213,7 @@ class BarberCardsScreen extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: context.colors.border,
                   borderRadius: AppRadius.rPill,
                 ),
               ),
@@ -584,13 +584,13 @@ class _CardItem extends ConsumerWidget {
             width: 44,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: AppRadius.rMd,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.edit,
-                size: 16, color: AppColors.textPrimary),
+            child: Icon(Icons.edit,
+                size: 16, color: context.colors.textPrimary),
           ),
         ),
         AppSpacing.hGapXs,

@@ -210,7 +210,7 @@ class _BarberPin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = available ? AppColors.primary : AppColors.textMuted;
+    final color = available ? AppColors.primary : context.colors.textMuted;
     return TapScale(
       onTap: onTap,
       haptic: HapticStrength.none,
@@ -222,7 +222,7 @@ class _BarberPin extends StatelessWidget {
         height: selected ? 44 : 36,
         decoration: BoxDecoration(
           gradient: available ? AppColors.primaryGradient : null,
-          color: available ? null : AppColors.surface,
+          color: available ? null : context.colors.surface,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white, width: 2.5),
           boxShadow: [
@@ -236,7 +236,7 @@ class _BarberPin extends StatelessWidget {
         alignment: Alignment.center,
         child: Icon(
           Icons.content_cut,
-          color: available ? Colors.white : AppColors.textMuted,
+          color: available ? Colors.white : context.colors.textMuted,
           size: selected ? 20 : 16,
         ),
       ),
@@ -306,11 +306,11 @@ class _SelectedCard extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: context.colors.surfaceElevated,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close,
-                        size: 14, color: AppColors.textMuted),
+                    child: Icon(Icons.close,
+                        size: 14, color: context.colors.textMuted),
                   ),
                 ),
               ]),
@@ -322,7 +322,7 @@ class _SelectedCard extends ConsumerWidget {
                 Text(
                   barber.rating.toStringAsFixed(1),
                   style: AppText.caption.copyWith(
-                    color: AppColors.textBright,
+                    color: context.colors.textBright,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

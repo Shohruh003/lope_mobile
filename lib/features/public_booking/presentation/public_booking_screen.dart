@@ -208,7 +208,7 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                           : Container(
                               width: 64,
                               height: 64,
-                              color: AppColors.surface,
+                              color: context.colors.surface,
                               alignment: Alignment.center,
                               child: Text(
                                   (barberName.isNotEmpty
@@ -310,12 +310,12 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                         width: 60,
                         decoration: BoxDecoration(
                           gradient: on ? AppColors.primaryGradient : null,
-                          color: on ? null : AppColors.surface,
+                          color: on ? null : context.colors.surface,
                           borderRadius: AppRadius.rMd,
                           border: Border.all(
                               color: on
                                   ? Colors.transparent
-                                  : AppColors.border),
+                                  : context.colors.border),
                           boxShadow: on
                               ? AppShadows.primaryGlow(AppColors.primary)
                               : null,
@@ -328,13 +328,13 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                                     fontSize: 18,
                                     color: on
                                         ? Colors.white
-                                        : AppColors.textBright)),
+                                        : context.colors.textBright)),
                             Text(_monthShort(d.month),
                                 style: AppText.overline.copyWith(
                                     fontSize: 10,
                                     color: on
                                         ? Colors.white70
-                                        : AppColors.textMuted)),
+                                        : context.colors.textMuted)),
                           ],
                         ),
                       ),
@@ -389,11 +389,11 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                             height: 32,
                             decoration: BoxDecoration(
                               color:
-                                  AppColors.textMuted.withValues(alpha: 0.15),
+                                  context.colors.textMuted.withValues(alpha: 0.15),
                               borderRadius: AppRadius.rSm,
                             ),
-                            child: const Icon(Icons.event_busy_rounded,
-                                color: AppColors.textMuted, size: 18),
+                            child: Icon(Icons.event_busy_rounded,
+                                color: context.colors.textMuted, size: 18),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(

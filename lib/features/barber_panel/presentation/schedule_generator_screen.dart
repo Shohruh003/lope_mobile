@@ -340,7 +340,7 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      Icon(icon, size: 16, color: AppColors.textBright),
+      Icon(icon, size: 16, color: context.colors.textBright),
       AppSpacing.hGapXs,
       Text(title, style: AppText.overline),
     ]);
@@ -369,9 +369,9 @@ class _Picker extends StatelessWidget {
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rMd,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(children: [
           Icon(icon, color: AppColors.primary, size: 18),
@@ -386,7 +386,7 @@ class _Picker extends StatelessWidget {
                   value,
                   style: AppText.body.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textBright,
+                    color: context.colors.textBright,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),

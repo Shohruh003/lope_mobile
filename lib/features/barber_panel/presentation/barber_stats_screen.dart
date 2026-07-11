@@ -237,8 +237,8 @@ class BarberStatsScreen extends ConsumerWidget {
                               value:
                                   "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} · ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}",
                             ),
-                            const Divider(
-                                color: AppColors.border, height: 14),
+                            Divider(
+                                color: context.colors.border, height: 14),
                             _SummaryRow(
                               label: tr(
                                   ref,
@@ -247,8 +247,8 @@ class BarberStatsScreen extends ConsumerWidget {
                               value:
                                   "${list.length} ${tr(ref, 'mobile.barber.stats.countSuffix', 'ta')}",
                             ),
-                            const Divider(
-                                color: AppColors.border, height: 14),
+                            Divider(
+                                color: context.colors.border, height: 14),
                             _SummaryRow(
                               label: tr(ref,
                                   'mobile.barber.stats.total',
@@ -375,7 +375,7 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: AppRadius.rLg,
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
@@ -464,13 +464,13 @@ class _StatusRow extends StatelessWidget {
           vertical: 3,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rPill,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Text('$count',
             style: AppText.caption.copyWith(
-              color: AppColors.textBright,
+              color: context.colors.textBright,
               fontWeight: FontWeight.w800,
             )),
       ),
@@ -504,7 +504,7 @@ class _TopServiceRow extends StatelessWidget {
           style: AppText.caption.copyWith(
             fontFamily: 'monospace',
             fontWeight: FontWeight.w800,
-            color: AppColors.textMuted,
+            color: context.colors.textMuted,
           ),
         ),
       ),
@@ -521,14 +521,14 @@ class _TopServiceRow extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rPill,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Text(
           '${count}x',
           style: AppText.caption.copyWith(
-            color: AppColors.textBright,
+            color: context.colors.textBright,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -628,10 +628,10 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                 onTap: () => _pickDate(true),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               child:
-                  Text('—', style: TextStyle(color: AppColors.textMuted)),
+                  Text('—', style: TextStyle(color: context.colors.textMuted)),
             ),
             Expanded(
               child: _MiniDate(
@@ -651,11 +651,11 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated,
+                    color: context.colors.surfaceElevated,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close,
-                      size: 14, color: AppColors.textMuted),
+                  child: Icon(Icons.close,
+                      size: 14, color: context.colors.textMuted),
                 ),
               ),
             ],
@@ -684,21 +684,21 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                   value:
                       "${s.totalSent} · ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
-                const Divider(color: AppColors.border, height: 14),
+                Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsConfirmation',
                       'Tasdiqlash'),
                   value:
                       "${s.confirmationRegistered + s.confirmationGuest} · ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
-                const Divider(color: AppColors.border, height: 14),
+                Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsReminder',
                       'Eslatma'),
                   value:
                       "${s.reminderCount} · ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
-                const Divider(color: AppColors.border, height: 14),
+                Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsRetention',
                       'Retention'),
@@ -706,14 +706,14 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                       "${s.retentionCount} · ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 if (s.returnedClients > 0) ...[
-                  const Divider(color: AppColors.border, height: 14),
+                  Divider(color: context.colors.border, height: 14),
                   _SummaryRow(
                     label: tr(ref, 'mobile.barber.stats.smsReturned',
                         'Qaytib kelganlar'),
                     value: '${s.returnedClients}',
                   ),
                   if (s.totalSent > 0) ...[
-                    const Divider(color: AppColors.border, height: 14),
+                    Divider(color: context.colors.border, height: 14),
                     _SummaryRow(
                       label: tr(ref, 'mobile.barber.stats.smsConversion',
                           'Konversiya'),
@@ -746,13 +746,13 @@ class _MiniDate extends StatelessWidget {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surfaceElevated,
+          color: context.colors.surfaceElevated,
           borderRadius: AppRadius.rSm,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(children: [
-          const Icon(Icons.calendar_today,
-              size: 12, color: AppColors.textMuted),
+          Icon(Icons.calendar_today,
+              size: 12, color: context.colors.textMuted),
           AppSpacing.hGapXs,
           Expanded(child: Text(label, style: AppText.caption)),
         ]),

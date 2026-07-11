@@ -229,10 +229,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 decoration: BoxDecoration(
                   color: on
                       ? AppColors.primary.withValues(alpha: 0.1)
-                      : AppColors.surface,
+                      : context.colors.surface,
                   borderRadius: AppRadius.rLg,
                   border: Border.all(
-                    color: on ? AppColors.primary : AppColors.border,
+                    color: on ? AppColors.primary : context.colors.border,
                     width: on ? 2 : 1,
                   ),
                   boxShadow:
@@ -248,8 +248,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                         Text(s.name, style: AppText.titleSm),
                         const SizedBox(height: 2),
                         Row(children: [
-                          const Icon(Icons.access_time_outlined,
-                              size: 11, color: AppColors.textMuted),
+                          Icon(Icons.access_time_outlined,
+                              size: 11, color: context.colors.textMuted),
                           AppSpacing.hGapXs,
                           Text(
                               "${s.duration} ${tr(ref, 'booking.duration', 'daq')}",
@@ -277,7 +277,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       shape: BoxShape.circle,
                       color: on ? AppColors.primary : Colors.transparent,
                       border: Border.all(
-                        color: on ? AppColors.primary : AppColors.border,
+                        color: on ? AppColors.primary : context.colors.border,
                         width: 1.5,
                       ),
                     ),
@@ -460,10 +460,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         AppCard(
           variant: AppCardVariant.outlined,
           padding: AppSpacing.cardPadding,
-          color: AppColors.surfaceElevated.withValues(alpha: 0.5),
+          color: context.colors.surfaceElevated.withValues(alpha: 0.5),
           child: Row(children: [
-            const Icon(Icons.info_outline,
-                color: AppColors.textMuted, size: 18),
+            Icon(Icons.info_outline,
+                color: context.colors.textMuted, size: 18),
             AppSpacing.hGapSm,
             Expanded(
               child: Text(
@@ -555,8 +555,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       if (barber.location.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Row(children: [
-                          const Icon(Icons.location_on_outlined,
-                              size: 11, color: AppColors.textMuted),
+                          Icon(Icons.location_on_outlined,
+                              size: 11, color: context.colors.textMuted),
                           AppSpacing.hGapXs,
                           Expanded(
                             child: Text(
@@ -599,13 +599,13 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                 ? "${_fmt(s.price)} – ${_fmt(s.priceMax!)} $currency"
                                 : "${_fmt(s.price)} $currency",
                             style: AppText.body.copyWith(
-                              color: AppColors.textBright,
+                              color: context.colors.textBright,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ]),
                       )),
-                const Divider(color: AppColors.border, height: 24),
+                Divider(color: context.colors.border, height: 24),
                 _SummaryRow(
                   icon: Icons.calendar_today_outlined,
                   label: tr(ref, 'booking.date', 'Sana'),
@@ -619,7 +619,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       ? (_selectedTime ?? '')
                       : "${_selectedTime ?? ''} · $totalDuration ${tr(ref, 'booking.duration', 'daq')}",
                 ),
-                const Divider(color: AppColors.border, height: 24),
+                Divider(color: context.colors.border, height: 24),
                 Row(children: [
                   Text(
                     tr(ref, 'booking.price', 'Narx'),
@@ -673,7 +673,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -752,7 +752,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       final ok = await showDialog<bool>(
         context: context,
         builder: (dCtx) => Dialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.colors.surface,
           shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -902,9 +902,9 @@ class _TopBar extends StatelessWidget {
         AppSpacing.sm,
         AppSpacing.xs,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.background,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(children: [
         TapScale(
@@ -914,12 +914,12 @@ class _TopBar extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
             ),
-            child: const Icon(Icons.arrow_back,
-                color: AppColors.textPrimary, size: 20),
+            child: Icon(Icons.arrow_back,
+                color: context.colors.textPrimary, size: 20),
           ),
         ),
         AppSpacing.hGapMd,
@@ -962,11 +962,11 @@ class _StepIndicator extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isActive
                       ? AppColors.primary
-                      : AppColors.surfaceElevated,
+                      : context.colors.surfaceElevated,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color:
-                        isActive ? AppColors.primary : AppColors.border,
+                        isActive ? AppColors.primary : context.colors.border,
                   ),
                   boxShadow: isCurrent
                       ? AppShadows.primaryGlow(AppColors.primary)
@@ -981,7 +981,7 @@ class _StepIndicator extends StatelessWidget {
                         style: AppText.button.copyWith(
                           color: isCurrent
                               ? Colors.white
-                              : AppColors.textMuted,
+                              : context.colors.textMuted,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -992,8 +992,8 @@ class _StepIndicator extends StatelessWidget {
                   labels[i],
                   style: AppText.caption.copyWith(
                     color: isActive
-                        ? AppColors.textBright
-                        : AppColors.textMuted,
+                        ? context.colors.textBright
+                        : context.colors.textMuted,
                     fontWeight:
                         isCurrent ? FontWeight.w700 : FontWeight.w500,
                   ),
@@ -1004,7 +1004,7 @@ class _StepIndicator extends StatelessWidget {
                 Container(
                   width: 16,
                   height: 2,
-                  color: isDone ? AppColors.primary : AppColors.border,
+                  color: isDone ? AppColors.primary : context.colors.border,
                 ),
             ]),
           );
@@ -1030,7 +1030,7 @@ class _SectionTitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          Icon(icon, size: 18, color: AppColors.textBright),
+          Icon(icon, size: 18, color: context.colors.textBright),
           AppSpacing.hGapSm,
           Expanded(child: Text(title, style: AppText.titleMd)),
         ]),
@@ -1075,10 +1075,10 @@ class _DateChip extends StatelessWidget {
           width: 68,
           decoration: BoxDecoration(
             gradient: selected ? AppColors.primaryGradient : null,
-            color: selected ? null : AppColors.surface,
+            color: selected ? null : context.colors.surface,
             borderRadius: AppRadius.rLg,
             border: Border.all(
-              color: selected ? AppColors.primary : AppColors.border,
+              color: selected ? AppColors.primary : context.colors.border,
               width: selected ? 0 : 1,
             ),
             boxShadow:
@@ -1094,7 +1094,7 @@ class _DateChip extends StatelessWidget {
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color:
-                      selected ? Colors.white70 : AppColors.textMuted,
+                      selected ? Colors.white70 : context.colors.textMuted,
                 ),
               ),
               const SizedBox(height: 2),
@@ -1102,7 +1102,7 @@ class _DateChip extends StatelessWidget {
                 '$day',
                 style: AppText.titleMd.copyWith(
                   fontSize: 20,
-                  color: selected ? Colors.white : AppColors.textBright,
+                  color: selected ? Colors.white : context.colors.textBright,
                 ),
               ),
               const SizedBox(height: 2),
@@ -1111,7 +1111,7 @@ class _DateChip extends StatelessWidget {
                 style: AppText.caption.copyWith(
                   fontSize: 10,
                   color:
-                      selected ? Colors.white70 : AppColors.textMuted,
+                      selected ? Colors.white70 : context.colors.textMuted,
                 ),
               ),
             ],
@@ -1148,15 +1148,15 @@ class _TimeChip extends StatelessWidget {
           color: selected
               ? null
               : disabled
-                  ? AppColors.surfaceElevated.withValues(alpha: 0.5)
-                  : AppColors.surface,
+                  ? context.colors.surfaceElevated.withValues(alpha: 0.5)
+                  : context.colors.surface,
           borderRadius: AppRadius.rMd,
           border: Border.all(
             color: selected
                 ? AppColors.primary
                 : disabled
-                    ? AppColors.border.withValues(alpha: 0.5)
-                    : AppColors.border,
+                    ? context.colors.border.withValues(alpha: 0.5)
+                    : context.colors.border,
           ),
           boxShadow:
               selected ? AppShadows.primaryGlow(AppColors.primary) : null,
@@ -1169,8 +1169,8 @@ class _TimeChip extends StatelessWidget {
             color: selected
                 ? Colors.white
                 : disabled
-                    ? AppColors.textMuted.withValues(alpha: 0.5)
-                    : AppColors.textBright,
+                    ? context.colors.textMuted.withValues(alpha: 0.5)
+                    : context.colors.textBright,
             decoration: disabled && !selected
                 ? TextDecoration.lineThrough
                 : null,
@@ -1213,14 +1213,14 @@ class _SummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      Icon(icon, size: 14, color: AppColors.textMuted),
+      Icon(icon, size: 14, color: context.colors.textMuted),
       AppSpacing.hGapSm,
       Text(label, style: AppText.bodySm),
       const Spacer(),
       Text(
         value,
         style: AppText.body.copyWith(
-          color: AppColors.textBright,
+          color: context.colors.textBright,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -1304,8 +1304,8 @@ class _StickyActionBar extends StatelessWidget {
         MediaQuery.of(context).padding.bottom + AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        color: context.colors.background,
+        border: Border(top: BorderSide(color: context.colors.border)),
         boxShadow: AppShadows.elevated,
       ),
       child: Row(children: [
@@ -1408,7 +1408,7 @@ class _ConfirmedView extends ConsumerWidget {
         Text(
           tr(ref, 'booking.barberAwaits', '{{name}} sizni kutadi',
               {'name': barber.name}),
-          style: AppText.bodyLg.copyWith(color: AppColors.textMuted),
+          style: AppText.bodyLg.copyWith(color: context.colors.textMuted),
           textAlign: TextAlign.center,
         ),
         AppSpacing.gapXl,

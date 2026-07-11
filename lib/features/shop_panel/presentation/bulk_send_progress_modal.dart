@@ -93,7 +93,7 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
             : AppColors.primary;
 
     return Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg)),
       child: Padding(
@@ -142,7 +142,7 @@ class _BulkSendProgressState extends ConsumerState<_BulkSendProgress> {
               if (!isRunning)
                 IconButton(
                   icon:
-                      const Icon(Icons.close, color: AppColors.textMuted),
+                      Icon(Icons.close, color: context.colors.textMuted),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
             ]),

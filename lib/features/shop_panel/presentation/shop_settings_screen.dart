@@ -76,7 +76,7 @@ class ShopSettingsScreen extends ConsumerWidget {
             ),
             _SettingsTile(
               icon: Icons.policy_outlined,
-              iconColor: AppColors.textMuted,
+              iconColor: context.colors.textMuted,
               label: tr(ref, 'profile.privacy', 'Maxfiylik siyosati'),
               onTap: () => _openUrl('https://lopestyle.uz/privacy'),
             ),
@@ -85,7 +85,7 @@ class ShopSettingsScreen extends ConsumerWidget {
           _TileGroup(children: [
             _SettingsTile(
               icon: Icons.logout,
-              iconColor: AppColors.textMuted,
+              iconColor: context.colors.textMuted,
               label: tr(ref, 'barberApp.logout', 'Chiqish'),
               onTap: () async {
                 AppHaptics.light();
@@ -122,7 +122,7 @@ class ShopSettingsScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -228,8 +228,8 @@ class _TileGroup extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i < children.length - 1)
-              const Divider(
-                color: AppColors.border,
+              Divider(
+                color: context.colors.border,
                 height: 1,
                 indent: AppSpacing.xxl + AppSpacing.md,
               ),
@@ -282,7 +282,7 @@ class _SettingsTile extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: destructive
                     ? AppColors.danger
-                    : AppColors.textBright,
+                    : context.colors.textBright,
               ),
             ),
           ),
@@ -290,7 +290,7 @@ class _SettingsTile extends StatelessWidget {
             Icons.chevron_right,
             color: destructive
                 ? AppColors.danger.withValues(alpha: 0.7)
-                : AppColors.textMuted,
+                : context.colors.textMuted,
             size: 18,
           ),
         ]),

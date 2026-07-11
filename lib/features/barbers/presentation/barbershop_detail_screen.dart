@@ -50,7 +50,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
                 SliverAppBar(
                   expandedHeight: 260,
                   pinned: true,
-                  backgroundColor: AppColors.background,
+                  backgroundColor: context.colors.background,
                   leading: Padding(
                     padding: const EdgeInsets.all(AppSpacing.sm),
                     child: TapScale(
@@ -91,12 +91,12 @@ class BarbershopDetailScreen extends ConsumerWidget {
                                 color: Colors.white38, size: 72),
                           ),
                         ),
-                      const DecoratedBox(
+                      DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
                               Colors.transparent,
-                              AppColors.background
+                              context.colors.background
                             ],
                             begin: Alignment.center,
                             end: Alignment.bottomCenter,
@@ -121,14 +121,14 @@ class BarbershopDetailScreen extends ConsumerWidget {
                         AppSpacing.gapSm,
                         if (address.isNotEmpty)
                           Row(children: [
-                            const Icon(Icons.location_on_outlined,
+                            Icon(Icons.location_on_outlined,
                                 size: 16,
-                                color: AppColors.textSecondary),
+                                color: context.colors.textSecondary),
                             AppSpacing.hGapXs,
                             Expanded(
                               child: Text(address,
                                   style: AppText.bodySm.copyWith(
-                                      color: AppColors.textSecondary)),
+                                      color: context.colors.textSecondary)),
                             ),
                           ]),
                         if (phone.isNotEmpty) ...[
@@ -267,7 +267,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
                                     : Container(
                                         width: 52,
                                         height: 52,
-                                        color: AppColors.surface,
+                                        color: context.colors.surface,
                                         alignment: Alignment.center,
                                         child: Text(
                                           (barberName.isNotEmpty
@@ -296,7 +296,7 @@ class BarbershopDetailScreen extends ConsumerWidget {
                                     Text(
                                       rating.toStringAsFixed(1),
                                       style: AppText.caption.copyWith(
-                                        color: AppColors.textBright,
+                                        color: context.colors.textBright,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),

@@ -126,7 +126,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     AppHaptics.selection();
     final picked = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
       builder: (sheetCtx) => SafeArea(
@@ -136,7 +136,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: context.colors.border,
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: AppSpacing.md),
           Padding(
@@ -212,7 +212,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           ),
           _SheetAction(
             icon: Icons.close,
-            tint: AppColors.textMuted,
+            tint: context.colors.textMuted,
             title: tr(ref, 'common.close', "Yopish"),
             onTap: () => Navigator.of(sheetCtx).pop(null),
           ),
@@ -283,7 +283,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(
             isComplete
@@ -402,7 +402,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final ok = await showDialog<int>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(
             tr(ref, 'mobile.shop.barber.extendTitle', "Vaqtni uzaytirish (daqiqa)"),
@@ -474,7 +474,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
       builder: (sheetCtx) => StatefulBuilder(
@@ -495,7 +495,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                          color: AppColors.border,
+                          color: context.colors.border,
                           borderRadius: BorderRadius.circular(2))),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -569,7 +569,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                 else ...[
                   Text(tr(ref, 'booking.service', "Xizmat"),
                       style: AppText.overline
-                          .copyWith(color: AppColors.textSecondary)),
+                          .copyWith(color: context.colors.textSecondary)),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: AppSpacing.sm,
@@ -672,7 +672,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(
             tr(ref, 'mobile.barber.schedule.closeDayTitle', "Kunni yopamizmi?"),
@@ -735,7 +735,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     AppHaptics.selection();
     final choice = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
       builder: (sheetCtx) => SafeArea(
@@ -745,7 +745,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: context.colors.border,
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: AppSpacing.md),
           Padding(
@@ -1141,7 +1141,7 @@ class _DatePill extends StatelessWidget {
         ? Colors.transparent
         : (today
             ? AppColors.primary.withValues(alpha: 0.4)
-            : AppColors.border);
+            : context.colors.border);
     return TapScale(
       onTap: onTap,
       haptic: HapticStrength.none,
@@ -1151,7 +1151,7 @@ class _DatePill extends StatelessWidget {
             vertical: AppSpacing.md, horizontal: AppSpacing.xs),
         decoration: BoxDecoration(
           gradient: gradient,
-          color: selected ? null : AppColors.surface,
+          color: selected ? null : context.colors.surface,
           borderRadius: AppRadius.rLg,
           border: Border.all(color: borderColor),
           boxShadow: selected
@@ -1165,17 +1165,17 @@ class _DatePill extends StatelessWidget {
             Text(weekday,
                 style: AppText.overline.copyWith(
                     fontSize: 10,
-                    color: selected ? Colors.white70 : AppColors.textMuted)),
+                    color: selected ? Colors.white70 : context.colors.textMuted)),
             const SizedBox(height: 2),
             Text(day,
                 style: AppText.numeric.copyWith(
                     fontSize: 20,
-                    color: selected ? Colors.white : AppColors.textBright)),
+                    color: selected ? Colors.white : context.colors.textBright)),
             const SizedBox(height: 2),
             Text(month,
                 style: AppText.overline.copyWith(
                     fontSize: 10,
-                    color: selected ? Colors.white70 : AppColors.textMuted)),
+                    color: selected ? Colors.white70 : context.colors.textMuted)),
           ],
         ),
       ),
@@ -1258,7 +1258,7 @@ class _EmptyState extends ConsumerWidget {
     return AppCard(
       variant: AppCardVariant.flat,
       padding: const EdgeInsets.all(AppSpacing.xxl),
-      color: AppColors.surfaceElevated.withValues(alpha: 0.3),
+      color: context.colors.surfaceElevated.withValues(alpha: 0.3),
       child: Column(children: [
         Container(
           width: 64,

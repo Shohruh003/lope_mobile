@@ -84,14 +84,14 @@ class FavoritesScreen extends ConsumerWidget {
                               : Container(
                                   width: 52,
                                   height: 52,
-                                  color: AppColors.surfaceElevated,
+                                  color: context.colors.surfaceElevated,
                                   alignment: Alignment.center,
                                   child: Text(
                                     b.name.isNotEmpty
                                         ? b.name[0].toUpperCase()
                                         : '?',
                                     style: AppText.titleMd.copyWith(
-                                        color: AppColors.textBright),
+                                        color: context.colors.textBright),
                                   ),
                                 ),
                         ),
@@ -110,14 +110,14 @@ class FavoritesScreen extends ConsumerWidget {
                               Text(
                                 b.rating.toStringAsFixed(1),
                                 style: AppText.caption.copyWith(
-                                  color: AppColors.textBright,
+                                  color: context.colors.textBright,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                               AppSpacing.hGapSm,
                               if (b.location.isNotEmpty) ...[
-                                const Icon(Icons.location_on_outlined,
-                                    size: 11, color: AppColors.textMuted),
+                                Icon(Icons.location_on_outlined,
+                                    size: 11, color: context.colors.textMuted),
                                 AppSpacing.hGapXs,
                                 Expanded(
                                   child: Text(b.location,

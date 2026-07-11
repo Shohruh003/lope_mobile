@@ -474,9 +474,9 @@ class _GenderRow extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: context.colors.surfaceElevated,
         borderRadius: AppRadius.rXl,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         Expanded(
@@ -539,7 +539,7 @@ class _GenderSegment extends StatelessWidget {
               label,
               style: AppText.body.copyWith(
                 fontWeight: FontWeight.w700,
-                color: selected ? Colors.white : AppColors.textPrimary,
+                color: selected ? Colors.white : context.colors.textPrimary,
               ),
             ),
           ],
@@ -613,10 +613,10 @@ class _StyleCategoryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.primary.withValues(alpha: 0.15)
-              : AppColors.surface,
+              : context.colors.surface,
           borderRadius: AppRadius.rLg,
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
+            color: selected ? AppColors.primary : context.colors.border,
             width: selected ? 2 : 1,
           ),
         ),
@@ -636,7 +636,7 @@ class _StyleCategoryCard extends StatelessWidget {
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     color: selected
                         ? AppColors.primary
-                        : AppColors.textPrimary,
+                        : context.colors.textPrimary,
                   ),
                 ),
               ],
@@ -684,7 +684,7 @@ class _SelfieBlock extends ConsumerWidget {
         child: Container(
           height: 220,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.colors.surface,
             borderRadius: AppRadius.rXl,
             border: Border.all(
               color: AppColors.primary.withValues(alpha: 0.4),
@@ -707,7 +707,7 @@ class _SelfieBlock extends ConsumerWidget {
               AppSpacing.gapMd,
               Text(
                 tr(ref, 'aiStyle.uploadPhoto', "Rasmingizni yuklang"),
-                style: AppText.titleSm.copyWith(color: AppColors.textBright),
+                style: AppText.titleSm.copyWith(color: context.colors.textBright),
               ),
               const SizedBox(height: 4),
               Text(
@@ -806,8 +806,8 @@ class _ReferenceBlock extends ConsumerWidget {
         padding: AppSpacing.cardPadding,
         child: Row(
           children: [
-            const Icon(Icons.info_outline,
-                color: AppColors.textMuted, size: 18),
+            Icon(Icons.info_outline,
+                color: context.colors.textMuted, size: 18),
             AppSpacing.hGapSm,
             Expanded(
               child: Text(
@@ -860,7 +860,7 @@ class _ReferenceBlock extends ConsumerWidget {
           Text(
             tr(ref, 'mobile.aiStyle.refTip',
                 "Yoqtirgan namunani yuklang — AI shu uslubga taqlid qiladi"),
-            style: AppText.bodySm.copyWith(color: AppColors.textSecondary),
+            style: AppText.bodySm.copyWith(color: context.colors.textSecondary),
           ),
           AppSpacing.gapMd,
           SizedBox(
@@ -987,7 +987,7 @@ class _RefTile extends StatelessWidget {
               const SizedBox(height: 2),
               Text(label,
                   style: AppText.caption
-                      .copyWith(color: AppColors.textMuted, fontSize: 10)),
+                      .copyWith(color: context.colors.textMuted, fontSize: 10)),
             ],
           ),
         ),
@@ -1014,8 +1014,8 @@ class _StickyGenerateBar extends ConsumerWidget {
         AppSpacing.lg,
       ),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        color: context.colors.background,
+        border: Border(top: BorderSide(color: context.colors.border)),
         boxShadow: AppShadows.elevated,
       ),
       child: SafeArea(
@@ -1080,7 +1080,7 @@ class _ResultView extends ConsumerWidget {
                 borderRadius: AppRadius.rLg,
                 child: original != null
                     ? Image.file(original!, fit: BoxFit.cover)
-                    : Container(color: AppColors.surfaceElevated),
+                    : Container(color: context.colors.surfaceElevated),
               ),
             ),
           ]),
@@ -1105,7 +1105,7 @@ class _ResultView extends ConsumerWidget {
                   placeholder: (context, _) =>
                       const SkeletonRect(radius: AppRadius.lg),
                   errorWidget: (_, _, _) => Container(
-                    color: AppColors.surfaceElevated,
+                    color: context.colors.surfaceElevated,
                     alignment: Alignment.center,
                     child:
                         const Icon(Icons.broken_image, color: AppColors.danger),

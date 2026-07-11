@@ -52,7 +52,7 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -195,9 +195,9 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
                         placeholder: (context, _) =>
                             const SkeletonRect(radius: AppRadius.md),
                         errorWidget: (context, _, _) => Container(
-                          color: AppColors.surface,
-                          child: const Icon(Icons.broken_image,
-                              color: AppColors.textMuted),
+                          color: context.colors.surface,
+                          child: Icon(Icons.broken_image,
+                              color: context.colors.textMuted),
                         ),
                       ),
                     ),

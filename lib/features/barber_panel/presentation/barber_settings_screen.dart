@@ -110,7 +110,7 @@ class BarberSettingsScreen extends ConsumerWidget {
             ),
             _SettingsTile(
               icon: Icons.policy_outlined,
-              iconColor: AppColors.textMuted,
+              iconColor: context.colors.textMuted,
               label: tr(ref, 'profile.privacy', 'Maxfiylik siyosati'),
               onTap: () => _openUrl('https://lopestyle.uz/privacy'),
             ),
@@ -119,7 +119,7 @@ class BarberSettingsScreen extends ConsumerWidget {
           _TileGroup(children: [
             _SettingsTile(
               icon: Icons.logout,
-              iconColor: AppColors.textMuted,
+              iconColor: context.colors.textMuted,
               label: tr(ref, 'barberApp.logout', 'Chiqish'),
               onTap: () async {
                 AppHaptics.light();
@@ -156,7 +156,7 @@ class BarberSettingsScreen extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -261,10 +261,10 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
           padding: AppSpacing.cardPadding,
           color: on
               ? AppColors.success.withValues(alpha: 0.06)
-              : AppColors.surfaceElevated.withValues(alpha: 0.5),
+              : context.colors.surfaceElevated.withValues(alpha: 0.5),
           borderColor: on
               ? AppColors.success.withValues(alpha: 0.3)
-              : AppColors.border,
+              : context.colors.border,
           child: Row(children: [
             Container(
               width: 44,
@@ -276,14 +276,14 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
                         Color(0xFF059669),
                       ])
                     : null,
-                color: on ? null : AppColors.surfaceElevated,
+                color: on ? null : context.colors.surfaceElevated,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 on
                     ? Icons.visibility_outlined
                     : Icons.visibility_off_outlined,
-                color: on ? Colors.white : AppColors.textMuted,
+                color: on ? Colors.white : context.colors.textMuted,
                 size: 22,
               ),
             ),
@@ -297,7 +297,7 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
                         ? tr(ref, 'barbers.available', "Bo'sh")
                         : tr(ref, 'barbers.unavailable', 'Band'),
                     style: AppText.titleSm.copyWith(
-                      color: on ? AppColors.success : AppColors.textBright,
+                      color: on ? AppColors.success : context.colors.textBright,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -373,8 +373,8 @@ class _TileGroup extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i < children.length - 1)
-              const Divider(
-                color: AppColors.border,
+              Divider(
+                color: context.colors.border,
                 height: 1,
                 indent: AppSpacing.xxl + AppSpacing.md,
               ),
@@ -427,7 +427,7 @@ class _SettingsTile extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: destructive
                     ? AppColors.danger
-                    : AppColors.textBright,
+                    : context.colors.textBright,
               ),
             ),
           ),
@@ -435,7 +435,7 @@ class _SettingsTile extends StatelessWidget {
             Icons.chevron_right,
             color: destructive
                 ? AppColors.danger.withValues(alpha: 0.7)
-                : AppColors.textMuted,
+                : context.colors.textMuted,
             size: 18,
           ),
         ]),

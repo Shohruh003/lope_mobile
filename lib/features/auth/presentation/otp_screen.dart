@@ -163,7 +163,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                         '{{phone}} raqamiga yuborildi',
                         {'phone': widget.phone}),
                     style: AppText.bodyLg
-                        .copyWith(color: AppColors.textMuted),
+                        .copyWith(color: context.colors.textMuted),
                     textAlign: TextAlign.center,
                   ),
                   AppSpacing.gapXxl,
@@ -268,19 +268,19 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           filled: true,
           fillColor: hasValue
               ? AppColors.primary.withValues(alpha: 0.1)
-              : AppColors.surfaceElevated,
+              : context.colors.surfaceElevated,
           contentPadding: EdgeInsets.zero,
           border: OutlineInputBorder(
             borderRadius: AppRadius.rMd,
             borderSide: BorderSide(
                 color:
-                    hasValue ? AppColors.primary : AppColors.border),
+                    hasValue ? AppColors.primary : context.colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: AppRadius.rMd,
             borderSide: BorderSide(
                 color:
-                    hasValue ? AppColors.primary : AppColors.border,
+                    hasValue ? AppColors.primary : context.colors.border,
                 width: hasValue ? 2 : 1),
           ),
           focusedBorder: OutlineInputBorder(

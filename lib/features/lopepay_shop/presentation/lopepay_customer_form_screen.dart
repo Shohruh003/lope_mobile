@@ -133,7 +133,7 @@ class _LopepayCustomerFormScreenState
     final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => Padding(
         padding: EdgeInsets.only(
@@ -151,7 +151,7 @@ class _LopepayCustomerFormScreenState
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                      color: AppColors.border,
+                      color: context.colors.border,
                       borderRadius: BorderRadius.circular(2))),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -451,9 +451,9 @@ class _LopepayCustomerFormScreenState
                               horizontal: AppSpacing.md,
                               vertical: AppSpacing.md),
                           decoration: BoxDecoration(
-                            color: AppColors.background,
+                            color: context.colors.background,
                             borderRadius: AppRadius.rMd,
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: context.colors.border),
                           ),
                           child: Row(children: [
                             Container(
@@ -554,7 +554,7 @@ class _Label extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) => Text(text,
-      style: AppText.overline.copyWith(color: AppColors.textSecondary));
+      style: AppText.overline.copyWith(color: context.colors.textSecondary));
 }
 
 class _MoneyField extends StatelessWidget {

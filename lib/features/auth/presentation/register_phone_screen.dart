@@ -117,7 +117,7 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
                     tr(ref, 'auth.weWillSendCode',
                         '4 raqamli tasdiqlash kodi yuboramiz'),
                     style: AppText.bodyLg
-                        .copyWith(color: AppColors.textMuted),
+                        .copyWith(color: context.colors.textMuted),
                     textAlign: TextAlign.center,
                   ),
                   AppSpacing.gapXxl,
@@ -140,12 +140,12 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
                             LengthLimitingTextInputFormatter(9),
                           ],
                           style: AppText.body,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             prefixText: '+998 ',
                             prefixStyle: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textMuted,
+                              color: context.colors.textMuted,
                             ),
                             hintText: '901234567',
                           ),

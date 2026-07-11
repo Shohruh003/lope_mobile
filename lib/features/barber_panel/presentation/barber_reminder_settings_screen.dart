@@ -146,7 +146,7 @@ class _BarberReminderSettingsScreenState
                 tr(ref, 'mobile.barber.reminders.hint',
                     "Mijozlarga SMS bilan eslatma jo'natiladi. Quyida vaqtni va davrni sozlang."),
                 style: AppText.bodyLg
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.colors.textSecondary),
               ),
               AppSpacing.gapXl,
               AppCard(
@@ -269,7 +269,7 @@ class _Stepper extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: context.colors.surfaceElevated,
         borderRadius: AppRadius.rMd,
       ),
       child: Row(
@@ -288,14 +288,14 @@ class _Stepper extends StatelessWidget {
               decoration: BoxDecoration(
                 color: value > min
                     ? AppColors.primary.withValues(alpha: 0.15)
-                    : AppColors.surface,
+                    : context.colors.surface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.remove,
                 color: value > min
                     ? AppColors.primary
-                    : AppColors.textMuted,
+                    : context.colors.textMuted,
               ),
             ),
           ),
@@ -321,14 +321,14 @@ class _Stepper extends StatelessWidget {
               decoration: BoxDecoration(
                 color: value < max
                     ? AppColors.primary.withValues(alpha: 0.15)
-                    : AppColors.surface,
+                    : context.colors.surface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.add,
                 color: value < max
                     ? AppColors.primary
-                    : AppColors.textMuted,
+                    : context.colors.textMuted,
               ),
             ),
           ),

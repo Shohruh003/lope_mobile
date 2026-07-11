@@ -169,7 +169,7 @@ class _BarberWorkingHoursScreenState
                     ),
                     color: _config[i].isOpen
                         ? null
-                        : AppColors.surfaceElevated
+                        : context.colors.surfaceElevated
                             .withValues(alpha: 0.4),
                     child: Row(
                       children: [
@@ -179,8 +179,8 @@ class _BarberWorkingHoursScreenState
                             days[i],
                             style: AppText.titleSm.copyWith(
                               color: _config[i].isOpen
-                                  ? AppColors.textBright
-                                  : AppColors.textMuted,
+                                  ? context.colors.textBright
+                                  : context.colors.textMuted,
                             ),
                           ),
                         ),
@@ -194,9 +194,9 @@ class _BarberWorkingHoursScreenState
                                 onTap: () => _pickTime(i, true),
                               ),
                               AppSpacing.hGapXs,
-                              const Text('—',
+                              Text('—',
                                   style: TextStyle(
-                                      color: AppColors.textMuted)),
+                                      color: context.colors.textMuted)),
                               AppSpacing.hGapXs,
                               _TimeChip(
                                 label: _config[i].close,
@@ -331,19 +331,19 @@ class _TimeChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: enabled
               ? AppColors.primary.withValues(alpha: 0.12)
-              : AppColors.surfaceElevated,
+              : context.colors.surfaceElevated,
           borderRadius: AppRadius.rSm,
           border: Border.all(
             color: enabled
                 ? AppColors.primary.withValues(alpha: 0.4)
-                : AppColors.border,
+                : context.colors.border,
           ),
         ),
         child: Text(
           label,
           style: AppText.body.copyWith(
             fontWeight: FontWeight.w700,
-            color: enabled ? AppColors.primary : AppColors.textMuted,
+            color: enabled ? AppColors.primary : context.colors.textMuted,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),

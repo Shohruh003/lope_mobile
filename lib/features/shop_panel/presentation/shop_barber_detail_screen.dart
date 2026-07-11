@@ -92,9 +92,9 @@ class _ShopBarberDetailScreenState
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceElevated,
+                    color: context.colors.surfaceElevated,
                     borderRadius: AppRadius.rMd,
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.colors.border),
                   ),
                   child: Row(children: [
                     _TabBtn(
@@ -171,7 +171,7 @@ class _BarberHero extends StatelessWidget {
                 : Container(
                     width: 64,
                     height: 64,
-                    color: AppColors.surface,
+                    color: context.colors.surface,
                     alignment: Alignment.center,
                     child: Text(
                       (name.isNotEmpty ? name[0] : '?').toUpperCase(),
@@ -256,7 +256,7 @@ class _TabBtn extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(label,
               style: AppText.button.copyWith(
-                  color: on ? AppColors.primary : AppColors.textMuted,
+                  color: on ? AppColors.primary : context.colors.textMuted,
                   fontSize: 13)),
         ),
       ),
@@ -289,9 +289,9 @@ class _ScheduleTab extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md, vertical: AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: AppRadius.rMd,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: Row(children: [
               Container(
@@ -307,8 +307,8 @@ class _ScheduleTab extends ConsumerWidget {
               const SizedBox(width: AppSpacing.md),
               Text(_df.format(date), style: AppText.titleSm.copyWith(fontSize: 14)),
               const Spacer(),
-              const Icon(Icons.chevron_right,
-                  color: AppColors.textMuted, size: 18),
+              Icon(Icons.chevron_right,
+                  color: context.colors.textMuted, size: 18),
             ]),
           ),
         ),
@@ -409,7 +409,7 @@ class _BookingRow extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: AppRadius.rMd,
         border: Border(left: BorderSide(color: color, width: 3)),
         boxShadow: AppShadows.subtle,
@@ -456,9 +456,9 @@ class _BookingRow extends ConsumerWidget {
         ),
         if (b.status == 'confirmed' && b.id.isNotEmpty)
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert,
-                color: AppColors.textMuted, size: 20),
-            color: AppColors.surface,
+            icon: Icon(Icons.more_vert,
+                color: context.colors.textMuted, size: 20),
+            color: context.colors.surface,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md)),
             onSelected: (value) async {
@@ -515,7 +515,7 @@ class _BookingRow extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(
@@ -585,7 +585,7 @@ class _BookingRow extends ConsumerWidget {
     final ok = await showDialog<int>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(

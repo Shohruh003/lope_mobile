@@ -82,7 +82,7 @@ class SettingsScreen extends ConsumerWidget {
               label: tr(ref, 'barberApp.language', 'Til'),
               trailing: Text(
                 _localeLabel(currentLocale),
-                style: AppText.bodySm.copyWith(color: AppColors.textMuted),
+                style: AppText.bodySm.copyWith(color: context.colors.textMuted),
               ),
               onTap: () => _pickLanguage(context, ref, currentLocale),
             ),
@@ -110,7 +110,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _SettingsTile(
               icon: Icons.policy_outlined,
-              iconColor: AppColors.textMuted,
+              iconColor: context.colors.textMuted,
               label: tr(ref, 'profile.privacy', 'Maxfiylik siyosati'),
               onTap: () => _openUrl('https://lopestyle.uz/privacy'),
             ),
@@ -122,7 +122,7 @@ class SettingsScreen extends ConsumerWidget {
           _TileGroup(children: [
             _SettingsTile(
               icon: Icons.logout_outlined,
-              iconColor: AppColors.textMuted,
+              iconColor: context.colors.textMuted,
               label: tr(ref, 'barberApp.logout', 'Chiqish'),
               onTap: () => _confirmLogout(context, ref),
             ),
@@ -153,7 +153,7 @@ class SettingsScreen extends ConsumerWidget {
     AppHaptics.light();
     final picked = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => SafeArea(
         top: false,
@@ -173,7 +173,7 @@ class SettingsScreen extends ConsumerWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.colors.border,
                     borderRadius: AppRadius.rPill,
                   ),
                 ),
@@ -197,12 +197,12 @@ class SettingsScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: code == current
                           ? AppColors.primary.withValues(alpha: 0.1)
-                          : AppColors.surfaceElevated,
+                          : context.colors.surfaceElevated,
                       borderRadius: AppRadius.rMd,
                       border: Border.all(
                         color: code == current
                             ? AppColors.primary
-                            : AppColors.border,
+                            : context.colors.border,
                       ),
                     ),
                     child: Row(children: [
@@ -212,7 +212,7 @@ class SettingsScreen extends ConsumerWidget {
                           style: AppText.body.copyWith(
                             color: code == current
                                 ? AppColors.primary
-                                : AppColors.textBright,
+                                : context.colors.textBright,
                             fontWeight: code == current
                                 ? FontWeight.w700
                                 : FontWeight.w500,
@@ -244,7 +244,7 @@ class SettingsScreen extends ConsumerWidget {
           'Tizimdan chiqib, login sahifasiga qaytasiz.'),
       confirmLabel: tr(ref, 'barberApp.logout', 'Chiqish'),
       confirmVariant: AppButtonVariant.danger,
-      iconColor: AppColors.textMuted,
+      iconColor: context.colors.textMuted,
       icon: Icons.logout,
     );
     if (ok != true) return;
@@ -313,7 +313,7 @@ Future<bool?> _confirmDialog(
   return showDialog<bool>(
     context: context,
     builder: (dCtx) => Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -388,8 +388,8 @@ class _TileGroup extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i < children.length - 1)
-              const Divider(
-                color: AppColors.border,
+              Divider(
+                color: context.colors.border,
                 height: 1,
                 indent: AppSpacing.xxl + AppSpacing.md,
               ),
@@ -444,7 +444,7 @@ class _SettingsTile extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: destructive
                     ? AppColors.danger
-                    : AppColors.textBright,
+                    : context.colors.textBright,
               ),
             ),
           ),
@@ -454,7 +454,7 @@ class _SettingsTile extends StatelessWidget {
             Icons.chevron_right,
             color: destructive
                 ? AppColors.danger.withValues(alpha: 0.7)
-                : AppColors.textMuted,
+                : context.colors.textMuted,
             size: 18,
           ),
         ]),

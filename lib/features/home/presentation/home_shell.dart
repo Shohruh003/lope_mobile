@@ -86,9 +86,9 @@ class _CustomerHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.background,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -125,8 +125,8 @@ class _CustomerHeader extends ConsumerWidget {
           IconButton(
             tooltip: tr(ref, 'mobile.map.title', 'Xarita'),
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.map_outlined,
-                color: AppColors.textPrimary, size: 22),
+            icon: Icon(Icons.map_outlined,
+                color: context.colors.textPrimary, size: 22),
             onPressed: () {
               AppHaptics.selection();
               context.push('/map');
@@ -135,8 +135,8 @@ class _CustomerHeader extends ConsumerWidget {
           IconButton(
             tooltip: tr(ref, 'profile.favorites', 'Masterim'),
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.bookmark_border,
-                color: AppColors.textPrimary, size: 22),
+            icon: Icon(Icons.bookmark_border,
+                color: context.colors.textPrimary, size: 22),
             onPressed: () {
               AppHaptics.selection();
               context.push('/favorites');
@@ -165,8 +165,8 @@ class _BottomTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        color: context.colors.background,
+        border: Border(top: BorderSide(color: context.colors.border)),
         boxShadow: AppShadows.subtle,
       ),
       child: SafeArea(
@@ -211,7 +211,7 @@ class _BottomTabBar extends StatelessWidget {
                             active ? item.activeIcon : item.icon,
                             color: active
                                 ? Colors.white
-                                : AppColors.textMuted,
+                                : context.colors.textMuted,
                             size: 22,
                           ),
                           if (active) ...[

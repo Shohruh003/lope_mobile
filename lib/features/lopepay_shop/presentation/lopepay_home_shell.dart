@@ -38,9 +38,9 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
       ]),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          border: Border(top: BorderSide(color: AppColors.border)),
+        decoration: BoxDecoration(
+          color: context.colors.background,
+          border: Border(top: BorderSide(color: context.colors.border)),
         ),
         child: SafeArea(
           top: false,
@@ -63,9 +63,9 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
   Widget _header(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.background,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -89,8 +89,8 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
           const NotificationBell(),
           IconButton(
             visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.menu_rounded,
-                color: AppColors.textPrimary, size: 24),
+            icon: Icon(Icons.menu_rounded,
+                color: context.colors.textPrimary, size: 24),
             onPressed: () {
               AppHaptics.selection();
               Scaffold.of(context).openDrawer();
@@ -129,7 +129,7 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
                 ),
                 child: Icon(active ? on : off,
                     color:
-                        active ? AppColors.primary : AppColors.textMuted,
+                        active ? AppColors.primary : context.colors.textMuted,
                     size: 22),
               ),
               const SizedBox(height: 2),
@@ -140,7 +140,7 @@ class _LopepayHomeShellState extends ConsumerState<LopepayHomeShell> {
                         active ? FontWeight.w700 : FontWeight.w500,
                     color: active
                         ? AppColors.primary
-                        : AppColors.textMuted,
+                        : context.colors.textMuted,
                   )),
             ],
           ),
@@ -644,9 +644,9 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                       AppSpacing.xs),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: context.colors.surface,
                       borderRadius: AppRadius.rMd,
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                     child: TextField(
                       onChanged: (v) => setState(() => _query = v),
@@ -659,13 +659,13 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                         focusedBorder: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: AppSpacing.md),
-                        prefixIcon: const Icon(Icons.search,
-                            color: AppColors.textMuted, size: 20),
+                        prefixIcon: Icon(Icons.search,
+                            color: context.colors.textMuted, size: 20),
                         hintText: tr(ref,
                             'mobile.lopepay.customers.searchHint',
                             "Ism yoki telefon"),
                         hintStyle: AppText.body
-                            .copyWith(color: AppColors.textMuted),
+                            .copyWith(color: context.colors.textMuted),
                       ),
                     ),
                   ),
@@ -761,8 +761,8 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                               child: Container(
                                 width: 44,
                                 height: 44,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.surface,
+                                decoration: BoxDecoration(
+                                  color: context.colors.surface,
                                   shape: BoxShape.circle,
                                 ),
                                 alignment: Alignment.center,

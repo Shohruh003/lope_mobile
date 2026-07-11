@@ -138,9 +138,9 @@ class _LopepayInstallmentsScreenState
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.colors.surface,
                   borderRadius: AppRadius.rMd,
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.colors.border),
                 ),
                 child: TextField(
                   onChanged: (v) => setState(() => _query = v),
@@ -153,12 +153,12 @@ class _LopepayInstallmentsScreenState
                     focusedBorder: InputBorder.none,
                     contentPadding:
                         const EdgeInsets.symmetric(vertical: 12),
-                    prefixIcon: const Icon(Icons.search,
-                        color: AppColors.textMuted, size: 20),
+                    prefixIcon: Icon(Icons.search,
+                        color: context.colors.textMuted, size: 20),
                     hintText: tr(ref, 'mobile.lopepay.customers.searchHint',
                         "Ism yoki telefon"),
                     hintStyle:
-                        AppText.body.copyWith(color: AppColors.textMuted),
+                        AppText.body.copyWith(color: context.colors.textMuted),
                   ),
                 ),
               ),
@@ -175,19 +175,19 @@ class _LopepayInstallmentsScreenState
                 decoration: BoxDecoration(
                   color: _filtersOpen
                       ? AppColors.primary.withValues(alpha: 0.15)
-                      : AppColors.surface,
+                      : context.colors.surface,
                   borderRadius: AppRadius.rMd,
                   border: Border.all(
                       color: _filtersOpen
                           ? AppColors.primary
-                          : AppColors.border),
+                          : context.colors.border),
                 ),
                 alignment: Alignment.center,
                 child: Icon(
                   Icons.filter_list,
                   color: _filtersOpen
                       ? AppColors.primary
-                      : AppColors.textMuted,
+                      : context.colors.textMuted,
                   size: 20,
                 ),
               ),
@@ -255,8 +255,8 @@ class _LopepayInstallmentsScreenState
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      const Text("—",
-                          style: TextStyle(color: AppColors.textMuted)),
+                      Text("—",
+                          style: TextStyle(color: context.colors.textMuted)),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: _DatePill(
@@ -405,9 +405,9 @@ class _LopepayInstallmentsScreenState
                                 ]),
                                 if (phone.isNotEmpty)
                                   Row(children: [
-                                    const Icon(Icons.phone_outlined,
+                                    Icon(Icons.phone_outlined,
                                         size: 11,
-                                        color: AppColors.textMuted),
+                                        color: context.colors.textMuted),
                                     const SizedBox(width: 3),
                                     Text(phone,
                                         style: AppText.caption
@@ -474,13 +474,13 @@ class _DatePill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rSm,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(children: [
-          const Icon(Icons.event_outlined,
-              size: 14, color: AppColors.textMuted),
+          Icon(Icons.event_outlined,
+              size: 14, color: context.colors.textMuted),
           const SizedBox(width: 5),
           Expanded(
             child: Text(label,

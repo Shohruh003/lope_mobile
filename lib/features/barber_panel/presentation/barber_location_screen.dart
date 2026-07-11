@@ -148,7 +148,7 @@ class _BarberLocationScreenState
                   tr(ref, 'mobile.barber.location.editHint',
                       'Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting'),
                   style: AppText.bodyLg
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: context.colors.textSecondary),
                 ),
                 AppSpacing.gapLg,
                 AppCard(
@@ -315,12 +315,12 @@ class _BarberLocationScreenState
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: AppColors.surfaceElevated,
+                              color: context.colors.surfaceElevated,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.copy,
+                            child: Icon(Icons.copy,
                                 size: 14,
-                                color: AppColors.textMuted),
+                                color: context.colors.textMuted),
                           ),
                         ),
                       ],

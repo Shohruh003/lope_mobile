@@ -104,7 +104,7 @@ class _PaymentCallbackScreenState
                       : tr(ref, 'mobile.payment.failMsg',
                           "Hech narsa yechilmadi. Qaytadan urinib ko'ring"),
                   style: AppText.bodyLg
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: context.colors.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 AppSpacing.gapXl,

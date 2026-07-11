@@ -168,7 +168,7 @@ class _BarberAccountEditScreenState
                           _obscureCurrent
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: AppColors.textMuted,
+                          color: context.colors.textMuted,
                           size: 20),
                       onPressed: () => setState(
                           () => _obscureCurrent = !_obscureCurrent),
@@ -192,7 +192,7 @@ class _BarberAccountEditScreenState
                           _obscureNew
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: AppColors.textMuted,
+                          color: context.colors.textMuted,
                           size: 20),
                       onPressed: () =>
                           setState(() => _obscureNew = !_obscureNew),

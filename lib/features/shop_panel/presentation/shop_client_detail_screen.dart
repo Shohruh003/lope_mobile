@@ -211,9 +211,9 @@ class _ShopClientDetailScreenState
                                 Wrap(
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    const Icon(Icons.event_outlined,
+                                    Icon(Icons.event_outlined,
                                         size: 11,
-                                        color: AppColors.textMuted),
+                                        color: context.colors.textMuted),
                                     const SizedBox(width: 3),
                                     Text(
                                         _fmtDate(
@@ -224,9 +224,9 @@ class _ShopClientDetailScreenState
                                       Text("  •  ",
                                           style: AppText.caption
                                               .copyWith(fontSize: 11)),
-                                      const Icon(Icons.access_time,
+                                      Icon(Icons.access_time,
                                           size: 11,
-                                          color: AppColors.textMuted),
+                                          color: context.colors.textMuted),
                                       const SizedBox(width: 3),
                                       Text((v['time']).toString(),
                                           style: AppText.caption
@@ -321,7 +321,7 @@ class _ShopClientDetailScreenState
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(tr(ref, 'shop.client.editTitle', "Mijozni tahrirlash"),
@@ -449,7 +449,7 @@ class _HeroCard extends ConsumerWidget {
                 : Container(
                     width: 72,
                     height: 72,
-                    color: AppColors.surface,
+                    color: context.colors.surface,
                     alignment: Alignment.center,
                     child: Text(
                         (name.isNotEmpty ? name[0] : '?').toUpperCase(),
@@ -487,11 +487,11 @@ class _HeroCard extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.surface.withValues(alpha: 0.6),
+              color: context.colors.surface.withValues(alpha: 0.6),
               borderRadius: AppRadius.rMd,
             ),
-            child: const Icon(Icons.edit_outlined,
-                color: AppColors.textSecondary, size: 18),
+            child: Icon(Icons.edit_outlined,
+                color: context.colors.textSecondary, size: 18),
           ),
         ),
       ]),

@@ -122,7 +122,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                           const SizedBox(width: AppSpacing.xs),
                           _RoundBtn(
                             icon: Icons.edit_outlined,
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                             onTap: () =>
                                 _openForm(context, ref, existing: a),
                           ),
@@ -199,7 +199,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
     final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => Padding(
@@ -218,7 +218,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: AppColors.border,
+                        color: context.colors.border,
                         borderRadius: BorderRadius.circular(2))),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -336,7 +336,7 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(

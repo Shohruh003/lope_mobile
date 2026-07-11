@@ -31,22 +31,19 @@ class _LopeAppState extends ConsumerState<LopeApp> {
       });
     }
 
-    // Foundation is in place — buildAppTheme(Brightness.light) exists
-    // and every shared widget (AppCard/Button/Chip/Badge/Skeleton/…)
-    // reads through context.colors. But 50+ individual screens still
-    // reference AppColors.textPrimary/textBright/border etc. as static
-    // const, so flipping to light there would leave dark text on a
-    // white scaffold. Screen-by-screen migration lands in follow-up
-    // commits; until it's complete, we force dark to guarantee "no
-    // bugs" while keeping the toggle preference persistent.
-    final _ = ref.watch(themeModeProvider);
-    final darkTheme = buildAppTheme(Brightness.dark);
+    // Real light/dark mode: buildAppTheme(brightness) returns a
+    // ThemeData that registers the matching LopeColors extension, and
+    // every screen — shared widgets AND individual features — now
+    // reads colours through `context.colors.xxx`. MaterialApp switches
+    // between the two themes based on the user's saved preference.
+    final mode =
+        ref.watch(themeModeProvider).asData?.value ?? ThemeMode.dark;
     return MaterialApp.router(
       title: 'Lope Style',
       debugShowCheckedModeBanner: false,
-      theme: darkTheme,
-      darkTheme: darkTheme,
-      themeMode: ThemeMode.dark,
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
+      themeMode: mode,
       routerConfig: router,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

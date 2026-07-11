@@ -91,9 +91,9 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.colors.surface,
                     borderRadius: AppRadius.rMd,
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.colors.border),
                   ),
                   child: TextField(
                     onChanged: (v) => setState(() {
@@ -109,13 +109,13 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                       focusedBorder: InputBorder.none,
                       contentPadding:
                           const EdgeInsets.symmetric(vertical: 12),
-                      prefixIcon: const Icon(Icons.search,
-                          color: AppColors.textMuted, size: 20),
+                      prefixIcon: Icon(Icons.search,
+                          color: context.colors.textMuted, size: 20),
                       hintText: tr(ref,
                           'mobile.lopepay.customers.searchHint',
                           'Ism yoki telefon'),
                       hintStyle: AppText.body
-                          .copyWith(color: AppColors.textMuted),
+                          .copyWith(color: context.colors.textMuted),
                     ),
                   ),
                 ),
@@ -165,7 +165,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                                       : Container(
                                           width: 48,
                                           height: 48,
-                                          color: AppColors.surface,
+                                          color: context.colors.surface,
                                           alignment: Alignment.center,
                                           child: Text(
                                             (b.name.isNotEmpty
@@ -216,13 +216,13 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                                   width: 36,
                                   height: 36,
                                   decoration: BoxDecoration(
-                                    color: AppColors.surfaceElevated,
+                                    color: context.colors.surfaceElevated,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                       Icons.edit_outlined,
                                       color:
-                                          AppColors.textSecondary,
+                                          context.colors.textSecondary,
                                       size: 18),
                                 ),
                               ),
@@ -279,7 +279,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                       Text(
                         '$_page / $totalPages',
                         style: AppText.body.copyWith(
-                          color: AppColors.textMuted,
+                          color: context.colors.textMuted,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -321,7 +321,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
@@ -341,7 +341,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.colors.border,
                     borderRadius: AppRadius.rPill,
                   ),
                 ),
@@ -509,7 +509,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -595,10 +595,10 @@ class _PickerBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
           gradient: on ? AppColors.primaryGradient : null,
-          color: on ? null : AppColors.surface,
+          color: on ? null : context.colors.surface,
           borderRadius: AppRadius.rMd,
           border: Border.all(
-            color: on ? AppColors.primary : AppColors.border,
+            color: on ? AppColors.primary : context.colors.border,
             width: on ? 2 : 1,
           ),
           boxShadow:
@@ -609,7 +609,7 @@ class _PickerBtn extends StatelessWidget {
           label,
           textAlign: TextAlign.center,
           style: AppText.body.copyWith(
-            color: on ? Colors.white : AppColors.textPrimary,
+            color: on ? Colors.white : context.colors.textPrimary,
             fontWeight: on ? FontWeight.w700 : FontWeight.w500,
           ),
         ),

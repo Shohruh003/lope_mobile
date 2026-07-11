@@ -131,7 +131,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     tr(ref, 'auth.loginSub', 'Hisobingizga kiring'),
                     style: AppText.bodyLg
-                        .copyWith(color: AppColors.textMuted),
+                        .copyWith(color: context.colors.textMuted),
                     textAlign: TextAlign.center,
                   )
                       .animate()
@@ -157,12 +157,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             LengthLimitingTextInputFormatter(9),
                           ],
                           style: AppText.body,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             prefixText: '+998 ',
                             prefixStyle: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textMuted,
+                              color: context.colors.textMuted,
                             ),
                             hintText: '901234567',
                           ),
@@ -184,7 +184,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: AppColors.textMuted,
+                                color: context.colors.textMuted,
                                 size: 20,
                               ),
                               onPressed: () => setState(
@@ -264,7 +264,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Text(
                           "${tr(ref, 'auth.noAccount', "Hisobingiz yo'qmi?")} ",
                           style: AppText.body
-                              .copyWith(color: AppColors.textMuted),
+                              .copyWith(color: context.colors.textMuted),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -287,8 +287,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   // OR
                   Row(children: [
-                    const Expanded(
-                        child: Divider(color: AppColors.border)),
+                    Expanded(
+                        child: Divider(color: context.colors.border)),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.md),
@@ -297,8 +297,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         style: AppText.overline,
                       ),
                     ),
-                    const Expanded(
-                        child: Divider(color: AppColors.border)),
+                    Expanded(
+                        child: Divider(color: context.colors.border)),
                   ]),
                   AppSpacing.gapLg,
 

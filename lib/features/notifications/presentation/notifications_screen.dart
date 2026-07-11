@@ -263,12 +263,12 @@ class _NotifTile extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: n.read
-              ? AppColors.surface
+              ? context.colors.surface
               : style.color.withValues(alpha: 0.08),
           borderRadius: AppRadius.rLg,
           border: Border.all(
             color: n.read
-                ? AppColors.border
+                ? context.colors.border
                 : style.color.withValues(alpha: 0.35),
           ),
           boxShadow: n.read ? null : AppShadows.subtle,
@@ -301,8 +301,8 @@ class _NotifTile extends StatelessWidget {
                             fontWeight:
                                 n.read ? FontWeight.w500 : FontWeight.w700,
                             color: n.read
-                                ? AppColors.textSecondary
-                                : AppColors.textBright,
+                                ? context.colors.textSecondary
+                                : context.colors.textBright,
                             height: 1.3,
                           ),
                         ),
@@ -321,7 +321,7 @@ class _NotifTile extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppText.bodySm.copyWith(
-                        color: AppColors.textMuted,
+                        color: context.colors.textMuted,
                         height: 1.4,
                       ),
                     ),

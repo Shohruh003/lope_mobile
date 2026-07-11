@@ -161,7 +161,7 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                                   : Container(
                                       width: 40,
                                       height: 40,
-                                      color: AppColors.surface,
+                                      color: context.colors.surface,
                                       alignment: Alignment.center,
                                       child: Text(
                                           (c.name.isNotEmpty

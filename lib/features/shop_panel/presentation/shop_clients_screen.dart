@@ -51,7 +51,7 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
@@ -190,9 +190,9 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                   child: Container(
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: context.colors.surface,
                       borderRadius: AppRadius.rMd,
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                     child: TextField(
                       onChanged: (v) => setState(() => _query = v),
@@ -205,13 +205,13 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                         focusedBorder: InputBorder.none,
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 12),
-                        prefixIcon: const Icon(Icons.search,
-                            color: AppColors.textMuted, size: 20),
+                        prefixIcon: Icon(Icons.search,
+                            color: context.colors.textMuted, size: 20),
                         hintText: tr(ref,
                             'mobile.lopepay.customers.searchHint',
                             'Ism yoki telefon'),
                         hintStyle: AppText.body
-                            .copyWith(color: AppColors.textMuted),
+                            .copyWith(color: context.colors.textMuted),
                       ),
                     ),
                   ),
@@ -287,7 +287,7 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                                 'mobile.shop.clients.selectAll',
                                 'Hammasini tanlash'),
                             style: AppText.bodySm.copyWith(
-                              color: AppColors.textBright,
+                              color: context.colors.textBright,
                             ),
                           ),
                         ]),
@@ -416,7 +416,7 @@ class _ClientRow extends StatelessWidget {
                   ? Icons.check_box
                   : Icons.check_box_outline_blank,
               color:
-                  selected ? AppColors.primary : AppColors.textMuted,
+                  selected ? AppColors.primary : context.colors.textMuted,
               size: 22,
             ),
           ),
@@ -431,8 +431,8 @@ class _ClientRow extends StatelessWidget {
           child: Container(
             width: 44,
             height: 44,
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
+            decoration: BoxDecoration(
+              color: context.colors.surface,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,

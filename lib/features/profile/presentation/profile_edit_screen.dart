@@ -191,7 +191,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                         color: Colors.white,
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AppColors.background, width: 3),
+                            color: context.colors.background, width: 3),
                       ),
                       alignment: Alignment.center,
                       child: _uploadingAvatar
@@ -348,10 +348,10 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
           gradient: on ? AppColors.primaryGradient : null,
-          color: on ? null : AppColors.surface,
+          color: on ? null : context.colors.surface,
           borderRadius: AppRadius.rMd,
           border: Border.all(
-            color: on ? AppColors.primary : AppColors.border,
+            color: on ? AppColors.primary : context.colors.border,
             width: on ? 2 : 1,
           ),
           boxShadow:
@@ -361,7 +361,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
         child: Text(
           label,
           style: AppText.body.copyWith(
-            color: on ? Colors.white : AppColors.textPrimary,
+            color: on ? Colors.white : context.colors.textPrimary,
             fontWeight: on ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -387,7 +387,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   hide
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: AppColors.textMuted,
+                  color: context.colors.textMuted,
                   size: 20),
               onPressed: onToggle,
             ),
@@ -406,12 +406,12 @@ class _Fallback extends StatelessWidget {
     return Container(
       width: 112,
       height: 112,
-      color: AppColors.surface,
+      color: context.colors.surface,
       alignment: Alignment.center,
       child: Text(
         (name.isNotEmpty ? name[0] : '?').toUpperCase(),
         style: AppText.display.copyWith(
-          color: AppColors.textBright,
+          color: context.colors.textBright,
           fontSize: 40,
         ),
       ),

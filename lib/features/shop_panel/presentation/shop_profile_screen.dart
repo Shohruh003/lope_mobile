@@ -313,12 +313,12 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                           decoration: BoxDecoration(
                             color: _hours[i].isOpen
                                 ? AppColors.primary.withValues(alpha: 0.04)
-                                : AppColors.background,
+                                : context.colors.background,
                             borderRadius: AppRadius.rSm,
                             border: Border.all(
                                 color: _hours[i].isOpen
                                     ? AppColors.primary.withValues(alpha: 0.2)
-                                    : AppColors.border),
+                                    : context.colors.border),
                           ),
                           child: Row(children: [
                             SizedBox(
@@ -326,8 +326,8 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                               child: Text(dayShorts[i],
                                   style: AppText.button.copyWith(
                                       color: _hours[i].isOpen
-                                          ? AppColors.textBright
-                                          : AppColors.textMuted,
+                                          ? context.colors.textBright
+                                          : context.colors.textMuted,
                                       fontSize: 13)),
                             ),
                             const SizedBox(width: AppSpacing.xs),
@@ -338,9 +338,9 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                                     enabled: _hours[i].isOpen,
                                     onTap: () => _pickTime(i, true)),
                                 const SizedBox(width: 6),
-                                const Text('—',
+                                Text('—',
                                     style: TextStyle(
-                                        color: AppColors.textMuted)),
+                                        color: context.colors.textMuted)),
                                 const SizedBox(width: 6),
                                 _TimePill(
                                     label: _hours[i].close,
@@ -501,16 +501,16 @@ class _TimePill extends StatelessWidget {
         decoration: BoxDecoration(
           color: enabled
               ? AppColors.primary.withValues(alpha: 0.12)
-              : AppColors.surface,
+              : context.colors.surface,
           borderRadius: AppRadius.rSm,
           border: Border.all(
               color: enabled
                   ? AppColors.primary.withValues(alpha: 0.4)
-                  : AppColors.border),
+                  : context.colors.border),
         ),
         child: Text(label,
             style: AppText.button.copyWith(
-                color: enabled ? AppColors.primary : AppColors.textMuted)),
+                color: enabled ? AppColors.primary : context.colors.textMuted)),
       ),
     );
   }

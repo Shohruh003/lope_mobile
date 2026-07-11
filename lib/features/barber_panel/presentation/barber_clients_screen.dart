@@ -82,9 +82,9 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.colors.surface,
                     borderRadius: AppRadius.rMd,
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.colors.border),
                   ),
                   child: TextField(
                     onChanged: (v) => setState(() => _query = v),
@@ -97,13 +97,13 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                       focusedBorder: InputBorder.none,
                       contentPadding:
                           const EdgeInsets.symmetric(vertical: 12),
-                      prefixIcon: const Icon(Icons.search,
-                          color: AppColors.textMuted, size: 20),
+                      prefixIcon: Icon(Icons.search,
+                          color: context.colors.textMuted, size: 20),
                       hintText: tr(ref,
                           'barberMyClients.searchPlaceholder',
                           'Ism yoki telefon'),
                       hintStyle: AppText.body
-                          .copyWith(color: AppColors.textMuted),
+                          .copyWith(color: context.colors.textMuted),
                     ),
                   ),
                 ),

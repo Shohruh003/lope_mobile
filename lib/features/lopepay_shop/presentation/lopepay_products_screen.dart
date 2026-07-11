@@ -43,9 +43,9 @@ class _LopepayProductsScreenState
               AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xs),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: AppRadius.rMd,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: TextField(
               onChanged: (v) => setState(() => _query = v),
@@ -58,11 +58,11 @@ class _LopepayProductsScreenState
                 focusedBorder: InputBorder.none,
                 contentPadding:
                     const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                prefixIcon: const Icon(Icons.search,
-                    color: AppColors.textMuted, size: 20),
+                prefixIcon: Icon(Icons.search,
+                    color: context.colors.textMuted, size: 20),
                 hintText:
                     tr(ref, 'mobile.lopepay.products.searchHint', "Mahsulot nomi"),
-                hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
+                hintStyle: AppText.body.copyWith(color: context.colors.textMuted),
               ),
             ),
           ),
@@ -156,7 +156,7 @@ class _LopepayProductsScreenState
                                       "${_fmt(p.price)} ${tr(ref, 'common.currency', "so'm")}",
                                       style: AppText.bodySm.copyWith(
                                           fontWeight: FontWeight.w600,
-                                          color: AppColors.textBright)),
+                                          color: context.colors.textBright)),
                                 ],
                                 Text(
                                     tr(
@@ -170,7 +170,7 @@ class _LopepayProductsScreenState
                           ),
                           _RoundBtn(
                             icon: Icons.edit_outlined,
-                            color: AppColors.textMuted,
+                            color: context.colors.textMuted,
                             onTap: () => _showForm(context, p),
                           ),
                           const SizedBox(width: AppSpacing.xs),
@@ -201,7 +201,7 @@ class _LopepayProductsScreenState
     final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => StatefulBuilder(builder: (sheetCtx, setSheet) {
         return Padding(
@@ -220,7 +220,7 @@ class _LopepayProductsScreenState
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                          color: AppColors.border,
+                          color: context.colors.border,
                           borderRadius: BorderRadius.circular(2))),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -318,7 +318,7 @@ class _LopepayProductsScreenState
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(

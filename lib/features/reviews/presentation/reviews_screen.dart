@@ -130,7 +130,7 @@ class ReviewsScreen extends ConsumerWidget {
                         Text(
                           r.comment,
                           style: AppText.bodySm.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                             height: 1.4,
                           ),
                         ),
@@ -161,7 +161,7 @@ class ReviewsScreen extends ConsumerWidget {
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => StatefulBuilder(
         builder: (sheetCtx, setSheet) => Padding(
@@ -181,7 +181,7 @@ class ReviewsScreen extends ConsumerWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.colors.border,
                     borderRadius: AppRadius.rPill,
                   ),
                 ),

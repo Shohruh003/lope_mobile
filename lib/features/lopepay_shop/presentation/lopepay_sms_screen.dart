@@ -121,9 +121,9 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
               AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xs),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.colors.surface,
               borderRadius: AppRadius.rMd,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: TextField(
               onChanged: (v) => setState(() {
@@ -140,10 +140,10 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                 focusedBorder: InputBorder.none,
                 contentPadding:
                     const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                prefixIcon: const Icon(Icons.search,
-                    color: AppColors.textMuted, size: 20),
+                prefixIcon: Icon(Icons.search,
+                    color: context.colors.textMuted, size: 20),
                 hintText: tr(ref, 'lopePay.shop.filterPhone', "Telefon raqami"),
-                hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
+                hintStyle: AppText.body.copyWith(color: context.colors.textMuted),
               ),
             ),
           ),
@@ -233,8 +233,8 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                                   : _ymd.format(_from!),
                               onTap: () => _pickDate(true))),
                       const SizedBox(width: AppSpacing.sm),
-                      const Text("—",
-                          style: TextStyle(color: AppColors.textMuted)),
+                      Text("—",
+                          style: TextStyle(color: context.colors.textMuted)),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                           child: _DatePill(
@@ -334,8 +334,8 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                               if ((s['sentAt'] ?? s['createdAt']) != null) ...[
                                 const SizedBox(height: AppSpacing.sm),
                                 Row(children: [
-                                  const Icon(Icons.schedule,
-                                      size: 12, color: AppColors.textMuted),
+                                  Icon(Icons.schedule,
+                                      size: 12, color: context.colors.textMuted),
                                   const SizedBox(width: 4),
                                   Text(
                                       _df.format(DateTime.parse(
@@ -415,13 +415,13 @@ class _DatePill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rSm,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(children: [
-          const Icon(Icons.event_outlined,
-              size: 14, color: AppColors.textMuted),
+          Icon(Icons.event_outlined,
+              size: 14, color: context.colors.textMuted),
           const SizedBox(width: 5),
           Expanded(
             child: Text(label,

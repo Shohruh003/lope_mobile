@@ -78,7 +78,7 @@ class _LowBalanceDialogState extends ConsumerState<_LowBalanceDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),

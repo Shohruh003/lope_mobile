@@ -234,9 +234,9 @@ class _SegmentedTabs extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: context.colors.surfaceElevated,
         borderRadius: AppRadius.rMd,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: List.generate(labels.length, (i) {
@@ -251,10 +251,10 @@ class _SegmentedTabs extends StatelessWidget {
                 curve: AppMotion.emphasized,
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: on ? AppColors.background : Colors.transparent,
+                  color: on ? context.colors.background : Colors.transparent,
                   borderRadius: AppRadius.rSm,
                   border: on
-                      ? Border.all(color: AppColors.border)
+                      ? Border.all(color: context.colors.border)
                       : null,
                   boxShadow: on ? AppShadows.subtle : null,
                 ),
@@ -268,8 +268,8 @@ class _SegmentedTabs extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: on ? FontWeight.w700 : FontWeight.w500,
                         color: on
-                            ? AppColors.textBright
-                            : AppColors.textMuted,
+                            ? context.colors.textBright
+                            : context.colors.textMuted,
                       ),
                     ),
                     AppSpacing.hGapXs,
@@ -281,13 +281,13 @@ class _SegmentedTabs extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: on
                             ? AppColors.primary
-                            : AppColors.border,
+                            : context.colors.border,
                         borderRadius: AppRadius.rPill,
                       ),
                       child: Text(
                         '${counts[i]}',
                         style: AppText.caption.copyWith(
-                          color: on ? Colors.white : AppColors.textMuted,
+                          color: on ? Colors.white : context.colors.textMuted,
                           fontWeight: FontWeight.w700,
                           fontSize: 10,
                         ),
@@ -388,13 +388,13 @@ class _BookingCard extends ConsumerWidget {
                 ],
                 const SizedBox(height: AppSpacing.sm),
                 Row(children: [
-                  const Icon(Icons.calendar_today_outlined,
-                      size: 12, color: AppColors.textMuted),
+                  Icon(Icons.calendar_today_outlined,
+                      size: 12, color: context.colors.textMuted),
                   AppSpacing.hGapXs,
                   Text(b.date, style: AppText.caption),
                   AppSpacing.hGapMd,
-                  const Icon(Icons.access_time_outlined,
-                      size: 12, color: AppColors.textMuted),
+                  Icon(Icons.access_time_outlined,
+                      size: 12, color: context.colors.textMuted),
                   AppSpacing.hGapXs,
                   Text(b.time, style: AppText.caption),
                   const Spacer(),
@@ -413,14 +413,14 @@ class _BookingCard extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.sm),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceElevated,
+                      color: context.colors.surfaceElevated,
                       borderRadius: AppRadius.rSm,
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.sticky_note_2_outlined,
-                            size: 12, color: AppColors.textMuted),
+                        Icon(Icons.sticky_note_2_outlined,
+                            size: 12, color: context.colors.textMuted),
                         AppSpacing.hGapXs,
                         Expanded(
                           child: Text(
@@ -428,7 +428,7 @@ class _BookingCard extends ConsumerWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: AppText.caption.copyWith(
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -508,7 +508,7 @@ class _BookingCard extends ConsumerWidget {
       await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.colors.surface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
         builder: (sheetCtx) => StatefulBuilder(builder: (sheetCtx, setSheet) {
           Future<void> doSkip() async {
@@ -557,7 +557,7 @@ class _BookingCard extends ConsumerWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.border,
+                      color: context.colors.border,
                       borderRadius: AppRadius.rPill,
                     ),
                   ),
@@ -695,7 +695,7 @@ Future<bool?> _confirmDialog(
   return showDialog<bool>(
     context: context,
     builder: (dCtx) => Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),

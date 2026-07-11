@@ -104,7 +104,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                   child: Text(
                     b.bio,
                     style: AppText.body.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -310,7 +310,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                 ? "${entry!['open'] ?? '—'} - ${entry['close'] ?? '—'}"
                 : tr(ref, 'barbers.closed', 'Yopiq'),
             style: AppText.caption.copyWith(
-              color: isOpen ? AppColors.textBright : AppColors.textMuted,
+              color: isOpen ? context.colors.textBright : context.colors.textMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -342,8 +342,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
           child: Text(handle,
               style: AppText.body.copyWith(fontWeight: FontWeight.w600)),
         ),
-        const Icon(Icons.arrow_forward_ios,
-            size: 12, color: AppColors.textMuted),
+        Icon(Icons.arrow_forward_ios,
+            size: 12, color: context.colors.textMuted),
       ]),
     );
   }
@@ -408,8 +408,8 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                           Text(s.name, style: AppText.titleSm),
                           const SizedBox(height: 2),
                           Row(children: [
-                            const Icon(Icons.access_time_outlined,
-                                size: 11, color: AppColors.textMuted),
+                            Icon(Icons.access_time_outlined,
+                                size: 11, color: context.colors.textMuted),
                             AppSpacing.hGapXs,
                             Text(
                               "${s.duration} ${tr(ref, 'booking.duration', 'daq')}",
@@ -467,10 +467,10 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
               fit: BoxFit.cover,
               placeholder: (_, _) => const SkeletonRect(radius: AppRadius.md),
               errorWidget: (_, _, _) => Container(
-                color: AppColors.surfaceElevated,
+                color: context.colors.surfaceElevated,
                 alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined,
-                    color: AppColors.textMuted),
+                child: Icon(Icons.broken_image_outlined,
+                    color: context.colors.textMuted),
               ),
             ),
           ),
@@ -540,7 +540,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                                             size: 12,
                                             color: i < r.rating
                                                 ? const Color(0xFFFBBF24)
-                                                : AppColors.textMuted,
+                                                : context.colors.textMuted,
                                           ))),
                             ]),
                             if (r.comment.isNotEmpty) ...[
@@ -548,7 +548,7 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                               Text(
                                 r.comment,
                                 style: AppText.bodySm.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: context.colors.textSecondary,
                                   height: 1.4,
                                 ),
                               ),
@@ -604,9 +604,9 @@ class _TopBar extends ConsumerWidget {
         AppSpacing.sm,
         AppSpacing.xs,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: context.colors.background,
+        border: Border(bottom: BorderSide(color: context.colors.border)),
       ),
       child: Row(children: [
         _CircleButton(
@@ -615,7 +615,7 @@ class _TopBar extends ConsumerWidget {
         ),
         const Spacer(),
         busy
-            ? const SizedBox(
+            ? SizedBox(
                 width: 40,
                 height: 40,
                 child: Center(
@@ -623,13 +623,13 @@ class _TopBar extends ConsumerWidget {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.textPrimary),
+                        strokeWidth: 2, color: context.colors.textPrimary),
                   ),
                 ),
               )
             : _CircleButton(
                 icon: isFav ? Icons.bookmark : Icons.bookmark_border,
-                iconColor: isFav ? AppColors.primary : AppColors.textPrimary,
+                iconColor: isFav ? AppColors.primary : context.colors.textPrimary,
                 onTap: onFavorite,
               ),
       ]),
@@ -641,11 +641,11 @@ class _CircleButton extends StatelessWidget {
   const _CircleButton({
     required this.icon,
     required this.onTap,
-    this.iconColor = AppColors.textPrimary,
+    this.iconColor,
   });
   final IconData icon;
   final VoidCallback onTap;
-  final Color iconColor;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -656,12 +656,12 @@ class _CircleButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         alignment: Alignment.center,
-        child: Icon(icon, color: iconColor, size: 20),
+        child: Icon(icon, color: iconColor ?? context.colors.textPrimary, size: 20),
       ),
     );
   }
@@ -732,8 +732,8 @@ class _HeaderRow extends ConsumerWidget {
               if (b.experience != null) ...[
                 AppSpacing.gapSm,
                 Row(children: [
-                  const Icon(Icons.workspace_premium_outlined,
-                      size: 14, color: AppColors.textMuted),
+                  Icon(Icons.workspace_premium_outlined,
+                      size: 14, color: context.colors.textMuted),
                   AppSpacing.hGapXs,
                   Text(
                     "${b.experience} ${tr(ref, 'barbers.experience', 'yil tajriba')}",
@@ -750,14 +750,14 @@ class _HeaderRow extends ConsumerWidget {
                     size: 14,
                     color: filled
                         ? const Color(0xFFFBBF24)
-                        : AppColors.textMuted,
+                        : context.colors.textMuted,
                   );
                 }),
                 AppSpacing.hGapXs,
                 Text(
                   b.rating.toStringAsFixed(1),
                   style: AppText.body.copyWith(
-                    color: AppColors.textBright,
+                    color: context.colors.textBright,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -818,9 +818,9 @@ class _TabsRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: context.colors.surfaceElevated,
         borderRadius: AppRadius.rMd,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         children: List.generate(labels.length, (i) {
@@ -836,9 +836,9 @@ class _TabsRow extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: on ? AppColors.background : Colors.transparent,
+                  color: on ? context.colors.background : Colors.transparent,
                   borderRadius: AppRadius.rSm,
-                  border: on ? Border.all(color: AppColors.border) : null,
+                  border: on ? Border.all(color: context.colors.border) : null,
                   boxShadow: on ? AppShadows.subtle : null,
                 ),
                 child: Center(
@@ -848,7 +848,7 @@ class _TabsRow extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: on ? FontWeight.w700 : FontWeight.w500,
                       color:
-                          on ? AppColors.textBright : AppColors.textMuted,
+                          on ? context.colors.textBright : context.colors.textMuted,
                     ),
                   ),
                 ),

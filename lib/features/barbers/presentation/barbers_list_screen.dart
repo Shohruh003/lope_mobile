@@ -71,7 +71,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
     AppHaptics.light();
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       isScrollControlled: true,
       builder: (_) => _TunerSheet(
@@ -315,7 +315,7 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: AppColors.background,
+      color: context.colors.background,
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.md,
@@ -327,14 +327,14 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
         Container(
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.colors.surface,
             borderRadius: AppRadius.rMd,
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.colors.border),
           ),
           child: TextField(
             controller: searchController,
             onChanged: onSearch,
-            style: AppText.body.copyWith(color: AppColors.textBright),
+            style: AppText.body.copyWith(color: context.colors.textBright),
             decoration: InputDecoration(
               isDense: true,
               filled: false,
@@ -342,14 +342,14 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              prefixIcon: const Icon(Icons.search,
-                  color: AppColors.textMuted, size: 20),
+              prefixIcon: Icon(Icons.search,
+                  color: context.colors.textMuted, size: 20),
               hintText: searchHint,
-              hintStyle: AppText.body.copyWith(color: AppColors.textMuted),
+              hintStyle: AppText.body.copyWith(color: context.colors.textMuted),
               suffixIcon: query.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.close,
-                          color: AppColors.textMuted, size: 18),
+                      icon: Icon(Icons.close,
+                          color: context.colors.textMuted, size: 18),
                       onPressed: () {
                         AppHaptics.light();
                         onClearSearch();
@@ -396,16 +396,16 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
               decoration: BoxDecoration(
                 color: tunerActive
                     ? AppColors.primary
-                    : AppColors.surfaceElevated,
+                    : context.colors.surfaceElevated,
                 borderRadius: AppRadius.rPill,
                 border: Border.all(
-                  color: tunerActive ? AppColors.primary : AppColors.border,
+                  color: tunerActive ? AppColors.primary : context.colors.border,
                 ),
               ),
               child: Icon(
                 Icons.tune,
                 size: 16,
-                color: tunerActive ? Colors.white : AppColors.textPrimary,
+                color: tunerActive ? Colors.white : context.colors.textPrimary,
               ),
             ),
           ),
@@ -460,7 +460,7 @@ class _TunerSheetState extends ConsumerState<_TunerSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.colors.border,
                     borderRadius: AppRadius.rPill,
                   ),
                 ),
@@ -698,8 +698,8 @@ class _ShopCard extends ConsumerWidget {
                   const SizedBox(height: 6),
                   if (addr.isNotEmpty)
                     Row(children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 12, color: AppColors.textMuted),
+                      Icon(Icons.location_on_outlined,
+                          size: 12, color: context.colors.textMuted),
                       AppSpacing.hGapXs,
                       Expanded(
                         child: Text(
@@ -831,7 +831,7 @@ class _BarberCard extends ConsumerWidget {
                     Text(
                       barber.rating.toStringAsFixed(1),
                       style: AppText.caption.copyWith(
-                        color: AppColors.textBright,
+                        color: context.colors.textBright,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -846,8 +846,8 @@ class _BarberCard extends ConsumerWidget {
                   if (barber.location.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Row(children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 11, color: AppColors.textMuted),
+                      Icon(Icons.location_on_outlined,
+                          size: 11, color: context.colors.textMuted),
                       AppSpacing.hGapXs,
                       Expanded(
                         child: Text(

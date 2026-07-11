@@ -163,13 +163,13 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 decoration: BoxDecoration(
                   color: _filtersOpen
                       ? AppColors.primary
-                      : AppColors.surface,
+                      : context.colors.surface,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.colors.border),
                 ),
                 child: Icon(
                   _filtersOpen ? Icons.filter_list_off : Icons.filter_list,
-                  color: _filtersOpen ? Colors.white : AppColors.textPrimary,
+                  color: _filtersOpen ? Colors.white : context.colors.textPrimary,
                   size: 18,
                 ),
               ),
@@ -327,8 +327,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         ),
                       ),
                       AppSpacing.hGapSm,
-                      const Text('—',
-                          style: TextStyle(color: AppColors.textMuted)),
+                      Text('—',
+                          style: TextStyle(color: context.colors.textMuted)),
                       AppSpacing.hGapSm,
                       Expanded(
                         child: _DatePill(
@@ -469,7 +469,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         Text(
                           '$_page / $pages',
                           style: AppText.body.copyWith(
-                            color: AppColors.textMuted,
+                            color: context.colors.textMuted,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -535,7 +535,7 @@ class _StatTile extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppText.titleSm.copyWith(color: AppColors.textBright),
+            style: AppText.titleSm.copyWith(color: context.colors.textBright),
           ),
         ],
       ),
@@ -686,13 +686,13 @@ class _DatePill extends StatelessWidget {
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.colors.surface,
           borderRadius: AppRadius.rMd,
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Row(children: [
-          const Icon(Icons.event_outlined,
-              size: 14, color: AppColors.textMuted),
+          Icon(Icons.event_outlined,
+              size: 14, color: context.colors.textMuted),
           AppSpacing.hGapSm,
           Expanded(
             child: Text(

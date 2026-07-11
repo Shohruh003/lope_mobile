@@ -84,9 +84,9 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md, vertical: AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: context.colors.surface,
                     borderRadius: AppRadius.rMd,
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.colors.border),
                   ),
                   child: Row(children: [
                     Container(
@@ -106,7 +106,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                         children: [
                           Text(tr(ref, 'booking.date', 'Sana'),
                               style: AppText.overline
-                                  .copyWith(color: AppColors.textMuted)),
+                                  .copyWith(color: context.colors.textMuted)),
                           const SizedBox(height: 2),
                           Text(
                               _date == null
@@ -207,8 +207,8 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
 
               bookingsAsync.maybeWhen(
                 data: (res) => Row(children: [
-                  const Icon(Icons.event_note,
-                      size: 14, color: AppColors.textMuted),
+                  Icon(Icons.event_note,
+                      size: 14, color: context.colors.textMuted),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
                       "${res.total} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
@@ -292,19 +292,19 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: AppRadius.rMd,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(children: [
         Container(
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: AppColors.textMuted.withValues(alpha: 0.1),
+            color: context.colors.textMuted.withValues(alpha: 0.1),
             borderRadius: AppRadius.rSm,
           ),
-          child: Icon(icon, size: 14, color: AppColors.textMuted),
+          child: Icon(icon, size: 14, color: context.colors.textMuted),
         ),
         const SizedBox(width: AppSpacing.sm),
         Text("$label:",
@@ -318,10 +318,10 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
               items: items,
               onChanged: onChanged,
               style: AppText.body.copyWith(
-                  fontWeight: FontWeight.w600, color: AppColors.textBright),
-              dropdownColor: AppColors.surface,
-              icon: const Icon(Icons.expand_more,
-                  size: 18, color: AppColors.textMuted),
+                  fontWeight: FontWeight.w600, color: context.colors.textBright),
+              dropdownColor: context.colors.surface,
+              icon: Icon(Icons.expand_more,
+                  size: 18, color: context.colors.textMuted),
             ),
           ),
         ),
@@ -450,8 +450,8 @@ class _BookingCard extends ConsumerWidget {
               Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Icon(Icons.person_outline,
-                      size: 11, color: AppColors.textMuted),
+                  Icon(Icons.person_outline,
+                      size: 11, color: context.colors.textMuted),
                   const SizedBox(width: 3),
                   Text(b.barberName,
                       style: AppText.caption.copyWith(fontSize: 11)),
@@ -464,8 +464,8 @@ class _BookingCard extends ConsumerWidget {
                   if (b.totalDuration > 0) ...[
                     Text("  •  ",
                         style: AppText.caption.copyWith(fontSize: 11)),
-                    const Icon(Icons.access_time,
-                        size: 11, color: AppColors.textMuted),
+                    Icon(Icons.access_time,
+                        size: 11, color: context.colors.textMuted),
                     const SizedBox(width: 2),
                     Text("${b.totalDuration}m",
                         style: AppText.caption.copyWith(fontSize: 11)),
@@ -483,8 +483,8 @@ class _BookingCard extends ConsumerWidget {
               if (b.notes != null && b.notes!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Icon(Icons.notes,
-                      size: 12, color: AppColors.textMuted),
+                  Icon(Icons.notes,
+                      size: 12, color: context.colors.textMuted),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(b.notes!,
@@ -528,10 +528,10 @@ class _BookingCard extends ConsumerWidget {
                   ),
                   const Spacer(),
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert,
-                        size: 18, color: AppColors.textMuted),
+                    icon: Icon(Icons.more_vert,
+                        size: 18, color: context.colors.textMuted),
                     padding: EdgeInsets.zero,
-                    color: AppColors.surface,
+                    color: context.colors.surface,
                     shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(AppRadius.md)),
@@ -603,7 +603,7 @@ class _BookingCard extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(
@@ -663,7 +663,7 @@ class _BookingCard extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(
@@ -742,7 +742,7 @@ class _BookingCard extends ConsumerWidget {
     final ok = await showDialog<int>(
       context: context,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg)),
         title: Text(

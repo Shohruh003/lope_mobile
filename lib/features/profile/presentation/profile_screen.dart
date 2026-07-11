@@ -139,7 +139,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               _LinkTile(
                 icon: Icons.policy_outlined,
-                iconColor: AppColors.textMuted,
+                iconColor: context.colors.textMuted,
                 label: tr(ref, 'profile.privacy', 'Maxfiylik siyosati'),
                 onTap: () => _openUrl('https://lopestyle.uz/privacy'),
               ),
@@ -210,7 +210,7 @@ Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
   final ok = await showDialog<bool>(
     context: context,
     builder: (dCtx) => Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -294,7 +294,7 @@ Future<bool?> _logoutDialog(BuildContext context, WidgetRef ref) {
   return showDialog<bool>(
     context: context,
     builder: (dCtx) => Dialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -628,7 +628,7 @@ class _LangTile extends ConsumerWidget {
               tr(ref, 'barberApp.language', 'Til'),
               style: AppText.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textBright,
+                color: context.colors.textBright,
               ),
             ),
           ),
@@ -637,11 +637,11 @@ class _LangTile extends ConsumerWidget {
           AppSpacing.hGapXs,
           Text(
             _localeLabel(currentLang),
-            style: AppText.bodySm.copyWith(color: AppColors.textMuted),
+            style: AppText.bodySm.copyWith(color: context.colors.textMuted),
           ),
           AppSpacing.hGapSm,
-          const Icon(Icons.chevron_right,
-              color: AppColors.textMuted, size: 18),
+          Icon(Icons.chevron_right,
+              color: context.colors.textMuted, size: 18),
         ]),
       ),
     );
@@ -652,7 +652,7 @@ class _LangTile extends ConsumerWidget {
     AppHaptics.light();
     final picked = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => SafeArea(
         top: false,
@@ -672,7 +672,7 @@ class _LangTile extends ConsumerWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.colors.border,
                     borderRadius: AppRadius.rPill,
                   ),
                 ),
@@ -696,12 +696,12 @@ class _LangTile extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: opt.$1 == current
                           ? AppColors.primary.withValues(alpha: 0.1)
-                          : AppColors.surfaceElevated,
+                          : context.colors.surfaceElevated,
                       borderRadius: AppRadius.rMd,
                       border: Border.all(
                         color: opt.$1 == current
                             ? AppColors.primary
-                            : AppColors.border,
+                            : context.colors.border,
                       ),
                     ),
                     child: Row(children: [
@@ -714,7 +714,7 @@ class _LangTile extends ConsumerWidget {
                           style: AppText.body.copyWith(
                             color: opt.$1 == current
                                 ? AppColors.primary
-                                : AppColors.textBright,
+                                : context.colors.textBright,
                             fontWeight: opt.$1 == current
                                 ? FontWeight.w700
                                 : FontWeight.w500,
@@ -772,17 +772,17 @@ class _ThemeTile extends ConsumerWidget {
               tr(ref, 'mobile.profile.theme', 'Rejim'),
               style: AppText.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textBright,
+                color: context.colors.textBright,
               ),
             ),
           ),
           Text(
             _labelFor(ref, mode),
-            style: AppText.bodySm.copyWith(color: AppColors.textMuted),
+            style: AppText.bodySm.copyWith(color: context.colors.textMuted),
           ),
           AppSpacing.hGapSm,
-          const Icon(Icons.chevron_right,
-              color: AppColors.textMuted, size: 18),
+          Icon(Icons.chevron_right,
+              color: context.colors.textMuted, size: 18),
         ]),
       ),
     );
@@ -808,7 +808,7 @@ class _ThemeTile extends ConsumerWidget {
     AppHaptics.light();
     final picked = await showModalBottomSheet<ThemeMode>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.rTopXl),
       builder: (sheetCtx) => SafeArea(
         top: false,
@@ -828,7 +828,7 @@ class _ThemeTile extends ConsumerWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.colors.border,
                     borderRadius: AppRadius.rPill,
                   ),
                 ),
@@ -862,19 +862,19 @@ class _ThemeTile extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: opt.$1 == current
                           ? AppColors.primary.withValues(alpha: 0.1)
-                          : AppColors.surfaceElevated,
+                          : context.colors.surfaceElevated,
                       borderRadius: AppRadius.rMd,
                       border: Border.all(
                         color: opt.$1 == current
                             ? AppColors.primary
-                            : AppColors.border,
+                            : context.colors.border,
                       ),
                     ),
                     child: Row(children: [
                       Icon(_iconFor(opt.$1),
                           color: opt.$1 == current
                               ? AppColors.primary
-                              : AppColors.textMuted,
+                              : context.colors.textMuted,
                           size: 22),
                       AppSpacing.hGapMd,
                       Expanded(
@@ -883,7 +883,7 @@ class _ThemeTile extends ConsumerWidget {
                           style: AppText.body.copyWith(
                             color: opt.$1 == current
                                 ? AppColors.primary
-                                : AppColors.textBright,
+                                : context.colors.textBright,
                             fontWeight: opt.$1 == current
                                 ? FontWeight.w700
                                 : FontWeight.w500,
@@ -922,8 +922,8 @@ class _MenuGroup extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i < children.length - 1)
-              const Divider(
-                color: AppColors.border,
+              Divider(
+                color: context.colors.border,
                 height: 1,
                 indent: AppSpacing.xxl + AppSpacing.md,
               ),
@@ -970,11 +970,11 @@ class _LinkTile extends StatelessWidget {
           Expanded(
             child: Text(label, style: AppText.body.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textBright,
+              color: context.colors.textBright,
             )),
           ),
-          const Icon(Icons.chevron_right,
-              color: AppColors.textMuted, size: 18),
+          Icon(Icons.chevron_right,
+              color: context.colors.textMuted, size: 18),
         ]),
       ),
     );
