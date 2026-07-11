@@ -36,7 +36,11 @@ class BookingScreen extends ConsumerStatefulWidget {
 class _BookingScreenState extends ConsumerState<BookingScreen> {
   int _step = 1;
   final Set<String> _selectedServiceIds = {};
-  DateTime? _selectedDate;
+  // Pre-selecting today so the step 2 screen already shows the barber's
+  // slots for today the moment the user lands. Previously this was null
+  // and the user had to tap "Bugun" to see any slots at all — the empty
+  // grid made the flow feel broken.
+  late DateTime? _selectedDate = _days.first;
   String? _selectedTime;
   String _notes = '';
   bool _submitting = false;
