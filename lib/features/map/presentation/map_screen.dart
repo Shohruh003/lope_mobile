@@ -106,34 +106,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 },
               ),
               children: [
-                // CartoDB Voyager — mid-tone tiles with clearly visible
-                // streets on both light and dark themes. Beats
-                // light_all / dark_all which are too white / too black
-                // to read street names comfortably. In dark mode we
-                // also flip the tile brightness so the whole thing
-                // reads as a night map instead of a bright daytime
-                // canvas.
+                // Stadia Alidade Smooth — clean Yandex/Google-style
+                // basemap with warm greys, clear road hierarchy and
+                // blue-teal water. Ships purpose-built light and dark
+                // variants so no ColorFilter hacks are needed. Free
+                // tier: 200k tiles/month with attribution. Domain-based
+                // auth handles localhost dev without an API key.
                 Builder(builder: (ctx) {
                   final isDark = Theme.of(ctx).brightness == Brightness.dark;
-                  final tiles = TileLayer(
-                    urlTemplate:
-                        'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                  return TileLayer(
+                    urlTemplate: isDark
+                        ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+                        : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
                     additionalOptions: const {'r': ''},
                     userAgentPackageName: 'uz.lopestyle.mobile',
-                    maxZoom: 19,
+                    maxZoom: 20,
                     retinaMode: MediaQuery.of(ctx).devicePixelRatio > 1.5,
-                  );
-                  if (!isDark) return tiles;
-                  // Invert + slight desaturation to produce a clean
-                  // dark-mode Voyager without needing a paid API.
-                  return ColorFiltered(
-                    colorFilter: const ColorFilter.matrix(<double>[
-                      -0.8, 0.15, 0.15, 0, 60,
-                      0.15, -0.8, 0.15, 0, 60,
-                      0.15, 0.15, -0.8, 0, 60,
-                      0,    0,    0,    1, 0,
-                    ]),
-                    child: tiles,
                   );
                 }),
                 if (myLL != null)
