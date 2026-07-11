@@ -641,20 +641,51 @@ class _ShopCard extends ConsumerWidget {
             AspectRatio(
               aspectRatio: 1.35,
               child: Stack(children: [
+                // Gradient wash + subtle radial highlight behind the
+                // circular monogram. Two-layer decoration so the avatar
+                // reads clearly against the tinted background instead of
+                // blending into it.
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                        const Color(0xFF8B5CF6).withValues(alpha: 0.28),
                         const Color(0xFF6366F1).withValues(alpha: 0.08),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                   ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.storefront,
-                      size: 52, color: Color(0xFFA78BFA)),
+                ),
+                // Circular monogram avatar — Uzum / Yandex-style brand
+                // mark for shops. Uses the shop name's first letter over
+                // a primary gradient so every shop has a recognisable
+                // identity even without an uploaded logo.
+                Center(
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: AppColors.primaryGradient,
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          width: 3),
+                      boxShadow: AppShadows.primaryGlow(AppColors.primary),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      shop.name.isNotEmpty
+                          ? shop.name[0].toUpperCase()
+                          : '?',
+                      style: AppText.display.copyWith(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    ),
+                  ),
                 ),
                 // Shop marker top-left
                 Positioned(
