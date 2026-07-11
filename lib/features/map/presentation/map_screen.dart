@@ -106,12 +106,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 },
               ),
               children: [
-                // CartoDB Dark Matter — free, no API key, matches the
-                // app's dark theme so the map doesn't blast the user
-                // with a bright OSM canvas mid-flow.
+                // CartoDB basemap — dark_all for dark theme, light_all
+                // for light theme so the map matches the app palette
+                // instead of always blasting midnight tiles.
                 TileLayer(
-                  urlTemplate:
-                      'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                  urlTemplate: Theme.of(context).brightness ==
+                          Brightness.dark
+                      ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                      : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                   additionalOptions: const {'r': ''},
                   userAgentPackageName: 'uz.lopestyle.mobile',
                   maxZoom: 19,

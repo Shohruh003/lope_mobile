@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/push_service.dart';
 import '../core/theme_mode_provider.dart';
+import '../shared/theme/typography.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -33,11 +34,19 @@ class _LopeAppState extends ConsumerState<LopeApp> {
 
     // Real light/dark mode: buildAppTheme(brightness) returns a
     // ThemeData that registers the matching LopeColors extension, and
-    // every screen — shared widgets AND individual features — now
-    // reads colours through `context.colors.xxx`. MaterialApp switches
-    // between the two themes based on the user's saved preference.
+    // every screen — shared widgets AND individual features — reads
+    // colours through `context.colors.xxx`. AppText's static getters
+    // pull from the same palette via a runtime brightness switch so
+    // titles/subtitles/captions don't need context to theme correctly.
     final mode =
         ref.watch(themeModeProvider).asData?.value ?? ThemeMode.dark;
+    final systemBrightness = MediaQuery.platformBrightnessOf(context);
+    final effectiveBrightness = switch (mode) {
+      ThemeMode.dark => Brightness.dark,
+      ThemeMode.light => Brightness.light,
+      ThemeMode.system => systemBrightness,
+    };
+    AppText.brightness = effectiveBrightness;
     return MaterialApp.router(
       title: 'Lope Style',
       debugShowCheckedModeBanner: false,

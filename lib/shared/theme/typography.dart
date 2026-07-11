@@ -1,16 +1,28 @@
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'colors.dart';
+import 'lope_colors.dart';
 
 /// Tipografiya shkalasi. Google Fonts orqali Inter — sistema shrifti bilan
 /// bir xil ko'rinishga ega. Har style'da `height` (line-height) va
 /// `letterSpacing` aniq belgilangan — Uzum/Click sifatidagi tozalik shu
 /// tafsilotlardan chiqadi.
 ///
-/// Ishlatish:  Text('Salom', style: AppText.titleLg)
+/// Ranglar `AppText.brightness` orqali runtime'da almashadi. `app.dart`
+/// har build oldida bu qiymatni themeModeProvider'dan hisoblab qo'yadi
+/// va getter'lar shu paytdagi paletka rangini qaytaradi. Shuning uchun
+/// `AppText.titleLg` chaqirig'i qorong'i rejimda oq, yorug' rejimda
+/// esa slate-900 (deyarli qora) rangda chiqadi — hech qaerni tegishga
+/// hojat qolmaydi.
 class AppText {
   AppText._();
+
+  // ─── Runtime brightness ────────────────────────────────────────────
+  static Brightness brightness = Brightness.dark;
+  static LopeColors get _palette =>
+      brightness == Brightness.dark ? LopeColors.dark : LopeColors.light;
+
+  // ─── Styles ────────────────────────────────────────────────────────
 
   // Hero — welcome, splash
   static TextStyle get display => GoogleFonts.inter(
@@ -18,7 +30,7 @@ class AppText {
         fontWeight: FontWeight.w700,
         height: 1.15,
         letterSpacing: -0.5,
-        color: AppColors.textBright,
+        color: _palette.textBright,
       );
 
   // Screen title, section title
@@ -27,7 +39,7 @@ class AppText {
         fontWeight: FontWeight.w700,
         height: 1.2,
         letterSpacing: -0.4,
-        color: AppColors.textBright,
+        color: _palette.textBright,
       );
 
   // Card title, dialog title
@@ -36,7 +48,7 @@ class AppText {
         fontWeight: FontWeight.w600,
         height: 1.3,
         letterSpacing: -0.2,
-        color: AppColors.textBright,
+        color: _palette.textBright,
       );
 
   // List item title
@@ -44,7 +56,7 @@ class AppText {
         fontSize: 16,
         fontWeight: FontWeight.w600,
         height: 1.4,
-        color: AppColors.textPrimary,
+        color: _palette.textPrimary,
       );
 
   // Katta body — hero description
@@ -52,7 +64,7 @@ class AppText {
         fontSize: 16,
         fontWeight: FontWeight.w400,
         height: 1.5,
-        color: AppColors.textPrimary,
+        color: _palette.textPrimary,
       );
 
   // Standart body
@@ -60,7 +72,7 @@ class AppText {
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.5,
-        color: AppColors.textPrimary,
+        color: _palette.textPrimary,
       );
 
   // Kichik body — sekundar matn, subtitle
@@ -68,7 +80,7 @@ class AppText {
         fontSize: 13,
         fontWeight: FontWeight.w400,
         height: 1.45,
-        color: AppColors.textSecondary,
+        color: _palette.textSecondary,
       );
 
   // Caption — meta ma'lumot (sana, holat)
@@ -77,7 +89,7 @@ class AppText {
         fontWeight: FontWeight.w500,
         height: 1.4,
         letterSpacing: 0.1,
-        color: AppColors.textMuted,
+        color: _palette.textMuted,
       );
 
   // Overline — kichik badge, tag
@@ -86,7 +98,7 @@ class AppText {
         fontWeight: FontWeight.w600,
         height: 1.4,
         letterSpacing: 0.6,
-        color: AppColors.textMuted,
+        color: _palette.textMuted,
       );
 
   // Tugma matni
@@ -112,6 +124,6 @@ class AppText {
         height: 1.2,
         letterSpacing: -0.3,
         fontFeatures: const [FontFeature.tabularFigures()],
-        color: AppColors.textBright,
+        color: _palette.textBright,
       );
 }
