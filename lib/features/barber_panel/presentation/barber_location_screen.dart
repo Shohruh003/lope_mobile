@@ -41,9 +41,10 @@ class _BarberLocationScreenState
     final lng = double.tryParse(_lngCtrl.text.trim());
     if (lat == null || lng == null) {
       AppHaptics.error();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(ref, 'mobile.barber.location.invalidLatLng',
-              "Lat/Lng noto'g'ri"))));
+              "Kenglik / Uzunlik noto'g'ri"))));
       return;
     }
     setState(() => _saving = true);
@@ -135,7 +136,17 @@ class _BarberLocationScreenState
                 .toString();
           }
           final hasLocation = _addressCtrl.text.isNotEmpty;
-          return ListView(
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              _seeded = false;
+              // Force a re-fetch — ref.watch above will re-emit on the
+              // new state so we don't need the returned future here.
+              // ignore: unused_result
+              ref.refresh(barberProfileProvider(user.id));
+            },
+            child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg,
               AppSpacing.lg,
@@ -157,7 +168,11 @@ class _BarberLocationScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Manzil matni', style: AppText.overline),
+                      Text(
+                        tr(ref, 'mobile.barber.location.addressLabel',
+                            'Manzil matni'),
+                        style: AppText.overline,
+                      ),
                       const SizedBox(height: 6),
                       TextField(
                         controller: _addressCtrl,
@@ -177,8 +192,12 @@ class _BarberLocationScreenState
                             crossAxisAlignment:
                                 CrossAxisAlignment.stretch,
                             children: [
-                              Text('Latitude',
-                                  style: AppText.overline),
+                              Text(
+                                tr(ref,
+                                    'mobile.barber.location.latitude',
+                                    'Kenglik'),
+                                style: AppText.overline,
+                              ),
                               const SizedBox(height: 6),
                               TextField(
                                 controller: _latCtrl,
@@ -205,8 +224,12 @@ class _BarberLocationScreenState
                             crossAxisAlignment:
                                 CrossAxisAlignment.stretch,
                             children: [
-                              Text('Longitude',
-                                  style: AppText.overline),
+                              Text(
+                                tr(ref,
+                                    'mobile.barber.location.longitude',
+                                    'Uzunlik'),
+                                style: AppText.overline,
+                              ),
                               const SizedBox(height: 6),
                               TextField(
                                 controller: _lngCtrl,
@@ -335,8 +358,14 @@ class _BarberLocationScreenState
                 AppSpacing.gapLg,
                 AppButton(
                   label: hasLocation
-                      ? "Manzilni o'zgartirish"
-                      : 'Manzilni belgilash',
+                      ? tr(
+                          ref,
+                          'mobile.barber.location.changeBtn',
+                          "Manzilni o'zgartirish")
+                      : tr(
+                          ref,
+                          'mobile.barber.location.setBtn',
+                          'Manzilni belgilash'),
                   leadingIcon: Icons.location_on,
                   variant: AppButtonVariant.primary,
                   size: AppButtonSize.lg,
@@ -345,6 +374,7 @@ class _BarberLocationScreenState
                 ),
               ],
             ],
+          ),
           );
         },
       ),

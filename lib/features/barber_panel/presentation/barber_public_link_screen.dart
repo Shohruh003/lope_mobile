@@ -100,14 +100,22 @@ class _BarberPublicLinkScreenState
           final link = slug.isEmpty
               ? null
               : 'https://app.lopestyle.uz/b/$slug';
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.xxl,
-            ),
-            children: [
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              _seeded = false;
+              // ignore: unused_result
+              ref.refresh(barberProfileProvider(user.id));
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+              ),
+              children: [
               Text(
                 tr(ref, 'mobile.barber.publicLink.hint',
                     'Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing.'),
@@ -158,6 +166,8 @@ class _BarberPublicLinkScreenState
                   url: link,
                   icon: Icons.link,
                   iconColor: AppColors.primary,
+                  copyLabel: tr(ref, 'common.copy', 'Nusxa'),
+                  openLabel: tr(ref, 'common.open', 'Ochish'),
                   onCopy: () async {
                     AppHaptics.light();
                     await Clipboard.setData(ClipboardData(text: link));
@@ -186,6 +196,8 @@ class _BarberPublicLinkScreenState
                     url: tgUrl,
                     icon: Icons.send,
                     iconColor: const Color(0xFF2AABEE),
+                    copyLabel: tr(ref, 'common.copy', 'Nusxa'),
+                    openLabel: tr(ref, 'common.open', 'Ochish'),
                     onCopy: () async {
                       AppHaptics.light();
                       await Clipboard.setData(
@@ -301,6 +313,7 @@ class _BarberPublicLinkScreenState
                         _save(user.id, shopManaged: shopManaged),
               ),
             ],
+            ),
           );
         },
       ),
@@ -315,6 +328,8 @@ class _LinkCard extends StatelessWidget {
     required this.url,
     required this.icon,
     required this.iconColor,
+    required this.copyLabel,
+    required this.openLabel,
     required this.onCopy,
     required this.onOpen,
   });
@@ -323,6 +338,8 @@ class _LinkCard extends StatelessWidget {
   final String url;
   final IconData icon;
   final Color iconColor;
+  final String copyLabel;
+  final String openLabel;
   final VoidCallback onCopy;
   final VoidCallback onOpen;
 
@@ -378,7 +395,7 @@ class _LinkCard extends StatelessWidget {
           Row(children: [
             Expanded(
               child: AppButton(
-                label: 'Nusxa',
+                label: copyLabel,
                 leadingIcon: Icons.copy,
                 variant: AppButtonVariant.secondary,
                 size: AppButtonSize.sm,
@@ -389,7 +406,7 @@ class _LinkCard extends StatelessWidget {
             AppSpacing.hGapSm,
             Expanded(
               child: AppButton(
-                label: 'Ochish',
+                label: openLabel,
                 leadingIcon: Icons.open_in_new,
                 variant: AppButtonVariant.primary,
                 size: AppButtonSize.sm,

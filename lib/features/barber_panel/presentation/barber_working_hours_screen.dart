@@ -101,8 +101,39 @@ class _BarberWorkingHoursScreenState
     });
   }
 
+  /// Compare "HH:mm" strings — returns true when [close] is strictly
+  /// after [open]. Used to guard the save path so a barber can't
+  /// accidentally persist an inverted range like open 20:00 / close
+  /// 09:00 (which the schedule generator would silently interpret as
+  /// zero slots).
+  bool _isValidRange(String open, String close) {
+    int mins(String hhmm) {
+      final p = hhmm.split(':');
+      return (int.tryParse(p[0]) ?? 0) * 60 +
+          (int.tryParse(p.length > 1 ? p[1] : '0') ?? 0);
+    }
+    return mins(close) > mins(open);
+  }
+
   Future<void> _save() async {
     AppHaptics.medium();
+    // Refuse the save when any open day has close <= open — otherwise
+    // the schedule generator produces zero slots and the barber can't
+    // figure out why bookings never appear.
+    final bad = _config.firstWhere(
+      (d) => d.isOpen && !_isValidRange(d.open, d.close),
+      orElse: () => _config.first.copyWith(day: ''),
+    );
+    if (bad.day.isNotEmpty) {
+      AppHaptics.error();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(
+              ref,
+              'mobile.barber.hours.invalidRange',
+              "Yopilish vaqti ochilishdan keyin bo'lishi kerak"))));
+      return;
+    }
     setState(() => _saving = true);
     try {
       final workingHours = <String, dynamic>{
@@ -150,14 +181,22 @@ class _BarberWorkingHoursScreenState
         data: (barber) {
           _seedFromBarber(barber);
           final days = trList(ref, 'mobile.dates.weekDaysShort', _days);
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.xxl,
-            ),
-            children: [
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () async {
+              _seeded = false;
+              // ignore: unused_result
+              ref.refresh(barberProfileProvider(widget.barberId));
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+              ),
+              children: [
               for (var i = 0; i < 7; i++)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -282,6 +321,7 @@ class _BarberWorkingHoursScreenState
                 onPressed: _saving ? null : _save,
               ),
             ],
+            ),
           );
         },
       ),

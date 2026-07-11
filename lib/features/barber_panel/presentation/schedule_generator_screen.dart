@@ -27,8 +27,31 @@ class _ScheduleGeneratorScreenState
   TimeOfDay _lunchEnd = const TimeOfDay(hour: 14, minute: 0);
   bool _busy = false;
 
+  /// ISO string sent to the backend (unchanged shape).
   String _d(DateTime d) =>
       "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+
+  static const _monthsUz = [
+    'yan', 'fev', 'mar', 'apr', 'may', 'iyn',
+    'iyl', 'avg', 'sen', 'okt', 'noy', 'dek',
+  ];
+
+  /// Humanized label shown on the date-range picker cards. Uses
+  /// "Bugun / Ertaga / 11 iyl" so the barber can read the range at a
+  /// glance instead of parsing a raw ISO string.
+  String _dLabel(DateTime d, WidgetRef ref) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(d.year, d.month, d.day);
+    final diff = target.difference(today).inDays;
+    if (diff == 0) return tr(ref, 'mobile.dates.today', 'Bugun');
+    if (diff == 1) return tr(ref, 'mobile.dates.tomorrow', 'Ertaga');
+    final month = _monthsUz[d.month - 1];
+    // Include year when the target is in a different calendar year.
+    if (d.year != now.year) return '${d.day} $month ${d.year}';
+    return '${d.day} $month';
+  }
+
   String _t(TimeOfDay t) =>
       "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
 
@@ -149,7 +172,7 @@ class _ScheduleGeneratorScreenState
                 icon: Icons.calendar_today,
                 label: tr(ref, 'mobile.barber.scheduleGen.start',
                     'Boshlanish'),
-                value: _d(_from),
+                value: _dLabel(_from, ref),
                 onTap: () => _pickDate(true),
               ),
             ),
@@ -159,7 +182,7 @@ class _ScheduleGeneratorScreenState
                 icon: Icons.event,
                 label: tr(
                     ref, 'mobile.barber.scheduleGen.end', 'Tugash'),
-                value: _d(_to),
+                value: _dLabel(_to, ref),
                 onTap: () => _pickDate(false),
               ),
             ),

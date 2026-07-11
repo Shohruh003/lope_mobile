@@ -82,7 +82,8 @@ class BarberCardsScreen extends ConsumerWidget {
                     child: _CardItem(
                       card: card,
                       onSetDefault: () =>
-                          _setDefault(ref, card['id'].toString()),
+                          _setDefault(
+                              context, ref, card['id'].toString()),
                       onEdit: () =>
                           _openEditor(context, ref, existing: card),
                       onDelete: () =>
@@ -99,7 +100,8 @@ class BarberCardsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _setDefault(WidgetRef ref, String id) async {
+  Future<void> _setDefault(
+      BuildContext context, WidgetRef ref, String id) async {
     AppHaptics.medium();
     final barberId = ref.read(authControllerProvider).user?.id;
     if (barberId == null) return;
@@ -109,7 +111,17 @@ class BarberCardsScreen extends ConsumerWidget {
           .post('/barbers/$barberId/cards/$id/set-default');
       AppHaptics.success();
       ref.invalidate(_cardsProvider);
-    } catch (_) {}
+    } catch (e) {
+      // Was `catch (_) {}` — the barber tapped "Asosiy qil", the
+      // server rejected it, and they got no feedback at all. Surface
+      // the humanized reason so at least they know to retry.
+      AppHaptics.error();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      }
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref,
@@ -257,8 +269,11 @@ class BarberCardsScreen extends ConsumerWidget {
               controller: holder,
               textCapitalization: TextCapitalization.characters,
               style: AppText.body.copyWith(fontWeight: FontWeight.w700),
-              decoration:
-                  const InputDecoration(hintText: 'AZIMOV SHOHRUH'),
+              decoration: InputDecoration(
+                hintText: tr(ref,
+                    'mobile.barber.cards.holderNameHint',
+                    'FAMILIYA ISM'),
+              ),
             ),
             AppSpacing.gapLg,
             AppButton(
@@ -568,7 +583,9 @@ class _CardItem extends ConsumerWidget {
       Row(children: [
         Expanded(
           child: AppButton(
-            label: isDefault ? 'Asosiy' : 'Asosiy qil',
+            label: isDefault
+                ? tr(ref, 'mobile.barber.cards.primary', 'Asosiy')
+                : tr(ref, 'mobile.barber.cards.makePrimary', 'Asosiy qil'),
             leadingIcon: isDefault ? Icons.star : Icons.star_border,
             variant: AppButtonVariant.secondary,
             size: AppButtonSize.sm,

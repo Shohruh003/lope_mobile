@@ -20,7 +20,9 @@ class BarberSmsHistoryScreen extends ConsumerStatefulWidget {
 
 class _BarberSmsHistoryScreenState
     extends ConsumerState<BarberSmsHistoryScreen> {
-  static final _df = DateFormat('dd.MM.yyyy HH:mm', 'ru_RU');
+  // Locale-neutral formatters — the previous ru_RU version left the
+  // timestamps looking like Russian localisation on a UZ-first app.
+  static final _df = DateFormat('dd.MM.yyyy HH:mm');
   static final _dateOnly = DateFormat('yyyy-MM-dd');
 
   String _type = 'all';
@@ -104,10 +106,26 @@ class _BarberSmsHistoryScreenState
               error: (e, _) => AppErrorState(message: humanize(e)),
               data: (list) {
                 if (list.isEmpty) {
-                  return AppEmptyState(
-                    icon: Icons.sms_outlined,
-                    title:
-                        tr(ref, 'mobile.barber.sms.empty', "SMS yo'q"),
+                  // Wrap the empty state in a scrollable so pull-to-
+                  // refresh works — otherwise the barber has no way
+                  // to force a re-fetch after a bad filter change.
+                  return RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: () async => ref.refresh(
+                        smsHistoryFilteredProvider(key).future),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: 400,
+                          child: AppEmptyState(
+                            icon: Icons.sms_outlined,
+                            title: tr(ref, 'mobile.barber.sms.empty',
+                                "SMS yo'q"),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 }
                 return RefreshIndicator(
@@ -142,7 +160,27 @@ class _BarberSmsHistoryScreenState
                                 ),
                                 if ((s.type ?? '').isNotEmpty) ...[
                                   AppBadge(
-                                    label: s.type!.toLowerCase(),
+                                    // Route the English enum ('confirmation',
+                                    // 'reminder', 'retention') through the
+                                    // same tr labels already defined for the
+                                    // filter chips so the badge shows Uzbek
+                                    // ("Tasdiqlash / Eslatma / Qayta jalb")
+                                    // instead of raw backend strings.
+                                    label: switch (s.type!.toLowerCase()) {
+                                      'confirmation' => tr(
+                                          ref,
+                                          'mobile.barber.sms.typeConfirm',
+                                          'Tasdiqlash'),
+                                      'reminder' => tr(
+                                          ref,
+                                          'mobile.barber.sms.typeReminder',
+                                          'Eslatma'),
+                                      'retention' => tr(
+                                          ref,
+                                          'mobile.barber.sms.typeRetention',
+                                          'Qayta jalb'),
+                                      _ => s.type!,
+                                    },
                                     variant: AppBadgeVariant.info,
                                   ),
                                   AppSpacing.hGapXs,
