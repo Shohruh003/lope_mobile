@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
-import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
 import '../../lopepay/presentation/low_balance_modal.dart';
@@ -71,7 +72,9 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
       ),
     ];
     return Scaffold(
-      drawer: const AppDrawer(),
+      // No side drawer — matches the customer shell. Secondary
+      // destinations (transactions, SMS history, promo, cards, public
+      // link, etc.) live in the Profil tab settings screen instead.
       body: Column(children: [
         const _Header(),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
@@ -85,10 +88,10 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
@@ -123,27 +126,20 @@ class _Header extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          const NotificationBell(),
-          AppSpacing.hGapXs,
-          TapScale(
-            onTap: () {
+          // Header shortcut row — public link (quick share) + bell. Same
+          // pattern as the customer shell (map/favorites/bell) so the
+          // two shells feel like one design system.
+          IconButton(
+            tooltip: tr(ref, 'barberApp.publicLink', 'Ommaviy havola'),
+            visualDensity: VisualDensity.compact,
+            icon: Icon(Icons.share_outlined,
+                color: context.colors.textPrimary, size: 22),
+            onPressed: () {
               AppHaptics.selection();
-              Scaffold.of(context).openDrawer();
+              context.push('/barber/public-link');
             },
-            scale: 0.9,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: context.colors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(color: context.colors.border),
-              ),
-              alignment: Alignment.center,
-              child: Icon(Icons.menu_rounded,
-                  color: context.colors.textPrimary, size: 20),
-            ),
           ),
+          const NotificationBell(),
         ]),
       ),
     );

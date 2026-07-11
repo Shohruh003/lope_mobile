@@ -99,6 +99,39 @@ class BarberSettingsScreen extends ConsumerWidget {
           ]),
           AppSpacing.gapXl,
           _SectionLabel(
+              tr(ref, 'profile.section.finance', 'Moliya').toUpperCase()),
+          AppSpacing.gapSm,
+          _TileGroup(children: [
+            _SettingsTile(
+              icon: Icons.account_balance_wallet_outlined,
+              iconColor: AppColors.primary,
+              label:
+                  tr(ref, 'mobile.customer.transactions.title', 'Hisob'),
+              onTap: () => context.push('/transactions'),
+            ),
+            _SettingsTile(
+              icon: Icons.sms_outlined,
+              iconColor: AppColors.warning,
+              label: tr(ref, 'mobile.barber.sms.title', 'SMS tarixi'),
+              onTap: () => context.push('/barber/sms'),
+            ),
+            _SettingsTile(
+              icon: Icons.notifications_outlined,
+              iconColor: AppColors.primary,
+              label: tr(
+                  ref, 'barberApp.notifications', 'Bildirishnomalar'),
+              onTap: () => context.push('/notifications'),
+            ),
+          ]),
+          AppSpacing.gapXl,
+          _SectionLabel(tr(ref, 'profile.section.preferences', 'Sozlamalar')
+              .toUpperCase()),
+          AppSpacing.gapSm,
+          const _TileGroup(children: [
+            AppThemeTile(),
+          ]),
+          AppSpacing.gapXl,
+          _SectionLabel(
               tr(ref, 'profile.section.help', 'Yordam').toUpperCase()),
           AppSpacing.gapSm,
           _TileGroup(children: [
