@@ -1228,14 +1228,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   data: (v) => v, orElse: () => <String>[]);
               final blocked = blockedAsync.maybeWhen(
                   data: (v) => v, orElse: () => <String>[]);
-              // Map time → active booking so a slot tile can pull the
-              // client's display name without another round-trip.
+              // Full-booking list for the "Bugungi bronlar" card block
+              // rendered below the slot grid.
               final bookings = dayBookingsAsync.maybeWhen(
                   data: (v) => v, orElse: () => <BarberBooking>[]);
-              final bookingByTime = <String, BarberBooking>{
-                for (final b in bookings)
-                  if (b.status != 'cancelled') b.time: b,
-              };
 
               return Column(children: [
                 AppCard(
@@ -1289,23 +1285,29 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   itemBuilder: (context, i) {
                     final time = slots[i];
                     final status = _slotStatus(time, booked, blocked);
-                    final b = bookingByTime[time];
-                    final clientName = b == null
-                        ? null
-                        : ((b.guestName?.isNotEmpty == true)
-                            ? b.guestName
-                            : (b.userName.isNotEmpty
-                                ? b.userName
-                                : null));
                     return _SlotTile(
                       time: time,
                       status: status,
-                      clientName: clientName,
                       bookedLabel: tr(ref, 'mobile.barber.schedule.legendBooked', "Band"),
                       onTap: () => _openSlotAction(barberId, time, status),
                     ).animate().fadeIn(duration: 150.ms, delay: (i * 15).ms);
                   },
                 ),
+                // Bugungi bronlar ro'yxati — jadval ostida chiqadi.
+                // Web frontend'dagi todayBookings blokining port'i:
+                // barber slot ustiga bosmasidan ham bir qarashda kim
+                // qachonga yozilganini ko'radi.
+                if (bookings.any((b) => b.status != 'cancelled')) ...[
+                  const SizedBox(height: AppSpacing.xl),
+                  _TodayBookingsList(
+                    bookings: bookings
+                        .where((b) => b.status != 'cancelled')
+                        .toList()
+                      ..sort((a, b) => a.time.compareTo(b.time)),
+                    onTapBooking: (b) =>
+                        _openSlotAction(barberId, b.time, 'booked'),
+                  ),
+                ],
               ]);
             },
           ),
@@ -1538,19 +1540,12 @@ class _SlotTile extends StatelessWidget {
     required this.status,
     required this.bookedLabel,
     required this.onTap,
-    this.clientName,
   });
 
   final String time;
   final String status;
   final String bookedLabel;
   final VoidCallback onTap;
-
-  /// Client name displayed inline on booked slots so the barber can
-  /// see WHO is scheduled at a glance without having to tap the tile.
-  /// Null on available / blocked slots — the tile falls back to the
-  /// centered time-only layout.
-  final String? clientName;
 
   @override
   Widget build(BuildContext context) {
@@ -1559,12 +1554,10 @@ class _SlotTile extends StatelessWidget {
       'blocked' => AppColors.danger,
       _ => AppColors.success,
     };
-    final isBooked = status == 'booked';
     return TapScale(
       onTap: onTap,
       haptic: HapticStrength.selection,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -1578,47 +1571,29 @@ class _SlotTile extends StatelessWidget {
           border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Stack(children: [
-          // Booked slots show the time on top and the client name on
-          // the bottom line. Free / blocked slots keep the centered
-          // time-only layout the barber is used to.
-          if (isBooked && clientName != null && clientName!.isNotEmpty)
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(time,
-                    style: AppText.titleSm.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14)),
-                const SizedBox(height: 2),
-                Text(
-                  clientName!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: AppText.caption.copyWith(
+          Center(
+            child: Text(time,
+                style: AppText.titleSm.copyWith(
                     color: color,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            )
-          else
-            Center(
-              child: Text(time,
-                  style: AppText.titleSm.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15)),
-            ),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15)),
+          ),
           if (status == 'blocked')
             Positioned(
               top: 4,
               right: 6,
               child: Icon(Icons.lock,
                   size: 11, color: color.withValues(alpha: 0.7)),
+            ),
+          if (status == 'booked')
+            Positioned(
+              top: 4,
+              right: 6,
+              child: Text(bookedLabel.toUpperCase(),
+                  style: AppText.overline.copyWith(
+                      fontSize: 9,
+                      color: color,
+                      letterSpacing: 0.5)),
             ),
         ]),
       ),
@@ -1848,6 +1823,237 @@ class _BookedClientCard extends ConsumerWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Vertical list of today's bookings shown below the slot grid.
+/// Ported from the web `todayBookings` block — the barber can see
+/// every scheduled client at a glance (time, avatar, name, phone,
+/// services, price, status badge) without tapping into individual
+/// slot tiles. Tapping a card opens the same slot-action sheet as
+/// tapping the grid tile so completing / cancelling still lives in
+/// one place.
+class _TodayBookingsList extends ConsumerWidget {
+  const _TodayBookingsList({
+    required this.bookings,
+    required this.onTapBooking,
+  });
+
+  final List<BarberBooking> bookings;
+  final ValueChanged<BarberBooking> onTapBooking;
+
+  String _endTime(String start, int durationMin) {
+    final parts = start.split(':');
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+    final total = h * 60 + m + durationMin;
+    final eh = (total ~/ 60) % 24;
+    final em = total % 60;
+    return '${eh.toString().padLeft(2, '0')}:${em.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final palette = context.colors;
+    final totalRevenue = bookings
+        .where((b) => b.status != 'cancelled')
+        .fold<int>(0, (a, b) => a + b.totalPrice);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Row(children: [
+            Text(
+              tr(ref, 'mobile.barber.schedule.todayBookings',
+                  "Bugungi bronlar"),
+              style: AppText.titleSm,
+            ),
+            AppSpacing.hGapXs,
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: AppRadius.rPill,
+              ),
+              child: Text(
+                '${bookings.length}',
+                style: AppText.overline.copyWith(
+                    color: AppColors.primary, fontSize: 11),
+              ),
+            ),
+          ]),
+        ),
+        AppSpacing.gapSm,
+        for (final b in bookings)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: _BookingRow(
+              booking: b,
+              endTime: _endTime(b.time, b.totalDuration),
+              onTap: () => onTapBooking(b),
+            ),
+          ),
+        if (totalRevenue > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${tr(ref, 'admin.totalRevenue', 'Umumiy daromad')}:',
+                  style: AppText.bodySm
+                      .copyWith(color: palette.textSecondary),
+                ),
+                Text(
+                  '$totalRevenue ${tr(ref, 'common.currency', "so'm")}',
+                  style: AppText.body.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _BookingRow extends ConsumerWidget {
+  const _BookingRow({
+    required this.booking,
+    required this.endTime,
+    required this.onTap,
+  });
+
+  final BarberBooking booking;
+  final String endTime;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final palette = context.colors;
+    final name = booking.guestName?.isNotEmpty == true
+        ? booking.guestName!
+        : (booking.userName.isNotEmpty
+            ? booking.userName
+            : tr(ref, 'barberApp.client', 'Mijoz'));
+    final phone = booking.guestPhone ?? booking.userPhone ?? '';
+    final services = booking.services.map((s) => s.name).join(', ');
+    final statusColor = switch (booking.status) {
+      'completed' => AppColors.success,
+      'cancelled' => AppColors.danger,
+      _ => AppColors.primary,
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          child: Text(
+            '${booking.time} – $endTime',
+            style: AppText.caption.copyWith(
+              color: palette.textBright,
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        TapScale(
+          onTap: onTap,
+          scale: 0.98,
+          child: AppCard(
+            variant: AppCardVariant.outlined,
+            padding: AppSpacing.cardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+                      style: AppText.titleSm
+                          .copyWith(color: Colors.white),
+                    ),
+                  ),
+                  AppSpacing.hGapMd,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name,
+                            style: AppText.titleSm, maxLines: 1),
+                        if (phone.isNotEmpty)
+                          Text(phone,
+                              style: AppText.caption, maxLines: 1),
+                      ],
+                    ),
+                  ),
+                  AppSpacing.hGapSm,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.15),
+                      borderRadius: AppRadius.rPill,
+                    ),
+                    child: Text(
+                      booking.isManual
+                          ? tr(ref, 'barberApp.manual', 'Qo\'lda')
+                          : tr(ref, 'status.${booking.status}',
+                              booking.status),
+                      style: AppText.overline.copyWith(
+                        color: statusColor,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ]),
+                if (services.isNotEmpty) ...[
+                  AppSpacing.gapSm,
+                  Text(
+                    services,
+                    style: AppText.bodySm,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (booking.totalDuration > 0 || booking.totalPrice > 0) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${booking.totalDuration} ${tr(ref, 'booking.duration', 'daq')}',
+                        style: AppText.caption,
+                      ),
+                      if (booking.totalPrice > 0)
+                        Text(
+                          '${booking.totalPrice} ${tr(ref, 'common.currency', "so'm")}',
+                          style: AppText.body.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
