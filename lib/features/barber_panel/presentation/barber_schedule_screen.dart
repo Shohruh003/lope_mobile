@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -1780,18 +1782,11 @@ class _BookedClientCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Container(
+            SizedBox(
               width: 40,
               height: 40,
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-                style: AppText.titleMd.copyWith(color: Colors.white),
-              ),
+              child: _ClientAvatar(
+                  name: name, avatar: booking.userAvatar),
             ),
             AppSpacing.hGapMd,
             Expanded(
@@ -1973,20 +1968,8 @@ class _BookingRow extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: const BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-                      style: AppText.titleSm
-                          .copyWith(color: Colors.white),
-                    ),
-                  ),
+                  _ClientAvatar(
+                      name: name, avatar: booking.userAvatar),
                   AppSpacing.hGapMd,
                   Expanded(
                     child: Column(
@@ -2054,6 +2037,60 @@ class _BookingRow extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Client avatar bubble — network image when the registered client has
+/// uploaded one, else a gradient monogram of the first initial. Same
+/// shape / size the rest of the booking rows use so the fallback
+/// doesn't look like a different widget.
+class _ClientAvatar extends StatelessWidget {
+  const _ClientAvatar({required this.name, this.avatar});
+  final String name;
+  final String? avatar;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = (name.isNotEmpty ? name[0] : '?').toUpperCase();
+    final hasAvatar = avatar != null && avatar!.isNotEmpty;
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: const BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(
+        child: hasAvatar
+            ? CachedNetworkImage(
+                imageUrl: assetUrl(avatar!),
+                width: 36,
+                height: 36,
+                fit: BoxFit.cover,
+                placeholder: (_, _) => _Monogram(initial: initial),
+                errorWidget: (_, _, _) =>
+                    _Monogram(initial: initial),
+              )
+            : _Monogram(initial: initial),
+      ),
+    );
+  }
+}
+
+class _Monogram extends StatelessWidget {
+  const _Monogram({required this.initial});
+  final String initial;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      decoration:
+          const BoxDecoration(gradient: AppColors.primaryGradient),
+      child: Text(
+        initial,
+        style: AppText.titleSm.copyWith(color: Colors.white),
+      ),
     );
   }
 }

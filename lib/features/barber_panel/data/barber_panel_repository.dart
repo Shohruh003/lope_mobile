@@ -26,6 +26,7 @@ class BarberBooking {
     required this.totalDuration,
     required this.services,
     this.userPhone,
+    this.userAvatar,
     this.guestName,
     this.guestPhone,
     this.notes,
@@ -40,6 +41,11 @@ class BarberBooking {
   final int totalPrice;
   final int totalDuration;
   final String? userPhone;
+
+  /// Registered client's uploaded avatar (relative asset path). Null
+  /// for guest bookings or when the linked user hasn't set an avatar.
+  /// Web calls this `userAvatar` on the same payload.
+  final String? userAvatar;
   final String? guestName;
   final String? guestPhone;
   final String? notes;
@@ -53,6 +59,7 @@ class BarberBooking {
         status: (json['status'] ?? 'confirmed') as String,
         userName: (json['userName'] ?? '') as String,
         userPhone: json['userPhone'] as String?,
+        userAvatar: json['userAvatar'] as String?,
         guestName: json['guestName'] as String?,
         guestPhone: json['guestPhone'] as String?,
         totalPrice: ((json['totalPrice'] ?? 0) as num).toInt(),
