@@ -668,6 +668,17 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       },
     );
     if (ok == null) return;
+    // Guard: refuse deltas that would drop the booking below 15
+    // minutes total — otherwise the barber can shrink a 30-min
+    // booking by -45 and end up with a negative duration.
+    if (booking.totalDuration + ok < 15) {
+      if (!mounted) return;
+      AppSnack.warning(
+          context,
+          tr(ref, 'mobile.shop.barber.extendTooShort',
+              "Bron davomiyligi juda qisqarib ketadi"));
+      return;
+    }
     try {
       await ref
           .read(barberPanelRepositoryProvider)
@@ -889,7 +900,11 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             totalPrice: totalPrice,
             totalDuration: totalDuration,
             guestName: nameCtrl.text.trim(),
-            guestPhone: phoneCtrl.text.trim(),
+            // Send the canonical `+998XXXXXXXXX` string instead of the
+            // display value ('+998 90-123-45-67') — the phone field
+            // now renders with spaces and dashes so the raw controller
+            // text isn't a valid E.164 number by itself.
+            guestPhone: AppPhoneField.rawPhone(phoneCtrl.text),
           );
       _refreshDay(barberId);
       if (mounted) {
