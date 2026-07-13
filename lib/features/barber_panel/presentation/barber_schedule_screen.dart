@@ -1138,6 +1138,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final slotsAsync = ref.watch(scheduleSlotsProvider(key));
     final bookedAsync = ref.watch(bookedSlotsProvider(key));
     final blockedAsync = ref.watch(blockedSlotsProvider(key));
+    // Full-booking data (with client name / phone / services) so the
+    // slot tile can render "Shohruh Azimov" inline instead of just a
+    // "BAND" badge that gives no idea who is booked.
+    final dayBookingsAsync = ref.watch(barberDayBookingsProvider(key));
 
     final months = trList(ref, 'mobile.dates.months', _months);
     final weekDays = trList(ref, 'mobile.dates.weekDaysShort', _weekDays);
@@ -1224,6 +1228,14 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   data: (v) => v, orElse: () => <String>[]);
               final blocked = blockedAsync.maybeWhen(
                   data: (v) => v, orElse: () => <String>[]);
+              // Map time → active booking so a slot tile can pull the
+              // client's display name without another round-trip.
+              final bookings = dayBookingsAsync.maybeWhen(
+                  data: (v) => v, orElse: () => <BarberBooking>[]);
+              final bookingByTime = <String, BarberBooking>{
+                for (final b in bookings)
+                  if (b.status != 'cancelled') b.time: b,
+              };
 
               return Column(children: [
                 AppCard(
@@ -1277,9 +1289,18 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   itemBuilder: (context, i) {
                     final time = slots[i];
                     final status = _slotStatus(time, booked, blocked);
+                    final b = bookingByTime[time];
+                    final clientName = b == null
+                        ? null
+                        : ((b.guestName?.isNotEmpty == true)
+                            ? b.guestName
+                            : (b.userName.isNotEmpty
+                                ? b.userName
+                                : null));
                     return _SlotTile(
                       time: time,
                       status: status,
+                      clientName: clientName,
                       bookedLabel: tr(ref, 'mobile.barber.schedule.legendBooked', "Band"),
                       onTap: () => _openSlotAction(barberId, time, status),
                     ).animate().fadeIn(duration: 150.ms, delay: (i * 15).ms);
@@ -1517,12 +1538,19 @@ class _SlotTile extends StatelessWidget {
     required this.status,
     required this.bookedLabel,
     required this.onTap,
+    this.clientName,
   });
 
   final String time;
   final String status;
   final String bookedLabel;
   final VoidCallback onTap;
+
+  /// Client name displayed inline on booked slots so the barber can
+  /// see WHO is scheduled at a glance without having to tap the tile.
+  /// Null on available / blocked slots — the tile falls back to the
+  /// centered time-only layout.
+  final String? clientName;
 
   @override
   Widget build(BuildContext context) {
@@ -1531,10 +1559,12 @@ class _SlotTile extends StatelessWidget {
       'blocked' => AppColors.danger,
       _ => AppColors.success,
     };
+    final isBooked = status == 'booked';
     return TapScale(
       onTap: onTap,
       haptic: HapticStrength.selection,
       child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -1548,29 +1578,47 @@ class _SlotTile extends StatelessWidget {
           border: Border.all(color: color.withValues(alpha: 0.5)),
         ),
         child: Stack(children: [
-          Center(
-            child: Text(time,
-                style: AppText.titleSm.copyWith(
+          // Booked slots show the time on top and the client name on
+          // the bottom line. Free / blocked slots keep the centered
+          // time-only layout the barber is used to.
+          if (isBooked && clientName != null && clientName!.isNotEmpty)
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(time,
+                    style: AppText.titleSm.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14)),
+                const SizedBox(height: 2),
+                Text(
+                  clientName!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: AppText.caption.copyWith(
                     color: color,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15)),
-          ),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            )
+          else
+            Center(
+              child: Text(time,
+                  style: AppText.titleSm.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15)),
+            ),
           if (status == 'blocked')
             Positioned(
               top: 4,
               right: 6,
               child: Icon(Icons.lock,
                   size: 11, color: color.withValues(alpha: 0.7)),
-            ),
-          if (status == 'booked')
-            Positioned(
-              top: 4,
-              right: 6,
-              child: Text(bookedLabel.toUpperCase(),
-                  style: AppText.overline.copyWith(
-                      fontSize: 9,
-                      color: color,
-                      letterSpacing: 0.5)),
             ),
         ]),
       ),
