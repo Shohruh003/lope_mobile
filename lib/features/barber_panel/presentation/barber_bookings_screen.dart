@@ -410,25 +410,11 @@ class _BookingTile extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(2),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: context.colors.surface,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-                    style: AppText.titleSm,
-                  ),
-                ),
+              ClientAvatar(
+                name: name,
+                avatar: b.userAvatar,
+                size: 44,
+                ring: true,
               ),
               AppSpacing.hGapMd,
               Expanded(
