@@ -147,11 +147,18 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     if (!mounted) return;
     final picked = await showModalBottomSheet<String>(
       context: context,
+      // isScrollControlled + inner SingleChildScrollView so the sheet
+      // grows past its default half-screen limit when the booked
+      // client card is stacked on top of every action tile. Without
+      // this the tall booking sheet clipped its last action (Yopish)
+      // and Flutter painted the yellow/black overflow ribbon.
+      isScrollControlled: true,
       backgroundColor: context.colors.background,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
       builder: (sheetCtx) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
+        child: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
           const SizedBox(height: AppSpacing.md),
           Container(
               width: 40,
@@ -247,6 +254,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           ),
           const SizedBox(height: AppSpacing.md),
         ]),
+        ),
       ),
     );
     if (picked == null) return;
@@ -509,32 +517,44 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
   }
 
+  /// Humanises a minute delta ("+15 daq", "-1 soat", "+2 soat 30 daq")
+  /// for the extend wheel picker so the labels stay readable when the
+  /// delta grows past an hour.
+  String _extendLabel(int m, WidgetRef ref) {
+    final sign = m < 0 ? '-' : '+';
+    final abs = m.abs();
+    final h = abs ~/ 60;
+    final rem = abs % 60;
+    final soat = tr(ref, 'common.hourShort', 'soat');
+    final daq = tr(ref, 'booking.duration', 'daq');
+    if (h == 0) return '$sign$abs $daq';
+    if (rem == 0) return '$sign$h $soat';
+    return '$sign$h $soat $rem $daq';
+  }
+
   Future<void> _extendBooking(BarberBooking booking, String barberId) async {
-    // Redesigned as a bottom-sheet with visual pill options instead of
-    // a plain dropdown menu — matches the rest of the schedule screen's
-    // Uzum-flavoured chrome. Options are rendered as tappable pills so
-    // the barber picks with one tap instead of two (open dropdown →
-    // pick → confirm).
-    // Includes negative values so the barber can also SHORTEN a
-    // booking after they've extended it too far — the previous flow
-    // only offered "+" values.
-    const options = [
-      (-45, '-45 daq'),
-      (-30, '-30 daq'),
-      (-15, '-15 daq'),
-      (15, '+15 daq'),
-      (30, '+30 daq'),
-      (45, '+45 daq'),
-      (60, '+1 soat'),
-      (90, '+1 soat 30 daq'),
-    ];
+    // Wheel picker over 15-minute steps — matches the AppTimePicker /
+    // AppDatePicker widget-family so all pickers in the app feel like
+    // one system. Values run from -120 to +180 in 15-min increments;
+    // the barber scrolls the wheel to pick either a shrink (negative)
+    // or extend (positive) delta.
+    final values = <int>[];
+    for (var v = -120; v <= 180; v += 15) {
+      if (v == 0) continue;
+      values.add(v);
+    }
+    // Start at +30 (the default extend), or clamp to a value that
+    // wouldn't push the booking below 15 min.
     int minutes = 30;
+    final initialIndex = values.indexOf(minutes);
     final ok = await showModalBottomSheet<int>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (sheetCtx) {
         final colors = sheetCtx.colors;
+        final controller =
+            FixedExtentScrollController(initialItem: initialIndex);
         return StatefulBuilder(builder: (sCtx, setSt) {
           return Container(
             decoration: BoxDecoration(
@@ -577,7 +597,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       Expanded(
                         child: Text(
                           tr(ref, 'mobile.shop.barber.extendTitle',
-                              "Vaqtni uzaytirish"),
+                              "Vaqtni sozlash"),
                           style: AppText.titleMd,
                         ),
                       ),
@@ -587,56 +607,68 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       tr(
                           ref,
                           'mobile.shop.barber.extendHint',
-                          'Bron davomiyligiga qancha vaqt qo\'shishni tanlang'),
+                          "Bronni cho'zish yoki qisqartirish uchun vaqtni tanlang"),
                       style: AppText.bodySm
                           .copyWith(color: colors.textMuted),
                     ),
                     AppSpacing.gapLg,
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        for (final opt in options)
-                          TapScale(
-                            onTap: () =>
-                                setSt(() => minutes = opt.$1),
-                            haptic: HapticStrength.selection,
-                            scale: 0.97,
-                            child: AnimatedContainer(
-                              duration: const Duration(
-                                  milliseconds: 180),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                  vertical: AppSpacing.sm + 2),
+                    SizedBox(
+                      height: 216,
+                      child: Stack(children: [
+                        // Cupertino-style center highlight bar so the
+                        // currently-selected delta stands out at a
+                        // glance — matches the AppDatePicker wheel.
+                        IgnorePointer(
+                          ignoring: true,
+                          child: Center(
+                            child: Container(
+                              height: 44,
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xxl),
                               decoration: BoxDecoration(
-                                color: minutes == opt.$1
-                                    ? AppColors.primary
-                                    : colors.surfaceElevated,
-                                borderRadius: AppRadius.rPill,
-                                border: Border.all(
-                                  color: minutes == opt.$1
-                                      ? AppColors.primary
-                                      : colors.border,
-                                ),
-                                boxShadow: minutes == opt.$1
-                                    ? AppShadows.primaryGlow(
-                                        AppColors.primary)
-                                    : null,
-                              ),
-                              child: Text(
-                                opt.$2,
-                                style: AppText.body.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: minutes == opt.$1
-                                      ? Colors.white
-                                      : colors.textBright,
-                                ),
+                                color: colors.surfaceElevated,
+                                borderRadius: AppRadius.rMd,
                               ),
                             ),
                           ),
-                      ],
+                        ),
+                        ListWheelScrollView.useDelegate(
+                          controller: controller,
+                          itemExtent: 44,
+                          perspective: 0.005,
+                          diameterRatio: 1.4,
+                          physics: const FixedExtentScrollPhysics(),
+                          onSelectedItemChanged: (i) => setSt(() {
+                            minutes = values[i];
+                          }),
+                          childDelegate: ListWheelChildBuilderDelegate(
+                            childCount: values.length,
+                            builder: (context, index) {
+                              final v = values[index];
+                              final selected = v == minutes;
+                              final label = _extendLabel(v, ref);
+                              return Center(
+                                child: Text(
+                                  label,
+                                  style: AppText.body.copyWith(
+                                    fontSize: selected ? 22 : 20,
+                                    fontWeight: selected
+                                        ? FontWeight.w800
+                                        : FontWeight.w500,
+                                    color: selected
+                                        ? (v < 0
+                                            ? AppColors.danger
+                                            : AppColors.primary)
+                                        : colors.textMuted,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ]),
                     ),
-                    AppSpacing.gapXl,
+                    AppSpacing.gapLg,
                     Row(children: [
                       Expanded(
                         child: AppButton(
