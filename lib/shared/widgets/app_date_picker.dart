@@ -203,59 +203,87 @@ class _DateWheelSheetState extends State<_DateWheelSheet> {
               const SizedBox(height: 12),
               SizedBox(
                 height: 216,
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: _WheelColumn(
-                        controller: _dayCtrl,
-                        itemCount: AppDatePicker._daysInMonth(_year, _month),
-                        label: (i) => '${i + 1}',
-                        onChanged: (i) => setState(() => _day = i + 1),
+                child: Stack(children: [
+                  // Center highlight bar so the barber can see which
+                  // row is currently selected at a glance — previously
+                  // all rows rendered identically and the "which is
+                  // picked?" answer required reading the header title.
+                  IgnorePointer(
+                    ignoring: true,
+                    child: Center(
+                      child: Container(
+                        height: 40,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xs),
+                        // Cupertino-style soft grey center bar —
+                        // matches the AppTimePicker's built-in
+                        // highlight so both wheel pickers feel like
+                        // the same widget.
+                        decoration: BoxDecoration(
+                          color: context.colors.surfaceElevated,
+                          borderRadius: AppRadius.rMd,
+                        ),
                       ),
                     ),
-                    Expanded(
-                      flex: 3,
-                      child: _WheelColumn(
-                        controller: _monthCtrl,
-                        itemCount: 12,
-                        label: (i) => AppDatePicker._monthsUz[i],
-                        onChanged: (i) {
-                          setState(() {
-                            _month = i + 1;
-                            // Clamp day if new month has fewer days
-                            // (e.g. Jan 31 → Feb).
-                            final maxDay =
-                                AppDatePicker._daysInMonth(_year, _month);
-                            if (_day > maxDay) {
-                              _day = maxDay;
-                              _dayCtrl.jumpToItem(_day - 1);
-                            }
-                          });
-                        },
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _WheelColumn(
+                          controller: _dayCtrl,
+                          itemCount:
+                              AppDatePicker._daysInMonth(_year, _month),
+                          selectedIndex: _day - 1,
+                          label: (i) => '${i + 1}',
+                          onChanged: (i) => setState(() => _day = i + 1),
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: _WheelColumn(
-                        controller: _yearCtrl,
-                        itemCount: _maxYear - _minYear + 1,
-                        label: (i) => '${_minYear + i}',
-                        onChanged: (i) {
-                          setState(() {
-                            _year = _minYear + i;
-                            final maxDay =
-                                AppDatePicker._daysInMonth(_year, _month);
-                            if (_day > maxDay) {
-                              _day = maxDay;
-                              _dayCtrl.jumpToItem(_day - 1);
-                            }
-                          });
-                        },
+                      Expanded(
+                        flex: 3,
+                        child: _WheelColumn(
+                          controller: _monthCtrl,
+                          itemCount: 12,
+                          selectedIndex: _month - 1,
+                          label: (i) => AppDatePicker._monthsUz[i],
+                          onChanged: (i) {
+                            setState(() {
+                              _month = i + 1;
+                              // Clamp day if new month has fewer days
+                              // (e.g. Jan 31 → Feb).
+                              final maxDay = AppDatePicker._daysInMonth(
+                                  _year, _month);
+                              if (_day > maxDay) {
+                                _day = maxDay;
+                                _dayCtrl.jumpToItem(_day - 1);
+                              }
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      Expanded(
+                        flex: 2,
+                        child: _WheelColumn(
+                          controller: _yearCtrl,
+                          itemCount: _maxYear - _minYear + 1,
+                          selectedIndex: _year - _minYear,
+                          label: (i) => '${_minYear + i}',
+                          onChanged: (i) {
+                            setState(() {
+                              _year = _minYear + i;
+                              final maxDay = AppDatePicker._daysInMonth(
+                                  _year, _month);
+                              if (_day > maxDay) {
+                                _day = maxDay;
+                                _dayCtrl.jumpToItem(_day - 1);
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ]),
               ),
             ],
           ),
@@ -269,12 +297,14 @@ class _WheelColumn extends StatelessWidget {
   const _WheelColumn({
     required this.controller,
     required this.itemCount,
+    required this.selectedIndex,
     required this.label,
     required this.onChanged,
   });
 
   final FixedExtentScrollController controller;
   final int itemCount;
+  final int selectedIndex;
   final String Function(int) label;
   final ValueChanged<int> onChanged;
 
@@ -283,21 +313,25 @@ class _WheelColumn extends StatelessWidget {
     final colors = context.colors;
     return ListWheelScrollView.useDelegate(
       controller: controller,
-      itemExtent: 36,
+      itemExtent: 40,
       perspective: 0.005,
-      diameterRatio: 1.2,
+      diameterRatio: 1.4,
       physics: const FixedExtentScrollPhysics(),
       onSelectedItemChanged: onChanged,
       childDelegate: ListWheelChildBuilderDelegate(
         childCount: itemCount,
         builder: (context, index) {
+          final selected = index == selectedIndex;
           return Center(
             child: Text(
               label(index),
               style: AppText.body.copyWith(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: colors.textBright,
+                fontSize: selected ? 22 : 20,
+                fontWeight:
+                    selected ? FontWeight.w800 : FontWeight.w500,
+                color: selected
+                    ? colors.textBright
+                    : colors.textMuted,
               ),
             ),
           );

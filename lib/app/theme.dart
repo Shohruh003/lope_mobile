@@ -151,6 +151,28 @@ ThemeData buildAppTheme([Brightness brightness = Brightness.dark]) {
     ),
     dividerTheme:
         DividerThemeData(color: palette.border, thickness: 1, space: 1),
+    // Floating pill-style snackbars app-wide — every
+    // `ScaffoldMessenger.showSnackBar` inherits this without touching
+    // the callsite. The old defaults (full-width, dark ribbon at the
+    // bottom edge) clashed with the rest of the design system.
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: palette.surfaceElevated,
+      contentTextStyle: GoogleFonts.inter(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: palette.textBright,
+      ),
+      elevation: 6,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: palette.border),
+      ),
+      insetPadding: const EdgeInsets.symmetric(
+          horizontal: 16, vertical: 12),
+      actionTextColor: AppColors.primary,
+      showCloseIcon: false,
+    ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: ZoomPageTransitionsBuilder(),
