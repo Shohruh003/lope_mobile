@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors.dart';
@@ -21,6 +22,40 @@ class BarberClientsScreen extends ConsumerStatefulWidget {
 class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
   String _query = '';
   String _bucket = 'all';
+
+  /// Applies the current search + bucket filters to a raw client
+  /// list. Shared between the AppBar count pill and the ListView
+  /// itemBuilder so both stay in sync.
+  List<BarberClient> _applyFilters(List<BarberClient> raw) {
+    final now = DateTime.now();
+    return raw.where((c) {
+      if (_query.isNotEmpty) {
+        final q = _query.toLowerCase();
+        final hit = c.name.toLowerCase().contains(q) ||
+            c.phone.contains(_query);
+        if (!hit) return false;
+      }
+      if (_bucket != 'all') {
+        if (c.lastVisit == null) return _bucket == '60+';
+        final days = now.difference(c.lastVisit!).inDays;
+        switch (_bucket) {
+          case '0-7':
+            if (days > 7) return false;
+            break;
+          case '8-20':
+            if (days < 8 || days > 20) return false;
+            break;
+          case '21-60':
+            if (days < 21 || days > 60) return false;
+            break;
+          case '60+':
+            if (days <= 60) return false;
+            break;
+        }
+      }
+      return true;
+    }).toList();
+  }
 
   /// Humanized "last visit" pill — locale-neutral. Says "Bugun /
   /// Kecha / 3 kun oldin / 2 hafta oldin" instead of the previous
@@ -57,39 +92,53 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
           tr(ref, 'barberMyClients.title', 'Mijozlarim'),
           style: AppText.titleMd,
         ),
+        actions: [
+          // Filter-aware client count pill on the top-right — reads
+          // `filtered.length` via a nested Consumer so it re-renders
+          // when the query / bucket state changes. The AppBar sits
+          // outside the async.when branch so the pill only shows
+          // once the data is available.
+          async.maybeWhen(
+            data: (raw) {
+              final filtered = _applyFilters(raw);
+              return Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    borderRadius: AppRadius.rPill,
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.people_alt_rounded,
+                          size: 14, color: AppColors.primary),
+                      AppSpacing.hGapXs,
+                      Text(
+                        '${filtered.length}',
+                        style: AppText.caption.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            orElse: () => const SizedBox.shrink(),
+          ),
+        ],
       ),
       body: async.when(
         loading: () => const AppListSkeleton(),
         error: (e, _) => AppErrorState(message: humanize(e)),
         data: (list) {
-          final now = DateTime.now();
-          final filtered = list.where((c) {
-            if (_query.isNotEmpty) {
-              final q = _query.toLowerCase();
-              final hit = c.name.toLowerCase().contains(q) ||
-                  c.phone.contains(_query);
-              if (!hit) return false;
-            }
-            if (_bucket != 'all') {
-              if (c.lastVisit == null) return _bucket == '60+';
-              final days = now.difference(c.lastVisit!).inDays;
-              switch (_bucket) {
-                case '0-7':
-                  if (days > 7) return false;
-                  break;
-                case '8-20':
-                  if (days < 8 || days > 20) return false;
-                  break;
-                case '21-60':
-                  if (days < 21 || days > 60) return false;
-                  break;
-                case '60+':
-                  if (days <= 60) return false;
-                  break;
-              }
-            }
-            return true;
-          }).toList();
+          final filtered = _applyFilters(list);
 
           return Column(
             children: [
@@ -217,25 +266,25 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                         return AppCard(
                           variant: AppCardVariant.outlined,
                           padding: AppSpacing.cardPadding,
+                          onTap: () {
+                            AppHaptics.selection();
+                            // Route to the per-client history screen
+                            // with the phone (canonical string) so
+                            // that screen can filter all-bookings by
+                            // it and show every visit.
+                            final phoneRaw = c.phone
+                                .replaceAll(RegExp(r'\D'), '');
+                            context.push(
+                                '/barber/client/$phoneRaw'
+                                '?name=${Uri.encodeComponent(c.name)}'
+                                '&avatar=${Uri.encodeComponent(c.avatar ?? '')}');
+                          },
                           child: Row(children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                gradient: AppColors.primaryGradient,
-                                shape: BoxShape.circle,
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                (c.name.isNotEmpty
-                                        ? c.name[0]
-                                        : (c.phone.isNotEmpty
-                                            ? c.phone[c.phone.length - 1]
-                                            : '?'))
-                                    .toUpperCase(),
-                                style: AppText.titleMd
-                                    .copyWith(color: Colors.white),
-                              ),
+                            ClientAvatar(
+                              name: c.name.isEmpty ? c.phone : c.name,
+                              avatar: c.avatar,
+                              size: 48,
+                              ring: true,
                             ),
                             AppSpacing.hGapMd,
                             Expanded(

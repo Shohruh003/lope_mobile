@@ -13,6 +13,7 @@ import '../features/auth/presentation/register_phone_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/barber_panel/presentation/barber_account_edit_screen.dart';
 import '../features/barber_panel/presentation/barber_cards_screen.dart';
+import '../features/barber_panel/presentation/barber_client_detail_screen.dart';
 import '../features/barber_panel/presentation/barber_clients_screen.dart';
 import '../features/barber_panel/presentation/barber_gallery_screen.dart';
 import '../features/barber_panel/presentation/barber_home_shell.dart';
@@ -199,6 +200,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/barber/public-link', builder: (context, state) => const BarberPublicLinkScreen()),
       GoRoute(path: '/barber/clients', builder: (context, state) => const BarberClientsScreen()),
       GoRoute(path: '/barber/my-clients', builder: (context, state) => const BarberClientsScreen()),
+      GoRoute(
+        path: '/barber/client/:phone',
+        builder: (context, state) => BarberClientDetailScreen(
+          phone: state.pathParameters['phone']!,
+          initialName: state.uri.queryParameters['name'],
+          initialAvatar: state.uri.queryParameters['avatar'],
+        ),
+      ),
       GoRoute(path: '/barber/location', builder: (context, state) => const BarberLocationScreen()),
       GoRoute(path: '/barber/settings', builder: (context, state) => const BarberSettingsScreen()),
       GoRoute(path: '/barber/account-edit', builder: (context, state) => const BarberAccountEditScreen()),
