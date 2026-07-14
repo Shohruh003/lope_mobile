@@ -283,36 +283,73 @@ class _ScheduleTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TapScale(
-          onTap: onPickDate,
-          haptic: HapticStrength.light,
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md, vertical: AppSpacing.md),
-            decoration: BoxDecoration(
-              color: context.colors.surface,
-              borderRadius: AppRadius.rMd,
-              border: Border.all(color: context.colors.border),
-            ),
-            child: Row(children: [
-              Container(
-                width: 32,
-                height: 32,
+        Row(children: [
+          Expanded(
+            child: TapScale(
+              onTap: onPickDate,
+              haptic: HapticStrength.light,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  borderRadius: AppRadius.rSm,
+                  color: context.colors.surface,
+                  borderRadius: AppRadius.rMd,
+                  border: Border.all(color: context.colors.border),
                 ),
-                child: const Icon(Icons.calendar_today,
-                    size: 15, color: AppColors.primary),
+                child: Row(children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color:
+                          AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: AppRadius.rSm,
+                    ),
+                    child: const Icon(Icons.calendar_today,
+                        size: 15, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Text(_df.format(date),
+                      style:
+                          AppText.titleSm.copyWith(fontSize: 14)),
+                  const Spacer(),
+                  Icon(Icons.chevron_right,
+                      color: context.colors.textMuted, size: 18),
+                ]),
               ),
-              const SizedBox(width: AppSpacing.md),
-              Text(_df.format(date), style: AppText.titleSm.copyWith(fontSize: 14)),
-              const Spacer(),
-              Icon(Icons.chevron_right,
-                  color: context.colors.textMuted, size: 18),
-            ]),
+            ),
           ),
-        ),
+          AppSpacing.hGapSm,
+          // "Mijoz qo'shish" CTA — barbershop admin schedules a
+          // client on a specific barber's slot without leaving the
+          // panel. Ports the barber-side manual booking dialog.
+          TapScale(
+            onTap: () => _openAddClientSheet(context, ref, dateStr),
+            haptic: HapticStrength.selection,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md),
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: AppRadius.rMd,
+                boxShadow: AppShadows.primaryGlow(AppColors.primary),
+              ),
+              child: Row(children: [
+                const Icon(Icons.person_add_alt_1,
+                    size: 18, color: Colors.white),
+                const SizedBox(width: 6),
+                Text(
+                  tr(ref, 'mobile.shop.barberDetail.addClient',
+                      "Mijoz qo'shish"),
+                  style: AppText.button.copyWith(
+                      color: Colors.white, fontSize: 13),
+                ),
+              ]),
+            ),
+          ),
+        ]),
         const SizedBox(height: AppSpacing.md),
         async.when(
           loading: () => const Padding(
@@ -352,6 +389,232 @@ class _ScheduleTab extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// Manual booking sheet — barbershop admin schedules a client on
+  /// the currently-viewed barber's slot. Ports the barber panel's
+  /// `_openManualBookingDialog` so both roles get the same UX.
+  Future<void> _openAddClientSheet(
+      BuildContext context, WidgetRef ref, String dateStr) async {
+    AppHaptics.selection();
+    final services = await ref
+        .read(barberPanelRepositoryProvider)
+        .servicesForBarber(barberId);
+    if (!context.mounted) return;
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final selected = <String>{};
+    TimeOfDay? pickedTime;
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.colors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.xl))),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: AppSpacing.xl,
+            right: AppSpacing.xl,
+            top: AppSpacing.lg,
+            bottom: AppSpacing.xl +
+                MediaQuery.of(sheetCtx).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: context.colors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  tr(ref, 'mobile.shop.barberDetail.addClientTitle',
+                      "Mijoz qo'shish"),
+                  style: AppText.titleMd,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: tr(ref, 'shop.client.name', "Ism"),
+                    hintText: tr(ref, 'shop.client.nameHint',
+                        "Familya Ism"),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AppPhoneField(
+                  controller: phoneCtrl,
+                  hintText: '+998 XX-XXX-XX-XX',
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Time picker pill
+                TapScale(
+                  onTap: () async {
+                    final t = await AppTimePicker.show(sheetCtx,
+                        ref: ref,
+                        initial: pickedTime ??
+                            const TimeOfDay(hour: 10, minute: 0));
+                    if (t == null) return;
+                    setSheet(() => pickedTime = t);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: context.colors.surface,
+                      borderRadius: AppRadius.rMd,
+                      border: Border.all(color: context.colors.border),
+                    ),
+                    child: Row(children: [
+                      const Icon(Icons.access_time,
+                          size: 18, color: AppColors.primary),
+                      const SizedBox(width: 10),
+                      Text(
+                        pickedTime == null
+                            ? tr(ref,
+                                'mobile.shop.barberDetail.pickTime',
+                                'Vaqtni tanlang')
+                            : '${pickedTime!.hour.toString().padLeft(2, '0')}:${pickedTime!.minute.toString().padLeft(2, '0')}',
+                        style: AppText.titleSm
+                            .copyWith(fontSize: 14),
+                      ),
+                      const Spacer(),
+                      Icon(Icons.chevron_right,
+                          color: context.colors.textMuted, size: 18),
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                if (services.isEmpty)
+                  Text(
+                    tr(ref,
+                        'mobile.shop.barberDetail.noServices',
+                        "Bu master uchun xizmatlar belgilanmagan"),
+                    style: AppText.caption,
+                  )
+                else ...[
+                  Text(
+                    tr(ref, 'booking.service', 'Xizmat'),
+                    style: AppText.overline.copyWith(
+                        color: context.colors.textSecondary),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: services.map((s) {
+                      final id = (s['id'] ?? '').toString();
+                      final selected0 = selected.contains(id);
+                      final name =
+                          (s['nameUz'] ?? s['name'] ?? '').toString();
+                      final price = ((s['price'] ?? 0) as num).toInt();
+                      return AppChip(
+                        label: price > 0
+                            ? '$name · $price'
+                            : name,
+                        selected: selected0,
+                        onTap: () => setSheet(() {
+                          if (selected0) {
+                            selected.remove(id);
+                          } else {
+                            selected.add(id);
+                          }
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.lg),
+                AppButton(
+                  label: tr(ref, 'common.save', 'Saqlash'),
+                  variant: AppButtonVariant.primary,
+                  fullWidth: true,
+                  onPressed: () => Navigator.of(sheetCtx).pop(true),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (saved != true) {
+      nameCtrl.dispose();
+      phoneCtrl.dispose();
+      return;
+    }
+    if (pickedTime == null) {
+      if (context.mounted) {
+        AppSnack.warning(
+            context,
+            tr(ref, 'mobile.shop.barberDetail.needTime',
+                'Vaqtni tanlang'));
+      }
+      nameCtrl.dispose();
+      phoneCtrl.dispose();
+      return;
+    }
+    final timeStr =
+        '${pickedTime!.hour.toString().padLeft(2, '0')}:${pickedTime!.minute.toString().padLeft(2, '0')}';
+    try {
+      final picked = services.where((s) {
+        final id = (s['id'] ?? '').toString();
+        return selected.contains(id);
+      }).toList();
+      final fullServices = picked
+          .map((s) => {
+                'id': s['id'],
+                'name': (s['nameUz'] ?? s['name'] ?? '').toString(),
+                'nameUz':
+                    (s['nameUz'] ?? s['name'] ?? '').toString(),
+                'nameRu': (s['nameRu'] ?? '').toString(),
+                'price': ((s['price'] ?? 0) as num).toInt(),
+                'duration': ((s['duration'] ?? 30) as num).toInt(),
+                'icon': (s['icon'] ?? '').toString(),
+              })
+          .toList();
+      final totalPrice = picked.fold<int>(
+          0, (a, s) => a + ((s['price'] ?? 0) as num).toInt());
+      final totalDuration = picked.fold<int>(
+          0, (a, s) => a + ((s['duration'] ?? 30) as num).toInt());
+      await ref.read(barberPanelRepositoryProvider).createManual(
+            barberId: barberId,
+            date: dateStr,
+            time: timeStr,
+            services: fullServices,
+            totalPrice: totalPrice,
+            totalDuration: totalDuration,
+            guestName: nameCtrl.text.trim(),
+            guestPhone: AppPhoneField.rawPhone(phoneCtrl.text),
+          );
+      // Refresh the schedule list so the new booking appears.
+      ref.invalidate(
+          _shopBarberBookingsProvider((id: barberId, date: dateStr)));
+      ref.invalidate(shopBookingsFilteredProvider);
+      if (context.mounted) {
+        AppSnack.success(
+            context,
+            tr(ref, 'mobile.shop.barberDetail.clientAdded',
+                "Mijoz qo'shildi"));
+      }
+    } catch (e) {
+      if (context.mounted) AppSnack.error(context, humanize(e));
+    } finally {
+      nameCtrl.dispose();
+      phoneCtrl.dispose();
+    }
   }
 }
 

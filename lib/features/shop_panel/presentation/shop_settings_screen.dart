@@ -16,8 +16,12 @@ class ShopSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
+        // "Profil" — this screen is now a hub for personal + salon
+        // settings, theme / language, support links and destructive
+        // actions. Renamed from "Sozlamalar" per user's mental model
+        // of the drawer entry.
         title: Text(
-          tr(ref, 'barberApp.settings', 'Sozlamalar'),
+          tr(ref, 'mobile.tabs.profile', 'Profil'),
           style: AppText.titleMd,
         ),
       ),
