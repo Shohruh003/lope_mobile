@@ -179,49 +179,62 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
               const SizedBox(height: AppSpacing.sm),
 
               mastersAsync.maybeWhen(
-                data: (masters) => _filterDropdown<String>(
-                  label: tr(ref, 'mobile.shop.bookings.masterLabel', "Master"),
+                data: (masters) => AppSelectField<String>(
+                  label:
+                      tr(ref, 'mobile.shop.bookings.masterLabel', "Master"),
                   icon: Icons.person_outline,
                   value: _barberId,
-                  items: [
-                    DropdownMenuItem(
-                        value: 'all',
-                        child: Text(tr(ref, 'common.all', "Barchasi"))),
-                    ...masters.map((b) =>
-                        DropdownMenuItem(value: b.id, child: Text(b.name))),
+                  options: [
+                    AppSelectOption(
+                      value: 'all',
+                      label: tr(ref, 'common.all', 'Barchasi'),
+                      icon: Icons.people_alt_outlined,
+                    ),
+                    ...masters.map((b) => AppSelectOption(
+                          value: b.id,
+                          label: b.name,
+                          icon: Icons.person_outline,
+                        )),
                   ],
                   onChanged: (v) => setState(() {
-                    _barberId = v ?? 'all';
+                    _barberId = v;
                     _page = 1;
                   }),
                 ),
                 orElse: () => const SizedBox.shrink(),
               ),
               const SizedBox(height: AppSpacing.sm),
-
-              _filterDropdown<String>(
+              AppSelectField<String>(
                 label: tr(ref, 'mobile.shop.bookings.statusLabel', "Status"),
                 icon: Icons.flag_outlined,
                 value: _status,
-                items: [
-                  DropdownMenuItem(
-                      value: 'all',
-                      child: Text(tr(ref, 'common.all', "Barchasi"))),
-                  DropdownMenuItem(
-                      value: 'confirmed',
-                      child: Text(tr(ref, 'myBookings.statusConfirmed',
-                          "Tasdiqlangan"))),
-                  DropdownMenuItem(
-                      value: 'completed',
-                      child: Text(tr(ref, 'myBookings.statusCompleted',
-                          "Yakunlangan"))),
-                  DropdownMenuItem(
-                      value: 'cancelled',
-                      child: Text(tr(ref, 'myBookings.statusCancelled',
-                          "Bekor qilingan"))),
+                options: [
+                  AppSelectOption(
+                    value: 'all',
+                    label: tr(ref, 'common.all', 'Barchasi'),
+                    icon: Icons.list_alt,
+                  ),
+                  AppSelectOption(
+                    value: 'confirmed',
+                    label: tr(ref, 'myBookings.statusConfirmed',
+                        'Tasdiqlangan'),
+                    icon: Icons.event_available,
+                  ),
+                  AppSelectOption(
+                    value: 'completed',
+                    label: tr(ref, 'myBookings.statusCompleted',
+                        'Yakunlangan'),
+                    icon: Icons.check_circle_outline,
+                  ),
+                  AppSelectOption(
+                    value: 'cancelled',
+                    label: tr(ref, 'myBookings.statusCancelled',
+                        'Bekor qilingan'),
+                    icon: Icons.cancel_outlined,
+                  ),
                 ],
                 onChanged: (v) => setState(() {
-                  _status = v ?? 'all';
+                  _status = v;
                   _page = 1;
                 }),
               ),
@@ -303,53 +316,6 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
     );
   }
 
-  Widget _filterDropdown<T>({
-    required String label,
-    required IconData icon,
-    required T value,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: 6),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: AppRadius.rMd,
-        border: Border.all(color: context.colors.border),
-      ),
-      child: Row(children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: context.colors.textMuted.withValues(alpha: 0.1),
-            borderRadius: AppRadius.rSm,
-          ),
-          child: Icon(icon, size: 14, color: context.colors.textMuted),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text("$label:",
-            style: AppText.bodySm.copyWith(fontWeight: FontWeight.w500)),
-        const SizedBox(width: AppSpacing.xs),
-        Expanded(
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<T>(
-              isExpanded: true,
-              value: value,
-              items: items,
-              onChanged: onChanged,
-              style: AppText.body.copyWith(
-                  fontWeight: FontWeight.w600, color: context.colors.textBright),
-              dropdownColor: context.colors.surface,
-              icon: Icon(Icons.expand_more,
-                  size: 18, color: context.colors.textMuted),
-            ),
-          ),
-        ),
-      ]),
-    );
-  }
 }
 
 class _Pager extends StatelessWidget {
@@ -532,23 +498,34 @@ class _BookingCard extends ConsumerWidget {
               ]),
               if (b.status == 'confirmed') ...[
                 const SizedBox(height: AppSpacing.sm),
+                // Yakunlash + Bekor qilish + more menu on one row.
+                // Wrapping the two AppButtons in `Expanded` lets them
+                // share the row width and prevents the right-edge
+                // overflow the user hit on narrow phones (the natural-
+                // width labels + gap were wider than the card).
                 Row(children: [
-                  AppButton(
-                    label: tr(ref, 'myBookings.complete', "Yakunlash"),
-                    variant: AppButtonVariant.success,
-                    size: AppButtonSize.sm,
-                    leadingIcon: Icons.check_circle_outline,
-                    onPressed: () => _complete(context, ref),
+                  Expanded(
+                    child: AppButton(
+                      label:
+                          tr(ref, 'myBookings.complete', "Yakunlash"),
+                      variant: AppButtonVariant.success,
+                      size: AppButtonSize.sm,
+                      fullWidth: true,
+                      leadingIcon: Icons.check_circle_outline,
+                      onPressed: () => _complete(context, ref),
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  AppButton(
-                    label: tr(ref, 'myBookings.cancel', "Bekor qilish"),
-                    variant: AppButtonVariant.secondary,
-                    size: AppButtonSize.sm,
-                    leadingIcon: Icons.close,
-                    onPressed: () => _cancel(context, ref),
+                  Expanded(
+                    child: AppButton(
+                      label: tr(ref, 'myBookings.cancel', "Bekor qilish"),
+                      variant: AppButtonVariant.secondary,
+                      size: AppButtonSize.sm,
+                      fullWidth: true,
+                      leadingIcon: Icons.close,
+                      onPressed: () => _cancel(context, ref),
+                    ),
                   ),
-                  const Spacer(),
                   PopupMenuButton<String>(
                     icon: Icon(Icons.more_vert,
                         size: 18, color: context.colors.textMuted),

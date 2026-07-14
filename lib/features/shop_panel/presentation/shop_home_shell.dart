@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
@@ -18,7 +17,7 @@ class ShopHomeShell extends ConsumerStatefulWidget {
 }
 
 class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
-  late int _index = widget.initialTab.clamp(0, 3);
+  late final int _index = widget.initialTab.clamp(0, 3);
 
   static const _tabs = [
     ShopDashboardScreen(),
@@ -28,44 +27,18 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
   ];
   @override
   Widget build(BuildContext context) {
-    final items = [
-      _Item(
-        icon: Icons.dashboard_outlined,
-        activeIcon: Icons.dashboard,
-        label: tr(ref, 'mobile.shop.home.dashboard', 'Boshqaruv'),
-      ),
-      _Item(
-        icon: Icons.people_alt_outlined,
-        activeIcon: Icons.people_alt,
-        label: tr(ref, 'mobile.shop.home.masters', 'Mastera'),
-      ),
-      _Item(
-        icon: Icons.event_note_outlined,
-        activeIcon: Icons.event_note,
-        label: tr(ref, 'mobile.shop.home.bookings', 'Bronlar'),
-      ),
-      _Item(
-        icon: Icons.person_outline,
-        activeIcon: Icons.person,
-        label: tr(ref, 'mobile.tabs.profile', 'Profil'),
-      ),
-    ];
-    // Barbershop shell keeps the AppDrawer — it functions as an
-    // admin panel with lots of secondary destinations (SMS,
-    // transactions, admins, reminders, etc.) so a persistent side
-    // menu reads better than routing everything through the Profil
-    // tab like the customer / barber shells do.
+    // Bottom nav removed at user request — everything runs through
+    // the side drawer (Boshqaruv / Bronlar / Mastera / Salon
+    // profili / Adminlar / Mijozlar / SMS / Tranzaksiyalar / etc.).
+    // The IndexedStack + `?tab=X` query param on `/shop` still work
+    // so drawer entries continue to switch the visible tab without a
+    // full route change.
     return Scaffold(
       drawer: const AppDrawer(),
       body: Column(children: [
         const _Header(),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
       ]),
-      bottomNavigationBar: _BottomBar(
-        items: items,
-        index: _index,
-        onSelect: (i) => setState(() => _index = i),
-      ),
     );
   }
 }
@@ -135,104 +108,3 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _BottomBar extends StatelessWidget {
-  const _BottomBar({
-    required this.items,
-    required this.index,
-    required this.onSelect,
-  });
-  final List<_Item> items;
-  final int index;
-  final ValueChanged<int> onSelect;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colors.background,
-        border: Border(top: BorderSide(color: context.colors.border)),
-        boxShadow: AppShadows.subtle,
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 72,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.xs,
-            ),
-            child: Row(
-              children: List.generate(items.length, (i) {
-                final active = i == index;
-                final item = items[i];
-                return Expanded(
-                  child: TapScale(
-                    onTap: () => onSelect(i),
-                    haptic: HapticStrength.selection,
-                    scale: 0.94,
-                    child: AnimatedContainer(
-                      duration: AppMotion.base,
-                      curve: AppMotion.emphasized,
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: active
-                            ? AppColors.primaryGradient
-                            : null,
-                        borderRadius: AppRadius.rLg,
-                        boxShadow: active
-                            ? AppShadows.primaryGlow(AppColors.primary)
-                            : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            active ? item.activeIcon : item.icon,
-                            color: active
-                                ? Colors.white
-                                : context.colors.textMuted,
-                            size: 22,
-                          ),
-                          if (active) ...[
-                            AppSpacing.hGapXs,
-                            Flexible(
-                              child: Text(
-                                item.label,
-                                style: AppText.caption.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Item {
-  const _Item({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-  });
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-}

@@ -29,6 +29,7 @@ export 'widgets/app_phone_field.dart';
 export 'widgets/app_select_field.dart';
 export 'widgets/app_snack.dart';
 export 'widgets/app_date_picker.dart';
+export 'widgets/app_language_tile.dart';
 export 'widgets/app_theme_tile.dart';
 export 'widgets/app_time_picker.dart';
 export 'widgets/app_badge.dart';

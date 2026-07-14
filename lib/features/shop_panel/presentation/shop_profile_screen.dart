@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart' as ll;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
@@ -36,6 +38,19 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
   final _reminderDaysCtrl = TextEditingController(text: '20');
   final _reminderHoursCtrl = TextEditingController(text: '1');
   final _slotDurationCtrl = TextEditingController(text: '30');
+  final _mapController = MapController();
+
+  /// Toshkent center — used when the salon has no coordinates yet.
+  static final _defaultCenter = ll.LatLng(41.311081, 69.240562);
+
+  /// Pushed on every map idle (pan / zoom end) — writes the picked
+  /// centre back into the lat/lng text fields so the barber sees the
+  /// numbers change live as they drag the map.
+  void _syncCoordsFromMap() {
+    final c = _mapController.camera.center;
+    _latCtrl.text = c.latitude.toStringAsFixed(6);
+    _lngCtrl.text = c.longitude.toStringAsFixed(6);
+  }
 
   late List<_DayHours> _hours;
   bool _seeded = false;
@@ -139,6 +154,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     _reminderDaysCtrl.dispose();
     _reminderHoursCtrl.dispose();
     _slotDurationCtrl.dispose();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -360,6 +376,25 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                         ),
                       ),
                     ]),
+                    const SizedBox(height: AppSpacing.md),
+                    // Embedded interactive map — admin pans / zooms the
+                    // map to place the pin over the salon; on every
+                    // idle the lat/lng fields update live. Same widget
+                    // pattern the barber location screen uses.
+                    _ShopLocationPickerMap(
+                      controller: _mapController,
+                      initial: () {
+                        final lat =
+                            double.tryParse(_latCtrl.text.trim());
+                        final lng =
+                            double.tryParse(_lngCtrl.text.trim());
+                        if (lat != null && lng != null) {
+                          return ll.LatLng(lat, lng);
+                        }
+                        return _defaultCenter;
+                      }(),
+                      onIdle: _syncCoordsFromMap,
+                    ),
                     const SizedBox(height: AppSpacing.sm),
                     AppButton(
                       label: tr(ref, 'mobile.barber.location.findOnYandex',
@@ -592,6 +627,100 @@ class _TimePill extends StatelessWidget {
         child: Text(label,
             style: AppText.button.copyWith(
                 color: enabled ? AppColors.primary : context.colors.textMuted)),
+      ),
+    );
+  }
+}
+
+/// Embedded flutter_map with a fixed centre pin. The admin pans / zooms
+/// to place the pin over the salon; every idle triggers [onIdle] so the
+/// parent state can sync lat/lng back into the text fields. Same shape
+/// / tile provider as the barber location picker.
+class _ShopLocationPickerMap extends StatelessWidget {
+  const _ShopLocationPickerMap({
+    required this.controller,
+    required this.initial,
+    required this.onIdle,
+  });
+
+  final MapController controller;
+  final ll.LatLng initial;
+  final VoidCallback onIdle;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      height: 240,
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.rLg,
+        border: Border.all(color: context.colors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.rLg,
+        child: Stack(children: [
+          FlutterMap(
+            mapController: controller,
+            options: MapOptions(
+              initialCenter: initial,
+              initialZoom: 15,
+              minZoom: 4,
+              maxZoom: 18,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+              ),
+              onPositionChanged: (camera, hasGesture) {
+                if (hasGesture) onIdle();
+              },
+              onTap: (tap, latlng) {
+                controller.move(latlng, controller.camera.zoom);
+                onIdle();
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: isDark
+                    ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+                    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
+                additionalOptions: const {'r': ''},
+                userAgentPackageName: 'uz.lopestyle.mobile',
+                maxZoom: 20,
+                retinaMode:
+                    MediaQuery.of(context).devicePixelRatio > 1.5,
+              ),
+            ],
+          ),
+          const IgnorePointer(
+            ignoring: true,
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 32),
+                child: Icon(Icons.location_on,
+                    color: AppColors.primary, size: 40),
+              ),
+            ),
+          ),
+          Positioned(
+            left: AppSpacing.sm,
+            bottom: AppSpacing.sm,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: AppRadius.rPill,
+              ),
+              child: const Text(
+                'Xaritani surib joyni belgilang',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ]),
       ),
     );
   }

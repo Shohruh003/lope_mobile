@@ -297,7 +297,21 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
     final balance = user == null ? null : ref.watch(myBalanceProvider(user.id));
     final hasResult = _resultUrl != null && _resultUrl!.isNotEmpty;
 
+    // When AI Style is pushed as its own route (e.g. from the shop /
+    // barber / customer drawers) it needs a back button — but when
+    // it's rendered inside a shell's IndexedStack as a tab, the shell
+    // already owns the header so we skip the AppBar. `canPop()`
+    // tells us which case we're in without needing a param.
+    final showBackBar = Navigator.of(context).canPop();
     return Scaffold(
+      appBar: showBackBar
+          ? AppBar(
+              title: Text(
+                tr(ref, 'aiStyle.title', 'AI Stil'),
+                style: AppText.titleMd,
+              ),
+            )
+          : null,
       body: SafeArea(
         top: false,
         child: Stack(

@@ -128,6 +128,7 @@ class BarberSettingsScreen extends ConsumerWidget {
           AppSpacing.gapSm,
           const _TileGroup(children: [
             AppThemeTile(),
+            AppLanguageTile(),
           ]),
           AppSpacing.gapXl,
           _SectionLabel(

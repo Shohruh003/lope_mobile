@@ -289,86 +289,9 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                   ],
                 ),
               ),
-              AppSpacing.gapXl,
-              Text(
-                tr(ref, 'mobile.shop.dashboard.navManagement',
-                    'BOSHQARUV'),
-                style: AppText.overline,
-              ),
-              AppSpacing.gapSm,
-              AppCard(
-                variant: AppCardVariant.outlined,
-                padding: EdgeInsets.zero,
-                child: Column(children: [
-                  _NavTile(
-                    icon: Icons.people_alt_outlined,
-                    color: AppColors.primary,
-                    label: tr(ref, 'mobile.shop.dashboard.navMasters',
-                        'Mastera (Barberlar)'),
-                    onTap: () => context.go('/shop?tab=1'),
-                  ),
-                  Divider(
-                    color: context.colors.border,
-                    height: 1,
-                    indent: AppSpacing.xxl + AppSpacing.md,
-                  ),
-                  _NavTile(
-                    icon: Icons.event_note_outlined,
-                    color: AppColors.warning,
-                    label: tr(ref, 'mobile.shop.dashboard.navBookings',
-                        'Salon bronlari'),
-                    onTap: () => context.go('/shop?tab=2'),
-                  ),
-                  Divider(
-                    color: context.colors.border,
-                    height: 1,
-                    indent: AppSpacing.xxl + AppSpacing.md,
-                  ),
-                  _NavTile(
-                    icon: Icons.people_outline,
-                    color: AppColors.success,
-                    label: tr(ref, 'shop.nav.clients', 'Mijozlar'),
-                    onTap: () => context.push('/shop/clients'),
-                  ),
-                  Divider(
-                    color: context.colors.border,
-                    height: 1,
-                    indent: AppSpacing.xxl + AppSpacing.md,
-                  ),
-                  _NavTile(
-                    icon: Icons.account_balance_wallet_outlined,
-                    color: AppColors.primary,
-                    label: tr(ref,
-                        'mobile.shop.dashboard.navTransactions',
-                        "Hisob va to'lovlar"),
-                    onTap: () => context.push('/shop/transactions'),
-                  ),
-                  Divider(
-                    color: context.colors.border,
-                    height: 1,
-                    indent: AppSpacing.xxl + AppSpacing.md,
-                  ),
-                  _NavTile(
-                    icon: Icons.sms_outlined,
-                    color: AppColors.primary,
-                    label: tr(ref, 'mobile.shop.dashboard.navSms',
-                        'SMS tarixi'),
-                    onTap: () => context.push('/shop/sms'),
-                  ),
-                  Divider(
-                    color: context.colors.border,
-                    height: 1,
-                    indent: AppSpacing.xxl + AppSpacing.md,
-                  ),
-                  _NavTile(
-                    icon: Icons.storefront_outlined,
-                    color: AppColors.primary,
-                    label: tr(ref, 'profile.barberProfile',
-                        'Salon profili'),
-                    onTap: () => context.push('/shop/profile'),
-                  ),
-                ]),
-              ),
+              // Removed the "BOSHQARUV" duplicate nav card — every
+              // link here also lives in the side drawer, so keeping
+              // both was just clutter. Drawer now owns navigation.
             ],
           ),
         ),
@@ -568,55 +491,6 @@ class _SectionTitle extends StatelessWidget {
       AppSpacing.hGapSm,
       Text(label, style: AppText.titleSm),
     ]);
-  }
-}
-
-class _NavTile extends StatelessWidget {
-  const _NavTile({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.onTap,
-  });
-  final IconData icon;
-  final Color color;
-  final String label;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return TapScale(
-      onTap: onTap,
-      scale: 0.98,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
-        ),
-        child: Row(children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: AppRadius.rSm,
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          AppSpacing.hGapMd,
-          Expanded(
-            child: Text(
-              label,
-              style: AppText.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.colors.textBright,
-              ),
-            ),
-          ),
-          Icon(Icons.chevron_right,
-              color: context.colors.textMuted, size: 18),
-        ]),
-      ),
-    );
   }
 }
 

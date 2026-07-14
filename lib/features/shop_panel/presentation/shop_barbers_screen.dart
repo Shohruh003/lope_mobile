@@ -198,8 +198,15 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                                         style: AppText.caption,
                                       ),
                                     ],
-                                    if (b.phone?.isNotEmpty ==
-                                        true) ...[
+                                    // Backend stores a placeholder
+                                    // like `shop:<uuid>:<slug>` when a
+                                    // barber account was auto-provisioned
+                                    // without a real phone. Skip those —
+                                    // only show entries that look like
+                                    // a real phone (+/digits).
+                                    if (b.phone != null &&
+                                        RegExp(r'^\+?\d[\d\s-]{5,}$')
+                                            .hasMatch(b.phone!)) ...[
                                       const SizedBox(height: 2),
                                       Text(b.phone!,
                                           style: AppText.caption),
