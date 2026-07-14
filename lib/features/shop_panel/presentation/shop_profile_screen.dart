@@ -41,6 +41,24 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
   bool _seeded = false;
   bool _saving = false;
 
+  /// Snapshot of the seeded form values. `_isDirty` compares against
+  /// this so the Save button starts disabled and only enables once the
+  /// admin actually edits something.
+  Map<String, String> _snapshot = const {};
+  List<_DayHours> _hoursSnapshot = const [];
+
+  List<TextEditingController> get _controllers => [
+        _nameCtrl,
+        _phoneCtrl,
+        _addressCtrl,
+        _geoAddressCtrl,
+        _latCtrl,
+        _lngCtrl,
+        _reminderDaysCtrl,
+        _reminderHoursCtrl,
+        _slotDurationCtrl,
+      ];
+
   @override
   void initState() {
     super.initState();
@@ -53,10 +71,65 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         close: i == 5 ? '17:00' : '19:00',
       ),
     );
+    for (final c in _controllers) {
+      c.addListener(_bump);
+    }
+  }
+
+  void _bump() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _isDirty {
+    if (_snapshot.isEmpty) return false;
+    if (_snapshot['name'] != _nameCtrl.text) return true;
+    if (_snapshot['phone'] != _phoneCtrl.text) return true;
+    if (_snapshot['address'] != _addressCtrl.text) return true;
+    if (_snapshot['geoAddress'] != _geoAddressCtrl.text) return true;
+    if (_snapshot['lat'] != _latCtrl.text) return true;
+    if (_snapshot['lng'] != _lngCtrl.text) return true;
+    if (_snapshot['reminderDays'] != _reminderDaysCtrl.text) return true;
+    if (_snapshot['reminderHours'] != _reminderHoursCtrl.text) return true;
+    if (_snapshot['slotDuration'] != _slotDurationCtrl.text) return true;
+    for (var i = 0; i < _hours.length; i++) {
+      final a = _hours[i];
+      final b = _hoursSnapshot[i];
+      if (a.isOpen != b.isOpen ||
+          a.open != b.open ||
+          a.close != b.close) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _rebuildSnapshot() {
+    _snapshot = {
+      'name': _nameCtrl.text,
+      'phone': _phoneCtrl.text,
+      'address': _addressCtrl.text,
+      'geoAddress': _geoAddressCtrl.text,
+      'lat': _latCtrl.text,
+      'lng': _lngCtrl.text,
+      'reminderDays': _reminderDaysCtrl.text,
+      'reminderHours': _reminderHoursCtrl.text,
+      'slotDuration': _slotDurationCtrl.text,
+    };
+    _hoursSnapshot = _hours
+        .map((h) => _DayHours(
+              day: h.day,
+              isOpen: h.isOpen,
+              open: h.open,
+              close: h.close,
+            ))
+        .toList();
   }
 
   @override
   void dispose() {
+    for (final c in _controllers) {
+      c.removeListener(_bump);
+    }
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _addressCtrl.dispose();
@@ -93,15 +166,19 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     final slotDuration = int.tryParse(_slotDurationCtrl.text.trim()) ?? 30;
 
     if (reminderDays < 1 || reminderDays > 365) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(tr(ref, 'mobile.shop.profile.invalidReminder',
-              "Eslatma kunlari 1-365 oraliqda bo'lsin"))));
+      if (!mounted) return;
+      AppSnack.warning(
+          context,
+          tr(ref, 'mobile.shop.profile.invalidReminder',
+              "Eslatma kunlari 1-365 oraliqda bo'lsin"));
       return;
     }
     if (slotDuration < 5 || slotDuration > 240) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(tr(ref, 'mobile.shop.profile.invalidSlot',
-              "Slot 5-240 daqiqa oraliqda bo'lsin"))));
+      if (!mounted) return;
+      AppSnack.warning(
+          context,
+          tr(ref, 'mobile.shop.profile.invalidSlot',
+              "Slot 5-240 daqiqa oraliqda bo'lsin"));
       return;
     }
 
@@ -130,16 +207,17 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         'workingHours': workingHours,
       });
       ref.invalidate(shopMeProvider);
+      // Reset the baseline so the Save button flips back to disabled
+      // until the next edit.
+      _rebuildSnapshot();
       if (mounted) {
         AppHaptics.success();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+        AppSnack.success(context, tr(ref, 'common.saved', 'Saqlandi'));
       }
     } catch (e) {
       if (mounted) {
         AppHaptics.error();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        AppSnack.error(context, humanize(e));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -193,6 +271,9 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         }
       }
     }
+    // Baseline the dirty tracker — Save stays disabled until the
+    // admin edits something.
+    _rebuildSnapshot();
   }
 
   @override
@@ -417,7 +498,8 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
               const SizedBox(height: AppSpacing.xxl),
               AppButton(
                 label: tr(ref, 'common.save', "Saqlash"),
-                onPressed: _saving ? null : _save,
+                onPressed:
+                    (_saving || !_isDirty) ? null : _save,
                 loading: _saving,
                 leadingIcon: Icons.check,
                 size: AppButtonSize.lg,
