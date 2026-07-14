@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/asset_url.dart';
 import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -19,7 +20,7 @@ class ShopRemindersScreen extends ConsumerStatefulWidget {
 }
 
 class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
-  static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
+  static final _df = DateFormat('dd.MM.yyyy');
   int _page = 1;
 
   @override
@@ -154,7 +155,13 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                             child: ClipOval(
                               child: c.avatar.isNotEmpty
                                   ? CachedNetworkImage(
-                                      imageUrl: c.avatar,
+                                      // Backend returns a relative
+                                      // asset path — every other
+                                      // screen wraps with assetUrl so
+                                      // the request resolves against
+                                      // the API base URL. Without it
+                                      // the image always 404'd.
+                                      imageUrl: assetUrl(c.avatar),
                                       width: 40,
                                       height: 40,
                                       fit: BoxFit.cover)

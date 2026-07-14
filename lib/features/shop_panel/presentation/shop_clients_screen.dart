@@ -21,7 +21,7 @@ class ShopClientsScreen extends ConsumerStatefulWidget {
 }
 
 class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
-  static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
+  static final _df = DateFormat('dd.MM.yyyy');
   String _query = '';
   String _bucket = 'all';
   final Set<String> _selected = {};

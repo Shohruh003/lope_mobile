@@ -19,8 +19,13 @@ class ShopDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
-  static final _fmtNum = NumberFormat.decimalPattern('ru_RU');
+  // Locale-neutral number formatter (spaces as thousands separator
+  // via the intl default), and an ISO formatter kept only for the
+  // backend query params — never surfaced to the user (display uses
+  // `_pretty`).
+  static final _fmtNum = NumberFormat.decimalPattern();
   static final _ymd = DateFormat('yyyy-MM-dd');
+  static final _pretty = DateFormat('dd.MM.yyyy');
   late DateTime _from = DateTime(DateTime.now().year, DateTime.now().month, 1);
   late DateTime _to = DateTime.now();
 
@@ -118,14 +123,15 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
               Row(children: [
                 Expanded(
                     child: _DatePill(
-                        label: _ymd.format(_from), onTap: _pickFrom)),
+                        label: _pretty.format(_from),
+                        onTap: _pickFrom)),
                 AppSpacing.hGapSm,
                 Text('—',
                     style: TextStyle(color: context.colors.textMuted)),
                 AppSpacing.hGapSm,
                 Expanded(
                     child: _DatePill(
-                        label: _ymd.format(_to), onTap: _pickTo)),
+                        label: _pretty.format(_to), onTap: _pickTo)),
               ]),
               AppSpacing.gapLg,
               stats.when(
@@ -478,7 +484,7 @@ class _TodayCashCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fmt = NumberFormat.decimalPattern('ru_RU');
+    final fmt = NumberFormat.decimalPattern();
     return Container(
       padding: AppSpacing.cardPaddingLg,
       decoration: BoxDecoration(

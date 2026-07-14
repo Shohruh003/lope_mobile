@@ -23,8 +23,8 @@ class ShopClientDetailScreen extends ConsumerStatefulWidget {
 
 class _ShopClientDetailScreenState
     extends ConsumerState<ShopClientDetailScreen> {
-  static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
-  static final _dfTime = DateFormat('dd.MM.yyyy HH:mm', 'ru_RU');
+  static final _df = DateFormat('dd.MM.yyyy');
+  static final _dfTime = DateFormat('dd.MM.yyyy HH:mm');
 
   late String _key = widget.clientKey;
 

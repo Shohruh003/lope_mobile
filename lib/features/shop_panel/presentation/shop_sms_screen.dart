@@ -16,8 +16,9 @@ class ShopSmsScreen extends ConsumerStatefulWidget {
 }
 
 class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
-  static final _df = DateFormat('dd.MM.yyyy HH:mm', 'ru_RU');
+  static final _df = DateFormat('dd.MM.yyyy HH:mm');
   static final _ymd = DateFormat('yyyy-MM-dd');
+  static final _pretty = DateFormat('dd.MM.yyyy');
   static const _pageSize = 30;
 
   String? _barberId;
@@ -167,7 +168,7 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                           child: _DatePill(
                               label: _from == null
                                   ? tr(ref, 'shop.filter.from', "Dan")
-                                  : _ymd.format(_from!),
+                                  : _pretty.format(_from!),
                               onTap: () => _pickDate(true))),
                       const SizedBox(width: AppSpacing.sm),
                       Text("—",
@@ -177,7 +178,7 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                           child: _DatePill(
                               label: _to == null
                                   ? tr(ref, 'shop.filter.to', "Gacha")
-                                  : _ymd.format(_to!),
+                                  : _pretty.format(_to!),
                               onTap: () => _pickDate(false))),
                     ]),
                     const SizedBox(height: AppSpacing.sm),

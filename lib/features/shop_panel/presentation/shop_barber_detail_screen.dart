@@ -270,7 +270,7 @@ class _ScheduleTab extends ConsumerWidget {
   final String barberId;
   final DateTime date;
   final VoidCallback onPickDate;
-  static final _df = DateFormat('dd.MM.yyyy', 'ru_RU');
+  static final _df = DateFormat('dd.MM.yyyy');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

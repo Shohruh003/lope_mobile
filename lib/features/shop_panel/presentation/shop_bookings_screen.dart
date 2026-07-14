@@ -25,8 +25,29 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
   String _status = 'all';
   int _page = 1;
 
+  /// ISO string sent to the backend as a query param.
   String _dateStr(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  static const _monthsUz = [
+    'yan', 'fev', 'mar', 'apr', 'may', 'iyn',
+    'iyl', 'avg', 'sen', 'okt', 'noy', 'dek',
+  ];
+
+  /// Humanized label for the date pill: 'Bugun / Ertaga / Kecha / 14
+  /// iyl' so the barbershop admin doesn't see raw ISO strings.
+  String _prettyDate(DateTime d, WidgetRef ref) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(d.year, d.month, d.day);
+    final diff = target.difference(today).inDays;
+    if (diff == 0) return tr(ref, 'mobile.dates.today', 'Bugun');
+    if (diff == 1) return tr(ref, 'mobile.dates.tomorrow', 'Ertaga');
+    if (diff == -1) return tr(ref, 'mobile.dates.yesterday', 'Kecha');
+    final month = _monthsUz[d.month - 1];
+    if (d.year != now.year) return '${d.day} $month ${d.year}';
+    return '${d.day} $month';
+  }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -112,7 +133,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                               _date == null
                                   ? tr(ref, 'mobile.shop.bookings.allDates',
                                       "Barcha sanalar")
-                                  : _dateStr(_date!),
+                                  : _prettyDate(_date!, ref),
                               style: AppText.titleSm.copyWith(fontSize: 14)),
                         ],
                       ),
