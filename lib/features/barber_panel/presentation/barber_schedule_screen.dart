@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../core/errors.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -107,8 +108,19 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
         }
         return;
       }
-      final dir = await getTemporaryDirectory();
-      final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      // Web has no filesystem so `getTemporaryDirectory` throws a
+      // MissingPluginException there. On web `record` writes to an
+      // in-memory Blob and returns the URL from `stop()`, so we skip
+      // the temp path entirely; on mobile we still write to a real
+      // file so upload can stream it.
+      final String path;
+      if (kIsWeb) {
+        path = 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      } else {
+        final dir = await getTemporaryDirectory();
+        path =
+            '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      }
       await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
       if (!mounted) return;
       setState(() => _isRecording = true);

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -124,6 +125,10 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       setState(() => _refImages.remove(preset.category));
       return;
     }
+    // Web has no filesystem so getTemporaryDirectory would throw a
+    // MissingPluginException. Skip the download and rely on the
+    // preset key alone — backend still infers the style from the key.
+    if (kIsWeb) return;
     try {
       final dir = await getTemporaryDirectory();
       final safe = url.hashCode.toRadixString(16);
