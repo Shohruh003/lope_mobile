@@ -110,19 +110,18 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
       if (res.jobId.isNotEmpty) {
         await BulkSendProgressModal.show(context, jobId: res.jobId);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(
+        AppSnack.success(
+            context,
+            tr(
                 ref,
                 'mobile.shop.clients.bulkSendQueued',
                 "{{n}} ta SMS navbatga qo'shildi",
-                {'n': '${res.total}'}))));
+                {'n': '${res.total}'}));
       }
     } catch (e) {
       AppHaptics.error();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        AppSnack.error(context, humanize(e));
       }
     } finally {
       if (mounted) setState(() => _sending = false);

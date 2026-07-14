@@ -373,8 +373,7 @@ class _ShopClientDetailScreenState
       }
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     } finally {
       nameCtrl.dispose();
       phoneCtrl.dispose();

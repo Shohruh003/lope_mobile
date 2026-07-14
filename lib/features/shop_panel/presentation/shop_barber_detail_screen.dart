@@ -542,8 +542,7 @@ class _BookingRow extends ConsumerWidget {
       ref.invalidate(shopBookingsFilteredProvider);
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     }
   }
 
@@ -577,8 +576,7 @@ class _BookingRow extends ConsumerWidget {
       ref.invalidate(shopBookingsFilteredProvider);
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     }
   }
 
@@ -626,8 +624,7 @@ class _BookingRow extends ConsumerWidget {
       ref.invalidate(shopBookingsFilteredProvider);
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     }
   }
 }

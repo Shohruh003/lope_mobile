@@ -489,9 +489,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     } catch (e) {
       AppHaptics.error();
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        AppSnack.error(context, humanize(e));
       }
     } finally {
       name.dispose();
@@ -558,11 +556,13 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
       await ref.read(shopRepositoryProvider).deleteBarber(b.id);
       ref.invalidate(shopBarbersProvider);
       ref.invalidate(shopBarbersPagedProvider);
+      if (context.mounted) {
+        AppSnack.success(context,
+            tr(ref, 'mobile.shop.masters.removed', 'Master olib tashlandi'));
+      }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        AppSnack.error(context, humanize(e));
       }
     }
   }

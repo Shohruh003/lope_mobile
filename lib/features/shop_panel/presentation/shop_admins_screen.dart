@@ -307,9 +307,10 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
     try {
       if (!isEdit && (n.isEmpty || p.isEmpty || pw.length < 6)) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(tr(ref, 'mobile.shop.admins.fillAll',
-                "Barcha maydonlar majburiy (parol ≥ 6 belgi)"))));
+        AppSnack.warning(
+            context,
+            tr(ref, 'mobile.shop.admins.fillAll',
+                "Barcha maydonlar majburiy (parol ≥ 6 belgi)"));
         return;
       }
       final dio = ref.read(dioProvider);
@@ -327,10 +328,12 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
         });
       }
       ref.invalidate(_adminsProvider);
+      if (context.mounted) {
+        AppSnack.success(context, tr(ref, 'common.saved', 'Saqlandi'));
+      }
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     } finally {
       name.dispose();
       phone.dispose();
@@ -349,15 +352,19 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
             tr(ref, 'mobile.shop.admins.removeTitle',
                 "Adminni olib tashlash?"),
             style: AppText.titleMd),
+        content: Text(
+          tr(ref, 'mobile.shop.admins.removeBody',
+              "Bu admin salon boshqaruvidan olib tashlanadi. Bu jarayonni bekor qilib bo'lmaydi."),
+          style: AppText.bodySm,
+        ),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(dCtx).pop(false),
-              child: Text(tr(ref, 'common.cancel', "Bekor"))),
+              child: Text(tr(ref, 'common.no', "Yo'q"))),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             onPressed: () => Navigator.of(dCtx).pop(true),
-            child: Text(tr(ref, 'mobile.shop.admins.removeBtn',
-                "Olib tashlash")),
+            child: Text(tr(ref, 'common.yes', 'Ha')),
           ),
         ],
       ),
@@ -366,10 +373,13 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
     try {
       await ref.read(dioProvider).delete('/barbershop/admins/$id');
       ref.invalidate(_adminsProvider);
+      if (context.mounted) {
+        AppSnack.success(context,
+            tr(ref, 'mobile.shop.admins.removed', 'Admin olib tashlandi'));
+      }
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     }
   }
 }
@@ -385,14 +395,23 @@ class _RoundBtn extends StatelessWidget {
     return TapScale(
       onTap: onTap,
       haptic: HapticStrength.light,
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: AppRadius.rSm,
+      // 44px hit area (Material touch-target minimum) with a smaller
+      // visual pill inside — keeps the row layout compact while
+      // meeting the accessibility target.
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Center(
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: AppRadius.rSm,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
         ),
-        child: Icon(icon, color: color, size: 16),
       ),
     );
   }

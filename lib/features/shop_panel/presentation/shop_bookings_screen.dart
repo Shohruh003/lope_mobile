@@ -673,8 +673,7 @@ class _BookingCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        AppSnack.error(context, humanize(e));
       }
     } finally {
       priceCtrl.dispose();
@@ -717,8 +716,7 @@ class _BookingCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        AppSnack.error(context, humanize(e));
       }
     }
   }
@@ -755,8 +753,7 @@ class _BookingCard extends ConsumerWidget {
           content: Text(tr(ref, 'common.saved', "Saqlandi"))));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     }
   }
 
@@ -806,8 +803,7 @@ class _BookingCard extends ConsumerWidget {
           content: Text(tr(ref, 'common.saved', "Saqlandi"))));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+      AppSnack.error(context, humanize(e));
     }
   }
 
