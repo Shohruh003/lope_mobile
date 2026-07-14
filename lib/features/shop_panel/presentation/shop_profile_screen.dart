@@ -75,7 +75,8 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     final initial = TimeOfDay(
         hour: int.tryParse(parts[0]) ?? 9,
         minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
-    final picked = await showTimePicker(context: context, initialTime: initial);
+    final picked =
+        await AppTimePicker.show(context, ref: ref, initial: initial);
     if (picked == null) return;
     setState(() {
       final s =
@@ -118,7 +119,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
       final lng = double.tryParse(_lngCtrl.text.trim());
       await ref.read(shopRepositoryProvider).updateMe({
         'name': _nameCtrl.text.trim(),
-        'phone': _phoneCtrl.text.trim(),
+        'phone': AppPhoneField.rawPhone(_phoneCtrl.text),
         'address': _addressCtrl.text.trim(),
         'geoAddress': _geoAddressCtrl.text.trim(),
         'latitude': ?lat,
@@ -230,9 +231,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                     const SizedBox(height: AppSpacing.md),
                     _Label(tr(ref, 'auth.phone', "Telefon")),
                     const SizedBox(height: 6),
-                    TextField(
-                        controller: _phoneCtrl,
-                        keyboardType: TextInputType.phone),
+                    AppPhoneField(controller: _phoneCtrl),
                     const SizedBox(height: AppSpacing.md),
                     _Label(tr(ref, 'profile.location', "Manzil")),
                     const SizedBox(height: 6),

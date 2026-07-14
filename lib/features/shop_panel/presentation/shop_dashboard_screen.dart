@@ -31,9 +31,10 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
 
   Future<void> _pickFrom() async {
     AppHaptics.light();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _from,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: _from,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
       lastDate: _to,
     );
@@ -42,9 +43,10 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
 
   Future<void> _pickTo() async {
     AppHaptics.light();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _to,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: _to,
       firstDate: _from,
       lastDate: DateTime.now(),
     );

@@ -250,16 +250,20 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
               TextField(
                 controller: name,
                 decoration: InputDecoration(
-                    labelText: tr(ref, 'shop.client.name', "Ism"),
-                    hintText: "Shohruh Azimov"),
+                  labelText: tr(ref, 'shop.client.name', "Ism"),
+                  hintText:
+                      tr(ref, 'shop.client.nameHint', "Familya Ism"),
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              TextField(
+              // Prefer AppPhoneField over a raw TextField so the
+              // '+998' prefix is always pinned and paste normalises
+              // any accepted format into `+998 XX-XXX-XX-XX`. Save
+              // path uses AppPhoneField.rawPhone(phone.text) to send
+              // canonical `+998XXXXXXXXX` to the backend.
+              AppPhoneField(
                 controller: phone,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                    labelText: tr(ref, 'shop.client.phone', "Telefon"),
-                    hintText: '+998 90 123 45 67'),
+                hintText: '+998 XX-XXX-XX-XX',
               ),
               const SizedBox(height: AppSpacing.sm),
               TextField(
@@ -296,7 +300,9 @@ class _ShopAdminsScreenState extends ConsumerState<ShopAdminsScreen> {
       return;
     }
     final n = name.text.trim();
-    final p = phone.text.trim();
+    // Send the canonical `+998XXXXXXXXX` string — AppPhoneField's
+    // rendered value has spaces and dashes that aren't valid E.164.
+    final p = AppPhoneField.rawPhone(phone.text);
     final pw = password.text;
     try {
       if (!isEdit && (n.isEmpty || p.isEmpty || pw.length < 6)) {

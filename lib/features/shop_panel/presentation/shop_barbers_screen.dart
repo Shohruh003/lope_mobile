@@ -374,14 +374,10 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                 ),
               ),
               AppSpacing.gapSm,
-              TextField(
+              AppPhoneField(
                 controller: phone,
-                keyboardType: TextInputType.phone,
-                style: AppText.body,
-                decoration: InputDecoration(
-                  labelText: tr(ref, 'mobile.shop.masters.phonePh',
-                      'Telefon (ixtiyoriy)'),
-                ),
+                hintText: tr(ref, 'mobile.shop.masters.phonePh',
+                    'Telefon (ixtiyoriy)'),
               ),
               AppSpacing.gapMd,
               Text(
@@ -467,11 +463,13 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
     try {
       if (result != true) return;
       final repo = ref.read(shopRepositoryProvider);
+      // Canonical +998XXXXXXXXX (empty when the field wasn't filled).
+      final canonicalPhone = AppPhoneField.rawPhone(phone.text);
       if (existing == null) {
         await repo.createBarber(
           name: name.text.trim(),
           experience: exp.text.trim(),
-          phone: phone.text.trim(),
+          phone: canonicalPhone,
           gender: gender,
           role: role,
         );
@@ -479,8 +477,7 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
         await repo.updateBarber(existing.id, {
           'name': name.text.trim(),
           'experience': exp.text.trim(),
-          if (phone.text.trim().isNotEmpty)
-            'phone': phone.text.trim(),
+          if (canonicalPhone.isNotEmpty) 'phone': canonicalPhone,
           if (gender == 'MALE' || gender == 'FEMALE')
             'gender': gender,
           'role': role,

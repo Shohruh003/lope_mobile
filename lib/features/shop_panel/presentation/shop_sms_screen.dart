@@ -38,9 +38,10 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
 
   Future<void> _pickDate(bool isFrom) async {
     final init = (isFrom ? _from : _to) ?? DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: init,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: init,
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 3)),
       lastDate: DateTime.now(),
     );

@@ -39,9 +39,10 @@ class _ShopBarberDetailScreenState
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: _date,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 180)),
     );
@@ -548,9 +549,10 @@ class _BookingRow extends ConsumerWidget {
 
   Future<void> _reschedule(BuildContext context, WidgetRef ref) async {
     final initial = DateTime.tryParse(dateStr) ?? DateTime.now();
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initial,
+    final pickedDate = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: initial,
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
@@ -561,7 +563,7 @@ class _BookingRow extends ConsumerWidget {
         hour: int.tryParse(parts[0]) ?? 9,
         minute: int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0);
     final pickedTime =
-        await showTimePicker(context: context, initialTime: initTime);
+        await AppTimePicker.show(context, ref: ref, initial: initTime);
     if (pickedTime == null) return;
     final newDate =
         "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";

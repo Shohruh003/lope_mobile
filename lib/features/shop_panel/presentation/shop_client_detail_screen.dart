@@ -336,12 +336,9 @@ class _ShopClientDetailScreenState
                   labelText: tr(ref, 'shop.client.name', "Ism")),
             ),
             const SizedBox(height: AppSpacing.sm),
-            TextField(
+            AppPhoneField(
               controller: phoneCtrl,
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                  labelText: tr(ref, 'shop.client.phone', "Telefon"),
-                  hintText: '+998...'),
+              hintText: '+998 XX-XXX-XX-XX',
             ),
           ],
         ),
@@ -358,7 +355,9 @@ class _ShopClientDetailScreenState
     try {
       if (ok != true) return;
       final newName = nameCtrl.text.trim();
-      final newPhone = phoneCtrl.text.trim();
+      // Canonical +998XXXXXXXXX for the backend (empty when the field
+      // is blank / partially filled).
+      final newPhone = AppPhoneField.rawPhone(phoneCtrl.text);
       if (newName.isEmpty && newPhone.isEmpty) return;
       final body = <String, dynamic>{};
       if (newName.isNotEmpty && newName != name) body['name'] = newName;
