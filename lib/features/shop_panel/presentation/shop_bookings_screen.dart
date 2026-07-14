@@ -498,11 +498,12 @@ class _BookingCard extends ConsumerWidget {
               ]),
               if (b.status == 'confirmed') ...[
                 const SizedBox(height: AppSpacing.sm),
-                // Yakunlash + Bekor qilish + more menu on one row.
-                // Wrapping the two AppButtons in `Expanded` lets them
-                // share the row width and prevents the right-edge
-                // overflow the user hit on narrow phones (the natural-
-                // width labels + gap were wider than the card).
+                // Two-row layout so we never overflow on narrow phones:
+                // primary actions (Yakunlash / Bekor qilish) share
+                // the top row via `Expanded`; secondary actions
+                // (reschedule / extend) live below as text buttons
+                // instead of a cramped popup that fought the primary
+                // buttons for horizontal space.
                 Row(children: [
                   Expanded(
                     child: AppButton(
@@ -526,43 +527,36 @@ class _BookingCard extends ConsumerWidget {
                       onPressed: () => _cancel(context, ref),
                     ),
                   ),
-                  PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert,
-                        size: 18, color: context.colors.textMuted),
-                    padding: EdgeInsets.zero,
-                    color: context.colors.surface,
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.md)),
-                    onSelected: (value) async {
-                      if (value == 'reschedule') {
-                        await _reschedule(context, ref);
-                      } else if (value == 'extend') {
-                        await _extend(context, ref);
-                      }
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: 'reschedule',
-                        child: Row(children: [
-                          const Icon(Icons.event_repeat,
-                              size: 16, color: AppColors.primary),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(tr(ref, 'mobile.shop.barber.reschedule',
-                              "Boshqa vaqtga ko'chirish")),
-                        ]),
+                ]),
+                const SizedBox(height: 6),
+                Row(children: [
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () => _reschedule(context, ref),
+                      icon: const Icon(Icons.event_repeat, size: 16),
+                      label: FittedBox(
+                        child: Text(
+                          tr(ref, 'mobile.shop.barber.reschedule',
+                              "Ko'chirish"),
+                          style: AppText.caption.copyWith(
+                              fontWeight: FontWeight.w600),
+                        ),
                       ),
-                      PopupMenuItem(
-                        value: 'extend',
-                        child: Row(children: [
-                          const Icon(Icons.timer_outlined,
-                              size: 16, color: AppColors.primary),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(tr(ref, 'mobile.shop.barber.extend',
-                              "Vaqtni uzaytirish")),
-                        ]),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () => _extend(context, ref),
+                      icon: const Icon(Icons.timer_outlined, size: 16),
+                      label: FittedBox(
+                        child: Text(
+                          tr(ref, 'mobile.shop.barber.extend',
+                              "Uzaytirish"),
+                          style: AppText.caption.copyWith(
+                              fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 ]),
               ],

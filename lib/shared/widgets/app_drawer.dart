@@ -69,6 +69,8 @@ class AppDrawer extends ConsumerWidget {
                     if (item == null)
                       Divider(
                           height: 12, color: context.colors.border)
+                    else if (item.widget != null)
+                      item.widget!
                     else
                       InkWell(
                         onTap: () {
@@ -201,10 +203,21 @@ class AppDrawer extends ConsumerWidget {
           _DrawerItem(Icons.account_balance_wallet, tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"), '/shop/transactions'),
           _DrawerItem(Icons.admin_panel_settings, tr(ref, 'shop.nav.admins', "Adminlar"), '/shop/admins'),
           null,
-          _DrawerItem(Icons.storefront, tr(ref, 'profile.barberProfile', "Salon profili"), '/shop/profile'),
-          _DrawerItem(Icons.settings, iSettings, '/shop/settings'),
+          // Salon profile (business info edit) — the old "Sozlamalar"
+          // page is gone; its contents (theme + language) now live
+          // directly in the drawer trailer below.
+          _DrawerItem(
+              Icons.storefront,
+              tr(ref, 'mobile.shop.drawer.salonProfile',
+                  "Salon ma'lumotlari"),
+              '/shop/profile'),
           _DrawerItem(Icons.notifications, iNotif, '/notifications'),
           _DrawerItem(Icons.auto_awesome, iAi, '/ai-style'),
+          null,
+          // Inline settings widgets — theme + language picker sheets
+          // open right from the drawer, no separate page hop.
+          const _DrawerItem.widget(AppThemeTile()),
+          const _DrawerItem.widget(AppLanguageTile()),
         ];
       case 'shop':
         return [
@@ -236,10 +249,22 @@ class AppDrawer extends ConsumerWidget {
 }
 
 class _DrawerItem {
-  const _DrawerItem(this.icon, this.label, this.route);
+  const _DrawerItem(this.icon, this.label, this.route) : widget = null;
+  const _DrawerItem.widget(Widget w)
+      : icon = Icons.circle,
+        label = '',
+        route = null,
+        widget = w;
+
   final IconData icon;
   final String label;
   final String? route;
+
+  /// Custom widget to render in place of the standard icon + label
+  /// row — used for theme / language pickers that need their own
+  /// tap-to-open-sheet behaviour and trailing content.
+  final Widget? widget;
+
   // Drawer items don't currently render badges or destructive styles —
   // keeping the constructor narrow until we wire those up.
   String? get badge => null;
