@@ -17,7 +17,7 @@ class ShopHomeShell extends ConsumerStatefulWidget {
 }
 
 class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
-  late final int _index = widget.initialTab.clamp(0, 3);
+  late int _index = widget.initialTab.clamp(0, 3);
 
   static const _tabs = [
     ShopDashboardScreen(),
@@ -25,6 +25,19 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
     ShopBookingsScreen(),
     ShopSettingsScreen(),
   ];
+
+  @override
+  void didUpdateWidget(covariant ShopHomeShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Drawer entries navigate via `context.go('/shop?tab=X')` which
+    // reuses this State but hands us a new `initialTab`. Without
+    // this sync `_index` stayed at whatever was set on first mount,
+    // so tapping Bronlar / Mastera from the drawer just re-rendered
+    // the Boshqaruv tab.
+    if (oldWidget.initialTab != widget.initialTab) {
+      setState(() => _index = widget.initialTab.clamp(0, 3));
+    }
+  }
   @override
   Widget build(BuildContext context) {
     // Bottom nav removed at user request — everything runs through
@@ -69,7 +82,9 @@ class _Header extends StatelessWidget {
               borderRadius: AppRadius.rMd,
               boxShadow: AppShadows.primaryGlow(AppColors.primary),
             ),
-            child: const Icon(Icons.storefront,
+            // Same scissors logo as the customer / barber shells — one
+            // Lope Style brand mark across every panel.
+            child: const Icon(Icons.content_cut,
                 color: Colors.white, size: 18),
           ),
           AppSpacing.hGapSm,

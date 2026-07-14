@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart' as ll;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
@@ -240,22 +239,6 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
     }
   }
 
-  Future<void> _openYandex() async {
-    final q = _addressCtrl.text.trim();
-    final lat = _latCtrl.text.trim();
-    final lng = _lngCtrl.text.trim();
-    final url = lat.isNotEmpty && lng.isNotEmpty
-        ? 'https://yandex.uz/maps/?pt=$lng,$lat&z=16'
-        : q.isNotEmpty
-            ? 'https://yandex.uz/maps/?text=${Uri.encodeComponent(q)}'
-            : 'https://yandex.uz/maps/';
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
   void _seed(Map<String, dynamic> m) {
     if (_seeded) return;
     _seeded = true;
@@ -339,48 +322,14 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                     const SizedBox(height: 6),
                     TextField(controller: _geoAddressCtrl),
                     const SizedBox(height: AppSpacing.md),
-                    Row(children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _Label(tr(ref, 'mobile.barber.location.lat',
-                                "Kenglik")),
-                            const SizedBox(height: 6),
-                            TextField(
-                                controller: _latCtrl,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true, signed: true),
-                                decoration: const InputDecoration(
-                                    hintText: '41.299496')),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _Label(tr(ref, 'mobile.barber.location.lng',
-                                "Uzunlik")),
-                            const SizedBox(height: 6),
-                            TextField(
-                                controller: _lngCtrl,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true, signed: true),
-                                decoration: const InputDecoration(
-                                    hintText: '69.240073')),
-                          ],
-                        ),
-                      ),
-                    ]),
-                    const SizedBox(height: AppSpacing.md),
-                    // Embedded interactive map — admin pans / zooms the
-                    // map to place the pin over the salon; on every
-                    // idle the lat/lng fields update live. Same widget
-                    // pattern the barber location screen uses.
+                    // Embedded interactive map — admin pans / zooms
+                    // the map to place the pin over the salon; every
+                    // idle syncs the coordinates back into the
+                    // (hidden) _latCtrl / _lngCtrl so the save path
+                    // can send them. The lat/lng number fields and
+                    // 'Yandex'da topish' external launcher were
+                    // removed at user's request — the map is the
+                    // single source of truth for location now.
                     _ShopLocationPickerMap(
                       controller: _mapController,
                       initial: () {
@@ -394,15 +343,6 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                         return _defaultCenter;
                       }(),
                       onIdle: _syncCoordsFromMap,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    AppButton(
-                      label: tr(ref, 'mobile.barber.location.findOnYandex',
-                          "Yandex'da topish"),
-                      leadingIcon: Icons.search,
-                      variant: AppButtonVariant.secondary,
-                      fullWidth: true,
-                      onPressed: _openYandex,
                     ),
                   ],
                 ),
