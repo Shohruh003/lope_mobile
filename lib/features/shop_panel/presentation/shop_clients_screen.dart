@@ -27,6 +27,11 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
   final Set<String> _selected = {};
   bool _sending = false;
 
+  /// Set while fetching the full paginated client list for the
+  /// "Hammasini tanlash" action — disables the checkbox and shows a
+  /// spinner so the user can't tap-storm.
+  bool _selectingAll = false;
+
   bool _inBucket(ShopClient c, DateTime now) {
     if (_bucket == 'all') return true;
     if (c.lastVisit == null) return _bucket == '60+';
@@ -128,21 +133,39 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
     }
   }
 
-  void _toggleSelectAll(List<ShopClient> visible) {
+  /// "Hammasini tanlash" now selects **every** client across all
+  /// pages, not just the currently loaded 50. Fetches the full list
+  /// via `clientsAll()` (paginated loop inside the repo) and merges
+  /// their phones into [_selected]. Second tap clears selection.
+  Future<void> _toggleSelectAll(List<ShopClient> visible) async {
     AppHaptics.selection();
-    final allSelected =
-        visible.every((c) => _selected.contains(c.phone));
-    setState(() {
-      if (allSelected) {
-        for (final c in visible) {
-          _selected.remove(c.phone);
+    // If anything is currently selected, treat the tap as "clear all".
+    if (_selected.isNotEmpty) {
+      setState(() => _selected.clear());
+      return;
+    }
+    setState(() => _selectingAll = true);
+    try {
+      final all =
+          await ref.read(shopRepositoryProvider).clientsAll(
+                search: _query.isEmpty ? null : _query,
+              );
+      if (!mounted) return;
+      setState(() {
+        for (final c in all) {
+          // Filter by the current bucket + phone-present so we don't
+          // queue up empty numbers.
+          if (c.phone.isEmpty) continue;
+          if (!_inBucket(c, DateTime.now())) continue;
+          _selected.add(c.phone);
         }
-      } else {
-        for (final c in visible) {
-          if (c.phone.isNotEmpty) _selected.add(c.phone);
-        }
-      }
-    });
+      });
+    } catch (e) {
+      if (!mounted) return;
+      AppSnack.error(context, humanize(e));
+    } finally {
+      if (mounted) setState(() => _selectingAll = false);
+    }
   }
 
   @override
@@ -264,21 +287,36 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                     ),
                     child: Row(children: [
                       TapScale(
-                        onTap: () => _toggleSelectAll(filtered),
+                        onTap: _selectingAll
+                            ? null
+                            : () => _toggleSelectAll(filtered),
                         scale: 0.95,
                         child: Row(children: [
-                          Icon(
-                            filtered
-                                    .every((c) =>
-                                        _selected.contains(c.phone))
-                                ? Icons.check_box
-                                : (filtered.any((c) =>
-                                        _selected.contains(c.phone))
-                                    ? Icons.indeterminate_check_box
-                                    : Icons.check_box_outline_blank),
-                            size: 20,
-                            color: AppColors.primary,
-                          ),
+                          // Small spinner while the paginated fetch
+                          // runs so the user sees the checkbox is
+                          // working — no more mystery 2-3 second
+                          // pause on the first tap of "Hammasini
+                          // tanlash" for a shop with 700+ clients.
+                          if (_selectingAll)
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: Padding(
+                                padding: EdgeInsets.all(2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            )
+                          else
+                            Icon(
+                              _selected.isNotEmpty
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
                           AppSpacing.hGapXs,
                           Text(
                             tr(

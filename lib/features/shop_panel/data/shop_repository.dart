@@ -511,6 +511,27 @@ extension ShopRepoExtras on ShopRepository {
     return list.cast<Map<String, dynamic>>().map(ShopClient.fromJson).toList();
   }
 
+  /// Fetches EVERY client across all pages — used by the shop clients
+  /// screen's "Hammasini tanlash" action so the barbershop can send
+  /// SMS to all 700+ clients, not just the visible 50. Uses a large
+  /// page size to minimise round-trips and stops when a page comes
+  /// back short (fewer rows than the limit).
+  Future<List<ShopClient>> clientsAll({String? search}) async {
+    const pageSize = 200;
+    final out = <ShopClient>[];
+    var page = 1;
+    while (true) {
+      final chunk = await clients(
+          page: page, limit: pageSize, search: search);
+      out.addAll(chunk);
+      if (chunk.length < pageSize) break;
+      page += 1;
+      // Hard safety cap so a runaway backend can't spin forever.
+      if (page > 50) break;
+    }
+    return out;
+  }
+
   Future<List<ShopSmsLogEntry>> smsLog({int page = 1, int limit = 30}) async {
     final r = await smsLogFiltered(page: page, limit: limit);
     return r.data;

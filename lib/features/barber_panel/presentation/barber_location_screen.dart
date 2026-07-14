@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart' as ll;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/errors.dart';
 import '../../../core/tr.dart';
@@ -90,19 +89,6 @@ class _BarberLocationScreenState
       }
     } finally {
       if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _openYandex() async {
-    AppHaptics.light();
-    final lat = _latCtrl.text.trim();
-    final lng = _lngCtrl.text.trim();
-    final url = (lat.isEmpty || lng.isEmpty)
-        ? 'https://yandex.uz/maps/?text=Tashkent'
-        : 'https://yandex.uz/maps/?pt=$lng,$lat&z=16';
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
@@ -220,83 +206,6 @@ class _BarberLocationScreenState
                               'mobile.barber.location.addressPlaceholder',
                               "Toshkent, Yunusobod tumani, Amir Temur ko'chasi 7"),
                         ),
-                      ),
-                      AppSpacing.gapMd,
-                      Row(children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                tr(ref,
-                                    'mobile.barber.location.latitude',
-                                    'Kenglik'),
-                                style: AppText.overline,
-                              ),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: _latCtrl,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true, signed: true),
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'[0-9.\-]'))
-                                ],
-                                style: AppText.body.copyWith(
-                                  fontFamily: 'monospace',
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                decoration: const InputDecoration(
-                                    hintText: '41.311081'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        AppSpacing.hGapSm,
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                tr(ref,
-                                    'mobile.barber.location.longitude',
-                                    'Uzunlik'),
-                                style: AppText.overline,
-                              ),
-                              const SizedBox(height: 6),
-                              TextField(
-                                controller: _lngCtrl,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true, signed: true),
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'[0-9.\-]'))
-                                ],
-                                style: AppText.body.copyWith(
-                                  fontFamily: 'monospace',
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                decoration: const InputDecoration(
-                                    hintText: '69.240562'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ]),
-                      AppSpacing.gapMd,
-                      AppButton(
-                        label: tr(
-                            ref,
-                            'mobile.barber.location.openYandex',
-                            "Yandex Maps'dan koordinata olish"),
-                        leadingIcon: Icons.open_in_new,
-                        variant: AppButtonVariant.secondary,
-                        fullWidth: true,
-                        onPressed: _openYandex,
                       ),
                     ],
                   ),
