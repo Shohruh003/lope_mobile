@@ -1446,7 +1446,7 @@
         "copied": "Copied",
         "addressPlaceholder": "Tashkent, Yunusabad district, Amir Temur St. 7"
       },
-      "settings": { "salon": "SALON" },
+      "settings": { "salon": "SALON", "salonProfile": "Salon profile" },
       "admins": {
         "addBtn": "Add admin",
         "empty": "No admins yet",

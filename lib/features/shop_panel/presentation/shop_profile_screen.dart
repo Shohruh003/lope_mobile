@@ -282,7 +282,8 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         const ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']);
     return Scaffold(
       appBar: AppBar(
-          title: Text(tr(ref, 'profile.barberProfile', "Salon profili"),
+          title: Text(
+              tr(ref, 'mobile.shop.settings.salonProfile', "Salon profili"),
               style: AppText.titleMd)),
       body: async.when(
         loading: () => const AppListSkeleton(),

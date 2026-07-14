@@ -1447,7 +1447,7 @@
         "copied": "Нусхаланди",
         "addressPlaceholder": "Тошкент, Юнусобод тумани, Амир Темур кўчаси 7"
       },
-      "settings": { "salon": "САЛОН" },
+      "settings": { "salon": "САЛОН", "salonProfile": "Салон профили" },
       "admins": {
         "addBtn": "Админ қўшиш",
         "empty": "Ҳали админ қўшилмаган",

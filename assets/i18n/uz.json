@@ -1447,7 +1447,7 @@
         "copied": "Nusxalandi",
         "addressPlaceholder": "Toshkent, Yunusobod tumani, Amir Temur ko'chasi 7"
       },
-      "settings": { "salon": "SALON" },
+      "settings": { "salon": "SALON", "salonProfile": "Salon profili" },
       "admins": {
         "addBtn": "Admin qo'shish",
         "empty": "Hali admin qo'shilmagan",

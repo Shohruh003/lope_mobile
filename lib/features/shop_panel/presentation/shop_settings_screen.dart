@@ -47,24 +47,15 @@ class ShopSettingsScreen extends ConsumerWidget {
           AppSpacing.gapXl,
           _SectionLabel(tr(ref, 'mobile.shop.settings.salon', 'SALON')),
           AppSpacing.gapSm,
+          // Adminlar and Eslatmalar live in the drawer already — leave
+          // Profil focused on info-editing entries only.
           _TileGroup(children: [
             _SettingsTile(
               icon: Icons.storefront_outlined,
               iconColor: AppColors.primary,
-              label: tr(ref, 'profile.barberProfile', 'Salon profili'),
+              label: tr(
+                  ref, 'mobile.shop.settings.salonProfile', 'Salon profili'),
               onTap: () => context.push('/shop/profile'),
-            ),
-            _SettingsTile(
-              icon: Icons.admin_panel_settings_outlined,
-              iconColor: AppColors.warning,
-              label: tr(ref, 'shop.nav.admins', 'Adminlar'),
-              onTap: () => context.push('/shop/admins'),
-            ),
-            _SettingsTile(
-              icon: Icons.alarm,
-              iconColor: AppColors.success,
-              label: tr(ref, 'barberApp.reminderSettings', 'Eslatmalar'),
-              onTap: () => context.push('/shop/reminders'),
             ),
           ]),
           AppSpacing.gapXl,
