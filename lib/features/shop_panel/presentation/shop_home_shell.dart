@@ -50,6 +50,11 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
         label: tr(ref, 'mobile.tabs.profile', 'Profil'),
       ),
     ];
+    // Barbershop shell keeps the AppDrawer — it functions as an
+    // admin panel with lots of secondary destinations (SMS,
+    // transactions, admins, reminders, etc.) so a persistent side
+    // menu reads better than routing everything through the Profil
+    // tab like the customer / barber shells do.
     return Scaffold(
       drawer: const AppDrawer(),
       body: Column(children: [

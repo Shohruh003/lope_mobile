@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/asset_url.dart';
 import '../../core/tr.dart';
-import '../theme/colors.dart';
+import '../shared.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 
 /// Side-menu drawer matching the web sidebar. The item set depends on the
@@ -22,7 +22,7 @@ class AppDrawer extends ConsumerWidget {
     final items = _itemsForRole(role, ref);
 
     return Drawer(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       child: SafeArea(
         child: Column(
           children: [
@@ -67,7 +67,8 @@ class AppDrawer extends ConsumerWidget {
                 children: [
                   for (final item in items)
                     if (item == null)
-                      const Divider(height: 12, color: AppColors.border)
+                      Divider(
+                          height: 12, color: context.colors.border)
                     else
                       InkWell(
                         onTap: () {
@@ -96,7 +97,9 @@ class AppDrawer extends ConsumerWidget {
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 15,
-                                    color: item.destructive ? AppColors.danger : AppColors.textPrimary,
+                                    color: item.destructive
+                                        ? AppColors.danger
+                                        : context.colors.textPrimary,
                                   )),
                             ),
                             if (item.badge != null && item.badge!.isNotEmpty)
@@ -117,7 +120,7 @@ class AppDrawer extends ConsumerWidget {
             ),
 
             // Footer: logout
-            const Divider(height: 1, color: AppColors.border),
+            Divider(height: 1, color: context.colors.border),
             InkWell(
               onTap: () async {
                 Navigator.of(context).pop();

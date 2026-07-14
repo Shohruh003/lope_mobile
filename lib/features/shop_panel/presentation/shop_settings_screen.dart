@@ -65,6 +65,12 @@ class ShopSettingsScreen extends ConsumerWidget {
           ]),
           AppSpacing.gapXl,
           _SectionLabel(
+              tr(ref, 'profile.section.preferences', 'Sozlamalar')
+                  .toUpperCase()),
+          AppSpacing.gapSm,
+          const _TileGroup(children: [AppThemeTile()]),
+          AppSpacing.gapXl,
+          _SectionLabel(
               tr(ref, 'profile.section.help', 'Yordam').toUpperCase()),
           AppSpacing.gapSm,
           _TileGroup(children: [
