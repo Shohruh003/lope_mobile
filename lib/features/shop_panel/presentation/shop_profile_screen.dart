@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart' as ll;
 
+import '../../../core/location_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
@@ -576,8 +577,10 @@ class _TimePill extends StatelessWidget {
 /// Embedded flutter_map with a fixed centre pin. The admin pans / zooms
 /// to place the pin over the salon; every idle triggers [onIdle] so the
 /// parent state can sync lat/lng back into the text fields. Same shape
-/// / tile provider as the barber location picker.
-class _ShopLocationPickerMap extends StatelessWidget {
+/// / tile provider as the barber location picker. A "my location" FAB
+/// in the bottom-right recentres the map on the device's GPS position
+/// (permission prompt + AppSnack fallback on denial).
+class _ShopLocationPickerMap extends ConsumerStatefulWidget {
   const _ShopLocationPickerMap({
     required this.controller,
     required this.initial,
@@ -587,6 +590,33 @@ class _ShopLocationPickerMap extends StatelessWidget {
   final MapController controller;
   final ll.LatLng initial;
   final VoidCallback onIdle;
+
+  @override
+  ConsumerState<_ShopLocationPickerMap> createState() =>
+      _ShopLocationPickerMapState();
+}
+
+class _ShopLocationPickerMapState
+    extends ConsumerState<_ShopLocationPickerMap> {
+  bool _locating = false;
+
+  Future<void> _locateMe() async {
+    if (_locating) return;
+    AppHaptics.selection();
+    setState(() => _locating = true);
+    final pos = await ref.read(locationServiceProvider).currentPosition();
+    if (!mounted) return;
+    setState(() => _locating = false);
+    if (pos == null) {
+      AppSnack.warning(
+          context,
+          tr(ref, 'mobile.shop.profile.locationDenied',
+              "Joylashuvni aniqlab bo'lmadi. Ilova sozlamalarida ruxsat bering."));
+      return;
+    }
+    widget.controller.move(ll.LatLng(pos.lat, pos.lng), 16);
+    widget.onIdle();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -601,9 +631,9 @@ class _ShopLocationPickerMap extends StatelessWidget {
         borderRadius: AppRadius.rLg,
         child: Stack(children: [
           FlutterMap(
-            mapController: controller,
+            mapController: widget.controller,
             options: MapOptions(
-              initialCenter: initial,
+              initialCenter: widget.initial,
               initialZoom: 15,
               minZoom: 4,
               maxZoom: 18,
@@ -611,11 +641,12 @@ class _ShopLocationPickerMap extends StatelessWidget {
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
               ),
               onPositionChanged: (camera, hasGesture) {
-                if (hasGesture) onIdle();
+                if (hasGesture) widget.onIdle();
               },
               onTap: (tap, latlng) {
-                controller.move(latlng, controller.camera.zoom);
-                onIdle();
+                widget.controller
+                    .move(latlng, widget.controller.camera.zoom);
+                widget.onIdle();
               },
             ),
             children: [
@@ -651,12 +682,44 @@ class _ShopLocationPickerMap extends StatelessWidget {
                 color: Colors.black.withValues(alpha: 0.6),
                 borderRadius: AppRadius.rPill,
               ),
-              child: const Text(
-                'Xaritani surib joyni belgilang',
-                style: TextStyle(
+              child: Text(
+                tr(ref, 'mobile.shop.profile.dragHint',
+                    'Xaritani surib joyni belgilang'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: AppSpacing.sm,
+            bottom: AppSpacing.sm,
+            child: Material(
+              color: Colors.white,
+              elevation: 3,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: _locateMe,
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Center(
+                    child: _locating
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              valueColor: AlwaysStoppedAnimation(
+                                  AppColors.primary),
+                            ),
+                          )
+                        : const Icon(Icons.my_location,
+                            color: AppColors.primary, size: 22),
+                  ),
                 ),
               ),
             ),

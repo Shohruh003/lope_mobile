@@ -196,7 +196,7 @@ class AppDrawer extends ConsumerWidget {
           _DrawerItem(Icons.event_note, tr(ref, 'mobile.tabs.bookings', "Bronlar"), '/shop?tab=2'),
           _DrawerItem(Icons.people_alt, tr(ref, 'mobile.shop.home.masters', "Mastera"), '/shop?tab=1'),
           _DrawerItem(Icons.people_outline, tr(ref, 'shop.nav.clients', "Mijozlar"), '/shop/clients'),
-          _DrawerItem(Icons.alarm, tr(ref, 'barberApp.reminderSettings', "Eslatmalar"), '/shop/reminders'),
+          _DrawerItem(Icons.alarm, tr(ref, 'shop.nav.reminderMessages', "Eslatma xabarlar"), '/shop/reminders'),
           _DrawerItem(Icons.sms, iSms, '/shop/sms'),
           _DrawerItem(Icons.account_balance_wallet, tr(ref, 'mobile.customer.transactions.history', "Tranzaktsiyalar"), '/shop/transactions'),
           _DrawerItem(Icons.admin_panel_settings, tr(ref, 'shop.nav.admins', "Adminlar"), '/shop/admins'),
