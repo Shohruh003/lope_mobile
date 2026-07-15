@@ -85,15 +85,22 @@ class _Header extends ConsumerWidget {
               boxShadow: AppShadows.primaryGlow(AppColors.primary),
             ),
             // Same scissors logo as the customer / barber shells — one
-            // Lope Style brand mark across every panel. "Lope Style"
-            // wordmark dropped so the balance chip has room to sit
-            // in the centre of the header.
+            // Lope Style brand mark across every panel.
             child: const Icon(Icons.content_cut,
                 color: Colors.white, size: 18),
           ),
-          const Spacer(),
-          const _BalanceChip(),
-          const Spacer(),
+          AppSpacing.hGapSm,
+          Text(
+            'Lope Style',
+            style: AppText.titleMd.copyWith(
+              color: AppColors.primary,
+              letterSpacing: -0.3,
+            ),
+          ),
+          // Center-aligned balance chip. Wrapping in Expanded+Center
+          // gives the chip the visual middle of the header without
+          // squeezing the brand mark on the left.
+          const Expanded(child: Center(child: _BalanceChip())),
           const NotificationBell(),
           AppSpacing.hGapXs,
           TapScale(
