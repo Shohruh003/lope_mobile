@@ -279,6 +279,8 @@ class _ScheduleTab extends ConsumerWidget {
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     final async =
         ref.watch(_shopBarberBookingsProvider((id: barberId, date: dateStr)));
+    final slotsAsync =
+        ref.watch(scheduleSlotsProvider((barberId: barberId, date: dateStr)));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,6 +353,10 @@ class _ScheduleTab extends ConsumerWidget {
           ),
         ]),
         const SizedBox(height: AppSpacing.md),
+        // Slot grid — mirrors the barber's own schedule view and the
+        // web `Jadval` card. Empty slots tap through to the add-client
+        // sheet with the time pre-filled; booked slots show the client
+        // name and skip the add-client sheet.
         async.when(
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
@@ -360,32 +366,95 @@ class _ScheduleTab extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
             child: AppErrorState(message: humanize(e)),
           ),
-          data: (list) {
-            if (list.isEmpty) {
-              return AppEmptyState(
-                icon: Icons.event_available_rounded,
-                title: tr(ref, 'mobile.shop.bookings.emptyForDay',
-                    "Bu sanada bronlar yo'q"),
-                message: tr(ref, 'mobile.shop.bookings.emptyForDayHint',
-                    "Mijozlar yozilishi bilan barcha barberlarning bronlari shu yerda ko'rinadi."),
+          data: (bookings) => slotsAsync.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, _) => const SizedBox.shrink(),
+            data: (slots) {
+              final active = bookings
+                  .where((b) => b.status != 'cancelled')
+                  .toList();
+              // Booking start-time -> booking. Guarded against duplicate
+              // times so the map holds the first booking's client name.
+              final startAt = <String, ShopBooking>{};
+              for (final b in active) {
+                startAt.putIfAbsent(b.time, () => b);
+              }
+              final allTimes = <String>{...slots, ...startAt.keys}.toList()
+                ..sort();
+              if (allTimes.isEmpty) {
+                return AppEmptyState(
+                  icon: Icons.event_available_rounded,
+                  title: tr(ref, 'mobile.shop.bookings.emptyForDay',
+                      "Bu sanada bronlar yo'q"),
+                  message: tr(
+                      ref,
+                      'mobile.shop.barberDetail.noSchedule',
+                      "Sartaroshning bu kunga jadvali yo'q. Master avval ish vaqtini belgilashi kerak."),
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: AppSpacing.sm,
+                      crossAxisSpacing: AppSpacing.sm,
+                      childAspectRatio: 1.75,
+                    ),
+                    itemCount: allTimes.length,
+                    itemBuilder: (context, i) {
+                      final t = allTimes[i];
+                      final b = startAt[t];
+                      return _ShopSlotTile(
+                        time: t,
+                        booking: b,
+                        emptyLabel: tr(ref,
+                            'mobile.shop.barberDetail.slotFree', "Bo'sh"),
+                        onTap: b == null
+                            ? () => _openAddClientSheet(
+                                context, ref, dateStr,
+                                prefillTime: t)
+                            : null,
+                      ).animate().fadeIn(
+                          duration: 150.ms, delay: (i * 12).ms);
+                    },
+                  ),
+                  if (active.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      tr(ref,
+                          'mobile.shop.barberDetail.bookingsForDay',
+                          "Bugungi bronlar ({{n}})",
+                          {'n': '${active.length}'}),
+                      style: AppText.titleSm,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    ...(([...active]..sort(
+                            (a, b) => a.time.compareTo(b.time)))
+                        .asMap()
+                        .entries
+                        .map((e) => Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.sm),
+                              child: _BookingRow(
+                                      b: e.value, dateStr: dateStr)
+                                  .animate()
+                                  .fadeIn(
+                                      duration: 200.ms,
+                                      delay: (e.key * 25).ms),
+                            ))),
+                  ],
+                ],
               );
-            }
-            final sorted = [...list]..sort((a, b) => a.time.compareTo(b.time));
-            return Column(
-              children: sorted
-                  .asMap()
-                  .entries
-                  .map((e) => Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: _BookingRow(b: e.value, dateStr: dateStr)
-                            .animate()
-                            .fadeIn(
-                                duration: 200.ms,
-                                delay: (e.key * 25).ms),
-                      ))
-                  .toList(),
-            );
-          },
+            },
+          ),
         ),
       ],
     );
@@ -394,8 +463,12 @@ class _ScheduleTab extends ConsumerWidget {
   /// Manual booking sheet — barbershop admin schedules a client on
   /// the currently-viewed barber's slot. Ports the barber panel's
   /// `_openManualBookingDialog` so both roles get the same UX.
+  /// `prefillTime` is passed when the user tapped a specific empty slot
+  /// in the grid; when null the sheet starts with the time picker
+  /// unset so the admin can pick any time manually.
   Future<void> _openAddClientSheet(
-      BuildContext context, WidgetRef ref, String dateStr) async {
+      BuildContext context, WidgetRef ref, String dateStr,
+      {String? prefillTime}) async {
     AppHaptics.selection();
     final services = await ref
         .read(barberPanelRepositoryProvider)
@@ -405,6 +478,14 @@ class _ScheduleTab extends ConsumerWidget {
     final phoneCtrl = TextEditingController();
     final selected = <String>{};
     TimeOfDay? pickedTime;
+    if (prefillTime != null && prefillTime.contains(':')) {
+      final parts = prefillTime.split(':');
+      final h = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      if (h != null && m != null) {
+        pickedTime = TimeOfDay(hour: h, minute: m);
+      }
+    }
 
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -1001,3 +1082,81 @@ final _shopBarberClientsProvider =
   final repo = ref.watch(shopRepositoryProvider);
   return repo.barberClients(id);
 });
+
+/// Single slot tile in the shop-side schedule grid. Green tint when
+/// empty (tap-through to add a client at that time), primary tint
+/// when booked (shows client name; tap disabled — actions live on the
+/// booking card below the grid).
+class _ShopSlotTile extends StatelessWidget {
+  const _ShopSlotTile({
+    required this.time,
+    required this.booking,
+    required this.emptyLabel,
+    required this.onTap,
+  });
+  final String time;
+  final ShopBooking? booking;
+  final String emptyLabel;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final booked = booking != null;
+    final color = booked ? AppColors.primary : AppColors.success;
+    final tile = Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.16),
+            color.withValues(alpha: 0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: AppRadius.rMd,
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xs, vertical: AppSpacing.xs + 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            time,
+            style: AppText.titleSm.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            booked
+                ? (booking!.userName.isNotEmpty
+                    ? booking!.userName
+                    : ((booking!.userPhone ?? '').isNotEmpty
+                        ? booking!.userPhone!
+                        : 'Mijoz'))
+                : emptyLabel,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppText.caption.copyWith(
+              color: color.withValues(alpha: 0.85),
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (onTap == null) return tile;
+    return TapScale(
+      onTap: onTap!,
+      haptic: HapticStrength.selection,
+      scale: 0.95,
+      child: tile,
+    );
+  }
+}
