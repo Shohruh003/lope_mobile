@@ -130,6 +130,23 @@ class _ShopTransactionsScreenState
     }
   }
 
+  /// Backend writes `admin_topup` (superadmin gift with no note) or
+  /// `admin_topup:<reason>` (with a free-text note like "Bayram" or
+  /// "Bonus"). Rendering it raw shows tech gibberish to the shop owner
+  /// — humanize it into "Sovg'a" / "Sovg'a: Bayram" instead.
+  String _humanizeDescription(WidgetRef ref, String desc) {
+    if (desc == 'admin_topup') {
+      return tr(ref, 'mobile.shop.transactions.adminGift', "Sovg'a");
+    }
+    if (desc.startsWith('admin_topup:')) {
+      final reason = desc.substring('admin_topup:'.length).trim();
+      final head =
+          tr(ref, 'mobile.shop.transactions.adminGift', "Sovg'a");
+      return reason.isEmpty ? head : '$head: $reason';
+    }
+    return desc;
+  }
+
   String _smsTypeLabel(String t) {
     switch (t) {
       case 'CONFIRMATION':
@@ -264,22 +281,20 @@ class _ShopTransactionsScreenState
                       barbersAsync.when(
                         loading: () => const SizedBox.shrink(),
                         error: (_, _) => const SizedBox.shrink(),
-                        data: (barbers) => DropdownButtonFormField<String?>(
-                          isDense: true,
-                          initialValue: _barberId,
-                          decoration: InputDecoration(
-                            labelText:
-                                tr(ref, 'shop.filter.barber', "Master"),
-                          ),
-                          items: [
-                            DropdownMenuItem(
-                                value: null,
-                                child: Text(tr(ref, 'shop.filter.allBarbers',
-                                    "Barchasi"))),
-                            ...barbers.map((b) => DropdownMenuItem(
-                                value: b.id,
-                                child: Text(b.name,
-                                    overflow: TextOverflow.ellipsis))),
+                        data: (barbers) => AppSelectField<String?>(
+                          label: tr(ref, 'shop.filter.barber', "Master"),
+                          icon: Icons.person_outline,
+                          value: _barberId,
+                          options: [
+                            AppSelectOption(
+                              value: null,
+                              label: tr(ref, 'shop.filter.allBarbers',
+                                  "Barcha sartaroshlar"),
+                            ),
+                            ...barbers.map((b) => AppSelectOption(
+                                  value: b.id,
+                                  label: b.name,
+                                )),
                           ],
                           onChanged: (v) => setState(() {
                             _barberId = v;
@@ -288,28 +303,25 @@ class _ShopTransactionsScreenState
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      DropdownButtonFormField<String>(
-                        isDense: true,
-                        initialValue: _smsType,
-                        decoration: InputDecoration(
-                            labelText:
-                                tr(ref, 'shop.smsTypes.label', "SMS turi")),
-                        items: [
-                          DropdownMenuItem(
-                              value: 'all',
-                              child: Text(_smsTypeLabel('all'))),
-                          DropdownMenuItem(
+                      AppSelectField<String>(
+                        label: tr(ref, 'shop.smsTypes.label', "SMS turi"),
+                        icon: Icons.sms_outlined,
+                        value: _smsType,
+                        options: [
+                          AppSelectOption(
+                              value: 'all', label: _smsTypeLabel('all')),
+                          AppSelectOption(
                               value: 'CONFIRMATION',
-                              child: Text(_smsTypeLabel('CONFIRMATION'))),
-                          DropdownMenuItem(
+                              label: _smsTypeLabel('CONFIRMATION')),
+                          AppSelectOption(
                               value: 'REMINDER',
-                              child: Text(_smsTypeLabel('REMINDER'))),
-                          DropdownMenuItem(
+                              label: _smsTypeLabel('REMINDER')),
+                          AppSelectOption(
                               value: 'RETENTION',
-                              child: Text(_smsTypeLabel('RETENTION'))),
+                              label: _smsTypeLabel('RETENTION')),
                         ],
                         onChanged: (v) => setState(() {
-                          _smsType = v ?? 'all';
+                          _smsType = v;
                           _page = 1;
                         }),
                       ),
@@ -409,8 +421,10 @@ class _ShopTransactionsScreenState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    t.description ??
-                                        _methodLabel(ref, t.method),
+                                    t.description != null
+                                        ? _humanizeDescription(
+                                            ref, t.description!)
+                                        : _methodLabel(ref, t.method),
                                     style: AppText.titleSm
                                         .copyWith(fontSize: 14)),
                                 const SizedBox(height: 2),

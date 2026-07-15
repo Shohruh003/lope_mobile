@@ -8,6 +8,8 @@ import '../../../core/errors.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../lopepay/presentation/top_up_modal.dart';
+import '../data/shop_repository.dart';
 
 class ShopSettingsScreen extends ConsumerWidget {
   const ShopSettingsScreen({super.key});
@@ -36,6 +38,14 @@ class ShopSettingsScreen extends ConsumerWidget {
           _SectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
+          // Balance hero + top-up CTA lives inside Profil (not the
+          // drawer) — user explicitly asked for it here. The chip in
+          // the shell header is the quick-glance version; this card
+          // is the actionable one.
+          _BalanceCard(
+            onTopUp: () => TopUpModal.show(context),
+          ),
+          AppSpacing.gapMd,
           _TileGroup(children: [
             _SettingsTile(
               icon: Icons.person_outline,
@@ -300,5 +310,108 @@ class _SettingsTile extends StatelessWidget {
         ]),
       ),
     );
+  }
+}
+
+/// Balance hero shown at the top of the Profil page — big amount
+/// readout plus a primary "To'ldirish" CTA that opens [TopUpModal].
+/// The shell header chip stays synced via [shopBalanceProvider].
+class _BalanceCard extends ConsumerWidget {
+  const _BalanceCard({required this.onTopUp});
+  final VoidCallback onTopUp;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(shopBalanceProvider);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: AppRadius.rLg,
+        boxShadow: AppShadows.primaryGlow(AppColors.primary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const Icon(Icons.account_balance_wallet,
+                  color: Colors.white, size: 22),
+            ),
+            AppSpacing.hGapMd,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tr(ref, 'mobile.lopepay.home.balance', 'Balans'),
+                    style: AppText.overline
+                        .copyWith(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 2),
+                  async.when(
+                    loading: () => Text('…',
+                        style: AppText.titleLg
+                            .copyWith(color: Colors.white)),
+                    error: (_, _) => Text('—',
+                        style: AppText.titleLg
+                            .copyWith(color: Colors.white)),
+                    data: (b) => Text(
+                      "${_fmt(b)} ${tr(ref, 'common.currency', "so'm")}",
+                      style: AppText.titleLg
+                          .copyWith(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ]),
+          AppSpacing.gapMd,
+          TapScale(
+            onTap: onTopUp,
+            scale: 0.96,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.sm + 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: AppRadius.rMd,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.add,
+                      color: AppColors.primary, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    tr(ref, 'topUp.title', "Balansni to'ldirish"),
+                    style: AppText.button
+                        .copyWith(color: AppColors.primary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _fmt(int n) {
+    final s = n.abs().toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      final ri = s.length - i;
+      buf.write(s[i]);
+      if (ri > 1 && ri % 3 == 1) buf.write(' ');
+    }
+    return (n < 0 ? '−' : '') + buf.toString();
   }
 }
