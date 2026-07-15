@@ -58,10 +58,11 @@ class AppDrawer extends ConsumerWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                     ),
                   ),
-                  // Balance strip in the drawer header — shop role
-                  // only. Tap opens the top-up modal (drawer closes
-                  // first so the sheet doesn't render behind it).
-                  if (role == 'shop') ...[
+                  // Balance strip in the drawer header — barbershop
+                  // role only ('shop' is a different product, LopePay).
+                  // Tap opens the top-up modal (drawer closes first so
+                  // the sheet doesn't render behind it).
+                  if (role == 'barbershop') ...[
                     const SizedBox(height: 12),
                     _DrawerBalanceStrip(),
                   ],
@@ -265,12 +266,12 @@ class _DrawerItem {
 }
 
 /// Balance strip shown inside the drawer's gradient header for the
-/// shop role. Renders `<amount> so'm` with a wallet icon on the left
-/// and a small "+" chip on the right. Tapping either the balance or
-/// the "+" closes the drawer and opens [TopUpModal] — the only two
-/// actions the shop owner cares about here (see the balance / top it
-/// up). Read-only balance for non-shop roles would just add noise, so
-/// the caller gates on `role == 'shop'`.
+/// barbershop role. Renders `<amount> so'm` with a wallet icon on
+/// the left and a small "+" chip on the right. Tapping either the
+/// balance or the "+" closes the drawer and opens [TopUpModal] — the
+/// only two actions the salon owner cares about here (see the
+/// balance / top it up). Read-only balance for other roles would
+/// just add noise, so the caller gates on `role == 'barbershop'`.
 class _DrawerBalanceStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
