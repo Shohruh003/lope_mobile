@@ -47,25 +47,26 @@ class AppDrawer extends ConsumerWidget {
                   Text(user?.phone ?? '',
                       style: const TextStyle(color: Colors.white70, fontSize: 13)),
                   const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
+                  // For barbershop role the balance sits inline with
+                  // the SALON badge on the same row — no separate
+                  // top-up button, tapping the amount opens the modal.
+                  Row(children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _roleLabel(role, ref),
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                      ),
                     ),
-                    child: Text(
-                      _roleLabel(role, ref),
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  // Balance strip in the drawer header — barbershop
-                  // role only ('shop' is a different product, LopePay).
-                  // Tap opens the top-up modal (drawer closes first so
-                  // the sheet doesn't render behind it).
-                  if (role == 'barbershop') ...[
-                    const SizedBox(height: 12),
-                    _DrawerBalanceStrip(),
-                  ],
+                    if (role == 'barbershop') ...[
+                      const SizedBox(width: 10),
+                      Expanded(child: _DrawerBalanceInline()),
+                    ],
+                  ]),
                 ],
               ),
             ),
@@ -265,14 +266,11 @@ class _DrawerItem {
   bool get destructive => false;
 }
 
-/// Balance strip shown inside the drawer's gradient header for the
-/// barbershop role. Renders `<amount> so'm` with a wallet icon on
-/// the left and a small "+" chip on the right. Tapping either the
-/// balance or the "+" closes the drawer and opens [TopUpModal] — the
-/// only two actions the salon owner cares about here (see the
-/// balance / top it up). Read-only balance for other roles would
-/// just add noise, so the caller gates on `role == 'barbershop'`.
-class _DrawerBalanceStrip extends ConsumerWidget {
+/// Inline balance shown next to the SALON badge in the drawer header
+/// for the barbershop role. Just the amount — no separate top-up
+/// button, tapping the text opens [TopUpModal] (drawer closes first so
+/// the sheet doesn't render behind it).
+class _DrawerBalanceInline extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(shopBalanceProvider);
@@ -282,64 +280,37 @@ class _DrawerBalanceStrip extends ConsumerWidget {
         Navigator.of(context).pop();
         TopUpModal.show(context);
       },
-      scale: 0.98,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      scale: 0.96,
+      child: Row(children: [
+        const Icon(Icons.account_balance_wallet,
+            color: Colors.white, size: 14),
+        const SizedBox(width: 6),
+        Expanded(
+          child: async.when(
+            loading: () => const Text('…',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700)),
+            error: (_, _) => const Text('—',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700)),
+            data: (b) => Text(
+              "${_fmtBalance(b)} so'm",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ),
-        child: Row(children: [
-          const Icon(Icons.account_balance_wallet,
-              color: Colors.white, size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: async.when(
-              loading: () => const Text('…',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700)),
-              error: (_, _) => const Text('—',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700)),
-              data: (b) => Text(
-                "${_fmtBalance(b)} so'm",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.add,
-                  color: AppColors.primary, size: 12),
-              const SizedBox(width: 3),
-              Text(
-                tr(ref, 'topUp.short', "To'ldirish"),
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ]),
-          ),
-        ]),
-      ),
+      ]),
     );
   }
 
