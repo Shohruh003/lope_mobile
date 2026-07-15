@@ -7,6 +7,8 @@ import '../../core/asset_url.dart';
 import '../../core/tr.dart';
 import '../shared.dart';
 import '../../features/auth/presentation/auth_controller.dart';
+import '../../features/lopepay/presentation/top_up_modal.dart';
+import '../../features/shop_panel/data/shop_repository.dart';
 
 /// Side-menu drawer matching the web sidebar. The item set depends on the
 /// current user's role — barber sees 12 items, shop 9, lopepay 5, customer 5.
@@ -56,6 +58,13 @@ class AppDrawer extends ConsumerWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                     ),
                   ),
+                  // Balance strip in the drawer header — shop role
+                  // only. Tap opens the top-up modal (drawer closes
+                  // first so the sheet doesn't render behind it).
+                  if (role == 'shop') ...[
+                    const SizedBox(height: 12),
+                    _DrawerBalanceStrip(),
+                  ],
                 ],
               ),
             ),
@@ -253,6 +262,96 @@ class _DrawerItem {
   // keeping the constructor narrow until we wire those up.
   String? get badge => null;
   bool get destructive => false;
+}
+
+/// Balance strip shown inside the drawer's gradient header for the
+/// shop role. Renders `<amount> so'm` with a wallet icon on the left
+/// and a small "+" chip on the right. Tapping either the balance or
+/// the "+" closes the drawer and opens [TopUpModal] — the only two
+/// actions the shop owner cares about here (see the balance / top it
+/// up). Read-only balance for non-shop roles would just add noise, so
+/// the caller gates on `role == 'shop'`.
+class _DrawerBalanceStrip extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(shopBalanceProvider);
+    return TapScale(
+      onTap: () {
+        AppHaptics.selection();
+        Navigator.of(context).pop();
+        TopUpModal.show(context);
+      },
+      scale: 0.98,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        ),
+        child: Row(children: [
+          const Icon(Icons.account_balance_wallet,
+              color: Colors.white, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: async.when(
+              loading: () => const Text('…',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+              error: (_, _) => const Text('—',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+              data: (b) => Text(
+                "${_fmtBalance(b)} so'm",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.add,
+                  color: AppColors.primary, size: 12),
+              const SizedBox(width: 3),
+              Text(
+                tr(ref, 'topUp.short', "To'ldirish"),
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  String _fmtBalance(int n) {
+    final s = n.abs().toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      final ri = s.length - i;
+      buf.write(s[i]);
+      if (ri > 1 && ri % 3 == 1) buf.write(' ');
+    }
+    return (n < 0 ? '−' : '') + buf.toString();
+  }
 }
 
 /// Header avatar circle — renders the user's uploaded photo when set and
