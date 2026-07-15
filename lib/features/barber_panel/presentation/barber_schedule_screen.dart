@@ -14,6 +14,7 @@ import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../bookings/data/booking_repository.dart';
+import '../../shop_panel/data/shop_repository.dart';
 import '../data/barber_panel_repository.dart';
 
 class BarberScheduleScreen extends ConsumerStatefulWidget {
@@ -1156,6 +1157,62 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
   }
 
+  /// AppBar only shown in the shop-admin push case. Uses the shop's
+  /// barber list to render the master's avatar + name inline with the
+  /// back button. Falls back to a generic 'Sartarosh' title while the
+  /// list is still loading so the user isn't stuck on a blank bar.
+  PreferredSizeWidget _buildShopAdminAppBar(
+      BuildContext context, WidgetRef ref) {
+    final id = widget.barberId!;
+    final async = ref.watch(shopBarbersProvider);
+    final barber = async.maybeWhen(
+      data: (list) {
+        for (final b in list) {
+          if (b.id == id) return b;
+        }
+        return null;
+      },
+      orElse: () => null,
+    );
+    return AppBar(
+      titleSpacing: 0,
+      title: Row(children: [
+        ClientAvatar(
+          name: barber?.name ?? '',
+          avatar: barber?.avatar,
+          size: 32,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                barber?.name ??
+                    tr(ref, 'mobile.shop.barberDetail.title',
+                        'Sartarosh'),
+                style: AppText.titleSm.copyWith(fontSize: 15),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if ((barber?.phone ?? '').isNotEmpty &&
+                  !(barber!.phone!.startsWith('shop:'))) ...[
+                const SizedBox(height: 1),
+                Text(
+                  barber.phone!,
+                  style: AppText.caption,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final barberId = _resolveBarberId();
@@ -1178,7 +1235,14 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final dateHeader =
         "${_selectedDate.day}-${months[_selectedDate.month - 1].toLowerCase()}, ${selectedWeekday.toLowerCase()}";
 
+    // Shop admin viewing a specific master: show an AppBar with a
+    // back button + the barber's name so the admin knows whose grid
+    // this is and can pop back to the masters list. Barber self-view
+    // keeps the previous headerless layout (this screen sits inside
+    // the barber shell's tab, no AppBar needed).
+    final isPushedView = widget.barberId != null;
     return Scaffold(
+      appBar: isPushedView ? _buildShopAdminAppBar(context, ref) : null,
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
