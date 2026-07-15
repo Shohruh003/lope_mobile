@@ -529,33 +529,26 @@ class _BookingCard extends ConsumerWidget {
                   ),
                 ]),
                 const SizedBox(height: 6),
+                // Secondary actions — TextButton.icon has fixed internal
+                // padding that overflowed at 50% width on narrow phones.
+                // Custom TapScale rows give us precise control: icon +
+                // text with tight spacing, FittedBox to scale down when
+                // the label runs long in translations.
                 Row(children: [
                   Expanded(
-                    child: TextButton.icon(
-                      onPressed: () => _reschedule(context, ref),
-                      icon: const Icon(Icons.event_repeat, size: 16),
-                      label: FittedBox(
-                        child: Text(
-                          tr(ref, 'mobile.shop.barber.reschedule',
-                              "Ko'chirish"),
-                          style: AppText.caption.copyWith(
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ),
+                    child: _SecondaryAction(
+                      icon: Icons.event_repeat,
+                      label: tr(ref, 'mobile.shop.barber.reschedule',
+                          "Ko'chirish"),
+                      onTap: () => _reschedule(context, ref),
                     ),
                   ),
                   Expanded(
-                    child: TextButton.icon(
-                      onPressed: () => _extend(context, ref),
-                      icon: const Icon(Icons.timer_outlined, size: 16),
-                      label: FittedBox(
-                        child: Text(
-                          tr(ref, 'mobile.shop.barber.extend',
-                              "Uzaytirish"),
-                          style: AppText.caption.copyWith(
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ),
+                    child: _SecondaryAction(
+                      icon: Icons.timer_outlined,
+                      label: tr(ref, 'mobile.shop.barber.extend',
+                          "Uzaytirish"),
+                      onTap: () => _extend(context, ref),
                     ),
                   ),
                 ]),
@@ -801,3 +794,47 @@ final shopBookingsFilteredProvider = FutureProvider.family<
         page: key.page,
       );
 });
+
+/// Compact icon + label button for the booking card's secondary
+/// actions ("Ko'chirish" / "Uzaytirish"). Uses tight padding and a
+/// FittedBox so long translations scale instead of overflowing the
+/// 50%-width slot — a problem TextButton.icon couldn't avoid because
+/// its baked-in padding pushed content past the Expanded bound.
+class _SecondaryAction extends StatelessWidget {
+  const _SecondaryAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      haptic: HapticStrength.light,
+      scale: 0.97,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, size: 16, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppText.caption.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
