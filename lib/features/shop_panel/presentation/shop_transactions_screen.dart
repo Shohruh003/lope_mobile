@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
+import '../../lopepay/presentation/top_up_modal.dart';
 import '../data/shop_repository.dart';
 
 class ShopTransactionsScreen extends ConsumerStatefulWidget {
@@ -200,6 +201,8 @@ class _ShopTransactionsScreenState
               formatter: _fmt,
               label: tr(ref, 'mobile.lopepay.home.balance', "Balans"),
               currency: tr(ref, 'common.currency', "so'm"),
+              topUpLabel: tr(ref, 'topUp.title', "Balansni to'ldirish"),
+              onTopUp: () => TopUpModal.show(context),
             ),
             const SizedBox(height: AppSpacing.lg),
 
@@ -498,11 +501,15 @@ class _BalanceHero extends StatelessWidget {
     required this.formatter,
     required this.label,
     required this.currency,
+    required this.topUpLabel,
+    required this.onTopUp,
   });
   final AsyncValue<int> balanceAsync;
   final String Function(int) formatter;
   final String label;
   final String currency;
+  final String topUpLabel;
+  final VoidCallback onTopUp;
 
   @override
   Widget build(BuildContext context) {
@@ -513,39 +520,71 @@ class _BalanceHero extends StatelessWidget {
         borderRadius: AppRadius.rLg,
         boxShadow: AppShadows.primaryGlow(AppColors.primary),
       ),
-      child: Row(children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: const Icon(Icons.account_balance_wallet,
-              color: Colors.white, size: 24),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: AppText.overline
-                      .copyWith(color: Colors.white70)),
-              const SizedBox(height: 2),
-              balanceAsync.when(
-                loading: () => Text("…",
-                    style: AppText.titleLg.copyWith(color: Colors.white)),
-                error: (_, _) => Text("—",
-                    style: AppText.titleLg.copyWith(color: Colors.white)),
-                data: (b) => Text("${formatter(b)} $currency",
-                    style: AppText.titleLg.copyWith(color: Colors.white)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
               ),
-            ],
+              alignment: Alignment.center,
+              child: const Icon(Icons.account_balance_wallet,
+                  color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: AppText.overline
+                          .copyWith(color: Colors.white70)),
+                  const SizedBox(height: 2),
+                  balanceAsync.when(
+                    loading: () => Text("…",
+                        style: AppText.titleLg
+                            .copyWith(color: Colors.white)),
+                    error: (_, _) => Text("—",
+                        style: AppText.titleLg
+                            .copyWith(color: Colors.white)),
+                    data: (b) => Text("${formatter(b)} $currency",
+                        style: AppText.titleLg
+                            .copyWith(color: Colors.white)),
+                  ),
+                ],
+              ),
+            ),
+          ]),
+          AppSpacing.gapMd,
+          TapScale(
+            onTap: onTopUp,
+            scale: 0.96,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.sm + 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: AppRadius.rMd,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.add,
+                      color: AppColors.primary, size: 18),
+                  const SizedBox(width: 6),
+                  Text(topUpLabel,
+                      style: AppText.button
+                          .copyWith(color: AppColors.primary)),
+                ],
+              ),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }

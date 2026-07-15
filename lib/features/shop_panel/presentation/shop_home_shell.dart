@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/notification_bell.dart';
-import '../data/shop_repository.dart';
 import 'shop_barbers_screen.dart';
 import 'shop_bookings_screen.dart';
 import 'shop_dashboard_screen.dart';
@@ -97,10 +95,7 @@ class _Header extends ConsumerWidget {
               letterSpacing: -0.3,
             ),
           ),
-          // Center-aligned balance chip. Wrapping in Expanded+Center
-          // gives the chip the visual middle of the header without
-          // squeezing the brand mark on the left.
-          const Expanded(child: Center(child: _BalanceChip())),
+          const Spacer(),
           const NotificationBell(),
           AppSpacing.hGapXs,
           TapScale(
@@ -126,74 +121,5 @@ class _Header extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// Compact pill in the centre of the shop shell header. Renders the
-/// current shop balance and taps through to the transactions screen —
-/// gives the shop owner a persistent, always-visible reference point
-/// for what's in the wallet (previously buried under Drawer →
-/// Tranzaktsiyalar).
-class _BalanceChip extends ConsumerWidget {
-  const _BalanceChip();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(shopBalanceProvider);
-    return TapScale(
-      onTap: () {
-        AppHaptics.selection();
-        context.push('/shop/transactions');
-      },
-      scale: 0.96,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm, vertical: 6),
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          borderRadius: AppRadius.rPill,
-          boxShadow: AppShadows.primaryGlow(AppColors.primary),
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.account_balance_wallet,
-              color: Colors.white, size: 14),
-          const SizedBox(width: 6),
-          async.when(
-            loading: () => const SizedBox(
-              width: 10,
-              height: 10,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.6,
-                valueColor: AlwaysStoppedAnimation(Colors.white),
-              ),
-            ),
-            error: (_, _) => const Text('—',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800)),
-            data: (b) => Text(
-              "${_fmtMoney(b)} so'm",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
-              ),
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
-String _fmtMoney(int n) {
-  final s = n.abs().toString();
-  final buf = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    final ri = s.length - i;
-    buf.write(s[i]);
-    if (ri > 1 && ri % 3 == 1) buf.write(' ');
-  }
-  return (n < 0 ? '−' : '') + buf.toString();
 }
 
