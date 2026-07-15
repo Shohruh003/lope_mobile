@@ -285,73 +285,41 @@ class _ScheduleTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(children: [
-          Expanded(
-            child: TapScale(
-              onTap: onPickDate,
-              haptic: HapticStrength.light,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.md),
+        // Same pattern as the web BarbershopBarberDetail: just the
+        // date picker at the top. No separate 'Mijoz qo'shish' button —
+        // admins tap an empty slot in the grid to add a client at that
+        // specific time.
+        TapScale(
+          onTap: onPickDate,
+          haptic: HapticStrength.light,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md, vertical: AppSpacing.md),
+            decoration: BoxDecoration(
+              color: context.colors.surface,
+              borderRadius: AppRadius.rMd,
+              border: Border.all(color: context.colors.border),
+            ),
+            child: Row(children: [
+              Container(
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
-                  color: context.colors.surface,
-                  borderRadius: AppRadius.rMd,
-                  border: Border.all(color: context.colors.border),
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.rSm,
                 ),
-                child: Row(children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color:
-                          AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: AppRadius.rSm,
-                    ),
-                    child: const Icon(Icons.calendar_today,
-                        size: 15, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Text(_df.format(date),
-                      style:
-                          AppText.titleSm.copyWith(fontSize: 14)),
-                  const Spacer(),
-                  Icon(Icons.chevron_right,
-                      color: context.colors.textMuted, size: 18),
-                ]),
+                child: const Icon(Icons.calendar_today,
+                    size: 15, color: AppColors.primary),
               ),
-            ),
+              const SizedBox(width: AppSpacing.md),
+              Text(_df.format(date),
+                  style: AppText.titleSm.copyWith(fontSize: 14)),
+              const Spacer(),
+              Icon(Icons.chevron_right,
+                  color: context.colors.textMuted, size: 18),
+            ]),
           ),
-          AppSpacing.hGapSm,
-          // "Mijoz qo'shish" CTA — barbershop admin schedules a
-          // client on a specific barber's slot without leaving the
-          // panel. Ports the barber-side manual booking dialog.
-          TapScale(
-            onTap: () => _openAddClientSheet(context, ref, dateStr),
-            haptic: HapticStrength.selection,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.md),
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: AppRadius.rMd,
-                boxShadow: AppShadows.primaryGlow(AppColors.primary),
-              ),
-              child: Row(children: [
-                const Icon(Icons.person_add_alt_1,
-                    size: 18, color: Colors.white),
-                const SizedBox(width: 6),
-                Text(
-                  tr(ref, 'mobile.shop.barberDetail.addClient',
-                      "Mijoz qo'shish"),
-                  style: AppText.button.copyWith(
-                      color: Colors.white, fontSize: 13),
-                ),
-              ]),
-            ),
-          ),
-        ]),
+        ),
         const SizedBox(height: AppSpacing.md),
         // Slot grid — mirrors the barber's own schedule view and the
         // web `Jadval` card. Empty slots tap through to the add-client
@@ -1083,10 +1051,10 @@ final _shopBarberClientsProvider =
   return repo.barberClients(id);
 });
 
-/// Single slot tile in the shop-side schedule grid. Green tint when
-/// empty (tap-through to add a client at that time), primary tint
-/// when booked (shows client name; tap disabled — actions live on the
-/// booking card below the grid).
+/// Single slot tile in the shop-side schedule grid. Mirrors the web
+/// BarbershopBarberDetail card: booked slots pick up primary tint and
+/// show the client name inline; empty slots are neutral (surface +
+/// border) and tap-through to add a client at that time.
 class _ShopSlotTile extends StatelessWidget {
   const _ShopSlotTile({
     required this.time,
@@ -1102,32 +1070,33 @@ class _ShopSlotTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final booked = booking != null;
-    final color = booked ? AppColors.primary : AppColors.success;
     final tile = Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.16),
-            color.withValues(alpha: 0.08),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: booked
+            ? AppColors.primary.withValues(alpha: 0.10)
+            : context.colors.surface,
         borderRadius: AppRadius.rMd,
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: booked
+              ? AppColors.primary.withValues(alpha: 0.4)
+              : context.colors.border,
+        ),
       ),
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs, vertical: AppSpacing.xs + 2),
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs + 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             time,
-            style: AppText.titleSm.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.w800,
               fontSize: 14,
+              color: booked
+                  ? AppColors.primary
+                  : context.colors.textPrimary,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -1143,8 +1112,10 @@ class _ShopSlotTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppText.caption.copyWith(
-              color: color.withValues(alpha: 0.85),
-              fontWeight: FontWeight.w600,
+              color: booked
+                  ? AppColors.primary
+                  : context.colors.textMuted,
+              fontWeight: booked ? FontWeight.w600 : FontWeight.w500,
               fontSize: 11,
             ),
           ),
@@ -1155,7 +1126,7 @@ class _ShopSlotTile extends StatelessWidget {
     return TapScale(
       onTap: onTap!,
       haptic: HapticStrength.selection,
-      scale: 0.95,
+      scale: 0.96,
       child: tile,
     );
   }
