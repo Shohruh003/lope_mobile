@@ -78,48 +78,70 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
               me.when(
                 loading: () => const SizedBox.shrink(),
                 error: (_, _) => const SizedBox.shrink(),
-                data: (m) => AppCard(
-                  variant: AppCardVariant.outlined,
-                  padding: AppSpacing.cardPadding,
-                  child: Row(children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: AppRadius.rSm,
-                        boxShadow:
-                            AppShadows.primaryGlow(AppColors.primary),
-                      ),
-                      child: const Icon(Icons.storefront_outlined,
-                          color: Colors.white, size: 22),
-                    ),
-                    AppSpacing.hGapMd,
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            tr(ref,
-                                'mobile.shop.dashboard.salonLabel',
-                                'Salonim'),
-                            style: AppText.overline,
+                data: (m) {
+                  final address = (m['address'] ?? '').toString();
+                  return AppCard(
+                    variant: AppCardVariant.outlined,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.md + 2),
+                    // Icon dropped at user request — cleaner typography-
+                    // led card with an accent bar on the left instead of
+                    // a boxed logo. Salon name is the hero, address sits
+                    // underneath with a pin glyph for context.
+                    child: IntrinsicHeight(
+                      child: Row(children: [
+                        Container(
+                          width: 3,
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                          const SizedBox(height: 2),
-                          Text((m['name'] ?? '').toString(),
-                              style: AppText.titleMd),
-                          if ((m['address'] ?? '')
-                              .toString()
-                              .isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text((m['address']).toString(),
-                                style: AppText.caption),
-                          ],
-                        ],
-                      ),
+                        ),
+                        AppSpacing.hGapMd,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tr(ref,
+                                    'mobile.shop.dashboard.salonLabel',
+                                    'Salonim'),
+                                style: AppText.overline.copyWith(
+                                    color: AppColors.primary,
+                                    letterSpacing: 1.1),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                (m['name'] ?? '').toString(),
+                                style: AppText.titleLg.copyWith(
+                                    fontSize: 18,
+                                    height: 1.15,
+                                    letterSpacing: -0.2),
+                              ),
+                              if (address.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Row(children: [
+                                  Icon(Icons.place_outlined,
+                                      size: 13,
+                                      color: context.colors.textMuted),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      address,
+                                      style: AppText.caption,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ]),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ]),
                     ),
-                  ]),
-                ),
+                  );
+                },
               ),
               AppSpacing.gapMd,
               Row(children: [
