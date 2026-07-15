@@ -16,6 +16,31 @@ class ShopDailyPoint {
   final int newClients;
 }
 
+/// Row inside `stats.topBarbers` — one entry per master sorted by
+/// booking count in the selected period. Backend field: `topBarbers`.
+class ShopTopBarber {
+  ShopTopBarber({
+    required this.id,
+    required this.name,
+    required this.avatar,
+    required this.bookings,
+    required this.revenue,
+  });
+  final String id;
+  final String name;
+  final String? avatar;
+  final int bookings;
+  final int revenue;
+
+  factory ShopTopBarber.fromJson(Map<String, dynamic> json) => ShopTopBarber(
+        id: (json['id'] ?? '').toString(),
+        name: (json['name'] ?? 'Barber').toString(),
+        avatar: json['avatar']?.toString(),
+        bookings: ((json['bookings'] ?? 0) as num).toInt(),
+        revenue: ((json['revenue'] ?? 0) as num).toInt(),
+      );
+}
+
 class ShopStats {
   ShopStats({
     required this.bookings,
@@ -35,6 +60,7 @@ class ShopStats {
     required this.smsReminder,
     required this.smsRetention,
     required this.daily,
+    required this.topBarbers,
   });
   final int bookings;
   final int clients;
@@ -53,6 +79,7 @@ class ShopStats {
   final int smsReminder;
   final int smsRetention;
   final List<ShopDailyPoint> daily;
+  final List<ShopTopBarber> topBarbers;
 
   factory ShopStats.fromJson(Map<String, dynamic> json) {
     // Accept either flat keys (older shape) or the canonical
@@ -65,6 +92,9 @@ class ShopStats {
         : <String, dynamic>{};
     final dailyRaw =
         (json['daily'] is List ? json['daily'] as List : const []);
+    final topBarbersRaw = (json['topBarbers'] is List
+        ? json['topBarbers'] as List
+        : const []);
     int pickInt(Map<String, dynamic> m, String key) =>
         ((m[key] ?? 0) as num).toInt();
     return ShopStats(
@@ -94,6 +124,10 @@ class ShopStats {
                 revenue: ((m['revenue'] ?? 0) as num).toInt(),
                 newClients: ((m['newClients'] ?? 0) as num).toInt(),
               ))
+          .toList(),
+      topBarbers: topBarbersRaw
+          .whereType<Map>()
+          .map((m) => ShopTopBarber.fromJson(m.cast<String, dynamic>()))
           .toList(),
     );
   }

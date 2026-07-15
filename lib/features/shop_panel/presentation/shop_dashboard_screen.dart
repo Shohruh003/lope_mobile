@@ -308,6 +308,75 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                         ),
                       ),
                     ],
+
+                    // Top masters — mirrors web dashboard's "topBarbers"
+                    // section. Each row is tappable and drills into the
+                    // barber's detail screen.
+                    if (s.topBarbers.isNotEmpty) ...[
+                      AppSpacing.gapXl,
+                      _SectionTitle(
+                          icon: Icons.content_cut,
+                          label: tr(ref, 'shop.chart.topBarbers',
+                              'Eng yaxshi masterlar')),
+                      AppSpacing.gapSm,
+                      _TopBarbersCard(
+                        barbers: s.topBarbers.take(6).toList(),
+                        currency: tr(ref, 'common.currency', "so'm"),
+                        pcs: tr(ref, 'common.pcs', 'ta'),
+                      ),
+                    ],
+
+                    // SMS breakdown (Tasdiqlash / Eslatma / Qaytarish) —
+                    // three horizontal bars normalized against the
+                    // largest bucket. Matches the web BarChart shape.
+                    if ((s.smsConfirmation +
+                            s.smsReminder +
+                            s.smsRetention) >
+                        0) ...[
+                      AppSpacing.gapXl,
+                      _SectionTitle(
+                          icon: Icons.sms_outlined,
+                          label: tr(ref, 'shop.chart.smsBreakdown',
+                              "SMS turlari bo'yicha")),
+                      AppSpacing.gapSm,
+                      _SmsBreakdownCard(
+                        confirmation: s.smsConfirmation,
+                        reminder: s.smsReminder,
+                        retention: s.smsRetention,
+                        labels: (
+                          confirmation: tr(ref,
+                              'shop.smsTypes.confirmation', 'Tasdiqlash'),
+                          reminder: tr(ref, 'shop.smsTypes.reminder',
+                              'Eslatma'),
+                          retention: tr(ref, 'shop.smsTypes.retention',
+                              'Qaytarish'),
+                        ),
+                        pcs: tr(ref, 'common.pcs', 'ta'),
+                      ),
+                    ],
+
+                    // Booking sources — Manual / SMS'dan / Ilova.
+                    // Client-side derives 'app' = bookings − manual −
+                    // fromSms (same math as the web dashboard).
+                    if (s.bookings > 0) ...[
+                      AppSpacing.gapXl,
+                      _SectionTitle(
+                          icon: Icons.pie_chart_outline,
+                          label: tr(ref, 'shop.chart.bookingSources',
+                              'Bronlar manbai')),
+                      AppSpacing.gapSm,
+                      _BookingSourcesCard(
+                        manual: s.manualBookings,
+                        fromSms: s.fromSmsBookings,
+                        total: s.bookings,
+                        labels: (
+                          manual: tr(ref, 'shop.stats.manual', "Qo'lda"),
+                          fromSms: tr(ref, 'shop.stats.fromSms',
+                              "SMS'dan"),
+                          app: tr(ref, 'shop.stats.app', 'Ilova'),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -624,6 +693,252 @@ class _NewClientsChart extends StatelessWidget {
             barWidth: 2.5,
             dotData: const FlDotData(show: true),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Ranked list of masters with an inline progress bar per row. Width
+/// is proportional to `bookings / topRow.bookings`, so the leader is
+/// always full-width. Tap drills into the barber detail screen.
+class _TopBarbersCard extends StatelessWidget {
+  const _TopBarbersCard({
+    required this.barbers,
+    required this.currency,
+    required this.pcs,
+  });
+  final List<ShopTopBarber> barbers;
+  final String currency;
+  final String pcs;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxBookings = barbers.first.bookings <= 0 ? 1 : barbers.first.bookings;
+    final fmt = NumberFormat.decimalPattern();
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+      child: Column(
+        children: [
+          for (var i = 0; i < barbers.length; i++)
+            TapScale(
+              onTap: () => context.push('/shop/barbers/${barbers[i].id}'),
+              scale: 0.98,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: AppSpacing.xs + 2),
+                child: Row(children: [
+                  SizedBox(
+                    width: 18,
+                    child: Text(
+                      '${i + 1}',
+                      textAlign: TextAlign.center,
+                      style: AppText.button.copyWith(
+                        color: context.colors.textMuted,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  AppSpacing.hGapSm,
+                  ClientAvatar(
+                    name: barbers[i].name,
+                    avatar: barbers[i].avatar,
+                    size: 32,
+                  ),
+                  AppSpacing.hGapSm,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Expanded(
+                            child: Text(
+                              barbers[i].name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppText.body
+                                  .copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          AppSpacing.hGapSm,
+                          Text(
+                            '${barbers[i].bookings} $pcs',
+                            style: AppText.caption,
+                          ),
+                          AppSpacing.hGapSm,
+                          Text(
+                            "${fmt.format(barbers[i].revenue)} $currency",
+                            style: AppText.button.copyWith(
+                              color: AppColors.success,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ]),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: LinearProgressIndicator(
+                            value: barbers[i].bookings / maxBookings,
+                            minHeight: 4,
+                            backgroundColor: context.colors.border,
+                            valueColor: const AlwaysStoppedAnimation(
+                                AppColors.primary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 3-row breakdown of SMS types with horizontal progress bars.
+class _SmsBreakdownCard extends StatelessWidget {
+  const _SmsBreakdownCard({
+    required this.confirmation,
+    required this.reminder,
+    required this.retention,
+    required this.labels,
+    required this.pcs,
+  });
+  final int confirmation;
+  final int reminder;
+  final int retention;
+  final ({String confirmation, String reminder, String retention}) labels;
+  final String pcs;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = [
+      (
+        label: labels.confirmation,
+        count: confirmation,
+        color: const Color(0xFF3B82F6),
+      ),
+      (
+        label: labels.reminder,
+        count: reminder,
+        color: const Color(0xFFF97316),
+      ),
+      (
+        label: labels.retention,
+        count: retention,
+        color: const Color(0xFFA855F7),
+      ),
+    ];
+    final maxCount = rows.map((r) => r.count).fold<int>(0, (a, b) => a > b ? a : b);
+    final denom = maxCount == 0 ? 1 : maxCount;
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: AppSpacing.cardPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            Row(children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: rows[i].color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              AppSpacing.hGapSm,
+              Expanded(
+                child: Text(rows[i].label, style: AppText.bodySm),
+              ),
+              Text('${rows[i].count} $pcs',
+                  style: AppText.button.copyWith(fontSize: 12)),
+            ]),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: rows[i].count / denom,
+                minHeight: 4,
+                backgroundColor: context.colors.border,
+                valueColor: AlwaysStoppedAnimation(rows[i].color),
+              ),
+            ),
+            if (i < rows.length - 1) const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Booking sources — Qo'lda / SMS'dan / Ilova, one column per bucket
+/// with an amount, percentage, and horizontal bar.
+class _BookingSourcesCard extends StatelessWidget {
+  const _BookingSourcesCard({
+    required this.manual,
+    required this.fromSms,
+    required this.total,
+    required this.labels,
+  });
+  final int manual;
+  final int fromSms;
+  final int total;
+  final ({String manual, String fromSms, String app}) labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final app = (total - manual - fromSms).clamp(0, total);
+    final cols = [
+      (label: labels.manual, count: manual, color: const Color(0xFF3B82F6)),
+      (label: labels.fromSms, count: fromSms, color: const Color(0xFFA855F7)),
+      (label: labels.app, count: app, color: AppColors.success),
+    ];
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      padding: AppSpacing.cardPadding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < cols.length; i++) ...[
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(cols[i].label,
+                      style: AppText.caption,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${cols[i].count}',
+                    style: AppText.titleMd.copyWith(fontSize: 20),
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: total == 0 ? 0 : cols[i].count / total,
+                      minHeight: 4,
+                      backgroundColor: context.colors.border,
+                      valueColor: AlwaysStoppedAnimation(cols[i].color),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${total == 0 ? 0 : ((cols[i].count / total) * 100).round()}%',
+                    style: AppText.caption,
+                  ),
+                ],
+              ),
+            ),
+            if (i < cols.length - 1) const SizedBox(width: AppSpacing.sm),
+          ],
         ],
       ),
     );
