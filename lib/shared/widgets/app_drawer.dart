@@ -47,26 +47,26 @@ class AppDrawer extends ConsumerWidget {
                   Text(user?.phone ?? '',
                       style: const TextStyle(color: Colors.white70, fontSize: 13)),
                   const SizedBox(height: 6),
-                  // For barbershop role the balance sits inline with
-                  // the SALON badge on the same row — no separate
-                  // top-up button, tapping the amount opens the modal.
-                  Row(children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
+                  // For barbershop role the balance sits at the right
+                  // end of the SALON row (space-between). Tapping the
+                  // amount opens the top-up modal.
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _roleLabel(role, ref),
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                        ),
                       ),
-                      child: Text(
-                        _roleLabel(role, ref),
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    if (role == 'barbershop') ...[
-                      const SizedBox(width: 10),
-                      Expanded(child: _DrawerBalanceInline()),
+                      if (role == 'barbershop') _DrawerBalanceInline(),
                     ],
-                  ]),
+                  ),
                 ],
               ),
             ),
@@ -281,33 +281,31 @@ class _DrawerBalanceInline extends ConsumerWidget {
         TopUpModal.show(context);
       },
       scale: 0.96,
-      child: Row(children: [
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.account_balance_wallet,
             color: Colors.white, size: 14),
         const SizedBox(width: 6),
-        Expanded(
-          child: async.when(
-            loading: () => const Text('…',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700)),
-            error: (_, _) => const Text('—',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700)),
-            data: (b) => Text(
-              "${_fmtBalance(b)} so'm",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.2,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+        async.when(
+          loading: () => const Text('…',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700)),
+          error: (_, _) => const Text('—',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700)),
+          data: (b) => Text(
+            "${_fmtBalance(b)} so'm",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.2,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ]),
