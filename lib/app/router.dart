@@ -21,6 +21,7 @@ import '../features/barber_panel/presentation/barber_location_screen.dart';
 import '../features/barber_panel/presentation/barber_profile_edit_screen.dart';
 import '../features/barber_panel/presentation/barber_public_link_screen.dart';
 import '../features/barber_panel/presentation/barber_reminder_settings_screen.dart';
+import '../features/barber_panel/presentation/barber_schedule_screen.dart';
 import '../features/barber_panel/presentation/barber_services_screen.dart';
 import '../features/barber_panel/presentation/barber_settings_screen.dart';
 import '../features/barber_panel/presentation/barber_sms_history_screen.dart';
@@ -43,7 +44,6 @@ import '../features/profile/presentation/settings_screen.dart';
 import '../features/reviews/presentation/reviews_screen.dart';
 import '../features/shop_panel/presentation/shop_admins_screen.dart';
 import '../features/shop_panel/presentation/shop_client_detail_screen.dart';
-import '../features/shop_panel/presentation/shop_barber_detail_screen.dart';
 import '../features/shop_panel/presentation/shop_clients_screen.dart';
 import '../features/shop_panel/presentation/shop_home_shell.dart';
 import '../features/shop_panel/presentation/shop_profile_screen.dart';
@@ -224,8 +224,15 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Shop feature paths
       GoRoute(
+        // Barbershop admin viewing a specific master: reuse the barber
+        // panel's own schedule screen (voice input, date strip,
+        // Kunni yopish / Jadval qo'shish, slot grid) so both roles get
+        // an identical UX. Passing `barberId` forces the screen to
+        // resolve to that master instead of the logged-in user.
         path: '/shop/barbers/:id',
-        builder: (context, state) => ShopBarberDetailScreen(barberId: state.pathParameters['id']!),
+        builder: (context, state) => BarberScheduleScreen(
+            key: ValueKey(state.pathParameters['id']!),
+            barberId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/shop/clients', builder: (context, state) => const ShopClientsScreen()),
       GoRoute(path: '/shop/sms', builder: (context, state) => const ShopSmsScreen()),

@@ -17,7 +17,15 @@ import '../../bookings/data/booking_repository.dart';
 import '../data/barber_panel_repository.dart';
 
 class BarberScheduleScreen extends ConsumerStatefulWidget {
-  const BarberScheduleScreen({super.key});
+  const BarberScheduleScreen({super.key, this.barberId});
+
+  /// Explicit barber to view — null means "use the logged-in user's
+  /// id" (self-view for a barber). Populated when a barbershop admin
+  /// opens `/shop/barbers/:id` and drills into a specific barber's
+  /// schedule; the whole screen is reused so the shop admin gets the
+  /// same voice-input, date strip, close-day / add-schedule and slot
+  /// grid as the barber themselves.
+  final String? barberId;
 
   @override
   ConsumerState<BarberScheduleScreen> createState() => _BarberScheduleScreenState();
@@ -57,12 +65,21 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
-    final user = ref.read(authControllerProvider).user;
-    if (user == null) return;
-    final key = (barberId: user.id, date: _dateStr(_selectedDate));
+    final id = _resolveBarberId();
+    if (id == null) return;
+    final key = (barberId: id, date: _dateStr(_selectedDate));
     ref.invalidate(scheduleSlotsProvider(key));
     ref.invalidate(bookedSlotsProvider(key));
     ref.invalidate(blockedSlotsProvider(key));
+  }
+
+  /// Explicit `widget.barberId` wins (shop admin viewing a specific
+  /// master); otherwise fall back to the logged-in user's id (barber
+  /// self-view).
+  String? _resolveBarberId() {
+    final override = widget.barberId;
+    if (override != null && override.isNotEmpty) return override;
+    return ref.read(authControllerProvider).user?.id;
   }
 
   String _dateStr(DateTime d) =>
@@ -1141,9 +1158,8 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authControllerProvider).user;
-    if (user == null) return const Scaffold(body: AppListSkeleton());
-    final barberId = user.id;
+    final barberId = _resolveBarberId();
+    if (barberId == null) return const Scaffold(body: AppListSkeleton());
     final dateStr = _dateStr(_selectedDate);
     final key = (barberId: barberId, date: dateStr);
 
