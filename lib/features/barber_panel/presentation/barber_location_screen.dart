@@ -371,15 +371,31 @@ class _LocationPickerMap extends StatelessWidget {
               },
             ),
             children: [
+              // OpenStreetMap standard tiles — free, no API key, works
+              // reliably on Android. The previous Stadia tiles rendered
+              // fine on debug wifi but silently failed on real Android
+              // devices (no error UI — the whole map area went blank).
+              // If we ever want a smoother look back, add an API key
+              // for Stadia and swap the URL template.
               TileLayer(
-                urlTemplate: isDark
-                    ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
-                    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
-                additionalOptions: const {'r': ''},
+                urlTemplate:
+                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'uz.lopestyle.mobile',
+                maxNativeZoom: 19,
                 maxZoom: 20,
-                retinaMode:
-                    MediaQuery.of(context).devicePixelRatio > 1.5,
+                // Subtle desaturation for dark theme so the light OSM
+                // tiles don't glow against the app's dark surface.
+                tileBuilder: isDark
+                    ? (context, child, tile) => ColorFiltered(
+                          colorFilter: const ColorFilter.matrix([
+                            0.6, 0.3, 0.1, 0, 0,
+                            0.3, 0.6, 0.1, 0, 0,
+                            0.3, 0.3, 0.4, 0, 0,
+                            0, 0, 0, 1, 0,
+                          ]),
+                          child: child,
+                        )
+                    : null,
               ),
             ],
           ),
