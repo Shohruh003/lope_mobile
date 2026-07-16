@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,12 +29,7 @@ class BarberStatsScreen extends ConsumerWidget {
           onRefresh: () async =>
               ref.refresh(barberAllBookingsProvider(barberId).future),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.xxl,
-            ),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
             children: [
               Text(
                 tr(ref, 'mobile.barber.stats.title', 'Statistika'),
@@ -127,7 +122,7 @@ class BarberStatsScreen extends ConsumerWidget {
                           b.date == todayStr && b.status != 'cancelled')
                       .length;
                   // Fall back to the booking's own id when neither the
-                  // client phone nor a name is set — otherwise several
+                  // client phone nor a name is set вЂ” otherwise several
                   // anonymous guest bookings all collapse into a single
                   // "Mijoz" entry and the unique-clients count is wrong.
                   final uniqueClients = list
@@ -250,7 +245,7 @@ class BarberStatsScreen extends ConsumerWidget {
                               label: tr(ref,
                                   'mobile.barber.stats.week', 'Bu hafta'),
                               value:
-                                  "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} · ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}",
+                                  "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} В· ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}",
                             ),
                             Divider(
                                 color: context.colors.border, height: 14),
@@ -656,7 +651,7 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               child:
-                  Text('—', style: TextStyle(color: context.colors.textMuted)),
+                  Text('вЂ”', style: TextStyle(color: context.colors.textMuted)),
             ),
             Expanded(
               child: _MiniDate(
@@ -707,28 +702,28 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsTotal', 'Jami SMS'),
                   value:
-                      "${s.totalSent} · ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.totalSent} В· ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsConfirmation',
                       'Tasdiqlash'),
                   value:
-                      "${s.confirmationRegistered + s.confirmationGuest} · ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.confirmationRegistered + s.confirmationGuest} В· ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsReminder',
                       'Eslatma'),
                   value:
-                      "${s.reminderCount} · ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.reminderCount} В· ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsRetention',
                       'Retention'),
                   value:
-                      "${s.retentionCount} · ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.retentionCount} В· ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 if (s.returnedClients > 0) ...[
                   Divider(color: context.colors.border, height: 14),

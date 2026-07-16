@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors.dart';
@@ -13,10 +13,10 @@ class ScheduleGeneratorScreen extends ConsumerStatefulWidget {
 
   /// Optional pre-selected date passed via `?date=YYYY-MM-DD` from the
   /// schedule screen. When set, the generator defaults `_from` and
-  /// `_to` to this single day — matches the barber's mental model
-  /// where they tap "Jadval qo'shish → Avtomatik" on a specific date
+  /// `_to` to this single day вЂ” matches the barber's mental model
+  /// where they tap "Jadval qo'shish в†’ Avtomatik" on a specific date
   /// and expect the schedule to cover only that day (previously the
-  /// default was today→today+7, silently creating a week's worth).
+  /// default was todayв†’today+7, silently creating a week's worth).
   final DateTime? initialDate;
 
   @override
@@ -134,7 +134,7 @@ class _ScheduleGeneratorScreenState
       if (mounted) {
         AppHaptics.success();
         // Pop with `true` so the schedule screen can invalidate its
-        // slot provider immediately — the previous flow relied on the
+        // slot provider immediately вЂ” the previous flow relied on the
         // provider auto-refreshing, which felt like the schedule
         // "appeared late" after the snackbar.
         Navigator.of(context).pop(true);
@@ -165,12 +165,7 @@ class _ScheduleGeneratorScreenState
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.xxl,
-        ),
+        padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
           _SectionTitle(
             icon: Icons.calendar_month,
@@ -323,7 +318,7 @@ class _ScheduleGeneratorScreenState
                   tr(
                       ref,
                       'mobile.barber.scheduleGen.summary',
-                      'Taxminan {{days}} kun × {{slots}} slot = {{total}} slot yaratiladi',
+                      'Taxminan {{days}} kun Г— {{slots}} slot = {{total}} slot yaratiladi',
                       {
                         'days': '$dayCount',
                         'slots': '$slotsPerDay',

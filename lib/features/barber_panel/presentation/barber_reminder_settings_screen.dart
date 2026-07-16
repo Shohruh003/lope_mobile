@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors.dart';
@@ -85,7 +85,7 @@ class _BarberReminderSettingsScreenState
                 ((b['reminderHoursBefore'] ?? 1) as num).toInt().clamp(1, 6);
             _days =
                 ((b['reminderDays'] ?? 14) as num).toInt().clamp(7, 30);
-            // Baseline so the Save button starts disabled — enables
+            // Baseline so the Save button starts disabled вЂ” enables
             // only when the barber actually bumps a stepper.
             _origHours = _hours;
             _origDays = _days;
@@ -94,12 +94,7 @@ class _BarberReminderSettingsScreenState
               (b['barbershopId'] ?? '').toString().isNotEmpty;
           if (isShopManaged) {
             return ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
               children: [
                 AppCard(
                   variant: AppCardVariant.outlined,
@@ -147,12 +142,7 @@ class _BarberReminderSettingsScreenState
             );
           }
           return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.xxl,
-            ),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
             children: [
               Text(
                 tr(ref, 'mobile.barber.reminders.hint',

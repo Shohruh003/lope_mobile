@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,7 +57,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
     }).toList();
   }
 
-  /// Humanized "last visit" pill — locale-neutral. Says "Bugun /
+  /// Humanized "last visit" pill вЂ” locale-neutral. Says "Bugun /
   /// Kecha / 3 kun oldin / 2 hafta oldin" instead of the previous
   /// Russian-formatted `dd.MM.yyyy` string.
   String _prettyLastVisit(DateTime dt, WidgetRef ref) {
@@ -93,7 +93,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
           style: AppText.titleMd,
         ),
         actions: [
-          // Filter-aware client count pill on the top-right — reads
+          // Filter-aware client count pill on the top-right вЂ” reads
           // `filtered.length` via a nested Consumer so it re-renders
           // when the query / bucket state changes. The AppBar sits
           // outside the async.when branch so the pill only shows
@@ -230,7 +230,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                       ? ListView(
                           // Wrap the empty state in a scrollable so
                           // pull-to-refresh works even when the list is
-                          // empty — previously the refresh was only
+                          // empty вЂ” previously the refresh was only
                           // reachable on populated screens.
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: [
@@ -253,12 +253,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                           ],
                         )
                       : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
-                        AppSpacing.sm,
-                        AppSpacing.lg,
-                        AppSpacing.xxl,
-                      ),
+                      padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.pageBottom(context)),
                       itemCount: filtered.length,
                       separatorBuilder: (_, _) => AppSpacing.gapSm,
                       itemBuilder: (context, i) {
@@ -309,12 +304,12 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                                       ),
                                       if (c.lastVisit != null)
                                         Text(
-                                          "· ${_prettyLastVisit(c.lastVisit!.toLocal(), ref)}",
+                                          "В· ${_prettyLastVisit(c.lastVisit!.toLocal(), ref)}",
                                           style: AppText.caption,
                                         ),
                                       if (c.totalSpent > 0)
                                         Text(
-                                          "· ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
+                                          "В· ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
                                           style: AppText.caption.copyWith(
                                             color: AppColors.warning,
                                             fontWeight: FontWeight.w700,

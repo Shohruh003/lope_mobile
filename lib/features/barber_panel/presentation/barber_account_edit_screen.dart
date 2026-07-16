@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -41,7 +41,7 @@ class _BarberAccountEditScreenState
     if (mounted) setState(() {});
   }
 
-  /// Valid = current filled, new ≥ 4 chars, confirm matches new.
+  /// Valid = current filled, new в‰Ґ 4 chars, confirm matches new.
   bool get _isValid {
     if (_currentCtrl.text.isEmpty) return false;
     if (_newCtrl.text.length < 4) return false;
@@ -96,7 +96,7 @@ class _BarberAccountEditScreenState
       AppHaptics.error();
       if (!mounted) return;
       String msg = tr(ref, 'common.errorRetry',
-          "Xatolik — qaytadan urinib ko'ring");
+          "Xatolik вЂ” qaytadan urinib ko'ring");
       if (e.response?.statusCode == 401) {
         msg = tr(ref, 'backend.oldPasswordWrong',
             "Joriy parol noto'g'ri");
@@ -125,12 +125,7 @@ class _BarberAccountEditScreenState
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.xxl,
-        ),
+        padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
           AppCard(
             variant: AppCardVariant.outlined,
@@ -191,7 +186,7 @@ class _BarberAccountEditScreenState
                   obscureText: _obscureCurrent,
                   style: AppText.body,
                   decoration: InputDecoration(
-                    hintText: '••••••',
+                    hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
                     suffixIcon: IconButton(
                       icon: Icon(
                           _obscureCurrent
@@ -215,7 +210,7 @@ class _BarberAccountEditScreenState
                   obscureText: _obscureNew,
                   style: AppText.body,
                   decoration: InputDecoration(
-                    hintText: '••••••',
+                    hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
                     suffixIcon: IconButton(
                       icon: Icon(
                           _obscureNew
@@ -240,8 +235,8 @@ class _BarberAccountEditScreenState
                   obscureText: _obscureConfirm,
                   style: AppText.body,
                   decoration: InputDecoration(
-                    hintText: '••••••',
-                    // Inline mismatch warning — shows only after the
+                    hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
+                    // Inline mismatch warning вЂ” shows only after the
                     // user has typed something in confirm and it
                     // doesn't match yet. Prevents cryptic "why is the
                     // button disabled" moments.

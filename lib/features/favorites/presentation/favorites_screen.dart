@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +35,7 @@ class FavoritesScreen extends ConsumerWidget {
         data: (list) {
           if (list.isEmpty) {
             // Wrap the empty state in a scrollable so pull-to-refresh
-            // works even when there are no favorites — otherwise the
+            // works even when there are no favorites вЂ” otherwise the
             // user has no way to retry after a bad initial load.
             return RefreshIndicator(
               color: AppColors.primary,
@@ -65,12 +65,7 @@ class FavoritesScreen extends ConsumerWidget {
             color: AppColors.primary,
             onRefresh: () async => ref.refresh(favoritesProvider.future),
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
               itemCount: list.length,
               separatorBuilder: (_, _) => AppSpacing.gapSm,
               itemBuilder: (context, i) {

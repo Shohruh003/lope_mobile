@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -19,13 +19,13 @@ class TransactionsScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
-  // Locale-neutral display formatter — pattern is language-agnostic
+  // Locale-neutral display formatter вЂ” pattern is language-agnostic
   // so dropping the ru_RU locale doesn't change what the barber sees,
   // it just stops advertising Russian formatting on a UZ-first app.
   static final _df = DateFormat('dd.MM.yyyy HH:mm');
   // ISO shape kept for the backend query params only.
   static final _ymd = DateFormat('yyyy-MM-dd');
-  // Human-facing shape for filter pills — never the ISO string.
+  // Human-facing shape for filter pills вЂ” never the ISO string.
   static final _pretty = DateFormat('dd.MM.yyyy');
 
   String _direction = 'all';
@@ -191,12 +191,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           ref.invalidate(paymentHistoryProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.xxl,
-          ),
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             balance.when(
@@ -342,7 +337,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         ),
                       ),
                       AppSpacing.hGapSm,
-                      Text('—',
+                      Text('вЂ”',
                           style: TextStyle(color: context.colors.textMuted)),
                       AppSpacing.hGapSm,
                       Expanded(
@@ -454,7 +449,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                             ),
                           ),
                           Text(
-                              "${inflow ? '+' : '−'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
+                              "${inflow ? '+' : 'в€’'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
                               style: AppText.body.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: inflow

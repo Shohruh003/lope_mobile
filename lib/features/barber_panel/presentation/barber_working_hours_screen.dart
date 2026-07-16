@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors.dart';
@@ -149,7 +149,7 @@ class _BarberWorkingHoursScreenState
     });
   }
 
-  /// Compare "HH:mm" strings — returns true when [close] is strictly
+  /// Compare "HH:mm" strings вЂ” returns true when [close] is strictly
   /// after [open]. Used to guard the save path so a barber can't
   /// accidentally persist an inverted range like open 20:00 / close
   /// 09:00 (which the schedule generator would silently interpret as
@@ -165,7 +165,7 @@ class _BarberWorkingHoursScreenState
 
   Future<void> _save() async {
     AppHaptics.medium();
-    // Refuse the save when any open day has close <= open — otherwise
+    // Refuse the save when any open day has close <= open вЂ” otherwise
     // the schedule generator produces zero slots and the barber can't
     // figure out why bookings never appear.
     final bad = _config.firstWhere(
@@ -190,7 +190,7 @@ class _BarberWorkingHoursScreenState
             'isOpen': d.isOpen,
             'open': d.open,
             'close': d.close,
-            // Server persists lunch as nullable strings — omit the
+            // Server persists lunch as nullable strings вЂ” omit the
             // keys when there's no break so the payload stays clean.
             if (d.hasLunch) 'lunchStart': d.lunchStart,
             if (d.hasLunch) 'lunchEnd': d.lunchEnd,
@@ -246,12 +246,7 @@ class _BarberWorkingHoursScreenState
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
               children: [
               for (var i = 0; i < 7; i++)
                 Padding(
@@ -292,7 +287,7 @@ class _BarberWorkingHoursScreenState
                                     onTap: () => _pickTime(i, true),
                                   ),
                                   AppSpacing.hGapXs,
-                                  Text('—',
+                                  Text('вЂ”',
                                       style: TextStyle(
                                           color:
                                               context.colors.textMuted)),
@@ -316,9 +311,9 @@ class _BarberWorkingHoursScreenState
                             ),
                           ],
                         ),
-                        // Per-day lunch break row — only surfaced when
+                        // Per-day lunch break row вЂ” only surfaced when
                         // the day itself is open. Tap the toggle to
-                        // add a break with sensible defaults (13:00 —
+                        // add a break with sensible defaults (13:00 вЂ”
                         // 14:00); tap either time chip to change it.
                         if (_config[i].isOpen) ...[
                           const SizedBox(height: 6),
@@ -341,7 +336,7 @@ class _BarberWorkingHoursScreenState
                                       onTap: () => _pickLunchTime(i, true),
                                     ),
                                     AppSpacing.hGapXs,
-                                    Text('—',
+                                    Text('вЂ”',
                                         style: TextStyle(
                                             color: context.colors
                                                 .textMuted)),
@@ -454,7 +449,7 @@ class _DayConfig {
   final String close;
   final bool isOpen;
 
-  /// Per-day lunch break. Optional — a nullable lunchStart/lunchEnd
+  /// Per-day lunch break. Optional вЂ” a nullable lunchStart/lunchEnd
   /// pair means "no lunch on this day" (the previous version had a
   /// single lunch window shared across the whole week, which didn't
   /// match real barbershops where breaks vary per day).

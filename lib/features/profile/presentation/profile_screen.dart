@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,14 +40,9 @@ class ProfileScreen extends ConsumerWidget {
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.xxl,
-          ),
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
           children: [
-            // ═════════════ Profile hero card ═════════════
+            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Profile hero card в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
             _ProfileHero(
               user: user,
               balance: balance,
@@ -59,16 +54,16 @@ class ProfileScreen extends ConsumerWidget {
 
             AppSpacing.gapLg,
 
-            // ═════════════ Menu links ═════════════
+            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Menu links в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
             // Since we dropped the hamburger drawer, every non-tab
-            // destination lives here — this is the customer's single
+            // destination lives here вЂ” this is the customer's single
             // "everything else" surface (Uzum/Click pattern).
             if (user != null) ...[
               _MenuGroup(children: [
-                // Language row — compact tile with current flag; tap
+                // Language row вЂ” compact tile with current flag; tap
                 // opens a bottom sheet with the four options.
                 _LangTile(currentLang: currentLang),
-                // Theme mode picker — cycles between System / Light /
+                // Theme mode picker вЂ” cycles between System / Light /
                 // Dark. Preference persisted through themeModeProvider.
                 const AppThemeTile(),
                 if (user.role == 'user') ...[
@@ -115,13 +110,13 @@ class ProfileScreen extends ConsumerWidget {
                       ref, 'barberApp.notifications', 'Bildirishnomalar'),
                   onTap: () => context.push('/notifications'),
                 ),
-                // Sozlamalar / "Profil" link removed — it just re-opened
+                // Sozlamalar / "Profil" link removed вЂ” it just re-opened
                 // the same profile screen and confused users.
               ]),
               AppSpacing.gapLg,
             ],
 
-            // ═════════════ Help / Yordam ═════════════
+            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Help / Yordam в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
             _MenuGroup(children: [
               _LinkTile(
                 icon: Icons.support_agent_outlined,
@@ -133,7 +128,7 @@ class ProfileScreen extends ConsumerWidget {
                 icon: Icons.help_outline,
                 iconColor: AppColors.primary,
                 label: tr(ref, 'profile.faq',
-                    'FAQ — Tez-tez beriladigan savollar'),
+                    'FAQ вЂ” Tez-tez beriladigan savollar'),
                 onTap: () => _openUrl('https://lopestyle.uz/faq'),
               ),
               _LinkTile(
@@ -146,7 +141,7 @@ class ProfileScreen extends ConsumerWidget {
 
             AppSpacing.gapLg,
 
-            // ═════════════ Danger zone: Logout + Delete ═════════════
+            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Danger zone: Logout + Delete в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
             if (user != null) ...[
               AppButton(
                 label: tr(ref, 'barberApp.logout', 'Chiqish'),
@@ -202,7 +197,7 @@ Future<void> _openUrl(String url) async {
   }
 }
 
-/// Deletion path — matches the old /settings screen: prompt, then POST
+/// Deletion path вЂ” matches the old /settings screen: prompt, then POST
 /// /users/delete-request and log the user out.
 Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
   AppHaptics.light();
@@ -354,7 +349,7 @@ Future<bool?> _logoutDialog(BuildContext context, WidgetRef ref) {
   );
 }
 
-// ═════════════════════════ Profile hero ═════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Profile hero в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
 class _ProfileHero extends StatelessWidget {
   const _ProfileHero({
@@ -422,7 +417,7 @@ class _ProfileHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user?.name ?? '—',
+                      user?.name ?? 'вЂ”',
                       style: AppText.titleLg.copyWith(color: Colors.white),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -569,13 +564,13 @@ class _Fallback extends StatelessWidget {
   }
 }
 
-// ═════════════════════════ Language tile ═════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Language tile в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
 const _langOptions = [
-  ('uz', "O'zbek", '🇺🇿'),
-  ('uz_cyr', 'Ўзбек', '🇺🇿'),
-  ('ru', 'Русский', '🇷🇺'),
-  ('en', 'English', '🇺🇸'),
+  ('uz', "O'zbek", 'рџ‡єрџ‡ї'),
+  ('uz_cyr', 'РЋР·Р±РµРє', 'рџ‡єрџ‡ї'),
+  ('ru', 'Р СѓСЃСЃРєРёР№', 'рџ‡·рџ‡є'),
+  ('en', 'English', 'рџ‡єрџ‡ё'),
 ];
 
 String _localeLabel(String code) {
@@ -589,7 +584,7 @@ String _localeFlag(String code) {
   for (final opt in _langOptions) {
     if (opt.$1 == code) return opt.$3;
   }
-  return '🌐';
+  return 'рџЊђ';
 }
 
 /// Compact language row that slots into the profile menu. Shows the
@@ -736,7 +731,7 @@ class _LangTile extends ConsumerWidget {
   }
 }
 
-// ═════════════════════════ Menu tiles ═════════════════════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Menu tiles в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
 class _MenuGroup extends StatelessWidget {
   const _MenuGroup({required this.children});

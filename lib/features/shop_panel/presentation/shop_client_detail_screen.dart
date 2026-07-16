@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/errors.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -105,8 +105,7 @@ class _ShopClientDetailScreenState
             onRefresh: () async => ref.refresh(_clientDetailProvider(_key).future),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.xxl),
+              padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.pageBottom(context)),
               children: [
                 _HeroCard(
                   name: name,
@@ -221,7 +220,7 @@ class _ShopClientDetailScreenState
                                         style: AppText.caption
                                             .copyWith(fontSize: 11)),
                                     if ((v['time'] ?? '').toString().isNotEmpty) ...[
-                                      Text("  •  ",
+                                      Text("  вЂў  ",
                                           style: AppText.caption
                                               .copyWith(fontSize: 11)),
                                       Icon(Icons.access_time,
@@ -233,7 +232,7 @@ class _ShopClientDetailScreenState
                                               .copyWith(fontSize: 11)),
                                     ],
                                     if (total > 0) ...[
-                                      Text("  •  ",
+                                      Text("  вЂў  ",
                                           style: AppText.caption
                                               .copyWith(fontSize: 11)),
                                       Text(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,7 +10,7 @@ import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/barber_panel_repository.dart';
 
-/// Per-client visit history — opened by tapping a card on the
+/// Per-client visit history вЂ” opened by tapping a card on the
 /// "Mijozlarim" list. Filters the barber's all-bookings feed to the
 /// given phone number and renders each visit as a booking card with
 /// date + time + services + price. Shows aggregate stats at the top
@@ -23,7 +23,7 @@ class BarberClientDetailScreen extends ConsumerWidget {
     this.initialAvatar,
   });
 
-  /// Digits-only phone (e.g. `998942720705`) — matched against the
+  /// Digits-only phone (e.g. `998942720705`) вЂ” matched against the
   /// bookings feed's `userPhone` / `guestPhone` (stripped to digits
   /// for the comparison).
   final String phone;
@@ -155,12 +155,7 @@ class BarberClientDetailScreen extends ConsumerWidget {
                 barberAllBookingsProvider(user.id).future),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.pageBottom(context)),
               children: [
                 _HeaderCard(
                   name: initialName ??

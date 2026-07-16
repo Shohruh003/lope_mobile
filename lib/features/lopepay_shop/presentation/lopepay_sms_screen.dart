@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -233,7 +233,7 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                                   : _ymd.format(_from!),
                               onTap: () => _pickDate(true))),
                       const SizedBox(width: AppSpacing.sm),
-                      Text("—",
+                      Text("вЂ”",
                           style: TextStyle(color: context.colors.textMuted)),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
@@ -275,8 +275,7 @@ class _LopepaySmsScreenState extends ConsumerState<LopepaySmsScreen> {
                   ref.invalidate(lopepaySmsProvider);
                 },
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
+                  padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.pageBottom(context)),
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     ...list.asMap().entries.map((entry) {

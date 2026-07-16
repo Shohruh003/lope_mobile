@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,7 +18,7 @@ class ShopSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        // "Profil" — this screen is now a hub for personal + salon
+        // "Profil" вЂ” this screen is now a hub for personal + salon
         // settings, theme / language, support links and destructive
         // actions. Renamed from "Sozlamalar" per user's mental model
         // of the drawer entry.
@@ -28,18 +28,13 @@ class ShopSettingsScreen extends ConsumerWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.xxl,
-        ),
+        padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
           _SectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
           // Balance hero + top-up CTA lives inside Profil (not the
-          // drawer) — user explicitly asked for it here. The chip in
+          // drawer) вЂ” user explicitly asked for it here. The chip in
           // the shell header is the quick-glance version; this card
           // is the actionable one.
           _BalanceCard(
@@ -57,7 +52,7 @@ class ShopSettingsScreen extends ConsumerWidget {
           AppSpacing.gapXl,
           _SectionLabel(tr(ref, 'mobile.shop.settings.salon', 'SALON')),
           AppSpacing.gapSm,
-          // Adminlar and Eslatmalar live in the drawer already — leave
+          // Adminlar and Eslatmalar live in the drawer already вЂ” leave
           // Profil focused on info-editing entries only.
           _TileGroup(children: [
             _SettingsTile(
@@ -313,7 +308,7 @@ class _SettingsTile extends StatelessWidget {
   }
 }
 
-/// Balance hero shown at the top of the Profil page — big amount
+/// Balance hero shown at the top of the Profil page вЂ” big amount
 /// readout plus a primary "To'ldirish" CTA that opens [TopUpModal].
 /// The shell header chip stays synced via [shopBalanceProvider].
 class _BalanceCard extends ConsumerWidget {
@@ -357,10 +352,10 @@ class _BalanceCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   async.when(
-                    loading: () => Text('…',
+                    loading: () => Text('вЂ¦',
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
-                    error: (_, _) => Text('—',
+                    error: (_, _) => Text('вЂ”',
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
                     data: (b) => Text(
@@ -412,6 +407,6 @@ class _BalanceCard extends ConsumerWidget {
       buf.write(s[i]);
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
-    return (n < 0 ? '−' : '') + buf.toString();
+    return (n < 0 ? 'в€’' : '') + buf.toString();
   }
 }

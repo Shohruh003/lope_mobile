@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,7 +11,7 @@ import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
 
-/// Settings screen — grouped list of tiles with the new design system.
+/// Settings screen вЂ” grouped list of tiles with the new design system.
 /// State/API preserved: locale change, logout, delete-request POST.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -29,14 +29,9 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.xxl,
-        ),
+        padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
-          // ═══════════ Account section ═══════════
+          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Account section в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
           _SectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
@@ -71,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
 
           AppSpacing.gapXl,
 
-          // ═══════════ App section ═══════════
+          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ App section в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
           _SectionLabel(
               tr(ref, 'profile.section.app', 'Ilova').toUpperCase()),
           AppSpacing.gapSm,
@@ -90,7 +85,7 @@ class SettingsScreen extends ConsumerWidget {
 
           AppSpacing.gapXl,
 
-          // ═══════════ Help section ═══════════
+          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Help section в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
           _SectionLabel(
               tr(ref, 'profile.section.help', 'Yordam').toUpperCase()),
           AppSpacing.gapSm,
@@ -99,7 +94,7 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.help_outline,
               iconColor: AppColors.primary,
               label: tr(ref, 'profile.faq',
-                  'FAQ — Tez-tez beriladigan savollar'),
+                  'FAQ вЂ” Tez-tez beriladigan savollar'),
               onTap: () => _openUrl('https://lopestyle.uz/faq'),
             ),
             _SettingsTile(
@@ -118,7 +113,7 @@ class SettingsScreen extends ConsumerWidget {
 
           AppSpacing.gapXl,
 
-          // ═══════════ Danger zone ═══════════
+          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Danger zone в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
           _TileGroup(children: [
             _SettingsTile(
               icon: Icons.logout_outlined,
@@ -142,8 +137,8 @@ class SettingsScreen extends ConsumerWidget {
 
   String _localeLabel(String code) => switch (code) {
         'uz' => "O'zbekcha",
-        'uz_cyr' => 'Ўзбекча',
-        'ru' => 'Русский',
+        'uz_cyr' => 'РЋР·Р±РµРєС‡Р°',
+        'ru' => 'Р СѓСЃСЃРєРёР№',
         'en' => 'English',
         _ => code,
       };
@@ -298,7 +293,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-// ═══════════ Reusable local widgets ═══════════
+// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Reusable local widgets в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
 Future<bool?> _confirmDialog(
   BuildContext context,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,19 +17,14 @@ class BarberSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
-    // No AppBar — the barber shell already renders a fixed header
+    // No AppBar вЂ” the barber shell already renders a fixed header
     // (Lope Style brand + share + bell) above the tab body, and the
     // bottom nav shows "Profil" for this tab. Repeating the word at
     // the top of the screen was a visual duplication the user asked
     // us to remove.
     return Scaffold(
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.lg,
-          AppSpacing.xxl,
-        ),
+        padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
           if (user != null) ...[
             _AvailabilityTile(userId: user.id),
@@ -339,7 +334,7 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
                         ? tr(ref, 'mobile.barber.profileEdit.availableHint',
                             'Yangi bronlar tushishi mumkin')
                         : tr(ref, 'mobile.barber.profileEdit.unavailableHint',
-                            "Bron qabul qilmayapsiz — profil yashirin"),
+                            "Bron qabul qilmayapsiz вЂ” profil yashirin"),
                     style: AppText.caption,
                   ),
                 ],

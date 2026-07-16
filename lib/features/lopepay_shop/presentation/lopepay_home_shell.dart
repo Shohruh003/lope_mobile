@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -172,8 +172,7 @@ class _LopepayDashboard extends ConsumerWidget {
             ref.invalidate(lopepayOverdueProvider);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
             children: [
               shopMeAsync.when(
                 loading: () => const SizedBox.shrink(),
@@ -228,7 +227,7 @@ class _LopepayDashboard extends ConsumerWidget {
                       value: shopMeAsync.maybeWhen(
                         data: (s) =>
                             "${_fmt(s.ownerBalance)} ${tr(ref, 'common.currency', "so'm")}",
-                        orElse: () => "—",
+                        orElse: () => "вЂ”",
                       ),
                       color: AppColors.primary,
                       icon: Icons.account_balance_wallet_outlined,
@@ -798,7 +797,7 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                                     if (c.nextDue != null) ...[
                                       const SizedBox(
                                           width: AppSpacing.sm),
-                                      Text("• ${_df.format(c.nextDue!)}",
+                                      Text("вЂў ${_df.format(c.nextDue!)}",
                                           style: AppText.caption
                                               .copyWith(fontSize: 11)),
                                     ],

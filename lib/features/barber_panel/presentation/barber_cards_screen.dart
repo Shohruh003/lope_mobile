@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,12 +42,7 @@ class BarberCardsScreen extends ConsumerWidget {
               ref.refresh(_cardsProvider(barberId).future),
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.lg,
-              AppSpacing.xxl,
-            ),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
             children: [
               Text(
                 tr(ref, 'mobile.barber.cards.hint',
@@ -112,7 +107,7 @@ class BarberCardsScreen extends ConsumerWidget {
       AppHaptics.success();
       ref.invalidate(_cardsProvider);
     } catch (e) {
-      // Was `catch (_) {}` — the barber tapped "Asosiy qil", the
+      // Was `catch (_) {}` вЂ” the barber tapped "Asosiy qil", the
       // server rejected it, and they got no feedback at all. Surface
       // the humanized reason so at least they know to retry.
       AppHaptics.error();
@@ -328,7 +323,7 @@ class BarberCardsScreen extends ConsumerWidget {
     final middleLen = d.length - 8;
     final middleGroups = (middleLen / 4).ceil();
     final middle =
-        List.generate(middleGroups, (_) => '••••').join(' ');
+        List.generate(middleGroups, (_) => 'вЂўвЂўвЂўвЂў').join(' ');
     return [first, if (middle.isNotEmpty) middle, last].join(' ');
   }
 }
@@ -402,7 +397,7 @@ class _CardItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final brand = _getBrand(card['cardNumber']?.toString() ?? '');
     final isDefault = card['isDefault'] == true;
-    final holder = (card['holderName'] ?? '—').toString();
+    final holder = (card['holderName'] ?? 'вЂ”').toString();
     final masked =
         BarberCardsScreen._maskNumber(card['cardNumber']?.toString() ?? '');
 

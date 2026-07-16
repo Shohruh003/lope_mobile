@@ -242,11 +242,14 @@ class _BarberProfileEditScreenState
           final isAvailable = b['isAvailable'] != false;
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(
+            // Extra bottom padding = normal xxl + the system navigation
+            // bar inset so the final "Saqlash" button stays reachable
+            // instead of tucking under the Android gesture / nav bar.
+            padding: EdgeInsets.fromLTRB(
               AppSpacing.lg,
               AppSpacing.lg,
               AppSpacing.lg,
-              AppSpacing.xxl,
+              AppSpacing.xxl + MediaQuery.paddingOf(context).bottom,
             ),
             children: [
               Center(

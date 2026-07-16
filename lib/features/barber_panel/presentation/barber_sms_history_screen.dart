@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -20,7 +20,7 @@ class BarberSmsHistoryScreen extends ConsumerStatefulWidget {
 
 class _BarberSmsHistoryScreenState
     extends ConsumerState<BarberSmsHistoryScreen> {
-  // Locale-neutral formatters — the previous ru_RU version left the
+  // Locale-neutral formatters вЂ” the previous ru_RU version left the
   // timestamps looking like Russian localisation on a UZ-first app.
   static final _df = DateFormat('dd.MM.yyyy HH:mm');
   static final _dateOnly = DateFormat('yyyy-MM-dd');
@@ -108,7 +108,7 @@ class _BarberSmsHistoryScreenState
               data: (list) {
                 if (list.isEmpty) {
                   // Wrap the empty state in a scrollable so pull-to-
-                  // refresh works — otherwise the barber has no way
+                  // refresh works вЂ” otherwise the barber has no way
                   // to force a re-fetch after a bad filter change.
                   return RefreshIndicator(
                     color: AppColors.primary,
@@ -134,12 +134,7 @@ class _BarberSmsHistoryScreenState
                   onRefresh: () async => ref
                       .refresh(smsHistoryFilteredProvider(key).future),
                   child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.md,
-                      AppSpacing.lg,
-                      AppSpacing.xxl,
-                    ),
+                    padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.pageBottom(context)),
                     itemCount: list.length,
                     separatorBuilder: (_, _) => AppSpacing.gapSm,
                     itemBuilder: (context, i) {
@@ -326,7 +321,7 @@ class _FilterBar extends StatelessWidget {
               Padding(
                 padding: const
                     EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                child: Text('—',
+                child: Text('вЂ”',
                     style: TextStyle(color: context.colors.textMuted)),
               ),
               Expanded(

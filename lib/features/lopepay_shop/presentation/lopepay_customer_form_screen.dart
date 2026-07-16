@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -314,8 +314,7 @@ class _LopepayCustomerFormScreenState
       body: _loadingExisting
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg,
-                  AppSpacing.lg, AppSpacing.xxl),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
               children: [
                 _SectionHeader(
                   icon: Icons.person_outline,

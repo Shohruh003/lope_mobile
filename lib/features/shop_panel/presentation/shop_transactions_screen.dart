@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -134,7 +134,7 @@ class _ShopTransactionsScreenState
   /// Backend writes `admin_topup` (superadmin gift with no note) or
   /// `admin_topup:<reason>` (with a free-text note like "Bayram" or
   /// "Bonus"). Rendering it raw shows tech gibberish to the shop owner
-  /// — humanize it into "Sovg'a" / "Sovg'a: Bayram" instead.
+  /// вЂ” humanize it into "Sovg'a" / "Sovg'a: Bayram" instead.
   String _humanizeDescription(WidgetRef ref, String desc) {
     if (desc == 'admin_topup') {
       return tr(ref, 'mobile.shop.transactions.adminGift', "Sovg'a");
@@ -192,8 +192,7 @@ class _ShopTransactionsScreenState
           ref.invalidate(shopBalanceProvider);
         },
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             _BalanceHero(
@@ -228,7 +227,7 @@ class _ShopTransactionsScreenState
                           })),
                   const SizedBox(width: AppSpacing.sm),
                   AppChip(
-                      label: "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} −",
+                      label: "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} в€’",
                       selected: _chip == 'out',
                       onTap: () => setState(() {
                             _chip = 'out';
@@ -337,7 +336,7 @@ class _ShopTransactionsScreenState
                                     : _pretty.format(_from!),
                                 onTap: () => _pickDate(true))),
                         const SizedBox(width: AppSpacing.sm),
-                        Text("—",
+                        Text("вЂ”",
                             style:
                                 TextStyle(color: context.colors.textMuted)),
                         const SizedBox(width: AppSpacing.sm),
@@ -437,7 +436,7 @@ class _ShopTransactionsScreenState
                             ),
                           ),
                           Text(
-                              "${inflow ? '+' : '−'}${_fmt(t.amount)} ${tr(ref, 'common.currency', "so'm")}",
+                              "${inflow ? '+' : 'в€’'}${_fmt(t.amount)} ${tr(ref, 'common.currency', "so'm")}",
                               style: AppText.titleSm.copyWith(
                                   fontSize: 14, color: color)),
                         ]),
@@ -545,10 +544,10 @@ class _BalanceHero extends StatelessWidget {
                           .copyWith(color: Colors.white70)),
                   const SizedBox(height: 2),
                   balanceAsync.when(
-                    loading: () => Text("…",
+                    loading: () => Text("вЂ¦",
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
-                    error: (_, _) => Text("—",
+                    error: (_, _) => Text("вЂ”",
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
                     data: (b) => Text("${formatter(b)} $currency",

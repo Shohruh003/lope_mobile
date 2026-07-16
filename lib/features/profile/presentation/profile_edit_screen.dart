@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
@@ -144,12 +144,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.lg,
-            AppSpacing.xxl,
-          ),
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
           children: [
             // Hero avatar with gradient ring
             Center(
@@ -248,12 +243,12 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   Row(children: [
                     Expanded(
                       child: _genderBtn('MALE',
-                          "👨 ${tr(ref, 'auth.genderMale', 'Erkak')}"),
+                          "рџ‘Ё ${tr(ref, 'auth.genderMale', 'Erkak')}"),
                     ),
                     AppSpacing.hGapSm,
                     Expanded(
                       child: _genderBtn('FEMALE',
-                          "👩 ${tr(ref, 'auth.genderFemale', 'Ayol')}"),
+                          "рџ‘© ${tr(ref, 'auth.genderFemale', 'Ayol')}"),
                     ),
                   ]),
                 ],
@@ -381,7 +376,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           obscureText: hide,
           style: AppText.body,
           decoration: InputDecoration(
-            hintText: '••••••',
+            hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
             suffixIcon: IconButton(
               icon: Icon(
                   hide

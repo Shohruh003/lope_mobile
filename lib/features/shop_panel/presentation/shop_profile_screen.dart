@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../core/errors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -40,10 +40,10 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
   final _slotDurationCtrl = TextEditingController(text: '30');
   final _mapController = MapController();
 
-  /// Toshkent center — used when the salon has no coordinates yet.
+  /// Toshkent center вЂ” used when the salon has no coordinates yet.
   static final _defaultCenter = ll.LatLng(41.311081, 69.240562);
 
-  /// Pushed on every map idle (pan / zoom end) — writes the picked
+  /// Pushed on every map idle (pan / zoom end) вЂ” writes the picked
   /// centre back into the lat/lng text fields so the barber sees the
   /// numbers change live as they drag the map.
   void _syncCoordsFromMap() {
@@ -271,7 +271,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         }
       }
     }
-    // Baseline the dirty tracker — Save stays disabled until the
+    // Baseline the dirty tracker вЂ” Save stays disabled until the
     // admin edits something.
     _rebuildSnapshot();
   }
@@ -292,8 +292,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
         data: (m) {
           _seed(m);
           return ListView(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
             children: [
               _SectionHeader(
                 icon: Icons.store,
@@ -324,13 +323,13 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                     const SizedBox(height: 6),
                     TextField(controller: _geoAddressCtrl),
                     const SizedBox(height: AppSpacing.md),
-                    // Embedded interactive map — admin pans / zooms
+                    // Embedded interactive map вЂ” admin pans / zooms
                     // the map to place the pin over the salon; every
                     // idle syncs the coordinates back into the
                     // (hidden) _latCtrl / _lngCtrl so the save path
                     // can send them. The lat/lng number fields and
                     // 'Yandex'da topish' external launcher were
-                    // removed at user's request — the map is the
+                    // removed at user's request вЂ” the map is the
                     // single source of truth for location now.
                     _ShopLocationPickerMap(
                       controller: _mapController,
@@ -395,7 +394,7 @@ class _ShopProfileScreenState extends ConsumerState<ShopProfileScreen> {
                                     enabled: _hours[i].isOpen,
                                     onTap: () => _pickTime(i, true)),
                                 const SizedBox(width: 6),
-                                Text('—',
+                                Text('вЂ”',
                                     style: TextStyle(
                                         color: context.colors.textMuted)),
                                 const SizedBox(width: 6),

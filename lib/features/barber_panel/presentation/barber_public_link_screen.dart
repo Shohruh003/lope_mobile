@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -109,12 +109,7 @@ class _BarberPublicLinkScreenState
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
               children: [
               Text(
                 tr(ref, 'mobile.barber.publicLink.hint',
@@ -253,7 +248,7 @@ class _BarberPublicLinkScreenState
                       ),
                     ),
                     // Auto-save the toggle instead of gating on a
-                    // separate Save button — the switch flip IS the
+                    // separate Save button вЂ” the switch flip IS the
                     // intent, so persisting immediately matches the
                     // user's mental model. Small spinner while the
                     // network call is in-flight prevents rapid-tap
@@ -322,7 +317,7 @@ class _BarberPublicLinkScreenState
                   ]),
                 ),
               ],
-              // Save button removed — the SMS switch auto-saves on
+              // Save button removed вЂ” the SMS switch auto-saves on
               // change so a separate Save action is redundant.
             ],
             ),

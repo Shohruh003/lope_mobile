@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../../core/errors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -147,7 +147,7 @@ class _LopepayTransactionsScreenState
                                   : _ymd.format(_from!),
                               onTap: () => _pickDate(true))),
                       const SizedBox(width: AppSpacing.sm),
-                      Text("—",
+                      Text("вЂ”",
                           style: TextStyle(color: context.colors.textMuted)),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
@@ -189,8 +189,7 @@ class _LopepayTransactionsScreenState
                   ref.invalidate(lopepayTxnProvider);
                 },
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg,
-                      AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
+                  padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.pageBottom(context)),
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     Container(
@@ -291,7 +290,7 @@ class _LopepayTransactionsScreenState
                                     Row(children: [
                                       AppBadge(
                                         label: type.isEmpty
-                                            ? '—'
+                                            ? 'вЂ”'
                                             : _typeLabel(type),
                                         variant: AppBadgeVariant.neutral,
                                       ),
@@ -322,7 +321,7 @@ class _LopepayTransactionsScreenState
                               ),
                               const SizedBox(width: AppSpacing.sm),
                               Text(
-                                  "${inflow ? '+' : '−'}${_fmt(amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
+                                  "${inflow ? '+' : 'в€’'}${_fmt(amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
                                   style: AppText.titleSm.copyWith(
                                       color: color, fontSize: 14)),
                             ]),

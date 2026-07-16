@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -91,8 +91,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
             )).future);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+            padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               Text(tr(ref, 'mobile.shop.bookings.title', "Salon bronlari"),
@@ -444,13 +443,13 @@ class _BookingCard extends ConsumerWidget {
                   Text(b.barberName,
                       style: AppText.caption.copyWith(fontSize: 11)),
                   if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
-                    Text("  •  ",
+                    Text("  вЂў  ",
                         style: AppText.caption.copyWith(fontSize: 11)),
                     Text(b.userPhone!,
                         style: AppText.caption.copyWith(fontSize: 11)),
                   ],
                   if (b.totalDuration > 0) ...[
-                    Text("  •  ",
+                    Text("  вЂў  ",
                         style: AppText.caption.copyWith(fontSize: 11)),
                     Icon(Icons.access_time,
                         size: 11, color: context.colors.textMuted),
@@ -529,7 +528,7 @@ class _BookingCard extends ConsumerWidget {
                   ),
                 ]),
                 const SizedBox(height: 6),
-                // Secondary actions — TextButton.icon has fixed internal
+                // Secondary actions вЂ” TextButton.icon has fixed internal
                 // padding that overflowed at 50% width on narrow phones.
                 // Custom TapScale rows give us precise control: icon +
                 // text with tight spacing, FittedBox to scale down when
@@ -798,7 +797,7 @@ final shopBookingsFilteredProvider = FutureProvider.family<
 /// Compact icon + label button for the booking card's secondary
 /// actions ("Ko'chirish" / "Uzaytirish"). Uses tight padding and a
 /// FittedBox so long translations scale instead of overflowing the
-/// 50%-width slot — a problem TextButton.icon couldn't avoid because
+/// 50%-width slot вЂ” a problem TextButton.icon couldn't avoid because
 /// its baked-in padding pushed content past the Expanded bound.
 class _SecondaryAction extends StatelessWidget {
   const _SecondaryAction({

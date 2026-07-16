@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,11 +10,11 @@ import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notifications_repository.dart';
 
-/// Notifications screen — date-grouped, type-aware. Uzum/Click darajasi:
+/// Notifications screen вЂ” date-grouped, type-aware. Uzum/Click darajasi:
 ///   - Date headers sifatida overline label
 ///   - Kartochka: chap tomonda rangli accent bar + icon dahili
 ///     (new_booking/booking_cancelled/manual_booking/reminder)
-///   - Read/unread — unread'da subtle tint background + read dot indicator
+///   - Read/unread вЂ” unread'da subtle tint background + read dot indicator
 ///   - Mark-all-read tugmasi appbarda (faqat unread > 0 bo'lsa)
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -62,7 +62,7 @@ class NotificationsScreen extends ConsumerWidget {
         data: (list) {
           if (list.isEmpty) {
             // Wrap the empty state in a scrollable so pull-to-refresh
-            // works even without any notifications — otherwise the
+            // works even without any notifications вЂ” otherwise the
             // barber can't force a re-fetch after a bad connection.
             return RefreshIndicator(
               color: AppColors.primary,
@@ -95,12 +95,7 @@ class NotificationsScreen extends ConsumerWidget {
             onRefresh: () async =>
                 ref.refresh(notificationsProvider(user.role).future),
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.xxl,
-              ),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.pageBottom(context)),
               itemCount: groups.length,
               itemBuilder: (context, gi) {
                 final group = groups[gi];
@@ -136,7 +131,7 @@ class NotificationsScreen extends ConsumerWidget {
                                 ref.invalidate(
                                     notificationsProvider(user.role));
                               } catch (e) {
-                                // Was `catch (_) {}` — the tile stayed
+                                // Was `catch (_) {}` вЂ” the tile stayed
                                 // visually unread on failure with no
                                 // feedback at all. Surface a snackbar
                                 // so the user knows to retry.
@@ -183,12 +178,12 @@ List<_Group> _groupByDate(
       'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'
     ],
     'uz_cyr': [
-      'январ', 'феврал', 'март', 'апрел', 'май', 'июн',
-      'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр'
+      'СЏРЅРІР°СЂ', 'С„РµРІСЂР°Р»', 'РјР°СЂС‚', 'Р°РїСЂРµР»', 'РјР°Р№', 'РёСЋРЅ',
+      'РёСЋР»', 'Р°РІРіСѓСЃС‚', 'СЃРµРЅС‚СЏР±СЂ', 'РѕРєС‚СЏР±СЂ', 'РЅРѕСЏР±СЂ', 'РґРµРєР°Р±СЂ'
     ],
     'ru': [
-      'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-      'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+      'СЏРЅРІР°СЂСЏ', 'С„РµРІСЂР°Р»СЏ', 'РјР°СЂС‚Р°', 'Р°РїСЂРµР»СЏ', 'РјР°СЏ', 'РёСЋРЅСЏ',
+      'РёСЋР»СЏ', 'Р°РІРіСѓСЃС‚Р°', 'СЃРµРЅС‚СЏР±СЂСЏ', 'РѕРєС‚СЏР±СЂСЏ', 'РЅРѕСЏР±СЂСЏ', 'РґРµРєР°Р±СЂСЏ'
     ],
     'en': [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

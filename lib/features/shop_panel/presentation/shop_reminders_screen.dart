@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/asset_url.dart';
 import '../../../core/errors.dart';
 import 'package:flutter/material.dart';
@@ -47,8 +47,7 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
               await ref.read(_dueForReminderProvider(_page).future);
             },
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+              padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 AppCard(
@@ -156,7 +155,7 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                               child: c.avatar.isNotEmpty
                                   ? CachedNetworkImage(
                                       // Backend returns a relative
-                                      // asset path — every other
+                                      // asset path вЂ” every other
                                       // screen wraps with assetUrl so
                                       // the request resolves against
                                       // the API base URL. Without it

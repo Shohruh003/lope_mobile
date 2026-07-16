@@ -35,4 +35,11 @@ class AppSpacing {
   static const SizedBox hGapSm = SizedBox(width: sm);
   static const SizedBox hGapMd = SizedBox(width: md);
   static const SizedBox hGapLg = SizedBox(width: lg);
+
+  /// Bottom padding for a scrollable page's last item. Includes the
+  /// system navigation bar inset so sticky "Saqlash" buttons at the
+  /// bottom of an edit form stay above the Android gesture / 3-button
+  /// nav bar. Use this instead of a bare `AppSpacing.xxl` bottom.
+  static double pageBottom(BuildContext context) =>
+      xxl + MediaQuery.paddingOf(context).bottom;
 }
