@@ -101,14 +101,65 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       });
       if (path != null) {
         try {
-          await ref.read(barberPanelRepositoryProvider).parseVoiceBooking(
-                barberId: barberId,
-                audioPath: path,
-              );
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(tr(ref, 'mobile.barber.schedule.voiceReceived', "Ovoz qabul qilindi"))));
+          // Backend returns the parsed intent — mobile was throwing
+          // the result away and just toasting 'Ovoz qabul qilindi',
+          // so the barber recorded a booking and nothing happened.
+          // Handle the 'booking' intent (most common: 'ertaga soat
+          // 3 da Ali') by opening the manual booking sheet pre-filled
+          // with the parsed name/phone/time. Other intents (schedule,
+          // single_slot, delete_slots) surface a snack asking the
+          // barber to use the buttons — full parity with the web
+          // frontend can come later.
+          final result = await ref
+              .read(barberPanelRepositoryProvider)
+              .parseVoiceBooking(barberId: barberId, audioPath: path);
+          if (!mounted) return;
+          setState(() => _voiceLoading = false);
+          final intent = (result['intent'] ?? '').toString();
+          if (intent == 'booking') {
+            final name = (result['name'] ?? '').toString();
+            final phone = (result['phone'] ?? '').toString();
+            final date = (result['date'] ?? '').toString();
+            final time = (result['time'] ?? '').toString();
+            if (name.isEmpty && phone.isEmpty && time.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(tr(ref,
+                      'mobile.barber.schedule.voiceEmpty',
+                      "Ovozdan mijoz aniqlanmadi"))));
+              return;
+            }
+            final targetDate = date.isNotEmpty ? date : _dateStr(_selectedDate);
+            final targetTime = time.isNotEmpty ? time : '10:00';
+            // Sync visible day to the parsed date so, once the sheet
+            // closes and we refresh, the barber sees the new booking.
+            if (date.isNotEmpty) {
+              final parts = date.split('-');
+              if (parts.length == 3) {
+                final y = int.tryParse(parts[0]);
+                final m = int.tryParse(parts[1]);
+                final d = int.tryParse(parts[2]);
+                if (y != null && m != null && d != null) {
+                  setState(() => _selectedDate = DateTime(y, m, d));
+                }
+              }
+            }
+            // Normalize '998...' phone from Gemini into '+998...'.
+            final normalizedPhone = phone.startsWith('998')
+                ? '+$phone'
+                : phone;
+            await _openManualBookingDialog(barberId, targetDate, targetTime,
+                prefillName: name.isEmpty ? null : name,
+                prefillPhone: normalizedPhone.isEmpty ? null : normalizedPhone);
+            if (!mounted) return;
+            _refreshDay(barberId);
+            return;
           }
+          // Non-booking intents — MVP surfaces a helpful hint instead
+          // of silently claiming success.
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(ref,
+                  'mobile.barber.schedule.voiceUnsupported',
+                  "Ovoz qabul qilindi, lekin faqat mijoz yozish ishlaydi. Jadval qo'shish uchun '+' tugmasidan foydalaning."))));
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
@@ -773,9 +824,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     }
   }
 
-  Future<void> _openManualBookingDialog(String barberId, String dateStr, String time) async {
-    final nameCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
+  Future<void> _openManualBookingDialog(String barberId, String dateStr, String time,
+      {String? prefillName, String? prefillPhone}) async {
+    final nameCtrl = TextEditingController(text: prefillName ?? '');
+    final phoneCtrl = TextEditingController(text: prefillPhone ?? '');
     final services =
         await ref.read(barberPanelRepositoryProvider).servicesForBarber(barberId);
     if (!mounted) return;
