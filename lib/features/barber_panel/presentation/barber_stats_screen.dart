@@ -152,7 +152,11 @@ class BarberStatsScreen extends ConsumerWidget {
                         crossAxisCount: 2,
                         mainAxisSpacing: AppSpacing.sm,
                         crossAxisSpacing: AppSpacing.sm,
-                        childAspectRatio: 1.6,
+                        // Tighter ratios ("1.6" and up) clipped the tile
+                        // content by ~4-6px on medium Android phones
+                        // (icon + value + label + card padding wouldn't
+                        // fit). Give the tile a bit more vertical room.
+                        childAspectRatio: 1.35,
                         children: [
                           _StatTile(
                             icon: Icons.event_available,

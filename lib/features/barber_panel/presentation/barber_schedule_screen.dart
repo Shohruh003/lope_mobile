@@ -1330,38 +1330,53 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   variant: AppCardVariant.flat,
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                  child: Row(children: [
-                    Expanded(
-                      child: Wrap(
-                        spacing: AppSpacing.md,
-                        runSpacing: AppSpacing.xs,
-                        children: [
+                  // Legend on its own row (kept together, scales if
+                  // ever too tight); action buttons below. Prior
+                  // Row(Expanded(Wrap), action, action) let the Wrap
+                  // break "Bo'sh Band" onto one line and "Bloklangan"
+                  // onto a second line on narrow phones.
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
                           _LegendDot(
                               color: AppColors.success,
                               label: tr(ref, 'mobile.barber.schedule.legendFree', "Bo'sh")),
+                          const SizedBox(width: AppSpacing.md),
                           _LegendDot(
                               color: AppColors.primary,
                               label: tr(ref, 'mobile.barber.schedule.legendBooked', "Band")),
+                          const SizedBox(width: AppSpacing.md),
                           _LegendDot(
                               color: AppColors.danger,
                               label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
-                        ],
+                        ]),
                       ),
-                    ),
-                    _TinyAction(
-                      icon: Icons.event_busy_outlined,
-                      color: AppColors.danger,
-                      label: tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
-                      onTap: () => _confirmCloseDay(barberId),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    _TinyAction(
-                      icon: Icons.add,
-                      color: AppColors.primary,
-                      label: tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
-                      onTap: () => _openAddSchedule(barberId),
-                    ),
-                  ]),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(children: [
+                        Expanded(
+                          child: _TinyAction(
+                            icon: Icons.event_busy_outlined,
+                            color: AppColors.danger,
+                            label: tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
+                            onTap: () => _confirmCloseDay(barberId),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: _TinyAction(
+                            icon: Icons.add,
+                            color: AppColors.primary,
+                            label: tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
+                            onTap: () => _openAddSchedule(barberId),
+                          ),
+                        ),
+                      ]),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 GridView.builder(
