@@ -71,10 +71,25 @@ class _LopeAppState extends ConsumerState<LopeApp> {
       // Wrap every route in an amber offline banner + subscribe to
       // connectivity so we can auto-refetch when the network comes
       // back. Both concerns are cross-cutting — no individual screen
-      // should be aware of them.
-      builder: (context, child) => OfflineBannerWrapper(
-        child: _AutoRetryOnReconnect(child: child ?? const SizedBox()),
-      ),
+      // should be aware of them. Also clamp the system text scale
+      // factor so an accessibility user who cranks their font up to
+      // 200% doesn't blow out our tight layouts (buttons overflow,
+      // stat tiles clip). Full a11y up to 130% — beyond that we
+      // stop scaling and rely on Column layouts + overflow ellipsis.
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        final clamped = mq.textScaler.clamp(
+          minScaleFactor: 0.9,
+          maxScaleFactor: 1.3,
+        );
+        return MediaQuery(
+          data: mq.copyWith(textScaler: clamped),
+          child: OfflineBannerWrapper(
+            child: _AutoRetryOnReconnect(
+                child: child ?? const SizedBox()),
+          ),
+        );
+      },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

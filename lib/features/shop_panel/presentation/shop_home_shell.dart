@@ -98,23 +98,27 @@ class _Header extends ConsumerWidget {
           const Spacer(),
           const NotificationBell(),
           AppSpacing.hGapXs,
-          TapScale(
-            onTap: () {
-              AppHaptics.selection();
-              Scaffold.of(context).openDrawer();
-            },
-            scale: 0.9,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: context.colors.surface,
-                shape: BoxShape.circle,
-                border: Border.all(color: context.colors.border),
+          Semantics(
+            button: true,
+            label: 'Menyu',
+            child: TapScale(
+              onTap: () {
+                AppHaptics.selection();
+                Scaffold.of(context).openDrawer();
+              },
+              scale: 0.9,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: context.colors.surface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: context.colors.border),
+                ),
+                alignment: Alignment.center,
+                child: Icon(Icons.menu_rounded,
+                    color: context.colors.textPrimary, size: 20),
               ),
-              alignment: Alignment.center,
-              child: Icon(Icons.menu_rounded,
-                  color: context.colors.textPrimary, size: 20),
             ),
           ),
         ]),
