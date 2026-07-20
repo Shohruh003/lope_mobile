@@ -193,6 +193,7 @@ class AppDrawer extends ConsumerWidget {
           _DrawerItem(Icons.share, tr(ref, 'barberApp.publicLink', "Ommaviy havola"), '/barber/public-link'),
           _DrawerItem(Icons.notifications_active, tr(ref, 'barberApp.reminderSettings', "Eslatma sozlamalari"), '/barber/reminders'),
           _DrawerItem(Icons.location_on, tr(ref, 'barberApp.myLocation', "Manzilim"), '/barber/location'),
+          _DrawerItem(Icons.beach_access, tr(ref, 'mobile.barber.vacations.title', "Ta'til kunlari"), '/barber/vacations'),
           _DrawerItem(Icons.credit_card, tr(ref, 'barberApp.cards', "Kartalarim"), '/barber/cards'),
           _DrawerItem(Icons.local_offer, iPromo, '/barber/promo-code'),
           null,

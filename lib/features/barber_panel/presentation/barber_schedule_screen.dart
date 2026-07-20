@@ -1475,6 +1475,13 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           ),
         ),
       ]),
+      actions: [
+        IconButton(
+          tooltip: tr(ref, 'mobile.barber.vacations.title', "Ta'til kunlari"),
+          icon: const Icon(Icons.beach_access),
+          onPressed: () => context.push('/shop/barbers/$id/vacations'),
+        ),
+      ],
     );
   }
 

@@ -488,6 +488,70 @@ extension BarberBookingActions on BarberPanelRepository {
     }
     return 0;
   }
+
+  // ────── Vacations ──────
+
+  /// List vacations for a barber. Backend endpoint:
+  /// `GET /schedule/:barberId/vacations`. Sorted by startDate ascending.
+  Future<List<BarberVacation>> listVacations(String barberId) async {
+    final res = await _dio.get('/schedule/$barberId/vacations');
+    final data = res.data;
+    if (data is! List) return [];
+    return data
+        .whereType<Map>()
+        .map((m) => BarberVacation.fromJson(m.cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Declare a new vacation range. `startDate`/`endDate` are
+  /// 'YYYY-MM-DD' inclusive. `reason` is free-form optional text.
+  Future<BarberVacation> createVacation({
+    required String barberId,
+    required String startDate,
+    required String endDate,
+    String? reason,
+  }) async {
+    final res = await _dio.post('/schedule/$barberId/vacations', data: {
+      'startDate': startDate,
+      'endDate': endDate,
+      if (reason != null && reason.isNotEmpty) 'reason': reason,
+    });
+    return BarberVacation.fromJson(
+        (res.data as Map).cast<String, dynamic>());
+  }
+
+  Future<void> deleteVacation(String id) async {
+    await _dio.delete('/schedule/vacations/$id');
+  }
+}
+
+/// One declared vacation range for a barber.
+class BarberVacation {
+  BarberVacation({
+    required this.id,
+    required this.barberId,
+    required this.startDate,
+    required this.endDate,
+    this.reason,
+    required this.createdAt,
+  });
+  final String id;
+  final String barberId;
+  final String startDate; // 'YYYY-MM-DD' inclusive
+  final String endDate; // 'YYYY-MM-DD' inclusive
+  final String? reason;
+  final DateTime createdAt;
+
+  factory BarberVacation.fromJson(Map<String, dynamic> json) => BarberVacation(
+        id: (json['id'] ?? '').toString(),
+        barberId: (json['barberId'] ?? '').toString(),
+        startDate: (json['startDate'] ?? '').toString(),
+        endDate: (json['endDate'] ?? '').toString(),
+        reason: json['reason']?.toString(),
+        createdAt:
+            DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+                DateTime.fromMillisecondsSinceEpoch(0),
+      );
 }
 
 /// FutureProviders for the schedule view to consume directly. Day schedule,
@@ -505,4 +569,12 @@ final bookedSlotsProvider = FutureProvider.family<List<String>,
 final blockedSlotsProvider = FutureProvider.family<List<String>,
     ({String barberId, String date})>((ref, key) async {
   return ref.watch(barberPanelRepositoryProvider).getBlockedSlots(key.barberId, key.date);
+});
+
+/// Declared vacations for a barber. Keyed by barberId so both the
+/// barber's own settings and the shop admin's per-barber vacation
+/// screen can share the same cache.
+final barberVacationsProvider = FutureProvider.family<
+    List<BarberVacation>, String>((ref, barberId) {
+  return ref.watch(barberPanelRepositoryProvider).listVacations(barberId);
 });

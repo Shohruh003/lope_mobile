@@ -21,6 +21,7 @@ import '../features/barber_panel/presentation/barber_location_screen.dart';
 import '../features/barber_panel/presentation/barber_profile_edit_screen.dart';
 import '../features/barber_panel/presentation/barber_public_link_screen.dart';
 import '../features/barber_panel/presentation/barber_reminder_settings_screen.dart';
+import '../features/barber_panel/presentation/barber_vacations_screen.dart';
 import '../features/barber_panel/presentation/barber_schedule_screen.dart';
 import '../features/barber_panel/presentation/barber_services_screen.dart';
 import '../features/barber_panel/presentation/barber_settings_screen.dart';
@@ -198,6 +199,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/barber/reminders', builder: (context, state) => const BarberReminderSettingsScreen()),
       GoRoute(path: '/barber/sms', builder: (context, state) => const BarberSmsHistoryScreen()),
       GoRoute(path: '/barber/public-link', builder: (context, state) => const BarberPublicLinkScreen()),
+      // Barber vacations — barber's own view uses no `barberId` param
+      // (falls back to the logged-in user); shop admin viewing one of
+      // their barbers pushes `/shop/barbers/:id/vacations` below.
+      GoRoute(path: '/barber/vacations',
+          builder: (context, state) => const BarberVacationsScreen()),
+      GoRoute(
+        path: '/shop/barbers/:id/vacations',
+        builder: (context, state) =>
+            BarberVacationsScreen(barberId: state.pathParameters['id']!),
+      ),
       GoRoute(path: '/barber/clients', builder: (context, state) => const BarberClientsScreen()),
       GoRoute(path: '/barber/my-clients', builder: (context, state) => const BarberClientsScreen()),
       GoRoute(
