@@ -142,7 +142,17 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
                     tr(ref, 'barbers.reviewsTab', 'Sharhlar'),
                   ],
                   selected: _tab,
-                  onChange: (i) => setState(() => _tab = i),
+                  onChange: (i) {
+                    setState(() => _tab = i);
+                    // Refetch the barber when the user opens the
+                    // gallery tab so fresh uploads land without a
+                    // pull-to-refresh. Web calls loadFreshGallery
+                    // for the same reason.
+                    if (i == 2) {
+                      ref.invalidate(
+                          barberDetailProvider(widget.barberId));
+                    }
+                  },
                 ),
               ),
 
