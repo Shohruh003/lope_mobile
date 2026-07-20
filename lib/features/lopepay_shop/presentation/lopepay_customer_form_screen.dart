@@ -41,6 +41,38 @@ class _LopepayCustomerFormScreenState
 
   bool get _isEdit => widget.installmentId != null;
 
+  // Snapshot of the seeded values (edit mode only). Save button stays
+  // disabled until the shop admin actually changes something so we
+  // don't POST no-op edits.
+  Map<String, String>? _snapshot;
+
+  Map<String, String> _currentSnapshot() => {
+        'customerName': _customerName.text.trim(),
+        'customerPhone': _customerPhone.text.trim(),
+        'productName': _productName.text.trim(),
+        'productSerial': _productSerial.text.trim(),
+        'totalPrice': _totalPrice.text.trim(),
+        'monthsTotal': _monthsTotal.text.trim(),
+        'monthlyPayment': _monthlyPayment.text.trim(),
+        'notes': _notes.text.trim(),
+        'productId': _productId ?? '',
+        'startDate':
+            '${_startDate.year}-${_startDate.month}-${_startDate.day}',
+      };
+
+  bool get _isDirty {
+    // New-customer mode: any tap on Save is fine — the required-field
+    // check inside _submit does the guarding.
+    if (!_isEdit) return true;
+    final snap = _snapshot;
+    if (snap == null) return false; // still seeding
+    final now = _currentSnapshot();
+    for (final k in now.keys) {
+      if (now[k] != snap[k]) return true;
+    }
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +90,23 @@ class _LopepayCustomerFormScreenState
 
     _totalPrice.addListener(recompute);
     _monthsTotal.addListener(recompute);
+
+    // Rebuild whenever any editable field changes so the Save button
+    // toggles enabled / disabled based on _isDirty.
+    for (final c in [
+      _customerName,
+      _customerPhone,
+      _productName,
+      _productSerial,
+      _totalPrice,
+      _monthsTotal,
+      _monthlyPayment,
+      _notes,
+    ]) {
+      c.addListener(() {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   Future<void> _fetchProducts() async {
@@ -99,7 +148,13 @@ class _LopepayCustomerFormScreenState
         setState(() => _error = tr(ref, 'common.error', 'Xatolik'));
       }
     } finally {
-      if (mounted) setState(() => _loadingExisting = false);
+      if (mounted) {
+        setState(() {
+          _loadingExisting = false;
+          // Snapshot seeded values so _isDirty can detect edits.
+          _snapshot = _currentSnapshot();
+        });
+      }
     }
   }
 
@@ -515,7 +570,11 @@ class _LopepayCustomerFormScreenState
                 AppButton(
                   label: tr(ref, 'common.save', "Saqlash"),
                   leadingIcon: Icons.save,
-                  onPressed: _saving ? null : _submit,
+                  // In edit mode Save stays disabled until the shop
+                  // admin actually changes a field; new mode always
+                  // enables since the form is required-field-guarded
+                  // inside _submit.
+                  onPressed: (_saving || !_isDirty) ? null : _submit,
                   loading: _saving,
                   size: AppButtonSize.lg,
                   fullWidth: true,
