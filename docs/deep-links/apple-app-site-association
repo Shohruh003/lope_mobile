@@ -4,7 +4,7 @@
     "details": [
       {
         "appIDs": [
-          "REPLACE_WITH_APPLE_TEAM_ID.uz.lopestyle.lopeMobile"
+          "KXJN79YAQ7.uz.lopestyle.lopeMobile"
         ],
         "components": [
           { "/": "/book/*",   "comment": "Booking flow — /book/:barberId or /book/:slug" },
