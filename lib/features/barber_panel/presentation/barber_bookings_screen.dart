@@ -252,9 +252,14 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                       Icon(Icons.people_outline,
                           size: 16, color: context.colors.textMuted),
                       AppSpacing.hGapXs,
-                      Text(
+                      Expanded(
+                        child: Text(
                           "${filtered.length} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
-                          style: AppText.bodySm),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.bodySm,
+                        ),
+                      ),
                     ]),
                   ),
                   ...filtered.asMap().entries.map((entry) {

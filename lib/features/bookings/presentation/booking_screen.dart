@@ -249,7 +249,12 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(s.name, style: AppText.titleSm),
+                        Text(
+                          s.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.titleSm,
+                        ),
                         const SizedBox(height: 2),
                         Row(children: [
                           Icon(Icons.access_time_outlined,

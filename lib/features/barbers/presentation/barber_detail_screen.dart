@@ -349,8 +349,12 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
         ),
         AppSpacing.hGapMd,
         Expanded(
-          child: Text(handle,
-              style: AppText.body.copyWith(fontWeight: FontWeight.w600)),
+          child: Text(
+            handle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppText.body.copyWith(fontWeight: FontWeight.w600),
+          ),
         ),
         Icon(Icons.arrow_forward_ios,
             size: 12, color: context.colors.textMuted),

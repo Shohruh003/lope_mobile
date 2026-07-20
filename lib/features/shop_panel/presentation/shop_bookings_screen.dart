@@ -244,9 +244,14 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
                   Icon(Icons.event_note,
                       size: 14, color: context.colors.textMuted),
                   const SizedBox(width: AppSpacing.xs),
-                  Text(
+                  Expanded(
+                    child: Text(
                       "${res.total} ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')}",
-                      style: AppText.caption),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.caption,
+                    ),
+                  ),
                 ]),
                 orElse: () => const SizedBox.shrink(),
               ),

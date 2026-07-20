@@ -220,7 +220,12 @@ class _LopepayDashboard extends ConsumerWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: AppSpacing.sm,
                   crossAxisSpacing: AppSpacing.sm,
-                  childAspectRatio: 1.4,
+                  // 1.4 clipped tile content on narrow phones (icon +
+                  // label + value + card padding didn't fit at ~140dp
+                  // wide). 1.2 gives the extra ~24dp of height that
+                  // covers 320-360dp phones without wasting space on
+                  // 390dp+ handsets.
+                  childAspectRatio: 1.2,
                   children: [
                     _MetricTile(
                       label: tr(ref, 'mobile.lopepay.home.balance', "Balans"),
