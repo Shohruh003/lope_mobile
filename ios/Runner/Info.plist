@@ -8,6 +8,30 @@
 	<string>Telefon kontaktlaridan mijoz tanlash uchun ruxsat kerak.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Eng yaqin sartaroshlarni topishingiz uchun joylashuvingiz kerak.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ovoz bilan bron qo'shish uchun mikrofon ruxsati kerak.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Selfi va portfolio rasmlarini olish uchun kamera ruxsati kerak.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Selfi va portfolio rasmlarini yuklash uchun galereya ruxsati kerak.</string>
+	<!-- Custom URL scheme fallback for OAuth / dev deep links.
+	     Real user-facing deep links go through Universal Links
+	     (Associated Domains capability + apple-app-site-association
+	     hosted on lopestyle.uz) — this scheme is a safety net for
+	     places we can only redirect with a raw URL. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>uz.lopestyle.mobile</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>lopestyle</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

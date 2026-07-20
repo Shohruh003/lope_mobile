@@ -54,6 +54,9 @@ dependencies:
   geolocator: ^13.0.2                   # distance sort + map "near me"
   flutter_map: ^7.0.2                   # OpenStreetMap tiles, no API key
   latlong2: ^0.9.1                      # LatLng type for flutter_map
+  app_links: ^6.3.2                     # incoming URI streaming (Android
+                                        # App Links + iOS Universal Links
+                                        # + custom scheme fallback)
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/deep_link_service.dart';
 import '../core/push_service.dart';
 import '../core/theme_mode_provider.dart';
 import '../shared/theme/typography.dart';
@@ -17,6 +18,10 @@ class LopeApp extends ConsumerStatefulWidget {
 
 class _LopeAppState extends ConsumerState<LopeApp> {
   bool _pushInited = false;
+  // Global ScaffoldMessenger key so push_service can show a foreground
+  // banner from outside the widget tree when an FCM message arrives
+  // while the app has focus.
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +33,13 @@ class _LopeAppState extends ConsumerState<LopeApp> {
     if (!_pushInited) {
       _pushInited = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await ref.read(pushServiceProvider).initIfPossible(router: router);
+        await ref
+            .read(pushServiceProvider)
+            .initIfPossible(router: router, messengerKey: _messengerKey);
+        // Incoming URIs — Android App Links, iOS Universal Links,
+        // and the `lopestyle://` custom scheme fallback all flow
+        // through DeepLinkService and end up in router.push.
+        await ref.read(deepLinkServiceProvider).initIfPossible(router);
       });
     }
 
@@ -53,6 +64,7 @@ class _LopeAppState extends ConsumerState<LopeApp> {
       theme: buildAppTheme(Brightness.light),
       darkTheme: buildAppTheme(Brightness.dark),
       themeMode: mode,
+      scaffoldMessengerKey: _messengerKey,
       routerConfig: router,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
