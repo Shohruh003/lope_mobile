@@ -232,11 +232,14 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                             .isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Text(
-                              (barber['locationUz'] ??
-                                      barber['location'] ??
-                                      '')
-                                  .toString(),
-                              style: AppText.bodySm),
+                            (barber['locationUz'] ??
+                                    barber['location'] ??
+                                    '')
+                                .toString(),
+                            style: AppText.bodySm,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
                       ],
                     ),

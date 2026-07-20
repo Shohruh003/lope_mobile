@@ -45,7 +45,7 @@ class FavoritesScreen extends ConsumerWidget {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(
-                    height: 420,
+                    height: 320,
                     child: AppEmptyState(
                       icon: Icons.bookmark_border,
                       title: tr(ref, 'mobile.customer.favorites.empty',

@@ -117,7 +117,12 @@ class BarbershopDetailScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name, style: AppText.titleLg),
+                        Text(
+                          name,
+                          style: AppText.titleLg,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         AppSpacing.gapSm,
                         if (address.isNotEmpty)
                           Row(children: [

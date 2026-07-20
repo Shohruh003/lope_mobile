@@ -261,14 +261,24 @@ class _HeaderCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: AppText.titleMd),
+                  Text(
+                    name,
+                    style: AppText.titleMd,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 2),
-                  Text(phone,
-                      style: AppText.bodySm.copyWith(
-                          color: context.colors.textSecondary,
-                          fontFeatures: const [
-                            FontFeature.tabularFigures()
-                          ])),
+                  Text(
+                    phone,
+                    style: AppText.bodySm.copyWith(
+                      color: context.colors.textSecondary,
+                      fontFeatures: const [
+                        FontFeature.tabularFigures()
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),

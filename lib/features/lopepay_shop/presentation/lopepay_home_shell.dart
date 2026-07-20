@@ -180,11 +180,20 @@ class _LopepayDashboard extends ConsumerWidget {
                 data: (s) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(s.name.isEmpty ? "Lope Pay" : s.name,
-                        style: AppText.titleLg),
+                    Text(
+                      s.name.isEmpty ? "Lope Pay" : s.name,
+                      style: AppText.titleLg,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     if (s.address.isNotEmpty) ...[
                       const SizedBox(height: 2),
-                      Text(s.address, style: AppText.bodySm),
+                      Text(
+                        s.address,
+                        style: AppText.bodySm,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ],
                 ),

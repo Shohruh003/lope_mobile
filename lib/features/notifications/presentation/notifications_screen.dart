@@ -72,7 +72,7 @@ class NotificationsScreen extends ConsumerWidget {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(
-                    height: 420,
+                    height: 320,
                     child: AppEmptyState(
                       icon: Icons.notifications_off_rounded,
                       title: tr(ref, 'mobile.notifications.empty',

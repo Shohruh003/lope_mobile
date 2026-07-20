@@ -118,7 +118,7 @@ class _BarberSmsHistoryScreenState
                       physics: const AlwaysScrollableScrollPhysics(),
                       children: [
                         SizedBox(
-                          height: 400,
+                          height: 320,
                           child: AppEmptyState(
                             icon: Icons.sms_outlined,
                             title: tr(ref, 'mobile.barber.sms.empty',

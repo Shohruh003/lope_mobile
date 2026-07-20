@@ -82,20 +82,29 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name.isEmpty ? phone : name,
-                          style: AppText.titleLg
-                              .copyWith(color: Colors.white)),
+                      Text(
+                        name.isEmpty ? phone : name,
+                        style: AppText.titleLg.copyWith(color: Colors.white),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       if (phone.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Text(phone,
-                            style: AppText.bodySm
-                                .copyWith(color: Colors.white70)),
+                        Text(
+                          phone,
+                          style: AppText.bodySm.copyWith(color: Colors.white70),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                       if (address.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Text(address,
-                            style: AppText.caption
-                                .copyWith(color: Colors.white70)),
+                        Text(
+                          address,
+                          style: AppText.caption.copyWith(color: Colors.white70),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                       const SizedBox(height: AppSpacing.md),
                       Text(
@@ -751,8 +760,12 @@ Widget _bannerRow(
       Icon(icon, color: color, size: 16),
       const SizedBox(width: 6),
       Expanded(
-        child: Text(label,
-            style: AppText.button.copyWith(color: color, fontSize: 12)),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppText.button.copyWith(color: color, fontSize: 12),
+        ),
       ),
     ]),
   );

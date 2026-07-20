@@ -173,7 +173,13 @@ class _BarberGalleryScreenState extends ConsumerState<BarberGalleryScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 SizedBox(
-                  height: 400,
+                  // 400dp used to clip inside iPhone SE portrait
+                  // (568dp total minus AppBar ~90dp minus safe-area
+                  // ~30dp = ~448dp usable, and the empty-state's
+                  // internal padding pushed it past). 320 is enough
+                  // to render the icon + two copy lines + FAB CTA
+                  // and still fit on the shortest supported phone.
+                  height: 320,
                   child: AppEmptyState(
                     icon: Icons.photo_library_outlined,
                     title: tr(ref, 'mobile.barber.gallery.empty',
