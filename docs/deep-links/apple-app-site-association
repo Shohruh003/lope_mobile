@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "REPLACE_WITH_APPLE_TEAM_ID.uz.lopestyle.lopeMobile"
+        ],
+        "components": [
+          { "/": "/book/*",   "comment": "Booking flow — /book/:barberId or /book/:slug" },
+          { "/": "/b/*",      "comment": "Public short link — barber_public_link_screen" },
+          { "/": "/barber/*", "comment": "Barber public profile" },
+          { "/": "/shop/*",   "comment": "Barbershop admin panel routes" },
+          { "/": "/home",     "comment": "Customer home / discover" },
+          { "/": "/transactions", "comment": "Balance history" },
+          { "/": "/promo",    "comment": "Promo / referral" },
+          { "/": "/notifications" },
+          { "/": "/",         "comment": "Root — falls back to splash then role home" }
+        ]
+      }
+    ]
+  }
+}

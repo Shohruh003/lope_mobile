@@ -1,0 +1,32 @@
+# Nginx server block additions for lopestyle.uz — required for
+# Android App Links (autoVerify=true) and iOS Universal Links.
+#
+# Both files must be served over HTTPS, on the naked domain, with
+# a specific Content-Type and NO redirects (Android/iOS refuse to
+# follow 3xx when verifying).
+
+server {
+    server_name lopestyle.uz app.lopestyle.uz;
+
+    # ── Android App Links ───────────────────────────────────────
+    # Endpoint: https://lopestyle.uz/.well-known/assetlinks.json
+    location = /.well-known/assetlinks.json {
+        default_type application/json;
+        add_header Cache-Control "public, max-age=3600" always;
+        alias /var/www/lopestyle/deep-links/assetlinks.json;
+    }
+
+    # ── iOS Universal Links ─────────────────────────────────────
+    # Endpoint: https://lopestyle.uz/.well-known/apple-app-site-association
+    # NOTE: no file extension. Content-Type must be application/json
+    # even without the .json suffix.
+    location = /.well-known/apple-app-site-association {
+        default_type application/json;
+        add_header Cache-Control "public, max-age=3600" always;
+        alias /var/www/lopestyle/deep-links/apple-app-site-association;
+    }
+
+    # ── The rest of your existing config ────────────────────────
+    # root ...;
+    # location / { ... }
+}
