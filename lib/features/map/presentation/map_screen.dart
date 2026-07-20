@@ -114,30 +114,30 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 // tiles through a saturation + brightness boost so the
                 // canvas doesn't read "hira" (dull) - matches the
                 // navy-blue Yandex night map the user asked for.
+                // OSM tiles — Stadia tiles silently failed on real
+                // Android devices (map went blank). Same fallback as
+                // barber_location + shop_profile. Dark theme uses a
+                // desaturation matrix so light OSM tiles don't glow
+                // against the app's dark surface.
                 Builder(builder: (ctx) {
                   final isDark = Theme.of(ctx).brightness == Brightness.dark;
-                  final tiles = TileLayer(
-                    urlTemplate: isDark
-                        ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
-                        : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
-                    additionalOptions: const {'r': ''},
+                  return TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'uz.lopestyle.mobile',
+                    maxNativeZoom: 19,
                     maxZoom: 20,
-                    retinaMode: MediaQuery.of(ctx).devicePixelRatio > 1.5,
-                  );
-                  if (!isDark) return tiles;
-                  return ColorFiltered(
-                    // Saturation ~1.5x + slight brightness lift.
-                    // sat = 1.5, lum(R)=0.213, lum(G)=0.715, lum(B)=0.072
-                    // Row = lum + (1-lum) * sat matrix from Porterduff
-                    // color-boost table.
-                    colorFilter: const ColorFilter.matrix(<double>[
-                      1.463, -0.358, -0.036, 0, 14,
-                      -0.107, 1.213,  -0.036, 0, 14,
-                      -0.107, -0.358, 1.535,  0, 14,
-                      0,      0,       0,      1, 0,
-                    ]),
-                    child: tiles,
+                    tileBuilder: isDark
+                        ? (context, child, tile) => ColorFiltered(
+                              colorFilter: const ColorFilter.matrix([
+                                0.6, 0.3, 0.1, 0, 0,
+                                0.3, 0.6, 0.1, 0, 0,
+                                0.3, 0.3, 0.4, 0, 0,
+                                0, 0, 0, 1, 0,
+                              ]),
+                              child: child,
+                            )
+                        : null,
                   );
                 }),
                 if (myLL != null)

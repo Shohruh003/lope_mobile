@@ -649,15 +649,26 @@ class _ShopLocationPickerMapState
               },
             ),
             children: [
+              // OSM tiles for parity with barber_location — Stadia
+              // rendered fine over debug wifi but silently failed on
+              // real Android devices (240px map area went blank).
               TileLayer(
-                urlTemplate: isDark
-                    ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
-                    : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
-                additionalOptions: const {'r': ''},
+                urlTemplate:
+                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'uz.lopestyle.mobile',
+                maxNativeZoom: 19,
                 maxZoom: 20,
-                retinaMode:
-                    MediaQuery.of(context).devicePixelRatio > 1.5,
+                tileBuilder: isDark
+                    ? (context, child, tile) => ColorFiltered(
+                          colorFilter: const ColorFilter.matrix([
+                            0.6, 0.3, 0.1, 0, 0,
+                            0.3, 0.6, 0.1, 0, 0,
+                            0.3, 0.3, 0.4, 0, 0,
+                            0, 0, 0, 1, 0,
+                          ]),
+                          child: child,
+                        )
+                    : null,
               ),
             ],
           ),
