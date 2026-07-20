@@ -566,7 +566,7 @@
     "totalSms": "Жами SMS",
     "smsConfirmation": "Тасдиқлаш",
     "smsReminder": "Эслатма",
-    "smsRetention": "Қайтариш",
+    "smsRetention": "Реклама",
     "recipient": "Кимга",
     "guestClient": "Меҳмон мижоз",
     "smsNoMessage": "Ушбу SMS матн сақланмаган (эски ёзув)"
@@ -988,7 +988,7 @@
     "smsTypes": {
       "confirmation": "Тасдиқлаш",
       "reminder": "Эслатма",
-      "retention": "Қайтариш"
+      "retention": "Реклама"
     },
     "period": {
       "7d": "7 кун",
@@ -1085,7 +1085,7 @@
   "smsTypes": {
     "confirmation": "Тасдиқлаш",
     "reminder": "Эслатма",
-    "retention": "Қайтариш"
+    "retention": "Реклама"
   },
   "smsError": {
     "TEMPLATE_NOT_APPROVED": "Шаблон Eskiz модерациясидан ўтмаган",
@@ -1512,7 +1512,7 @@
         "smsTotal": "Жами SMS",
         "smsConfirmation": "Тасдиқлаш",
         "smsReminder": "Эслатма",
-        "smsRetention": "Retention",
+        "smsRetention": "Реклама",
         "smsReturned": "Қайтиб келганлар",
         "thisMonth": "Бу ой"
       },

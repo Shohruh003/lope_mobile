@@ -74,7 +74,7 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
       case 'reminder':
         return tr(ref, 'shop.smsTypes.reminder', "Eslatma");
       case 'retention':
-        return tr(ref, 'shop.smsTypes.retention', "Qaytarish");
+        return tr(ref, 'shop.smsTypes.retention', "Reklama");
       default:
         return t;
     }

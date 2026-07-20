@@ -155,7 +155,7 @@ class _ShopTransactionsScreenState
       case 'REMINDER':
         return tr(ref, 'shop.smsTypes.reminder', 'Eslatma');
       case 'RETENTION':
-        return tr(ref, 'shop.smsTypes.retention', 'Qaytarish');
+        return tr(ref, 'shop.smsTypes.retention', 'Reklama');
       default:
         return tr(ref, 'common.all', 'Hammasi');
     }

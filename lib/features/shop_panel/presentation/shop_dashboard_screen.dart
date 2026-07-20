@@ -344,7 +344,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                           reminder: tr(ref, 'shop.smsTypes.reminder',
                               'Eslatma'),
                           retention: tr(ref, 'shop.smsTypes.retention',
-                              'Qaytarish'),
+                              'Reklama'),
                         ),
                         pcs: tr(ref, 'common.pcs', 'ta'),
                       ),

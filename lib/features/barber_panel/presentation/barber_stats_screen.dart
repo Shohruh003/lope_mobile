@@ -721,7 +721,7 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                 Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsRetention',
-                      'Retention'),
+                      'Reklama'),
                   value:
                       "${s.retentionCount} В· ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),

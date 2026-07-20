@@ -566,7 +566,7 @@
     "totalSms": "Jami SMS",
     "smsConfirmation": "Tasdiqlash",
     "smsReminder": "Eslatma",
-    "smsRetention": "Qaytarish",
+    "smsRetention": "Reklama",
     "recipient": "Kimga",
     "guestClient": "Mehmon mijoz",
     "smsNoMessage": "Ushbu SMS matn saqlanmagan (eski yozuv)"
@@ -988,7 +988,7 @@
     "smsTypes": {
       "confirmation": "Tasdiqlash",
       "reminder": "Eslatma",
-      "retention": "Qaytarish"
+      "retention": "Reklama"
     },
     "period": {
       "7d": "7 kun",
@@ -1085,7 +1085,7 @@
   "smsTypes": {
     "confirmation": "Tasdiqlash",
     "reminder": "Eslatma",
-    "retention": "Qaytarish"
+    "retention": "Reklama"
   },
   "smsError": {
     "TEMPLATE_NOT_APPROVED": "Shablon Eskiz moderatsiyasidan o'tmagan",
@@ -1512,7 +1512,7 @@
         "smsTotal": "Jami SMS",
         "smsConfirmation": "Tasdiqlash",
         "smsReminder": "Eslatma",
-        "smsRetention": "Retention",
+        "smsRetention": "Reklama",
         "smsReturned": "Qaytib kelganlar",
         "thisMonth": "Bu oy"
       },

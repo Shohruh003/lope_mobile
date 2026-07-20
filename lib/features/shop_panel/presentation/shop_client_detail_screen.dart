@@ -66,7 +66,7 @@ class _ShopClientDetailScreenState
         );
       case 'RETENTION':
         return (
-          label: tr(ref, 'shop.smsTypes.retention', 'Qaytarish'),
+          label: tr(ref, 'shop.smsTypes.retention', 'Reklama'),
           variant: AppBadgeVariant.primary,
         );
       default:

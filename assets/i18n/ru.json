@@ -568,7 +568,7 @@
     "totalSms": "Всего SMS",
     "smsConfirmation": "Подтверждение",
     "smsReminder": "Напоминание",
-    "smsRetention": "Возврат",
+    "smsRetention": "Реклама",
     "recipient": "Получатель",
     "guestClient": "Гость-клиент",
     "smsNoMessage": "Текст SMS не сохранён (старая запись)"
@@ -685,6 +685,7 @@
     "clientPhone": "Номер телефона",
     "pickFromContacts": "Выбрать из контактов",
     "contactPickerError": "Не удалось получить контакт",
+    "autoFilled": "Автоматически",
     "selectTime": "Выберите время",
     "createBooking": "Создать запись",
     "bookingCreated": "Запись создана",
@@ -991,7 +992,7 @@
     "smsTypes": {
       "confirmation": "Подтверждение",
       "reminder": "Напоминание",
-      "retention": "Возврат"
+      "retention": "Реклама"
     },
     "period": {
       "7d": "7 дней",
@@ -1090,7 +1091,7 @@
   "smsTypes": {
     "confirmation": "Подтверждение",
     "reminder": "Напоминание",
-    "retention": "Возвращение"
+    "retention": "Реклама"
   },
   "smsError": {
     "TEMPLATE_NOT_APPROVED": "Шаблон не прошёл модерацию Eskiz",
@@ -1519,7 +1520,7 @@
         "smsTotal": "Всего SMS",
         "smsConfirmation": "Подтверждения",
         "smsReminder": "Напоминания",
-        "smsRetention": "Retention",
+        "smsRetention": "Реклама",
         "smsReturned": "Вернулись",
         "thisMonth": "В этом месяце"
       },

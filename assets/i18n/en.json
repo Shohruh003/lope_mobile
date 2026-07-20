@@ -566,7 +566,7 @@
     "totalSms": "Total SMS",
     "smsConfirmation": "Confirmation",
     "smsReminder": "Reminder",
-    "smsRetention": "Retention",
+    "smsRetention": "Promotion",
     "recipient": "Recipient",
     "guestClient": "Guest client",
     "smsNoMessage": "SMS text was not stored (old record)"
@@ -683,6 +683,7 @@
     "clientPhone": "Phone number",
     "pickFromContacts": "Pick from contacts",
     "contactPickerError": "Couldn't read contact",
+    "autoFilled": "Auto-filled",
     "selectTime": "Select time",
     "createBooking": "Create booking",
     "bookingCreated": "Booking created",
@@ -987,7 +988,7 @@
     "smsTypes": {
       "confirmation": "Confirmation",
       "reminder": "Reminder",
-      "retention": "Retention"
+      "retention": "Promotion"
     },
     "period": {
       "7d": "7 days",
@@ -1084,7 +1085,7 @@
   "smsTypes": {
     "confirmation": "Confirmation",
     "reminder": "Reminder",
-    "retention": "Retention"
+    "retention": "Promotion"
   },
   "smsError": {
     "TEMPLATE_NOT_APPROVED": "Template not approved by Eskiz",
@@ -1511,7 +1512,7 @@
         "smsTotal": "Total SMS",
         "smsConfirmation": "Confirmations",
         "smsReminder": "Reminders",
-        "smsRetention": "Retention",
+        "smsRetention": "Promotion",
         "smsReturned": "Returned",
         "thisMonth": "This month"
       },
