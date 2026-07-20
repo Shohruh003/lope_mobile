@@ -154,12 +154,79 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             _refreshDay(barberId);
             return;
           }
-          // Non-booking intents — MVP surfaces a helpful hint instead
-          // of silently claiming success.
+          // Schedule intents — parity with the web frontend. The
+          // whole flow: fetch existing slots for the target day,
+          // merge / filter based on the voice command, save via
+          // saveDaySchedule, refresh the grid.
+          final today = _dateStr(DateTime.now());
+          final targetDate = (result['date'] ?? '').toString();
+          final date = targetDate.isNotEmpty ? targetDate : today;
+          // Sync visible day so the barber sees the mutation land.
+          final parts = date.split('-');
+          if (parts.length == 3) {
+            final y = int.tryParse(parts[0]);
+            final m = int.tryParse(parts[1]);
+            final d = int.tryParse(parts[2]);
+            if (y != null && m != null && d != null) {
+              setState(() => _selectedDate = DateTime(y, m, d));
+            }
+          }
+
+          if (intent == 'single_slot') {
+            final time = (result['time'] ?? '').toString();
+            if (time.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(tr(ref,
+                      'mobile.barber.schedule.voiceEmpty',
+                      "Ovozdan vaqt aniqlanmadi"))));
+              return;
+            }
+            await _applyVoiceSchedule(barberId, date, [time]);
+            return;
+          }
+          if (intent == 'schedule') {
+            final fromTime = (result['fromTime'] ?? '').toString();
+            final toTime = (result['toTime'] ?? '').toString();
+            if (fromTime.isEmpty || toTime.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(tr(ref,
+                      'mobile.barber.schedule.voiceEmpty',
+                      "Ovozdan vaqt oralig'i aniqlanmadi"))));
+              return;
+            }
+            final interval =
+                ((result['intervalMinutes'] ?? 60) as num).toInt();
+            final lunchFrom = result['lunchFrom']?.toString();
+            final lunchTo = result['lunchTo']?.toString();
+            final newSlots = _generateSlotsFromVoice(
+                fromTime, toTime, interval, lunchFrom, lunchTo);
+            if (newSlots.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(tr(ref,
+                      'mobile.barber.schedule.voiceEmpty',
+                      "Slotlar yaratilmadi"))));
+              return;
+            }
+            await _applyVoiceSchedule(barberId, date, newSlots);
+            return;
+          }
+          if (intent == 'delete_slots') {
+            final mode = (result['mode'] ?? 'all').toString();
+            final times = (result['times'] is List)
+                ? (result['times'] as List)
+                    .map((e) => e.toString())
+                    .toList()
+                : <String>[];
+            final cutoffTime = result['cutoffTime']?.toString();
+            await _applyVoiceDelete(
+                barberId, date, mode, times, cutoffTime);
+            return;
+          }
+          // Unknown intent — should never happen but surface politely.
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(tr(ref,
                   'mobile.barber.schedule.voiceUnsupported',
-                  "Ovoz qabul qilindi, lekin faqat mijoz yozish ishlaydi. Jadval qo'shish uchun '+' tugmasidan foydalaning."))));
+                  "Ovoz tushunilmadi. Boshqacha aytib ko'ring."))));
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
@@ -201,6 +268,152 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     ref.invalidate(scheduleSlotsProvider(key));
     ref.invalidate(bookedSlotsProvider(key));
     ref.invalidate(blockedSlotsProvider(key));
+  }
+
+  /// Merge `newSlots` into the day's existing slot list and save.
+  /// Used by the single_slot + schedule voice intents. Shows an
+  /// error snack if the save fails and a success snack otherwise so
+  /// the barber knows the voice command actually landed.
+  Future<void> _applyVoiceSchedule(
+      String barberId, String date, List<String> newSlots) async {
+    try {
+      final existing = await ref
+          .read(barberPanelRepositoryProvider)
+          .getDaySchedule(barberId, date);
+      final merged = <String>{...existing, ...newSlots}.toList()..sort();
+      await ref.read(barberPanelRepositoryProvider).saveDaySchedule(
+            barberId: barberId,
+            date: date,
+            slots: merged,
+          );
+      if (!mounted) return;
+      _refreshDay(barberId);
+      final added = merged.length - existing.length;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(
+              ref,
+              'mobile.barber.schedule.voiceSlotsAdded',
+              '{{n}} ta slot qo\'shildi',
+              {'n': '$added'}))));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                '${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}')));
+      }
+    }
+  }
+
+  /// Delete slots based on the voice command mode (all / specific /
+  /// before / after cutoffTime). Filters existing slots and re-saves.
+  Future<void> _applyVoiceDelete(String barberId, String date,
+      String mode, List<String> times, String? cutoffTime) async {
+    try {
+      final existing = await ref
+          .read(barberPanelRepositoryProvider)
+          .getDaySchedule(barberId, date);
+      if (existing.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(
+                  ref,
+                  'mobile.barber.schedule.voiceEmpty',
+                  "O'chirish uchun slot yo'q"))));
+        }
+        return;
+      }
+      int toMin(String t) {
+        final parts = t.split(':');
+        return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+      }
+
+      List<String> keep;
+      switch (mode) {
+        case 'specific':
+          keep = existing.where((s) => !times.contains(s)).toList();
+          break;
+        case 'before':
+          if (cutoffTime == null || cutoffTime.isEmpty) {
+            keep = existing;
+          } else {
+            final cut = toMin(cutoffTime);
+            keep = existing.where((s) => toMin(s) >= cut).toList();
+          }
+          break;
+        case 'after':
+          if (cutoffTime == null || cutoffTime.isEmpty) {
+            keep = existing;
+          } else {
+            final cut = toMin(cutoffTime);
+            keep = existing.where((s) => toMin(s) < cut).toList();
+          }
+          break;
+        case 'all':
+        default:
+          keep = <String>[];
+      }
+      final removedCount = existing.length - keep.length;
+      if (removedCount == 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(
+                  ref,
+                  'mobile.barber.schedule.voiceEmpty',
+                  "Ushbu shartga mos slot yo'q"))));
+        }
+        return;
+      }
+      await ref.read(barberPanelRepositoryProvider).saveDaySchedule(
+            barberId: barberId,
+            date: date,
+            slots: keep,
+          );
+      if (!mounted) return;
+      _refreshDay(barberId);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(
+              ref,
+              'mobile.barber.schedule.voiceSlotsRemoved',
+              '{{n}} ta slot o\'chirildi',
+              {'n': '$removedCount'}))));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                '${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}')));
+      }
+    }
+  }
+
+  /// Given voice-command parameters, build an HH:MM slot list.
+  /// Mirrors web's `generateSlotsFromVoice`: iterates from `from` to
+  /// `to` in `interval` minute steps and skips slots that fall inside
+  /// [lunchFrom, lunchTo) when both are provided.
+  List<String> _generateSlotsFromVoice(String from, String to,
+      int interval, String? lunchFrom, String? lunchTo) {
+    int toMin(String t) {
+      final parts = t.split(':');
+      return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+    }
+
+    String toStr(int m) =>
+        '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
+    final lStart = (lunchFrom != null && lunchFrom.isNotEmpty)
+        ? toMin(lunchFrom)
+        : null;
+    final lEnd = (lunchTo != null && lunchTo.isNotEmpty)
+        ? toMin(lunchTo)
+        : null;
+    final slots = <String>[];
+    final fromM = toMin(from);
+    final toM = toMin(to);
+    for (var cur = fromM; cur < toM; cur += interval) {
+      if (lStart != null && lEnd != null && cur >= lStart && cur < lEnd) {
+        continue;
+      }
+      slots.add(toStr(cur));
+    }
+    return slots;
   }
 
   Future<void> _openSlotAction(String barberId, String time, String status) async {
