@@ -57,6 +57,10 @@ dependencies:
   app_links: ^6.3.2                     # incoming URI streaming (Android
                                         # App Links + iOS Universal Links
                                         # + custom scheme fallback)
+  connectivity_plus: ^6.1.0             # network status stream — used to
+                                        # show an offline banner + trigger
+                                        # auto-retry when the connection
+                                        # comes back
 
 dev_dependencies:
   flutter_test:
