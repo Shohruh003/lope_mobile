@@ -95,8 +95,11 @@ class _LowBalanceDialogState extends ConsumerState<_LowBalanceDialog> {
               child: Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.warning,
+                      AppColors.warning.withValues(alpha: 0.85),
+                    ],
                   ),
                   shape: BoxShape.circle,
                 ),

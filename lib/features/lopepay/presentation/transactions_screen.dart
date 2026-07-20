@@ -449,7 +449,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                             ),
                           ),
                           Text(
-                              "${inflow ? '+' : 'в€’'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
+                              "${inflow ? '+' : '−'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
                               style: AppText.body.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: inflow

@@ -407,6 +407,6 @@ class _BalanceCard extends ConsumerWidget {
       buf.write(s[i]);
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
-    return (n < 0 ? 'в€’' : '') + buf.toString();
+    return (n < 0 ? '−' : '') + buf.toString();
   }
 }

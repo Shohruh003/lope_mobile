@@ -134,7 +134,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: AppButton(
-                      label: "SMS",
+                      label: tr(ref, 'common.sms', 'SMS'),
                       leadingIcon: Icons.sms,
                       variant: AppButtonVariant.secondary,
                       fullWidth: true,

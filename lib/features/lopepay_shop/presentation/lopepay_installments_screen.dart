@@ -223,23 +223,20 @@ class _LopepayInstallmentsScreenState
                     productsAsync.when(
                       loading: () => const SizedBox.shrink(),
                       error: (_, _) => const SizedBox.shrink(),
-                      data: (products) =>
-                          DropdownButtonFormField<String?>(
-                        isDense: true,
-                        initialValue: _productId,
-                        decoration: InputDecoration(
-                          labelText: tr(ref, 'lopePay.shop.filterProduct',
-                              "Mahsulot"),
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                              value: null,
-                              child:
-                                  Text(tr(ref, 'common.all', "Hammasi"))),
-                          ...products.map((p) => DropdownMenuItem(
-                              value: p.id,
-                              child: Text(p.name,
-                                  overflow: TextOverflow.ellipsis))),
+                      data: (products) => AppSelectField<String?>(
+                        label: tr(ref, 'lopePay.shop.filterProduct',
+                            "Mahsulot"),
+                        icon: Icons.shopping_bag_outlined,
+                        value: _productId,
+                        options: [
+                          AppSelectOption(
+                            value: null,
+                            label: tr(ref, 'common.all', 'Hammasi'),
+                          ),
+                          ...products.map((p) => AppSelectOption(
+                                value: p.id,
+                                label: p.name,
+                              )),
                         ],
                         onChanged: (v) => setState(() => _productId = v),
                       ),

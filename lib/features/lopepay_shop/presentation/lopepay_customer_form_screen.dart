@@ -80,6 +80,10 @@ class _LopepayCustomerFormScreenState
     if (_isEdit) _seedFromExisting();
 
     void recompute() {
+      // Listener can fire after the state is disposed if a text field
+      // holds focus during navigation. Guard mounted so we don't
+      // rebuild against a defunct controller.
+      if (!mounted) return;
       if (_monthlyPayment.text.isNotEmpty) return;
       final total = int.tryParse(_totalPrice.text);
       final months = int.tryParse(_monthsTotal.text);

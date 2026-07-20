@@ -58,10 +58,21 @@ class _PaymentCallbackScreenState
                   child: Container(
                     margin: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
+                      // Success / danger gradients derived from the
+                      // theme tokens so they auto-adjust if the palette
+                      // ever swaps (previously hard-coded emerald /
+                      // red hex — worked in both modes but decoupled
+                      // from the design system).
                       gradient: LinearGradient(
                         colors: ok
-                            ? const [Color(0xFF10B981), Color(0xFF059669)]
-                            : const [Color(0xFFEF4444), Color(0xFFDC2626)],
+                            ? [
+                                AppColors.success,
+                                AppColors.success.withValues(alpha: 0.85),
+                              ]
+                            : [
+                                AppColors.danger,
+                                AppColors.danger.withValues(alpha: 0.85),
+                              ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),

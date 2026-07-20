@@ -351,7 +351,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                     ],
 
                     // Booking sources — Manual / SMS'dan / Ilova.
-                    // Client-side derives 'app' = bookings в€’ manual в€’
+                    // Client-side derives 'app' = bookings − manual −
                     // fromSms (same math as the web dashboard).
                     if (s.bookings > 0) ...[
                       AppSpacing.gapXl,

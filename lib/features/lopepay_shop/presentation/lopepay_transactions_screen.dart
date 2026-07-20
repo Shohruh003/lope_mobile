@@ -321,7 +321,7 @@ class _LopepayTransactionsScreenState
                               ),
                               const SizedBox(width: AppSpacing.sm),
                               Text(
-                                  "${inflow ? '+' : 'в€’'}${_fmt(amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
+                                  "${inflow ? '+' : '−'}${_fmt(amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
                                   style: AppText.titleSm.copyWith(
                                       color: color, fontSize: 14)),
                             ]),

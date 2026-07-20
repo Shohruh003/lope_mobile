@@ -227,7 +227,7 @@ class _ShopTransactionsScreenState
                           })),
                   const SizedBox(width: AppSpacing.sm),
                   AppChip(
-                      label: "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} в€’",
+                      label: "${tr(ref, 'mobile.lopepay.home.balance', "Balans")} −",
                       selected: _chip == 'out',
                       onTap: () => setState(() {
                             _chip = 'out';
@@ -436,7 +436,7 @@ class _ShopTransactionsScreenState
                             ),
                           ),
                           Text(
-                              "${inflow ? '+' : 'в€’'}${_fmt(t.amount)} ${tr(ref, 'common.currency', "so'm")}",
+                              "${inflow ? '+' : '−'}${_fmt(t.amount)} ${tr(ref, 'common.currency', "so'm")}",
                               style: AppText.titleSm.copyWith(
                                   fontSize: 14, color: color)),
                         ]),
