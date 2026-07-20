@@ -282,6 +282,12 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                     final at =
                         DateTime.tryParse(p['paidAt']?.toString() ?? '');
                     final amount = ((p['amount'] ?? 0) as num).toInt();
+                    final monthNumber =
+                        ((p['monthNumber'] ?? 0) as num).toInt();
+                    final monthsTotal =
+                        ((p['_monthsTotal'] ?? 0) as num).toInt();
+                    final productName =
+                        (p['_productName'] ?? '').toString();
                     return Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                       child: AppCard(
@@ -302,7 +308,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                               ),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.arrow_downward,
+                            child: const Icon(Icons.check,
                                 size: 18, color: AppColors.success),
                           ),
                           const SizedBox(width: AppSpacing.md),
@@ -311,14 +317,52 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
                               crossAxisAlignment:
                                   CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                    "+ ${_fmt(amount)} ${tr(ref, 'common.currency', "so'm")}",
-                                    style: AppText.titleSm.copyWith(
-                                        fontSize: 14,
-                                        color: AppColors.success)),
-                                if (at != null)
-                                  Text(_df.format(at.toLocal()),
-                                      style: AppText.caption),
+                                // Row 1: month numbering "Oy N/M" +
+                                // amount aligned right so the history
+                                // reads like a proper receipt.
+                                Row(children: [
+                                  Expanded(
+                                    child: Text(
+                                      monthNumber > 0 && monthsTotal > 0
+                                          ? tr(ref,
+                                              'mobile.lopepay.customer.paymentMonth',
+                                              'Oy {{n}} / {{m}}',
+                                              {
+                                                'n': '$monthNumber',
+                                                'm': '$monthsTotal'
+                                              })
+                                          : tr(
+                                              ref,
+                                              'mobile.lopepay.customer.paymentGeneric',
+                                              "To'lov"),
+                                      style: AppText.titleSm
+                                          .copyWith(fontSize: 13),
+                                    ),
+                                  ),
+                                  Text(
+                                      "+ ${_fmt(amount)} ${tr(ref, 'common.currency', "so'm")}",
+                                      style: AppText.titleSm.copyWith(
+                                          fontSize: 14,
+                                          color: AppColors.success)),
+                                ]),
+                                const SizedBox(height: 2),
+                                // Row 2: product name + date.
+                                Row(children: [
+                                  if (productName.isNotEmpty)
+                                    Expanded(
+                                      child: Text(
+                                        productName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppText.caption,
+                                      ),
+                                    )
+                                  else
+                                    const Spacer(),
+                                  if (at != null)
+                                    Text(_df.format(at.toLocal()),
+                                        style: AppText.caption),
+                                ]),
                               ],
                             ),
                           ),
@@ -739,8 +783,17 @@ final lopepayCustomerByPhoneProvider =
     installments.add(m);
     final pays = m['payments'];
     if (pays is List) {
+      final monthsTotal = ((m['monthsTotal'] ?? 0) as num).toInt();
+      final productName = (m['productName'] ?? '').toString();
       for (final p in pays) {
-        if (p is Map) payments.add(p.cast<String, dynamic>());
+        if (p is! Map) continue;
+        final payment = p.cast<String, dynamic>();
+        // Enrich each payment with the parent installment context so
+        // the history card can render "Oy N/M · <product>" — same
+        // shape the web /shop/installments/:id detail uses.
+        payment['_monthsTotal'] = monthsTotal;
+        payment['_productName'] = productName;
+        payments.add(payment);
       }
     }
   }
