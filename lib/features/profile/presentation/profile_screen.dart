@@ -351,7 +351,7 @@ Future<bool?> _logoutDialog(BuildContext context, WidgetRef ref) {
 
 // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Profile hero в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 
-class _ProfileHero extends StatelessWidget {
+class _ProfileHero extends ConsumerWidget {
   const _ProfileHero({
     required this.user,
     required this.balance,
@@ -375,7 +375,7 @@ class _ProfileHero extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: AppSpacing.cardPaddingLg,
       decoration: BoxDecoration(
@@ -482,14 +482,14 @@ class _ProfileHero extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Balans',
+                            tr(ref, 'mobile.lopepay.home.balance', 'Balans'),
                             style: AppText.caption.copyWith(
                               color: Colors.white.withValues(alpha: 0.75),
                               fontSize: 11,
                             ),
                           ),
                           Text(
-                            "${_fmt(amount)} so'm",
+                            "${_fmt(amount)} ${tr(ref, 'common.currency', "so'm")}",
                             style: AppText.numeric.copyWith(
                               color: Colors.white,
                               fontSize: 22,
@@ -515,7 +515,7 @@ class _ProfileHero extends StatelessWidget {
                               color: AppColors.primary, size: 16),
                           AppSpacing.hGapXs,
                           Text(
-                            "To'ldirish",
+                            tr(ref, 'topUp.short', "To'ldirish"),
                             style: AppText.body.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w700,

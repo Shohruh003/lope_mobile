@@ -38,6 +38,22 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   bool _hideNew = true;
   bool _hideConfirm = true;
 
+  // Snapshot of the seeded values so the Save button only lights up
+  // when the user has actually changed something. Prior version would
+  // POST /users/:id/profile on every tap even with no diff.
+  String? _origName;
+  String? _origGender;
+
+  bool get _isDirty {
+    if (_avatarFile != null) return true;
+    if (_nameCtrl.text.trim() != (_origName ?? '')) return true;
+    if ((_gender ?? '') != (_origGender ?? '')) return true;
+    if (_oldPassCtrl.text.isNotEmpty || _newPassCtrl.text.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -132,6 +148,14 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       _nameCtrl.text = user.name;
       _avatarUrl = user.avatar;
       _gender = user.gender;
+      // Snapshot for the dirty check.
+      _origName = user.name;
+      _origGender = user.gender;
+      // Rebuild whenever the name field changes so the Save button
+      // toggles between enabled / disabled without a manual setState.
+      _nameCtrl.addListener(() => setState(() {}));
+      _oldPassCtrl.addListener(() => setState(() {}));
+      _newPassCtrl.addListener(() => setState(() {}));
     }
 
     return Scaffold(
@@ -230,6 +254,47 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
 
             AppSpacing.gapMd,
 
+            // Phone number — read-only. Changing the phone requires
+            // an OTP re-verification flow that lives on a separate
+            // screen, so surface the current number here for clarity
+            // (previously missing — users had no way to see their
+            // registered phone from the edit screen).
+            if (user.phone.isNotEmpty) ...[
+              AppCard(
+                variant: AppCardVariant.outlined,
+                padding: AppSpacing.cardPadding,
+                child: Row(children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: AppRadius.rSm,
+                    ),
+                    child: const Icon(Icons.phone_outlined,
+                        color: AppColors.primary, size: 18),
+                  ),
+                  AppSpacing.hGapSm,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr(ref, 'auth.phoneNumber', 'Telefon raqami'),
+                            style: AppText.overline),
+                        const SizedBox(height: 2),
+                        Text(user.phone,
+                            style: AppText.body
+                                .copyWith(fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.lock_outline,
+                      size: 16, color: context.colors.textMuted),
+                ]),
+              ),
+              AppSpacing.gapMd,
+            ],
+
             // Gender card
             AppCard(
               variant: AppCardVariant.outlined,
@@ -319,7 +384,11 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               size: AppButtonSize.lg,
               fullWidth: true,
               loading: _saving,
-              onPressed: _saving ? null : () => _save(user.id),
+              // Gate on _isDirty so we don't POST a no-op profile
+              // update on every tap.
+              onPressed: (_saving || !_isDirty)
+                  ? null
+                  : () => _save(user.id),
             ),
           ],
         ),
