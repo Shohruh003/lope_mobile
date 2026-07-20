@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -913,18 +914,110 @@ class _StickyGenerateBar extends ConsumerWidget {
 /// AI generation is a 10-30 s wait — swap the generic circular spinner
 /// for the branded loader so users see the same Lope Style animation
 /// that greets them at startup. Kept the message + hint copy intact.
-class _LoadingView extends ConsumerWidget {
+/// AI generation is a black-box API call, so real progress isn't
+/// available. Cycle through 4 stage labels every ~4 seconds so the
+/// user gets the feeling something is happening (mirrors web's
+/// staged progress copy). Fake progress bar sweeps 0% -> ~90% over
+/// ~16s, then holds while we wait for the last stage. Result fully
+/// arrives when [_busy] flips to false and this widget unmounts.
+class _LoadingView extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_LoadingView> createState() => _LoadingViewState();
+}
+
+class _LoadingViewState extends ConsumerState<_LoadingView>
+    with SingleTickerProviderStateMixin {
+  int _stage = 0;
+  late final Timer _timer;
+  late final AnimationController _progress;
+
+  static const _stageDurationMs = 4000;
+
+  @override
+  void initState() {
+    super.initState();
+    _progress = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 16),
+      upperBound: 0.92,
+    )..forward();
+    _timer = Timer.periodic(
+      const Duration(milliseconds: _stageDurationMs),
+      (_) {
+        if (!mounted) return;
+        setState(() {
+          if (_stage < 3) _stage += 1;
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _progress.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = [
+      tr(ref, 'mobile.aiStyle.stageAnalysing', 'Yuzingizni tahlil qilyapmiz...'),
+      tr(ref, 'mobile.aiStyle.stageApplying',  'Stilni tanlayapmiz...'),
+      tr(ref, 'mobile.aiStyle.stageCreating',  'Yangi ko\'rinishni yaratyapmiz...'),
+      tr(ref, 'mobile.aiStyle.stageFinalising', 'Yakunlanmoqda...'),
+    ];
     return AppCard(
       variant: AppCardVariant.outlined,
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
-      child: SizedBox(
-        height: 320,
-        child: BrandedLoader(
-          message: tr(ref, 'aiStyle.generating',
-              "Sizning yangi stilingiz tayyorlanmoqda..."),
-        ),
+      padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.xxl, horizontal: AppSpacing.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 220,
+            child: BrandedLoader(message: labels[_stage]),
+          ),
+          AppSpacing.gapLg,
+          // Fake progress bar — animates smoothly 0% -> 92% over ~16s
+          // so the user sees forward motion.
+          AnimatedBuilder(
+            animation: _progress,
+            builder: (context, _) {
+              final pct = (_progress.value * 100).round();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${_stage + 1} / 4',
+                        style: AppText.caption
+                            .copyWith(color: AppColors.primary),
+                      ),
+                      Text('$pct%',
+                          style: AppText.caption
+                              .copyWith(color: AppColors.primary)),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: _progress.value,
+                      minHeight: 6,
+                      backgroundColor:
+                          AppColors.primary.withValues(alpha: 0.15),
+                      valueColor: const AlwaysStoppedAnimation(
+                          AppColors.primary),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }

@@ -539,10 +539,10 @@ class _BookingCard extends ConsumerWidget {
           }
 
           Future<void> doSubmit() async {
-            if (rating == 0) {
-              await doSkip();
-              return;
-            }
+            // Rating is required — the button below is gated on
+            // `rating == 0`, but keep this belt-and-braces guard for
+            // safety.
+            if (rating == 0) return;
             setSheet(() => submitting = true);
             try {
               await ref.read(reviewsRepositoryProvider).submit(
@@ -646,7 +646,12 @@ class _BookingCard extends ConsumerWidget {
                       label: tr(ref, 'mobile.reviews.submit', 'Yuborish'),
                       variant: AppButtonVariant.primary,
                       loading: submitting,
-                      onPressed: submitting ? null : doSubmit,
+                      // Disable Submit until the user actually picks a
+                      // star — no more silent 'skip' when the button
+                      // is tapped with 0 rating.
+                      onPressed: (submitting || rating == 0)
+                          ? null
+                          : doSubmit,
                       fullWidth: true,
                     ),
                   ),
