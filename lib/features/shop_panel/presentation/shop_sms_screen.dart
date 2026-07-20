@@ -172,7 +172,7 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                                   : _pretty.format(_from!),
                               onTap: () => _pickDate(true))),
                       const SizedBox(width: AppSpacing.sm),
-                      Text("вЂ”",
+                      Text("—",
                           style: TextStyle(color: context.colors.textMuted)),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(

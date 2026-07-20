@@ -134,7 +134,7 @@ class _ShopTransactionsScreenState
   /// Backend writes `admin_topup` (superadmin gift with no note) or
   /// `admin_topup:<reason>` (with a free-text note like "Bayram" or
   /// "Bonus"). Rendering it raw shows tech gibberish to the shop owner
-  /// вЂ” humanize it into "Sovg'a" / "Sovg'a: Bayram" instead.
+  /// — humanize it into "Sovg'a" / "Sovg'a: Bayram" instead.
   String _humanizeDescription(WidgetRef ref, String desc) {
     if (desc == 'admin_topup') {
       return tr(ref, 'mobile.shop.transactions.adminGift', "Sovg'a");
@@ -336,7 +336,7 @@ class _ShopTransactionsScreenState
                                     : _pretty.format(_from!),
                                 onTap: () => _pickDate(true))),
                         const SizedBox(width: AppSpacing.sm),
-                        Text("вЂ”",
+                        Text("—",
                             style:
                                 TextStyle(color: context.colors.textMuted)),
                         const SizedBox(width: AppSpacing.sm),
@@ -547,7 +547,7 @@ class _BalanceHero extends StatelessWidget {
                     loading: () => Text("вЂ¦",
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
-                    error: (_, _) => Text("вЂ”",
+                    error: (_, _) => Text("—",
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
                     data: (b) => Text("${formatter(b)} $currency",

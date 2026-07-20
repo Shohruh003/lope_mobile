@@ -29,7 +29,7 @@ class _BarberLocationScreenState
   bool _editing = false;
   bool _saving = false;
 
-  /// Toshkent center вЂ” used as the initial map view when the barber
+  /// Toshkent center — used as the initial map view when the barber
   /// has never set coordinates before. Approx Chorsu.
   static final _defaultCenter =
       ll.LatLng(41.311081, 69.240562);
@@ -43,7 +43,7 @@ class _BarberLocationScreenState
     super.dispose();
   }
 
-  /// Pulled every time the map settles on a new position вЂ” writes the
+  /// Pulled every time the map settles on a new position — writes the
   /// new lat/lng back into the text controllers so the barber can
   /// see the exact numbers change as they pan / zoom.
   void _syncCoordsFromMap() {
@@ -144,7 +144,7 @@ class _BarberLocationScreenState
             color: AppColors.primary,
             onRefresh: () async {
               _seeded = false;
-              // Force a re-fetch вЂ” ref.watch above will re-emit on the
+              // Force a re-fetch — ref.watch above will re-emit on the
               // new state so we don't need the returned future here.
               // ignore: unused_result
               ref.refresh(barberProfileProvider(user.id));
@@ -161,7 +161,7 @@ class _BarberLocationScreenState
                       .copyWith(color: context.colors.textSecondary),
                 ),
                 AppSpacing.gapLg,
-                // Embedded interactive map вЂ” the barber pans the map,
+                // Embedded interactive map — the barber pans the map,
                 // the fixed center pin marks the picked spot, and the
                 // lat/lng text fields update live. Replaces the old
                 // flow that dumped users into Yandex Maps to copy
@@ -399,7 +399,7 @@ class _LocationPickerMap extends StatelessWidget {
               ),
             ],
           ),
-          // Fixed centre pin вЂ” always at the geometric middle of the
+          // Fixed centre pin — always at the geometric middle of the
           // map viewport. The idle-camera position IS the picked
           // location.
           const IgnorePointer(

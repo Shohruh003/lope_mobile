@@ -155,7 +155,7 @@ class _ShopRemindersScreenState extends ConsumerState<ShopRemindersScreen> {
                               child: c.avatar.isNotEmpty
                                   ? CachedNetworkImage(
                                       // Backend returns a relative
-                                      // asset path вЂ” every other
+                                      // asset path — every other
                                       // screen wraps with assetUrl so
                                       // the request resolves against
                                       // the API base URL. Without it

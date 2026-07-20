@@ -35,7 +35,7 @@ class FavoritesScreen extends ConsumerWidget {
         data: (list) {
           if (list.isEmpty) {
             // Wrap the empty state in a scrollable so pull-to-refresh
-            // works even when there are no favorites вЂ” otherwise the
+            // works even when there are no favorites — otherwise the
             // user has no way to retry after a bad initial load.
             return RefreshIndicator(
               color: AppColors.primary,

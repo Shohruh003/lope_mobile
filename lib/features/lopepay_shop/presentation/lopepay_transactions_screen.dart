@@ -147,7 +147,7 @@ class _LopepayTransactionsScreenState
                                   : _ymd.format(_from!),
                               onTap: () => _pickDate(true))),
                       const SizedBox(width: AppSpacing.sm),
-                      Text("вЂ”",
+                      Text("—",
                           style: TextStyle(color: context.colors.textMuted)),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
@@ -290,7 +290,7 @@ class _LopepayTransactionsScreenState
                                     Row(children: [
                                       AppBadge(
                                         label: type.isEmpty
-                                            ? 'вЂ”'
+                                            ? '—'
                                             : _typeLabel(type),
                                         variant: AppBadgeVariant.neutral,
                                       ),

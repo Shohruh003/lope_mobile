@@ -57,7 +57,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
     }).toList();
   }
 
-  /// Humanized "last visit" pill вЂ” locale-neutral. Says "Bugun /
+  /// Humanized "last visit" pill — locale-neutral. Says "Bugun /
   /// Kecha / 3 kun oldin / 2 hafta oldin" instead of the previous
   /// Russian-formatted `dd.MM.yyyy` string.
   String _prettyLastVisit(DateTime dt, WidgetRef ref) {
@@ -93,7 +93,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
           style: AppText.titleMd,
         ),
         actions: [
-          // Filter-aware client count pill on the top-right вЂ” reads
+          // Filter-aware client count pill on the top-right — reads
           // `filtered.length` via a nested Consumer so it re-renders
           // when the query / bucket state changes. The AppBar sits
           // outside the async.when branch so the pill only shows
@@ -230,7 +230,7 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                       ? ListView(
                           // Wrap the empty state in a scrollable so
                           // pull-to-refresh works even when the list is
-                          // empty вЂ” previously the refresh was only
+                          // empty — previously the refresh was only
                           // reachable on populated screens.
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: [

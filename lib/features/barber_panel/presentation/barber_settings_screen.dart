@@ -17,7 +17,7 @@ class BarberSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
-    // No AppBar вЂ” the barber shell already renders a fixed header
+    // No AppBar — the barber shell already renders a fixed header
     // (Lope Style brand + share + bell) above the tab body, and the
     // bottom nav shows "Profil" for this tab. Repeating the word at
     // the top of the screen was a visual duplication the user asked
@@ -334,7 +334,7 @@ class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
                         ? tr(ref, 'mobile.barber.profileEdit.availableHint',
                             'Yangi bronlar tushishi mumkin')
                         : tr(ref, 'mobile.barber.profileEdit.unavailableHint',
-                            "Bron qabul qilmayapsiz вЂ” profil yashirin"),
+                            "Bron qabul qilmayapsiz — profil yashirin"),
                     style: AppText.caption,
                   ),
                 ],

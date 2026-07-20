@@ -13,7 +13,7 @@ class ScheduleGeneratorScreen extends ConsumerStatefulWidget {
 
   /// Optional pre-selected date passed via `?date=YYYY-MM-DD` from the
   /// schedule screen. When set, the generator defaults `_from` and
-  /// `_to` to this single day вЂ” matches the barber's mental model
+  /// `_to` to this single day — matches the barber's mental model
   /// where they tap "Jadval qo'shish в†’ Avtomatik" on a specific date
   /// and expect the schedule to cover only that day (previously the
   /// default was todayв†’today+7, silently creating a week's worth).
@@ -134,7 +134,7 @@ class _ScheduleGeneratorScreenState
       if (mounted) {
         AppHaptics.success();
         // Pop with `true` so the schedule screen can invalidate its
-        // slot provider immediately вЂ” the previous flow relied on the
+        // slot provider immediately — the previous flow relied on the
         // provider auto-refreshing, which felt like the schedule
         // "appeared late" after the snackbar.
         Navigator.of(context).pop(true);

@@ -248,7 +248,7 @@ class _BarberPublicLinkScreenState
                       ),
                     ),
                     // Auto-save the toggle instead of gating on a
-                    // separate Save button вЂ” the switch flip IS the
+                    // separate Save button — the switch flip IS the
                     // intent, so persisting immediately matches the
                     // user's mental model. Small spinner while the
                     // network call is in-flight prevents rapid-tap
@@ -317,7 +317,7 @@ class _BarberPublicLinkScreenState
                   ]),
                 ),
               ],
-              // Save button removed вЂ” the SMS switch auto-saves on
+              // Save button removed — the SMS switch auto-saves on
               // change so a separate Save action is redundant.
             ],
             ),

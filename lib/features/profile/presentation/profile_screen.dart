@@ -42,7 +42,7 @@ class ProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
           children: [
-            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Profile hero card в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+            // ═════════════ Profile hero card ═════════════
             _ProfileHero(
               user: user,
               balance: balance,
@@ -54,16 +54,16 @@ class ProfileScreen extends ConsumerWidget {
 
             AppSpacing.gapLg,
 
-            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Menu links в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+            // ═════════════ Menu links ═════════════
             // Since we dropped the hamburger drawer, every non-tab
-            // destination lives here вЂ” this is the customer's single
+            // destination lives here — this is the customer's single
             // "everything else" surface (Uzum/Click pattern).
             if (user != null) ...[
               _MenuGroup(children: [
-                // Language row вЂ” compact tile with current flag; tap
+                // Language row — compact tile with current flag; tap
                 // opens a bottom sheet with the four options.
                 _LangTile(currentLang: currentLang),
-                // Theme mode picker вЂ” cycles between System / Light /
+                // Theme mode picker — cycles between System / Light /
                 // Dark. Preference persisted through themeModeProvider.
                 const AppThemeTile(),
                 if (user.role == 'user') ...[
@@ -110,13 +110,13 @@ class ProfileScreen extends ConsumerWidget {
                       ref, 'barberApp.notifications', 'Bildirishnomalar'),
                   onTap: () => context.push('/notifications'),
                 ),
-                // Sozlamalar / "Profil" link removed вЂ” it just re-opened
+                // Sozlamalar / "Profil" link removed — it just re-opened
                 // the same profile screen and confused users.
               ]),
               AppSpacing.gapLg,
             ],
 
-            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Help / Yordam в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+            // ═════════════ Help / Yordam ═════════════
             _MenuGroup(children: [
               _LinkTile(
                 icon: Icons.support_agent_outlined,
@@ -128,7 +128,7 @@ class ProfileScreen extends ConsumerWidget {
                 icon: Icons.help_outline,
                 iconColor: AppColors.primary,
                 label: tr(ref, 'profile.faq',
-                    'FAQ вЂ” Tez-tez beriladigan savollar'),
+                    'FAQ — Tez-tez beriladigan savollar'),
                 onTap: () => _openUrl('https://lopestyle.uz/faq'),
               ),
               _LinkTile(
@@ -141,7 +141,7 @@ class ProfileScreen extends ConsumerWidget {
 
             AppSpacing.gapLg,
 
-            // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Danger zone: Logout + Delete в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+            // ═════════════ Danger zone: Logout + Delete ═════════════
             if (user != null) ...[
               AppButton(
                 label: tr(ref, 'barberApp.logout', 'Chiqish'),
@@ -197,7 +197,7 @@ Future<void> _openUrl(String url) async {
   }
 }
 
-/// Deletion path вЂ” matches the old /settings screen: prompt, then POST
+/// Deletion path — matches the old /settings screen: prompt, then POST
 /// /users/delete-request and log the user out.
 Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
   AppHaptics.light();
@@ -349,7 +349,7 @@ Future<bool?> _logoutDialog(BuildContext context, WidgetRef ref) {
   );
 }
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Profile hero в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ═════════════════════════ Profile hero ═════════════════════════
 
 class _ProfileHero extends ConsumerWidget {
   const _ProfileHero({
@@ -417,7 +417,7 @@ class _ProfileHero extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user?.name ?? 'вЂ”',
+                      user?.name ?? '—',
                       style: AppText.titleLg.copyWith(color: Colors.white),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -564,7 +564,7 @@ class _Fallback extends StatelessWidget {
   }
 }
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Language tile в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ═════════════════════════ Language tile ═════════════════════════
 
 const _langOptions = [
   ('uz', "O'zbek", 'рџ‡єрџ‡ї'),
@@ -731,7 +731,7 @@ class _LangTile extends ConsumerWidget {
   }
 }
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Menu tiles в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ═════════════════════════ Menu tiles ═════════════════════════
 
 class _MenuGroup extends StatelessWidget {
   const _MenuGroup({required this.children});

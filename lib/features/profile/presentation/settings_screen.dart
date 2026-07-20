@@ -11,7 +11,7 @@ import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
 
-/// Settings screen вЂ” grouped list of tiles with the new design system.
+/// Settings screen — grouped list of tiles with the new design system.
 /// State/API preserved: locale change, logout, delete-request POST.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -31,7 +31,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
-          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Account section в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+          // ═══════════ Account section ═══════════
           _SectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
@@ -66,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
 
           AppSpacing.gapXl,
 
-          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ App section в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+          // ═══════════ App section ═══════════
           _SectionLabel(
               tr(ref, 'profile.section.app', 'Ilova').toUpperCase()),
           AppSpacing.gapSm,
@@ -85,7 +85,7 @@ class SettingsScreen extends ConsumerWidget {
 
           AppSpacing.gapXl,
 
-          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Help section в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+          // ═══════════ Help section ═══════════
           _SectionLabel(
               tr(ref, 'profile.section.help', 'Yordam').toUpperCase()),
           AppSpacing.gapSm,
@@ -94,7 +94,7 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.help_outline,
               iconColor: AppColors.primary,
               label: tr(ref, 'profile.faq',
-                  'FAQ вЂ” Tez-tez beriladigan savollar'),
+                  'FAQ — Tez-tez beriladigan savollar'),
               onTap: () => _openUrl('https://lopestyle.uz/faq'),
             ),
             _SettingsTile(
@@ -113,7 +113,7 @@ class SettingsScreen extends ConsumerWidget {
 
           AppSpacing.gapXl,
 
-          // в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Danger zone в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+          // ═══════════ Danger zone ═══════════
           _TileGroup(children: [
             _SettingsTile(
               icon: Icons.logout_outlined,
@@ -293,7 +293,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ Reusable local widgets в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ═══════════ Reusable local widgets ═══════════
 
 Future<bool?> _confirmDialog(
   BuildContext context,

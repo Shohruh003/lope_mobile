@@ -10,11 +10,11 @@ import '../../../shared/widgets/app_states.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notifications_repository.dart';
 
-/// Notifications screen вЂ” date-grouped, type-aware. Uzum/Click darajasi:
+/// Notifications screen — date-grouped, type-aware. Uzum/Click darajasi:
 ///   - Date headers sifatida overline label
 ///   - Kartochka: chap tomonda rangli accent bar + icon dahili
 ///     (new_booking/booking_cancelled/manual_booking/reminder)
-///   - Read/unread вЂ” unread'da subtle tint background + read dot indicator
+///   - Read/unread — unread'da subtle tint background + read dot indicator
 ///   - Mark-all-read tugmasi appbarda (faqat unread > 0 bo'lsa)
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -62,7 +62,7 @@ class NotificationsScreen extends ConsumerWidget {
         data: (list) {
           if (list.isEmpty) {
             // Wrap the empty state in a scrollable so pull-to-refresh
-            // works even without any notifications вЂ” otherwise the
+            // works even without any notifications — otherwise the
             // barber can't force a re-fetch after a bad connection.
             return RefreshIndicator(
               color: AppColors.primary,
@@ -131,7 +131,7 @@ class NotificationsScreen extends ConsumerWidget {
                                 ref.invalidate(
                                     notificationsProvider(user.role));
                               } catch (e) {
-                                // Was `catch (_) {}` вЂ” the tile stayed
+                                // Was `catch (_) {}` — the tile stayed
                                 // visually unread on failure with no
                                 // feedback at all. Surface a snackbar
                                 // so the user knows to retry.

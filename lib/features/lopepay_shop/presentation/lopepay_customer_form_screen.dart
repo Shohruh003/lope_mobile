@@ -218,10 +218,7 @@ class _LopepayCustomerFormScreenState
       });
       ref.invalidate(lopepayProductsProvider);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
-      }
+      if (mounted) AppSnack.error(context, humanize(e));
     } finally {
       nameCtrl.dispose();
       priceCtrl.dispose();
@@ -230,7 +227,10 @@ class _LopepayCustomerFormScreenState
 
   Future<void> _submit() async {
     final name = _customerName.text.trim();
-    final phone = _customerPhone.text.trim();
+    // Canonical raw phone ('+998XXXXXXXXX') stripping mask spaces
+    // so the backend gets a consistent format regardless of what the
+    // AppPhoneField mask rendered visually.
+    final phone = AppPhoneField.rawPhone(_customerPhone.text);
     final productName = _productName.text.trim();
     final total = int.tryParse(_totalPrice.text.trim()) ?? 0;
     final months = int.tryParse(_monthsTotal.text.trim()) ?? 0;
@@ -334,18 +334,20 @@ class _LopepayCustomerFormScreenState
                       TextField(
                         controller: _customerName,
                         textCapitalization: TextCapitalization.words,
-                        decoration:
-                            const InputDecoration(hintText: 'Shohruh Azimov'),
+                        decoration: InputDecoration(
+                          hintText: tr(
+                              ref,
+                              'lopePay.shop.customerNamePlaceholder',
+                              'Familya Ism'),
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       _Label(tr(ref, 'auth.phone', "Telefon")),
                       const SizedBox(height: 6),
-                      TextField(
-                        controller: _customerPhone,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                            hintText: '+998 90 123 45 67'),
-                      ),
+                      // AppPhoneField applies +998 mask + parses to the
+                      // canonical raw phone before we POST — same as
+                      // the shop admin flow uses.
+                      AppPhoneField(controller: _customerPhone),
                     ],
                   ),
                 ),

@@ -85,7 +85,7 @@ class _BarberReminderSettingsScreenState
                 ((b['reminderHoursBefore'] ?? 1) as num).toInt().clamp(1, 6);
             _days =
                 ((b['reminderDays'] ?? 14) as num).toInt().clamp(7, 30);
-            // Baseline so the Save button starts disabled вЂ” enables
+            // Baseline so the Save button starts disabled — enables
             // only when the barber actually bumps a stepper.
             _origHours = _hours;
             _origDays = _days;

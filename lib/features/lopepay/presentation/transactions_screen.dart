@@ -19,13 +19,13 @@ class TransactionsScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
-  // Locale-neutral display formatter вЂ” pattern is language-agnostic
+  // Locale-neutral display formatter — pattern is language-agnostic
   // so dropping the ru_RU locale doesn't change what the barber sees,
   // it just stops advertising Russian formatting on a UZ-first app.
   static final _df = DateFormat('dd.MM.yyyy HH:mm');
   // ISO shape kept for the backend query params only.
   static final _ymd = DateFormat('yyyy-MM-dd');
-  // Human-facing shape for filter pills вЂ” never the ISO string.
+  // Human-facing shape for filter pills — never the ISO string.
   static final _pretty = DateFormat('dd.MM.yyyy');
 
   String _direction = 'all';
@@ -337,7 +337,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         ),
                       ),
                       AppSpacing.hGapSm,
-                      Text('вЂ”',
+                      Text('—',
                           style: TextStyle(color: context.colors.textMuted)),
                       AppSpacing.hGapSm,
                       Expanded(

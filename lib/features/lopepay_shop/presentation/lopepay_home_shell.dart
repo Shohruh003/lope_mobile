@@ -227,7 +227,7 @@ class _LopepayDashboard extends ConsumerWidget {
                       value: shopMeAsync.maybeWhen(
                         data: (s) =>
                             "${_fmt(s.ownerBalance)} ${tr(ref, 'common.currency', "so'm")}",
-                        orElse: () => "вЂ”",
+                        orElse: () => "—",
                       ),
                       color: AppColors.primary,
                       icon: Icons.account_balance_wallet_outlined,
@@ -797,7 +797,7 @@ class _LopepayCustomersTabState extends ConsumerState<_LopepayCustomersTab> {
                                     if (c.nextDue != null) ...[
                                       const SizedBox(
                                           width: AppSpacing.sm),
-                                      Text("вЂў ${_df.format(c.nextDue!)}",
+                                      Text("• ${_df.format(c.nextDue!)}",
                                           style: AppText.caption
                                               .copyWith(fontSize: 11)),
                                     ],

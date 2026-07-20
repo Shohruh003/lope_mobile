@@ -472,8 +472,8 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         await repo.markInstallmentPaid(instId, amount: markOk);
         if (context.mounted) {
           AppHaptics.success();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+          AppSnack.success(
+              context, tr(ref, 'common.saved', 'Saqlandi'));
         }
       } else if (picked == 'undo') {
         if (!context.mounted) return;
@@ -501,8 +501,8 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         if (ok != true) return;
         await repo.undoLastInstallmentPayment(instId);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(tr(ref, 'common.saved', "Saqlandi"))));
+          AppSnack.success(
+              context, tr(ref, 'common.saved', 'Saqlandi'));
         }
       } else if (picked == 'delete') {
         if (!context.mounted) return;
@@ -535,9 +535,8 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
         if (ok != true) return;
         await repo.deleteInstallment(instId);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content:
-                  Text(tr(ref, 'common.deleted', "O'chirildi"))));
+          AppSnack.success(
+              context, tr(ref, 'common.deleted', "O'chirildi"));
         }
       }
       ref.invalidate(lopepayCustomerByPhoneProvider(customerId));
@@ -547,9 +546,7 @@ class LopepayCustomerDetailScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         AppHaptics.error();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
+        AppSnack.error(context, humanize(e));
       }
     }
   }

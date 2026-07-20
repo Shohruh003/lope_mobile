@@ -96,7 +96,7 @@ class _BarberAccountEditScreenState
       AppHaptics.error();
       if (!mounted) return;
       String msg = tr(ref, 'common.errorRetry',
-          "Xatolik вЂ” qaytadan urinib ko'ring");
+          "Xatolik — qaytadan urinib ko'ring");
       if (e.response?.statusCode == 401) {
         msg = tr(ref, 'backend.oldPasswordWrong',
             "Joriy parol noto'g'ri");
@@ -236,7 +236,7 @@ class _BarberAccountEditScreenState
                   style: AppText.body,
                   decoration: InputDecoration(
                     hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
-                    // Inline mismatch warning вЂ” shows only after the
+                    // Inline mismatch warning — shows only after the
                     // user has typed something in confirm and it
                     // doesn't match yet. Prevents cryptic "why is the
                     // button disabled" moments.

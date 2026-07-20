@@ -122,7 +122,7 @@ class BarberStatsScreen extends ConsumerWidget {
                           b.date == todayStr && b.status != 'cancelled')
                       .length;
                   // Fall back to the booking's own id when neither the
-                  // client phone nor a name is set вЂ” otherwise several
+                  // client phone nor a name is set — otherwise several
                   // anonymous guest bookings all collapse into a single
                   // "Mijoz" entry and the unique-clients count is wrong.
                   final uniqueClients = list
@@ -651,7 +651,7 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
               child:
-                  Text('вЂ”', style: TextStyle(color: context.colors.textMuted)),
+                  Text('—', style: TextStyle(color: context.colors.textMuted)),
             ),
             Expanded(
               child: _MiniDate(

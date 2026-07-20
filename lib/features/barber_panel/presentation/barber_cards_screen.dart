@@ -107,7 +107,7 @@ class BarberCardsScreen extends ConsumerWidget {
       AppHaptics.success();
       ref.invalidate(_cardsProvider);
     } catch (e) {
-      // Was `catch (_) {}` вЂ” the barber tapped "Asosiy qil", the
+      // Was `catch (_) {}` — the barber tapped "Asosiy qil", the
       // server rejected it, and they got no feedback at all. Surface
       // the humanized reason so at least they know to retry.
       AppHaptics.error();
@@ -397,7 +397,7 @@ class _CardItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final brand = _getBrand(card['cardNumber']?.toString() ?? '');
     final isDefault = card['isDefault'] == true;
-    final holder = (card['holderName'] ?? 'вЂ”').toString();
+    final holder = (card['holderName'] ?? '—').toString();
     final masked =
         BarberCardsScreen._maskNumber(card['cardNumber']?.toString() ?? '');
 

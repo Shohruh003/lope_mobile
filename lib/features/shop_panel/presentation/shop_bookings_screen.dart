@@ -528,7 +528,7 @@ class _BookingCard extends ConsumerWidget {
                   ),
                 ]),
                 const SizedBox(height: 6),
-                // Secondary actions вЂ” TextButton.icon has fixed internal
+                // Secondary actions — TextButton.icon has fixed internal
                 // padding that overflowed at 50% width on narrow phones.
                 // Custom TapScale rows give us precise control: icon +
                 // text with tight spacing, FittedBox to scale down when
@@ -797,7 +797,7 @@ final shopBookingsFilteredProvider = FutureProvider.family<
 /// Compact icon + label button for the booking card's secondary
 /// actions ("Ko'chirish" / "Uzaytirish"). Uses tight padding and a
 /// FittedBox so long translations scale instead of overflowing the
-/// 50%-width slot вЂ” a problem TextButton.icon couldn't avoid because
+/// 50%-width slot — a problem TextButton.icon couldn't avoid because
 /// its baked-in padding pushed content past the Expanded bound.
 class _SecondaryAction extends StatelessWidget {
   const _SecondaryAction({

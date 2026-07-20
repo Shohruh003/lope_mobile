@@ -21,7 +21,7 @@ class ShopDashboardScreen extends ConsumerStatefulWidget {
 class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
   // Locale-neutral number formatter (spaces as thousands separator
   // via the intl default), and an ISO formatter kept only for the
-  // backend query params вЂ” never surfaced to the user (display uses
+  // backend query params — never surfaced to the user (display uses
   // `_pretty`).
   static final _fmtNum = NumberFormat.decimalPattern();
   static final _ymd = DateFormat('yyyy-MM-dd');
@@ -80,7 +80,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.lg,
                         vertical: AppSpacing.md + 2),
-                    // Icon dropped at user request вЂ” cleaner typography-
+                    // Icon dropped at user request — cleaner typography-
                     // led card with an accent bar on the left instead of
                     // a boxed logo. Salon name is the hero, address sits
                     // underneath with a pin glyph for context.
@@ -145,7 +145,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                         label: _pretty.format(_from),
                         onTap: _pickFrom)),
                 AppSpacing.hGapSm,
-                Text('вЂ”',
+                Text('—',
                     style: TextStyle(color: context.colors.textMuted)),
                 AppSpacing.hGapSm,
                 Expanded(
@@ -304,7 +304,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                       ),
                     ],
 
-                    // Top masters вЂ” mirrors web dashboard's "topBarbers"
+                    // Top masters — mirrors web dashboard's "topBarbers"
                     // section. Each row is tappable and drills into the
                     // barber's detail screen.
                     if (s.topBarbers.isNotEmpty) ...[
@@ -321,7 +321,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                       ),
                     ],
 
-                    // SMS breakdown (Tasdiqlash / Eslatma / Qaytarish) вЂ”
+                    // SMS breakdown (Tasdiqlash / Eslatma / Qaytarish) —
                     // three horizontal bars normalized against the
                     // largest bucket. Matches the web BarChart shape.
                     if ((s.smsConfirmation +
@@ -350,7 +350,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                       ),
                     ],
 
-                    // Booking sources вЂ” Manual / SMS'dan / Ilova.
+                    // Booking sources — Manual / SMS'dan / Ilova.
                     // Client-side derives 'app' = bookings в€’ manual в€’
                     // fromSms (same math as the web dashboard).
                     if (s.bookings > 0) ...[
@@ -375,7 +375,7 @@ class _ShopDashboardScreenState extends ConsumerState<ShopDashboardScreen> {
                   ],
                 ),
               ),
-              // Removed the "BOSHQARUV" duplicate nav card вЂ” every
+              // Removed the "BOSHQARUV" duplicate nav card — every
               // link here also lives in the side drawer, so keeping
               // both was just clutter. Drawer now owns navigation.
             ],
@@ -872,7 +872,7 @@ class _SmsBreakdownCard extends StatelessWidget {
   }
 }
 
-/// Booking sources вЂ” Qo'lda / SMS'dan / Ilova, one column per bucket
+/// Booking sources — Qo'lda / SMS'dan / Ilova, one column per bucket
 /// with an amount, percentage, and horizontal bar.
 class _BookingSourcesCard extends StatelessWidget {
   const _BookingSourcesCard({

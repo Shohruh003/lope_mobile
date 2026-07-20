@@ -20,7 +20,7 @@ import '../data/barber_panel_repository.dart';
 class BarberScheduleScreen extends ConsumerStatefulWidget {
   const BarberScheduleScreen({super.key, this.barberId});
 
-  /// Explicit barber to view вЂ” null means "use the logged-in user's
+  /// Explicit barber to view — null means "use the logged-in user's
   /// id" (self-view for a barber). Populated when a barbershop admin
   /// opens `/shop/barbers/:id` and drills into a specific barber's
   /// schedule; the whole screen is reused so the shop admin gets the
@@ -419,7 +419,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
   Future<void> _openSlotAction(String barberId, String time, String status) async {
     AppHaptics.selection();
     // If the slot is booked, pre-fetch the booking so we can render
-    // client name / phone / services right in the sheet header вЂ”
+    // client name / phone / services right in the sheet header —
     // otherwise the barber had no way to see WHO was booked at that
     // time without cancelling first.
     BarberBooking? booking;
@@ -435,7 +435,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           }
         }
       } catch (_) {
-        // Non-fatal вЂ” sheet still opens with the action buttons.
+        // Non-fatal — sheet still opens with the action buttons.
       }
     }
     if (!mounted) return;
@@ -570,7 +570,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       if (picked == 'block' || picked == 'unblock') {
         await repo.toggleSlotBlock(barberId, dateStr, time);
       } else if (picked == 'delete') {
-        // Confirm before removing the slot вЂ” the previous flow
+        // Confirm before removing the slot — the previous flow
         // deleted it immediately with no undo, easy to mis-tap on.
         if (!mounted) return;
         final ok = await _confirmDeleteSlot(time);
@@ -722,7 +722,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
         ]),
         actions: [
           // "Yo'q" (no) / "Ha" (yes) instead of the confusing double-
-          // "Bekor qilish" pair вЂ” one meant close-the-dialog and the
+          // "Bekor qilish" pair — one meant close-the-dialog and the
           // other meant cancel-the-booking, and they read identically.
           TextButton(
               onPressed: () => Navigator.pop(dCtx, false),
@@ -827,7 +827,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
   }
 
   Future<void> _extendBooking(BarberBooking booking, String barberId) async {
-    // Wheel picker over 15-minute steps вЂ” matches the AppTimePicker /
+    // Wheel picker over 15-minute steps — matches the AppTimePicker /
     // AppDatePicker widget-family so all pickers in the app feel like
     // one system. Values run from -120 to +180 in 15-min increments;
     // the barber scrolls the wheel to pick either a shrink (negative)
@@ -911,7 +911,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       child: Stack(children: [
                         // Cupertino-style center highlight bar so the
                         // currently-selected delta stands out at a
-                        // glance вЂ” matches the AppDatePicker wheel.
+                        // glance — matches the AppDatePicker wheel.
                         IgnorePointer(
                           ignoring: true,
                           child: Center(
@@ -995,7 +995,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     );
     if (ok == null) return;
     // Guard: refuse deltas that would drop the booking below 15
-    // minutes total вЂ” otherwise the barber can shrink a 30-min
+    // minutes total — otherwise the barber can shrink a 30-min
     // booking by -45 and end up with a negative duration.
     if (booking.totalDuration + ok < 15) {
       if (!mounted) return;
@@ -1228,7 +1228,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             totalDuration: totalDuration,
             guestName: nameCtrl.text.trim(),
             // Send the canonical `+998XXXXXXXXX` string instead of the
-            // display value ('+998 90-123-45-67') вЂ” the phone field
+            // display value ('+998 90-123-45-67') — the phone field
             // now renders with spaces and dashes so the raw controller
             // text isn't a valid E.164 number by itself.
             guestPhone: AppPhoneField.rawPhone(phoneCtrl.text),
@@ -1664,7 +1664,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                     ).animate().fadeIn(duration: 150.ms, delay: (i * 15).ms);
                   },
                 ),
-                // Bugungi bronlar ro'yxati вЂ” jadval ostida chiqadi.
+                // Bugungi bronlar ro'yxati — jadval ostida chiqadi.
                 // Web frontend'dagi todayBookings blokining port'i:
                 // barber slot ustiga bosmasidan ham bir qarashda kim
                 // qachonga yozilganini ko'radi.
@@ -2123,7 +2123,7 @@ class _SheetAction extends StatelessWidget {
   }
 }
 
-/// Shown at the top of the booked-slot action sheet вЂ” surfaces the
+/// Shown at the top of the booked-slot action sheet — surfaces the
 /// client's name, phone, and their service list so the barber can see
 /// WHO is booked at that time without having to cancel first.
 class _BookedClientCard extends ConsumerWidget {
@@ -2188,7 +2188,7 @@ class _BookedClientCard extends ConsumerWidget {
 }
 
 /// Vertical list of today's bookings shown below the slot grid.
-/// Ported from the web `todayBookings` block вЂ” the barber can see
+/// Ported from the web `todayBookings` block — the barber can see
 /// every scheduled client at a glance (time, avatar, name, phone,
 /// services, price, status badge) without tapping into individual
 /// slot tiles. Tapping a card opens the same slot-action sheet as

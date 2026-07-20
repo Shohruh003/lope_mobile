@@ -18,7 +18,7 @@ class ShopSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        // "Profil" вЂ” this screen is now a hub for personal + salon
+        // "Profil" — this screen is now a hub for personal + salon
         // settings, theme / language, support links and destructive
         // actions. Renamed from "Sozlamalar" per user's mental model
         // of the drawer entry.
@@ -34,7 +34,7 @@ class ShopSettingsScreen extends ConsumerWidget {
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
           // Balance hero + top-up CTA lives inside Profil (not the
-          // drawer) вЂ” user explicitly asked for it here. The chip in
+          // drawer) — user explicitly asked for it here. The chip in
           // the shell header is the quick-glance version; this card
           // is the actionable one.
           _BalanceCard(
@@ -52,7 +52,7 @@ class ShopSettingsScreen extends ConsumerWidget {
           AppSpacing.gapXl,
           _SectionLabel(tr(ref, 'mobile.shop.settings.salon', 'SALON')),
           AppSpacing.gapSm,
-          // Adminlar and Eslatmalar live in the drawer already вЂ” leave
+          // Adminlar and Eslatmalar live in the drawer already — leave
           // Profil focused on info-editing entries only.
           _TileGroup(children: [
             _SettingsTile(
@@ -308,7 +308,7 @@ class _SettingsTile extends StatelessWidget {
   }
 }
 
-/// Balance hero shown at the top of the Profil page вЂ” big amount
+/// Balance hero shown at the top of the Profil page — big amount
 /// readout plus a primary "To'ldirish" CTA that opens [TopUpModal].
 /// The shell header chip stays synced via [shopBalanceProvider].
 class _BalanceCard extends ConsumerWidget {
@@ -355,7 +355,7 @@ class _BalanceCard extends ConsumerWidget {
                     loading: () => Text('вЂ¦',
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
-                    error: (_, _) => Text('вЂ”',
+                    error: (_, _) => Text('—',
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
                     data: (b) => Text(

@@ -18,14 +18,14 @@ import '../domain/barber.dart';
 /// Redesigned customer-facing barber discovery feed. Uzum/Click darajasidagi
 /// polish maqsadida:
 ///
-///   1) Sarlavha вЂ” 3 qator chip o'rniga bitta qator: 3 ta asosiy filter
+///   1) Sarlavha — 3 qator chip o'rniga bitta qator: 3 ta asosiy filter
 ///      (Sevimlilar/Barchasi/Bo'sh) + tuner iconi. Sort va gender endi
-///      bottom sheet ichida вЂ” hech narsa sig'may qolmaydi.
-///   2) Kartochkalar вЂ” barber va salon uchun bir xil "shell" (AppCard).
-///      Farqi faqat: barber вЂ” avatar, salon вЂ” building icon + usta soni badge.
-///   3) Status badge вЂ” yashil dot bilan aniq "Bo'sh/Band" ko'rsatuvchi
+///      bottom sheet ichida — hech narsa sig'may qolmaydi.
+///   2) Kartochkalar — barber va salon uchun bir xil "shell" (AppCard).
+///      Farqi faqat: barber — avatar, salon — building icon + usta soni badge.
+///   3) Status badge — yashil dot bilan aniq "Bo'sh/Band" ko'rsatuvchi
 ///      AppBadge (top-right). Bir qarashda ko'rinadi.
-///   4) TapScale вЂ” har kartochka tap qilinganda ozgina 0.96 scale + haptik.
+///   4) TapScale — har kartochka tap qilinganda ozgina 0.96 scale + haptik.
 class BarbersListScreen extends ConsumerStatefulWidget {
   const BarbersListScreen({super.key});
 
@@ -118,7 +118,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
             ),
             async.when(
               // Keep showing the previous data during a pull-to-refresh so
-              // the screen never goes blank вЂ” user sees stale cards with
+              // the screen never goes blank — user sees stale cards with
               // the RefreshIndicator spinner overlay rather than a wall of
               // shimmering skeletons every 3 seconds.
               skipLoadingOnRefresh: true,
@@ -138,7 +138,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
                 // the customer's geolocation resolves before rendering.
                 // Otherwise the grid paints once by rating, then flips
                 // on top of itself when the GPS position lands a moment
-                // later вЂ” that's the "rikoshet" jitter the user hit.
+                // later — that's the "rikoshet" jitter the user hit.
                 final locAsync = ref.watch(currentLocationProvider);
                 if (_sort == 'distance' && locAsync.isLoading) {
                   return const SliverToBoxAdapter(child: _LoadingGrid());
@@ -294,7 +294,7 @@ class _BarbersListScreenState extends ConsumerState<BarbersListScreen> {
 }
 
 // в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-// Sticky filter header вЂ” search + primary chips + tuner button
+// Sticky filter header — search + primary chips + tuner button
 // в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
   _StickyFilterHeader({
@@ -389,7 +389,7 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
             child: SizedBox(
               height: 36,
               // Sevimlilar chip is now a header shortcut icon that
-              // pushes to /favorites вЂ” keep just the list-scope filters
+              // pushes to /favorites — keep just the list-scope filters
               // here.
               child: ListView(
                 scrollDirection: Axis.horizontal,
@@ -410,7 +410,7 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
             ),
           ),
           AppSpacing.hGapSm,
-          // Tuner button вЂ” opens bottom sheet with sort + gender
+          // Tuner button — opens bottom sheet with sort + gender
           TapScale(
             onTap: onOpenTuner,
             child: Container(
@@ -439,7 +439,7 @@ class _StickyFilterHeader extends SliverPersistentHeaderDelegate {
 }
 
 // в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-// Tuner bottom sheet вЂ” sort + gender in one dialog
+// Tuner bottom sheet — sort + gender in one dialog
 // в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class _TunerSheet extends ConsumerStatefulWidget {
   const _TunerSheet({
@@ -610,7 +610,7 @@ class _ShopCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Distance to the customer вЂ” mirrors the barber card so shops don't
+    // Distance to the customer — mirrors the barber card so shops don't
     // look half-populated when a barber sitting next to them shows "1.2
     // km". Falls back to null when we don't have geo OR the shop lacks
     // coordinates (older seed records).
@@ -629,7 +629,7 @@ class _ShopCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header вЂ” same 1.35 aspect ratio as barber cards so the two
+            // Header — same 1.35 aspect ratio as barber cards so the two
             // types of card have identical banner heights inside the
             // grid. Previously this was a fixed 96px SizedBox and looked
             // squashed next to the barber's tall photo.
@@ -652,7 +652,7 @@ class _ShopCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // Circular monogram avatar вЂ” Uzum / Yandex-style brand
+                // Circular monogram avatar — Uzum / Yandex-style brand
                 // mark for shops. Uses the shop name's first letter over
                 // a primary gradient so every shop has a recognisable
                 // identity even without an uploaded logo.
@@ -743,9 +743,9 @@ class _ShopCard extends ConsumerWidget {
                 ),
               ]),
             ),
-            // Body вЂ” 1:1 with _BarberCard: name, rating row (rating +
+            // Body — 1:1 with _BarberCard: name, rating row (rating +
             // review count + distance), then CTA. Address was removed
-            // per user request вЂ” the detail screen has the full address
+            // per user request — the detail screen has the full address
             // and duplicating it here just made the two card types
             // asymmetric.
             Padding(
@@ -810,7 +810,7 @@ class _BarberCard extends ConsumerWidget {
     final favIds = ref.watch(favoritesControllerProvider);
     final isFav = favIds.contains(barber.id);
 
-    // Distance to the customer вЂ” used to show a "1.2 km" pill next to
+    // Distance to the customer — used to show a "1.2 km" pill next to
     // the location. Falls back to null when we don't have the user's
     // geolocation OR the master lacks coordinates.
     final me = ref.watch(currentLocationProvider).asData?.value;
@@ -828,7 +828,7 @@ class _BarberCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header вЂ” gallery photo (or fallback avatar as bg) + bookmark
+            // Header — gallery photo (or fallback avatar as bg) + bookmark
             // + status badge. Cleaner than the old avatar-overlap trick
             // that caused the "random emoji" artefact users reported.
             AspectRatio(
@@ -878,7 +878,7 @@ class _BarberCard extends ConsumerWidget {
                     dot: true,
                   ),
                 ),
-                // Bottom-left avatar bubble вЂ” matches the shop card's
+                // Bottom-left avatar bubble — matches the shop card's
                 // monogram avatar so both card types carry a consistent
                 // "brand mark" element. Shows the barber's uploaded
                 // profile photo (or a gradient monogram if none) even
@@ -893,7 +893,7 @@ class _BarberCard extends ConsumerWidget {
                 ),
               ]),
             ),
-            // Body вЂ” no more Transform.translate; content sits neatly
+            // Body — no more Transform.translate; content sits neatly
             // under the header.
             Padding(
               padding: const EdgeInsets.fromLTRB(
@@ -1083,7 +1083,7 @@ class _AvatarBubble extends StatelessWidget {
   }
 }
 
-/// Compact monogram used inside [_AvatarBubble] вЂ” same visual language
+/// Compact monogram used inside [_AvatarBubble] — same visual language
 /// as [_MonogramFallback] but sized for the smaller circular container.
 class _AvatarMonogram extends StatelessWidget {
   const _AvatarMonogram({required this.name});
@@ -1148,7 +1148,7 @@ class _DistancePill extends StatelessWidget {
   }
 }
 
-/// Compact primary CTA on each barber card вЂ” jumps straight into the
+/// Compact primary CTA on each barber card — jumps straight into the
 /// booking flow so the customer skips one navigation step.
 class _BookNowButton extends ConsumerWidget {
   const _BookNowButton({required this.barberId});
@@ -1193,7 +1193,7 @@ class _BookNowButton extends ConsumerWidget {
   }
 }
 
-/// Shop card CTA вЂ” visually identical to [_BookNowButton] but routes to
+/// Shop card CTA — visually identical to [_BookNowButton] but routes to
 /// the shop detail where the customer picks a barber first. Kept as a
 /// separate widget so the label can differ (Yozilish в†’ same word, but
 /// intent is "open the shop's barber list") without loading a `barberId`
@@ -1242,7 +1242,7 @@ class _ShopBookButton extends ConsumerWidget {
 }
 
 // в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
-// Loading grid вЂ” proper skeleton (not just blank shimmer)
+// Loading grid — proper skeleton (not just blank shimmer)
 // в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
 class _LoadingGrid extends StatelessWidget {
   const _LoadingGrid();
