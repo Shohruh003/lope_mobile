@@ -5,10 +5,10 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "uz.lopestyle.lope_mobile",
+      "package_name": "uz.barberbook.mobile",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_YOUR_RELEASE_SHA256",
-        "REPLACE_WITH_YOUR_DEBUG_SHA256_IF_TESTING"
+        "6D:73:A6:0A:9E:EF:4E:6D:43:BA:24:53:64:B3:43:E1:AA:61:74:A4:A0:80:C4:97:39:17:54:B4:D6:84:5B:53",
+        "REPLACE_WITH_PLAY_APP_SIGNING_SHA256_FROM_CONSOLE"
       ]
     }
   }

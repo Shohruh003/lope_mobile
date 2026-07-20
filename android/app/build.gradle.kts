@@ -1,11 +1,29 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Load release signing config from android/key.properties. The file
+// is git-ignored (see android/.gitignore) so the storePassword /
+// keyPassword never leak into version control. Fields:
+//   storePassword, keyPassword, keyAlias, storeFile
+// The storeFile path is resolved relative to android/app/, so
+// `../../BarberBook.jks` points at the repo-root .jks placed there
+// by the release manager.
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("key.properties")
+    if (f.exists()) FileInputStream(f).use { load(it) }
+}
+
 android {
-    namespace = "uz.lopestyle.lope_mobile"
+    // Namespace = local package for R.java / BuildConfig code — must
+    // match the manifest package. Kept aligned with applicationId so
+    // there's one source of truth.
+    namespace = "uz.barberbook.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +33,11 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "uz.lopestyle.lope_mobile"
+        // Play Store identifier — MUST NOT change once the app is
+        // live on Google Play (used as the unique app key). Current
+        // Play Store listing is uz.barberbook.mobile with 292+
+        // installs, so we keep the id in lock-step with production.
+        applicationId = "uz.barberbook.mobile"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -25,11 +46,29 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val storeFilePath = keystoreProperties.getProperty("storeFile")
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Prefer the real release keystore when key.properties is
+            // present. Falls back to the debug keystore on machines
+            // that don't have the release .jks (CI without secrets,
+            // dev laptops) so `flutter run --release` still works.
+            signingConfig = if (keystoreProperties.getProperty("storeFile") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
