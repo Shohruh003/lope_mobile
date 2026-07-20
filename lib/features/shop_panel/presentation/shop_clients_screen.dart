@@ -123,6 +123,10 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                 "{{n}} ta SMS navbatga qo'shildi",
                 {'n': '${res.total}'}));
       }
+      // Refetch after the send finishes so the client list reflects
+      // updated 'due for reminder' / last-visit state — previously
+      // the modal closed and the same rows sat there marked pending.
+      if (mounted) ref.invalidate(shopClientsProvider);
     } catch (e) {
       AppHaptics.error();
       if (mounted) {
