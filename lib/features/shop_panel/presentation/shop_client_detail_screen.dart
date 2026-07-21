@@ -220,7 +220,7 @@ class _ShopClientDetailScreenState
                                         style: AppText.caption
                                             .copyWith(fontSize: 11)),
                                     if ((v['time'] ?? '').toString().isNotEmpty) ...[
-                                      Text("  вЂў  ",
+                                      Text("  •  ",
                                           style: AppText.caption
                                               .copyWith(fontSize: 11)),
                                       Icon(Icons.access_time,
@@ -232,7 +232,7 @@ class _ShopClientDetailScreenState
                                               .copyWith(fontSize: 11)),
                                     ],
                                     if (total > 0) ...[
-                                      Text("  вЂў  ",
+                                      Text("  •  ",
                                           style: AppText.caption
                                               .copyWith(fontSize: 11)),
                                       Text(

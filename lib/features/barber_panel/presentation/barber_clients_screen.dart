@@ -304,12 +304,12 @@ class _BarberClientsScreenState extends ConsumerState<BarberClientsScreen> {
                                       ),
                                       if (c.lastVisit != null)
                                         Text(
-                                          "В· ${_prettyLastVisit(c.lastVisit!.toLocal(), ref)}",
+                                          "• ${_prettyLastVisit(c.lastVisit!.toLocal(), ref)}",
                                           style: AppText.caption,
                                         ),
                                       if (c.totalSpent > 0)
                                         Text(
-                                          "В· ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
+                                          "• ${_fmt(c.totalSpent)} ${tr(ref, 'common.currency', "so'm")}",
                                           style: AppText.caption.copyWith(
                                             color: AppColors.warning,
                                             fontWeight: FontWeight.w700,

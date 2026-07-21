@@ -323,7 +323,7 @@ class BarberCardsScreen extends ConsumerWidget {
     final middleLen = d.length - 8;
     final middleGroups = (middleLen / 4).ceil();
     final middle =
-        List.generate(middleGroups, (_) => 'вЂўвЂўвЂўвЂў').join(' ');
+        List.generate(middleGroups, (_) => '••••').join(' ');
     return [first, if (middle.isNotEmpty) middle, last].join(' ');
   }
 }

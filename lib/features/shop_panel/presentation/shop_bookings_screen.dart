@@ -448,13 +448,13 @@ class _BookingCard extends ConsumerWidget {
                   Text(b.barberName,
                       style: AppText.caption.copyWith(fontSize: 11)),
                   if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
-                    Text("  вЂў  ",
+                    Text("  •  ",
                         style: AppText.caption.copyWith(fontSize: 11)),
                     Text(b.userPhone!,
                         style: AppText.caption.copyWith(fontSize: 11)),
                   ],
                   if (b.totalDuration > 0) ...[
-                    Text("  вЂў  ",
+                    Text("  •  ",
                         style: AppText.caption.copyWith(fontSize: 11)),
                     Icon(Icons.access_time,
                         size: 11, color: context.colors.textMuted),

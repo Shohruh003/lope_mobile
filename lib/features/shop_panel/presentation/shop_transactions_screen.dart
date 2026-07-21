@@ -544,7 +544,7 @@ class _BalanceHero extends StatelessWidget {
                           .copyWith(color: Colors.white70)),
                   const SizedBox(height: 2),
                   balanceAsync.when(
-                    loading: () => Text("вЂ¦",
+                    loading: () => Text("…",
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
                     error: (_, _) => Text("—",

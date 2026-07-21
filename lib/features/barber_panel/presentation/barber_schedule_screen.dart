@@ -1601,15 +1601,17 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   variant: AppCardVariant.flat,
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                  // Legend on its own row (kept together, scales if
-                  // ever too tight); action buttons below. Prior
-                  // Row(Expanded(Wrap), action, action) let the Wrap
-                  // break "Bo'sh Band" onto one line and "Bloklangan"
-                  // onto a second line on narrow phones.
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      FittedBox(
+                  // Layout adapts to width: on ≥380dp phones (iPhone
+                  // 13 Pro Max and every modern flagship) legend +
+                  // both action buttons fit on a single row, so the
+                  // slot grid starts higher and the whole card
+                  // collapses to one line of vertical space. Below
+                  // 380dp we fall back to legend-on-top / actions-
+                  // below to prevent the earlier "Bo'sh Band" / "
+                  // Bloklangan" wrap.
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final legend = FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -1625,28 +1627,42 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                               color: AppColors.danger,
                               label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
                         ]),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Row(children: [
-                        Expanded(
-                          child: _TinyAction(
-                            icon: Icons.event_busy_outlined,
-                            color: AppColors.danger,
-                            label: tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
-                            onTap: () => _confirmCloseDay(barberId),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Expanded(
-                          child: _TinyAction(
-                            icon: Icons.add,
-                            color: AppColors.primary,
-                            label: tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
-                            onTap: () => _openAddSchedule(barberId),
-                          ),
-                        ),
-                      ]),
-                    ],
+                      );
+                      final closeBtn = _TinyAction(
+                        icon: Icons.event_busy_outlined,
+                        color: AppColors.danger,
+                        label: tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
+                        onTap: () => _confirmCloseDay(barberId),
+                      );
+                      final addBtn = _TinyAction(
+                        icon: Icons.add,
+                        color: AppColors.primary,
+                        label: tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
+                        onTap: () => _openAddSchedule(barberId),
+                      );
+
+                      if (constraints.maxWidth >= 380) {
+                        return Row(children: [
+                          Expanded(child: legend),
+                          const SizedBox(width: AppSpacing.sm),
+                          closeBtn,
+                          const SizedBox(width: AppSpacing.xs),
+                          addBtn,
+                        ]);
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          legend,
+                          const SizedBox(height: AppSpacing.sm),
+                          Row(children: [
+                            Expanded(child: closeBtn),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(child: addBtn),
+                          ]),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -2322,7 +2338,7 @@ class _BookingRow extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 4),
           child: Text(
-            '${booking.time} вЂ“ $endTime',
+            '${booking.time} – $endTime',
             style: AppText.caption.copyWith(
               color: palette.textBright,
               fontWeight: FontWeight.w700,

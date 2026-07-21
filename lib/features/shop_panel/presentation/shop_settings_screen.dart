@@ -352,7 +352,7 @@ class _BalanceCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   async.when(
-                    loading: () => Text('вЂ¦',
+                    loading: () => Text('…',
                         style: AppText.titleLg
                             .copyWith(color: Colors.white)),
                     error: (_, _) => Text('—',

@@ -445,7 +445,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           obscureText: hide,
           style: AppText.body,
           decoration: InputDecoration(
-            hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
+            hintText: '••••••',
             suffixIcon: IconButton(
               icon: Icon(
                   hide

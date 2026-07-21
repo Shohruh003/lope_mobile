@@ -147,6 +147,7 @@ class _BarberReminderSettingsScreenState
               Text(
                 tr(ref, 'mobile.barber.reminders.hint',
                     "Mijozlarga SMS bilan eslatma jo'natiladi. Quyida vaqtni va davrni sozlang."),
+                textAlign: TextAlign.center,
                 style: AppText.bodyLg
                     .copyWith(color: context.colors.textSecondary),
               ),

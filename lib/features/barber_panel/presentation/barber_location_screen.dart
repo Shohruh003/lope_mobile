@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart' as ll;
 
 import '../../../core/errors.dart';
+import '../../../core/location_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
@@ -28,6 +29,15 @@ class _BarberLocationScreenState
   bool _seeded = false;
   bool _editing = false;
   bool _saving = false;
+  bool _locating = false;
+  // `_dirty` gates the Save button: false until the barber actually
+  // moves the pin or edits the address (compared against the seeded
+  // baseline). Prevents accidental "Save" taps that resubmit the same
+  // data and briefly network-thrash.
+  bool _dirty = false;
+  String _initialLat = '';
+  String _initialLng = '';
+  String _initialAddress = '';
 
   /// Toshkent center — used as the initial map view when the barber
   /// has never set coordinates before. Approx Chorsu.
@@ -36,6 +46,7 @@ class _BarberLocationScreenState
 
   @override
   void dispose() {
+    _addressCtrl.removeListener(_markDirty);
     _latCtrl.dispose();
     _lngCtrl.dispose();
     _addressCtrl.dispose();
@@ -50,6 +61,50 @@ class _BarberLocationScreenState
     final c = _mapController.camera.center;
     _latCtrl.text = c.latitude.toStringAsFixed(6);
     _lngCtrl.text = c.longitude.toStringAsFixed(6);
+    _markDirty();
+  }
+
+  /// Called on any user-driven change (map pan, address edit, GPS
+  /// snap). Compares the current field values against the seeded
+  /// baseline and flips [_dirty] accordingly — the Save button binds
+  /// to this so it enables the moment the barber changes something
+  /// and disables again if they revert.
+  void _markDirty() {
+    final changed = _latCtrl.text != _initialLat ||
+        _lngCtrl.text != _initialLng ||
+        _addressCtrl.text != _initialAddress;
+    if (changed != _dirty) setState(() => _dirty = changed);
+  }
+
+  /// Uses the shared [LocationService] to fetch the barber's current
+  /// GPS position, then animates the map to that point. Falls back to
+  /// a snackbar on denial / timeout — a silent no-op would look
+  /// broken.
+  Future<void> _snapToMyLocation() async {
+    if (_locating) return;
+    setState(() => _locating = true);
+    AppHaptics.light();
+    final loc = await ref
+        .read(locationServiceProvider)
+        .currentPosition();
+    if (!mounted) return;
+    if (loc == null) {
+      AppHaptics.error();
+      setState(() => _locating = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(tr(
+            ref,
+            'mobile.barber.location.gpsUnavailable',
+            "Joylashuvni aniqlab bo'lmadi. Sozlamalardan GPS ruxsatini yoqing.")),
+      ));
+      return;
+    }
+    _mapController.move(ll.LatLng(loc.lat, loc.lng), 17);
+    _latCtrl.text = loc.lat.toStringAsFixed(6);
+    _lngCtrl.text = loc.lng.toStringAsFixed(6);
+    _markDirty();
+    AppHaptics.success();
+    setState(() => _locating = false);
   }
 
   Future<void> _save(String barberId) async {
@@ -76,7 +131,15 @@ class _BarberLocationScreenState
       ref.invalidate(barberProfileProvider(barberId));
       AppHaptics.success();
       if (mounted) {
-        setState(() => _editing = false);
+        // Reset the dirty baseline so the Save button re-locks
+        // until the barber makes another change.
+        _initialLat = _latCtrl.text;
+        _initialLng = _lngCtrl.text;
+        _initialAddress = _addressCtrl.text;
+        setState(() {
+          _editing = false;
+          _dirty = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(tr(ref, 'common.saved', 'Saqlandi'))));
       }
@@ -138,6 +201,12 @@ class _BarberLocationScreenState
                     b['location'] ??
                     '')
                 .toString();
+            // Snapshot the loaded values as the "clean" baseline so
+            // the Save button can compare against them.
+            _initialLat = _latCtrl.text;
+            _initialLng = _lngCtrl.text;
+            _initialAddress = _addressCtrl.text;
+            _addressCtrl.addListener(_markDirty);
           }
           final hasLocation = _addressCtrl.text.isNotEmpty;
           return RefreshIndicator(
@@ -157,6 +226,7 @@ class _BarberLocationScreenState
                 Text(
                   tr(ref, 'mobile.barber.location.editHint',
                       'Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting'),
+                  textAlign: TextAlign.center,
                   style: AppText.bodyLg
                       .copyWith(color: context.colors.textSecondary),
                 ),
@@ -177,6 +247,8 @@ class _BarberLocationScreenState
                     return _defaultCenter;
                   }(),
                   onIdle: _syncCoordsFromMap,
+                  onFindMyLocation: _snapToMyLocation,
+                  locating: _locating,
                 ),
                 AppSpacing.gapMd,
                 AppCard(
@@ -223,7 +295,9 @@ class _BarberLocationScreenState
                       label: tr(ref, 'common.save', 'Saqlash'),
                       variant: AppButtonVariant.primary,
                       loading: _saving,
-                      onPressed: _saving ? null : () => _save(user.id),
+                      onPressed: (_saving || !_dirty)
+                          ? null
+                          : () => _save(user.id),
                       fullWidth: true,
                     ),
                   ),
@@ -334,11 +408,15 @@ class _LocationPickerMap extends StatelessWidget {
     required this.controller,
     required this.initial,
     required this.onIdle,
+    required this.onFindMyLocation,
+    required this.locating,
   });
 
   final MapController controller;
   final ll.LatLng initial;
   final VoidCallback onIdle;
+  final VoidCallback onFindMyLocation;
+  final bool locating;
 
   @override
   Widget build(BuildContext context) {
@@ -414,8 +492,8 @@ class _LocationPickerMap extends StatelessWidget {
               ),
             ),
           ),
-          // Bottom-right recentre hint pill so the user learns to
-          // just pan the map.
+          // Bottom-left pan hint pill so the user learns to just
+          // pan the map.
           Positioned(
             left: AppSpacing.sm,
             bottom: AppSpacing.sm,
@@ -432,6 +510,39 @@ class _LocationPickerMap extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          // Top-right "my location" FAB — asks the OS for GPS and
+          // snaps the pin to the barber's real position so they
+          // don't have to hunt on the map.
+          Positioned(
+            right: AppSpacing.sm,
+            top: AppSpacing.sm,
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              elevation: 3,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: locating ? null : onFindMyLocation,
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: locating
+                      ? const Center(
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.my_location,
+                          color: AppColors.primary, size: 22),
                 ),
               ),
             ),

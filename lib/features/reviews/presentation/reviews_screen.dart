@@ -13,7 +13,7 @@ class ReviewsScreen extends ConsumerWidget {
   const ReviewsScreen({super.key, required this.barberId});
   final String barberId;
 
-  // Locale-neutral formatter вЂ” the pattern renders identically without
+  // Locale-neutral formatter — the pattern renders identically without
   // the ru_RU locale, so dropping it removes an accidental "Russian
   // date format" signal on a UZ-first app.
   static final _df = DateFormat('dd.MM.yyyy');
@@ -76,7 +76,7 @@ class ReviewsScreen extends ConsumerWidget {
                       message: tr(
                         ref,
                         'mobile.reviews.emptyHint',
-                        "Birinchi bo'lib sharh qoldiring вЂ” boshqa mijozlarga tanlashda yordam beradi.",
+                        "Birinchi bo'lib sharh qoldiring — boshqa mijozlarga tanlashda yordam beradi.",
                       ),
                     ),
                   ),

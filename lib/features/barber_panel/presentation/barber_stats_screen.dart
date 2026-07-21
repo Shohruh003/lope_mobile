@@ -245,7 +245,7 @@ class BarberStatsScreen extends ConsumerWidget {
                               label: tr(ref,
                                   'mobile.barber.stats.week', 'Bu hafta'),
                               value:
-                                  "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} В· ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}",
+                                  "$weekCount ${tr(ref, 'mobile.barber.stats.bookingsShort', 'ta bron')} • ${_fmt(weekRev)} ${tr(ref, 'common.currency', "so'm")}",
                             ),
                             Divider(
                                 color: context.colors.border, height: 14),
@@ -702,28 +702,28 @@ class _SmsStatsCardState extends ConsumerState<_SmsStatsCard> {
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsTotal', 'Jami SMS'),
                   value:
-                      "${s.totalSent} В· ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.totalSent} ta • ${_fmt(s.totalCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsConfirmation',
                       'Tasdiqlash'),
                   value:
-                      "${s.confirmationRegistered + s.confirmationGuest} В· ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.confirmationRegistered + s.confirmationGuest} ta • ${_fmt(s.confirmationRegisteredCost + s.confirmationGuestCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsReminder',
                       'Eslatma'),
                   value:
-                      "${s.reminderCount} В· ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.reminderCount} ta • ${_fmt(s.reminderCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 Divider(color: context.colors.border, height: 14),
                 _SummaryRow(
                   label: tr(ref, 'mobile.barber.stats.smsRetention',
                       'Reklama'),
                   value:
-                      "${s.retentionCount} В· ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}",
+                      "${s.retentionCount} ta • ${_fmt(s.retentionCost)} ${tr(ref, 'common.currency', "so'm")}",
                 ),
                 if (s.returnedClients > 0) ...[
                   Divider(color: context.colors.border, height: 14),

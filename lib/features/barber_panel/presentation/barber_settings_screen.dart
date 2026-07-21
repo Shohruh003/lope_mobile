@@ -3,13 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/api_client.dart';
 import '../../../core/errors.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../data/barber_panel_repository.dart';
-import '../data/barber_profile_repository.dart';
 
 class BarberSettingsScreen extends ConsumerWidget {
   const BarberSettingsScreen({super.key});
@@ -26,10 +23,11 @@ class BarberSettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
-          if (user != null) ...[
-            _AvailabilityTile(userId: user.id),
-            AppSpacing.gapLg,
-          ],
+          // Availability toggle lives on the Sartarosh profili screen
+          // (barber_profile_edit_screen) so it sits next to the rest
+          // of the barber's public profile controls. Duplicating it
+          // here confused users into thinking the two switches did
+          // different things.
           _SectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
@@ -262,115 +260,6 @@ class BarberSettingsScreen extends ConsumerWidget {
     }
     await ref.read(authControllerProvider.notifier).logout();
     if (context.mounted) context.go('/login');
-  }
-}
-
-class _AvailabilityTile extends ConsumerStatefulWidget {
-  const _AvailabilityTile({required this.userId});
-  final String userId;
-  @override
-  ConsumerState<_AvailabilityTile> createState() =>
-      _AvailabilityTileState();
-}
-
-class _AvailabilityTileState extends ConsumerState<_AvailabilityTile> {
-  bool _busy = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final async = ref.watch(barberProfileProvider(widget.userId));
-    return async.when(
-      loading: () => const SkeletonRect(height: 72, radius: AppRadius.lg),
-      error: (_, _) => const SizedBox.shrink(),
-      data: (b) {
-        final on = b['isAvailable'] != false;
-        return AppCard(
-          variant: AppCardVariant.outlined,
-          padding: AppSpacing.cardPadding,
-          color: on
-              ? AppColors.success.withValues(alpha: 0.06)
-              : context.colors.surfaceElevated.withValues(alpha: 0.5),
-          borderColor: on
-              ? AppColors.success.withValues(alpha: 0.3)
-              : context.colors.border,
-          child: Row(children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                gradient: on
-                    ? const LinearGradient(colors: [
-                        Color(0xFF10B981),
-                        Color(0xFF059669),
-                      ])
-                    : null,
-                color: on ? null : context.colors.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                on
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                color: on ? Colors.white : context.colors.textMuted,
-                size: 22,
-              ),
-            ),
-            AppSpacing.hGapMd,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    on
-                        ? tr(ref, 'barbers.available', "Bo'sh")
-                        : tr(ref, 'barbers.unavailable', 'Band'),
-                    style: AppText.titleSm.copyWith(
-                      color: on ? AppColors.success : context.colors.textBright,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    on
-                        ? tr(ref, 'mobile.barber.profileEdit.availableHint',
-                            'Yangi bronlar tushishi mumkin')
-                        : tr(ref, 'mobile.barber.profileEdit.unavailableHint',
-                            "Bron qabul qilmayapsiz — profil yashirin"),
-                    style: AppText.caption,
-                  ),
-                ],
-              ),
-            ),
-            AppSpacing.hGapSm,
-            Switch(
-              value: on,
-              activeThumbColor: AppColors.success,
-              onChanged: _busy
-                  ? null
-                  : (_) async {
-                      AppHaptics.medium();
-                      setState(() => _busy = true);
-                      try {
-                        await ref
-                            .read(barberPanelRepositoryProvider)
-                            .toggleAvailability(widget.userId);
-                        ref.invalidate(
-                            barberProfileProvider(widget.userId));
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        AppHaptics.error();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
-                      } finally {
-                        if (mounted) setState(() => _busy = false);
-                      }
-                    },
-            ),
-          ]),
-        );
-      },
-    );
   }
 }
 

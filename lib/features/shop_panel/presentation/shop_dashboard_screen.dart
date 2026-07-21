@@ -537,7 +537,7 @@ class _TodayCashCard extends ConsumerWidget {
                 tr(
                   ref,
                   'mobile.shop.dashboard.todayBreakdown',
-                  '{{c}} yakunlangan В· {{t}} jami buyurtma',
+                  '{{c}} yakunlangan • {{t}} jami buyurtma',
                   {
                     'c': '${stats.todayCompleted}',
                     't': '${stats.todayBookings}',

@@ -186,7 +186,7 @@ class _BarberAccountEditScreenState
                   obscureText: _obscureCurrent,
                   style: AppText.body,
                   decoration: InputDecoration(
-                    hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
+                    hintText: '••••••',
                     suffixIcon: IconButton(
                       icon: Icon(
                           _obscureCurrent
@@ -210,7 +210,7 @@ class _BarberAccountEditScreenState
                   obscureText: _obscureNew,
                   style: AppText.body,
                   decoration: InputDecoration(
-                    hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
+                    hintText: '••••••',
                     suffixIcon: IconButton(
                       icon: Icon(
                           _obscureNew
@@ -235,7 +235,7 @@ class _BarberAccountEditScreenState
                   obscureText: _obscureConfirm,
                   style: AppText.body,
                   decoration: InputDecoration(
-                    hintText: 'вЂўвЂўвЂўвЂўвЂўвЂў',
+                    hintText: '••••••',
                     // Inline mismatch warning — shows only after the
                     // user has typed something in confirm and it
                     // doesn't match yet. Prevents cryptic "why is the
