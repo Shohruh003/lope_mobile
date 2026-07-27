@@ -567,10 +567,10 @@ class _Fallback extends StatelessWidget {
 // ═════════════════════════ Language tile ═════════════════════════
 
 const _langOptions = [
-  ('uz', "O'zbek", 'рџ‡єрџ‡ї'),
-  ('uz_cyr', 'РЋР·Р±РµРє', 'рџ‡єрџ‡ї'),
-  ('ru', 'Р СѓСЃСЃРєРёР№', 'рџ‡·рџ‡є'),
-  ('en', 'English', 'рџ‡єрџ‡ё'),
+  ('uz', "O'zbek", '🇺🇿'),
+  ('uz_cyr', 'Ўзбек', '🇺🇿'),
+  ('ru', 'Р СѓСЃСЃРєРёР№', '🇷🇺'),
+  ('en', 'English', '🇺🇸'),
 ];
 
 String _localeLabel(String code) {
@@ -584,7 +584,7 @@ String _localeFlag(String code) {
   for (final opt in _langOptions) {
     if (opt.$1 == code) return opt.$3;
   }
-  return 'рџЊђ';
+  return '🌐';
 }
 
 /// Compact language row that slots into the profile menu. Shows the

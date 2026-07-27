@@ -137,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
 
   String _localeLabel(String code) => switch (code) {
         'uz' => "O'zbekcha",
-        'uz_cyr' => 'РЋР·Р±РµРєС‡Р°',
+        'uz_cyr' => 'Ўзбекча',
         'ru' => 'Р СѓСЃСЃРєРёР№',
         'en' => 'English',
         _ => code,
