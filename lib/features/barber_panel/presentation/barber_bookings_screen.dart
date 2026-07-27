@@ -219,12 +219,14 @@ class _BarberBookingsScreenState extends ConsumerState<BarberBookingsScreen> {
                 final filtered = list.where((b) {
                   if (b.status != _activeTab) return false;
                   if (_search.isEmpty) return true;
-                  final name = (b.guestName?.isNotEmpty == true
-                          ? b.guestName!
-                          : b.userName)
+                  final name = (b.userId != null
+                          ? b.userName
+                          : (b.guestName ?? ''))
                       .toLowerCase();
-                  final phone =
-                      (b.guestPhone ?? b.userPhone ?? '').toLowerCase();
+                  final phone = (b.userId != null
+                          ? (b.userPhone ?? '')
+                          : (b.guestPhone ?? ''))
+                      .toLowerCase();
                   return name.contains(_search) || phone.contains(_search);
                 }).toList();
 
@@ -396,12 +398,13 @@ class _BookingTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final name = b.guestName?.isNotEmpty == true
-        ? b.guestName!
-        : (b.userName.isNotEmpty
-            ? b.userName
-            : tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz'));
-    final phone = b.guestPhone ?? b.userPhone ?? '';
+    final placeholder = tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz');
+    final name = b.userId != null
+        ? (b.userName.isNotEmpty ? b.userName : placeholder)
+        : (b.guestName?.isNotEmpty == true ? b.guestName! : placeholder);
+    final phone = b.userId != null
+        ? (b.userPhone ?? '')
+        : (b.guestPhone ?? '');
 
     return AppCard(
       variant: AppCardVariant.outlined,

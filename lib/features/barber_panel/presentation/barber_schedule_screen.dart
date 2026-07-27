@@ -2155,12 +2155,13 @@ class _BookedClientCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final name = booking.guestName?.isNotEmpty == true
-        ? booking.guestName!
-        : (booking.userName.isNotEmpty
-            ? booking.userName
-            : tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz'));
-    final phone = booking.guestPhone ?? booking.userPhone ?? '';
+    final placeholder = tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz');
+    final name = booking.userId != null
+        ? (booking.userName.isNotEmpty ? booking.userName : placeholder)
+        : (booking.guestName?.isNotEmpty == true ? booking.guestName! : placeholder);
+    final phone = booking.userId != null
+        ? (booking.userPhone ?? '')
+        : (booking.guestPhone ?? '');
     final services = booking.services.map((s) => s.name).join(', ');
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -2320,12 +2321,13 @@ class _BookingRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = context.colors;
-    final name = booking.guestName?.isNotEmpty == true
-        ? booking.guestName!
-        : (booking.userName.isNotEmpty
-            ? booking.userName
-            : tr(ref, 'barberApp.client', 'Mijoz'));
-    final phone = booking.guestPhone ?? booking.userPhone ?? '';
+    final placeholder = tr(ref, 'barberApp.client', 'Mijoz');
+    final name = booking.userId != null
+        ? (booking.userName.isNotEmpty ? booking.userName : placeholder)
+        : (booking.guestName?.isNotEmpty == true ? booking.guestName! : placeholder);
+    final phone = booking.userId != null
+        ? (booking.userPhone ?? '')
+        : (booking.guestPhone ?? '');
     final services = booking.services.map((s) => s.name).join(', ');
     final statusColor = switch (booking.status) {
       'completed' => AppColors.success,

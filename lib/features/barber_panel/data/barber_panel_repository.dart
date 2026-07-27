@@ -25,6 +25,7 @@ class BarberBooking {
     required this.totalPrice,
     required this.totalDuration,
     required this.services,
+    this.userId,
     this.userPhone,
     this.userAvatar,
     this.guestName,
@@ -37,6 +38,13 @@ class BarberBooking {
   final String date;
   final String time;
   final String status;
+
+  /// Set when the booking is linked to a registered user (either the
+  /// user booked themselves, or the barber typed a phone that matched
+  /// an existing account). Null for pure guest bookings. Display logic
+  /// keys off this — `isManual` tells you WHO created the booking, not
+  /// whether a real account is behind it.
+  final String? userId;
   final String userName;
   final int totalPrice;
   final int totalDuration;
@@ -57,6 +65,7 @@ class BarberBooking {
         date: json['date'] as String,
         time: json['time'] as String,
         status: (json['status'] ?? 'confirmed') as String,
+        userId: json['userId'] as String?,
         userName: (json['userName'] ?? '') as String,
         userPhone: json['userPhone'] as String?,
         userAvatar: json['userAvatar'] as String?,
