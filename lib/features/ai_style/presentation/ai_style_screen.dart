@@ -193,9 +193,19 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       final isBalance = s.contains('402') ||
           s.contains('balance') ||
           s.contains('yetarli');
+      final isEmptyImage = s.contains('empty-or-invalid-image');
       if (isBalance) {
         msg = tr(ref, 'mobile.aiStyle.errorBalance',
             "Balansingiz yetarli emas. Hisobni to'ldiring.");
+      } else if (isEmptyImage) {
+        // Backend's tiny-image guard also refunds in this case, so we
+        // explicitly tell the customer their balance is unaffected —
+        // before this they'd see a plain "generatsiya bajarilmadi" and
+        // assume the 1000 so'm was gone.
+        msg = tr(
+            ref,
+            'mobile.aiStyle.errorInvalidImage',
+            "AI rasm chiqara olmadi. Pul avtomatik qaytariladi — biroz kutib qayta urinib ko'ring.");
       }
       if (s.contains('SocketException')) {
         msg = tr(ref, 'mobile.aiStyle.errorInternet', "Internet bilan muammo");
@@ -204,6 +214,12 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       if (isBalance && mounted) {
         await TopUpModal.show(context);
       }
+      // Whatever the failure was, the backend either didn't deduct or
+      // it deducted and refunded — either way the local cached balance
+      // is stale. Invalidate so the Hisobim screen refetches and the
+      // 'Bugun N ta bepul' pill on the header stays accurate.
+      final user = ref.read(authControllerProvider).user;
+      if (user != null) ref.invalidate(myBalanceProvider(user.id));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

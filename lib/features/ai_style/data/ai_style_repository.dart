@@ -83,9 +83,30 @@ class AiStyleRepository {
       receiveTimeout: const Duration(minutes: 2),
     ));
     final raw = res.data;
-    if (raw is Map) return AiStyleResult.fromJson(Map<String, dynamic>.from(raw));
-    return AiStyleResult(imageUrl: raw?.toString() ?? '');
+    final result = raw is Map
+        ? AiStyleResult.fromJson(Map<String, dynamic>.from(raw))
+        : AiStyleResult(imageUrl: raw?.toString() ?? '');
+    // Guard against a "success" response that carries an empty or
+    // truncated data URL — the mobile customer previously saw a red
+    // broken-image tile while the 1000 so'm deduction still stuck.
+    // Throwing here surfaces the standard 'generatsiya bajarilmadi'
+    // toast and, importantly, tells the customer the render actually
+    // failed so they don't quietly move on thinking they lost the money.
+    // Backend has a matching size guard that refunds when this fires
+    // there, so this is belt-and-suspenders.
+    final url = result.imageUrl;
+    final isDataUrl = url.startsWith('data:');
+    if (url.isEmpty ||
+        (isDataUrl && url.length < _minDataUrlChars) ||
+        (!isDataUrl && url.startsWith('http') == false && !url.startsWith('/'))) {
+      throw Exception('empty-or-invalid-image');
+    }
+    return result;
   }
+
+  // ~5KB base64 + the 22-char 'data:image/png;base64,' prefix. Anything
+  // shorter than this is guaranteed truncated Gemini output.
+  static const int _minDataUrlChars = 5000;
 
   /// Fetches an external asset (curated preset thumbnail) and writes
   /// it to [saveTo] as raw bytes. Used by the AI Style screen to turn
