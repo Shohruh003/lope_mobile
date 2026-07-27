@@ -527,12 +527,12 @@ class _TunerSheetState extends ConsumerState<_TunerSheet> {
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: [
-                  _genderChip(
-                      'ALL', tr(ref, 'common.all', 'Hammasi')),
-                  _genderChip(
-                      'MALE', "рџ‘Ё ${tr(ref, 'barbers.genderMale', 'Erkak')}"),
+                  _genderChip('ALL', tr(ref, 'common.all', 'Hammasi'),
+                      Icons.groups_outlined),
+                  _genderChip('MALE',
+                      tr(ref, 'barbers.genderMale', 'Erkak'), Icons.male),
                   _genderChip('FEMALE',
-                      "рџ‘© ${tr(ref, 'barbers.genderFemale', 'Ayol')}"),
+                      tr(ref, 'barbers.genderFemale', 'Ayol'), Icons.female),
                 ],
               ),
               AppSpacing.gapXl,
@@ -580,9 +580,10 @@ class _TunerSheetState extends ConsumerState<_TunerSheet> {
     );
   }
 
-  Widget _genderChip(String key, String label) {
+  Widget _genderChip(String key, String label, IconData icon) {
     return AppChip(
       label: label,
+      leadingIcon: icon,
       selected: _gender == key,
       onTap: () => setState(() => _gender = key),
     );

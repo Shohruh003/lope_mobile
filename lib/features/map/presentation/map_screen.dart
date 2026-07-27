@@ -57,12 +57,34 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           IconButton(
             tooltip: tr(ref, 'mobile.map.recenter', 'Meni topish'),
             icon: const Icon(Icons.my_location),
-            onPressed: myLL == null
-                ? null
-                : () {
-                    AppHaptics.light();
-                    _flyTo(myLL, zoom: 15);
-                  },
+            onPressed: () async {
+              AppHaptics.light();
+              // Already resolved — fly to the cached position immediately.
+              if (myLL != null) {
+                _flyTo(myLL, zoom: 15);
+                return;
+              }
+              // No cached position — user probably denied the permission
+              // dialog last time or hadn't been asked. Re-run the
+              // provider so the OS prompt appears again, then fly if we
+              // got a fix. If it still returns null (denied for good /
+              // location services off) surface a snackbar instead of
+              // failing silently — before this the button just did
+              // nothing and looked broken.
+              ref.invalidate(currentLocationProvider);
+              final fresh =
+                  await ref.read(currentLocationProvider.future);
+              if (!context.mounted) return;
+              if (fresh != null) {
+                _flyTo(ll.LatLng(fresh.lat, fresh.lng), zoom: 15);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(tr(
+                        ref,
+                        'mobile.map.locationDenied',
+                        "Joylashuv ruxsati yo'q. Sozlamalardan yoqing."))));
+              }
+            },
           ),
         ],
       ),
@@ -72,11 +94,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         loading: () => const BrandedLoader(compact: true),
         error: (e, _) => AppErrorState(message: humanize(e)),
         data: (list) {
-          // Only pin masters that actually have coordinates. Others show
-          // up in Yaqin atrofda list but not on the map.
-          final located = list
-              .where((b) => b.lat != null && b.lng != null)
-              .toList(growable: false);
+          // Only pin masters that actually have coordinates. Some seed
+          // rows come through with 0/0 (never set) which would drop the
+          // pin in the Atlantic — treat that as "no location" too.
+          final located = list.where((b) {
+            if (b.lat == null || b.lng == null) return false;
+            if (b.lat == 0 && b.lng == 0) return false;
+            return true;
+          }).toList(growable: false);
+          final missing = list.length - located.length;
           if (located.isEmpty) {
             return AppEmptyState(
               icon: Icons.location_off_outlined,
@@ -106,38 +132,26 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 },
               ),
               children: [
-                // Stadia Alidade Smooth for light + Alidade Smooth Dark
-                // for dark. Both are Yandex-flavoured OSM styles with
-                // clear road hierarchy and coloured POIs. Free tier
-                // covers dev / early prod (200k tiles/month, no API
-                // key on localhost). For the dark variant we push the
-                // tiles through a saturation + brightness boost so the
-                // canvas doesn't read "hira" (dull) - matches the
-                // navy-blue Yandex night map the user asked for.
-                // OSM tiles — Stadia tiles silently failed on real
-                // Android devices (map went blank). Same fallback as
-                // barber_location + shop_profile. Dark theme uses a
-                // desaturation matrix so light OSM tiles don't glow
-                // against the app's dark surface.
+                // In dark mode we swap to CartoDB Dark Matter — a
+                // proper dark cartography (nearly black background,
+                // muted roads) so the map matches the rest of the app.
+                // The old approach was a ColorFilter over plain OSM
+                // tiles but the result still read light-grey, not
+                // "night-mode". CartoDB is free with attribution and
+                // reliable on real devices (Stadia silently failed on
+                // Android in earlier tests, per the removed comment).
                 Builder(builder: (ctx) {
                   final isDark = Theme.of(ctx).brightness == Brightness.dark;
                   return TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate: isDark
+                        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                        : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    subdomains: isDark
+                        ? const ['a', 'b', 'c', 'd']
+                        : const [],
                     userAgentPackageName: 'uz.lopestyle.mobile',
                     maxNativeZoom: 19,
                     maxZoom: 20,
-                    tileBuilder: isDark
-                        ? (context, child, tile) => ColorFiltered(
-                              colorFilter: const ColorFilter.matrix([
-                                0.6, 0.3, 0.1, 0, 0,
-                                0.3, 0.6, 0.1, 0, 0,
-                                0.3, 0.3, 0.4, 0, 0,
-                                0, 0, 0, 1, 0,
-                              ]),
-                              child: child,
-                            )
-                        : null,
                   );
                 }),
                 if (myLL != null)
@@ -155,11 +169,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         _selected?.id == b.id;
                     return Marker(
                       point: ll.LatLng(b.lat!, b.lng!),
-                      width: 44,
-                      height: 44,
+                      width: isSelected ? 56 : 48,
+                      height: isSelected ? 56 : 48,
                       child: _BarberPin(
                         selected: isSelected,
                         available: b.isAvailable,
+                        avatar: b.avatar,
+                        name: b.name,
                         onTap: () {
                           AppHaptics.selection();
                           setState(() => _selected = b);
@@ -177,6 +193,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               bottom: AppSpacing.sm,
               child: _OsmAttribution(),
             ),
+            // Missing-location hint. When a chunk of the feed doesn't
+            // have coordinates set we surface the count so the user
+            // knows "faqat ayrimlari ko'rinyapti" isn't the app losing
+            // pins — those sartaroshlar just haven't set their manzil
+            // yet in the barber panel.
+            if (missing > 0)
+              Positioned(
+                top: AppSpacing.sm,
+                left: AppSpacing.lg,
+                right: AppSpacing.lg,
+                child: _MissingLocationBanner(count: missing),
+              ),
             // Selected barber preview card
             if (_selected != null)
               Positioned(
@@ -225,15 +253,20 @@ class _BarberPin extends StatelessWidget {
   const _BarberPin({
     required this.selected,
     required this.available,
+    required this.avatar,
+    required this.name,
     required this.onTap,
   });
   final bool selected;
   final bool available;
+  final String avatar;
+  final String name;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final color = available ? AppColors.primary : context.colors.textMuted;
+    final ring = available ? AppColors.primary : context.colors.textMuted;
+    final size = selected ? 52.0 : 44.0;
     return TapScale(
       onTap: onTap,
       haptic: HapticStrength.none,
@@ -241,26 +274,106 @@ class _BarberPin extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
-        width: selected ? 44 : 36,
-        height: selected ? 44 : 36,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
-          gradient: available ? AppColors.primaryGradient : null,
-          color: available ? null : context.colors.surface,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2.5),
+          border: Border.all(color: ring, width: 3),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: selected ? 0.6 : 0.35),
+              color: ring.withValues(alpha: selected ? 0.6 : 0.35),
               blurRadius: selected ? 18 : 8,
               spreadRadius: selected ? 3 : 1,
             ),
           ],
         ),
-        alignment: Alignment.center,
-        child: Icon(
-          Icons.content_cut,
-          color: available ? Colors.white : context.colors.textMuted,
-          size: selected ? 20 : 16,
+        child: ClipOval(
+          child: avatar.isEmpty
+              ? _fallback(context)
+              : CachedNetworkImage(
+                  imageUrl: assetUrl(avatar),
+                  fit: BoxFit.cover,
+                  placeholder: (_, _) => _fallback(context),
+                  errorWidget: (_, _, _) => _fallback(context),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _fallback(BuildContext context) {
+    // Monogram over the brand gradient — same fallback pattern shops
+    // and list tiles use when no avatar is uploaded. Kept a scissors
+    // icon before, but a coloured initial reads as "person" instead of
+    // a generic pin, which is what the pin actually represents.
+    return Container(
+      decoration: BoxDecoration(
+        gradient: available
+            ? AppColors.primaryGradient
+            : LinearGradient(colors: [
+                context.colors.surface,
+                context.colors.surfaceElevated,
+              ]),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        (name.isNotEmpty ? name[0] : '?').toUpperCase(),
+        style: AppText.titleSm.copyWith(
+          color: available ? Colors.white : context.colors.textPrimary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _MissingLocationBanner extends ConsumerWidget {
+  const _MissingLocationBanner({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return IgnorePointer(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: context.colors.surface.withValues(alpha: 0.92),
+          borderRadius: AppRadius.rPill,
+          border: Border.all(
+              color: context.colors.border.withValues(alpha: 0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.info_outline,
+                size: 14, color: context.colors.textMuted),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                tr(
+                  ref,
+                  'mobile.map.someMissingLocation',
+                  '$count ta sartarosh manzilni sozlamagan',
+                ),
+                style: AppText.caption.copyWith(
+                    color: context.colors.textSecondary,
+                    fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -271,6 +384,11 @@ class _OsmAttribution extends StatelessWidget {
   const _OsmAttribution();
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // CARTO tiles require attributing both the underlying OSM data
+    // and CartoDB's styling. Light mode uses raw OSM tiles so only
+    // the OSM credit is needed.
+    final label = isDark ? '© OpenStreetMap · © CARTO' : '© OpenStreetMap';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
@@ -278,7 +396,7 @@ class _OsmAttribution extends StatelessWidget {
         borderRadius: AppRadius.rSm,
       ),
       child: Text(
-        '© OpenStreetMap',
+        label,
         style: AppText.overline.copyWith(
             color: Colors.white70, fontSize: 9, letterSpacing: 0.2),
       ),

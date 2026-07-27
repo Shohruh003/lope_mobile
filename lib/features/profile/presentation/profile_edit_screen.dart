@@ -307,13 +307,17 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   AppSpacing.gapMd,
                   Row(children: [
                     Expanded(
-                      child: _genderBtn('MALE',
-                          "рџ‘Ё ${tr(ref, 'auth.genderMale', 'Erkak')}"),
+                      child: _genderBtn(
+                          'MALE',
+                          tr(ref, 'auth.genderMale', 'Erkak'),
+                          Icons.male),
                     ),
                     AppSpacing.hGapSm,
                     Expanded(
-                      child: _genderBtn('FEMALE',
-                          "рџ‘© ${tr(ref, 'auth.genderFemale', 'Ayol')}"),
+                      child: _genderBtn(
+                          'FEMALE',
+                          tr(ref, 'auth.genderFemale', 'Ayol'),
+                          Icons.female),
                     ),
                   ]),
                 ],
@@ -396,7 +400,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
     );
   }
 
-  Widget _genderBtn(String key, String label) {
+  Widget _genderBtn(String key, String label, IconData icon) {
     final on = _gender == key;
     return TapScale(
       onTap: () {
@@ -422,12 +426,23 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               on ? AppShadows.primaryGlow(AppColors.primary) : null,
         ),
         alignment: Alignment.center,
-        child: Text(
-          label,
-          style: AppText.body.copyWith(
-            color: on ? Colors.white : context.colors.textPrimary,
-            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: on ? Colors.white : context.colors.textPrimary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: AppText.body.copyWith(
+                color: on ? Colors.white : context.colors.textPrimary,
+                fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
