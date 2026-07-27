@@ -30,30 +30,18 @@ class BarberDetailScreen extends ConsumerStatefulWidget {
 
 class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
   int _tab = 0; // 0=contact, 1=services, 2=gallery, 3=reviews
-  bool? _favoritedOverride;
-  bool _favoriteBusy = false;
 
   String _avatarUrl(String a) => assetUrl(a);
 
-  Future<void> _toggleFavorite() async {
-    if (_favoriteBusy) return;
+  // Delegate the whole flip to the optimistic controller so the icon
+  // updates on the same frame as the tap — the previous
+  // `busy-spinner -> await network -> update` pattern felt broken
+  // because the icon stayed stale for the full round-trip.
+  void _toggleFavorite() {
     AppHaptics.light();
-    setState(() => _favoriteBusy = true);
-    try {
-      final next =
-          await ref.read(favoritesRepositoryProvider).toggle(widget.barberId);
-      if (!mounted) return;
-      setState(() => _favoritedOverride = next);
-      ref.invalidate(favoritesProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
-      }
-    } finally {
-      if (mounted) setState(() => _favoriteBusy = false);
-    }
+    ref
+        .read(favoritesControllerProvider.notifier)
+        .toggleOptimistic(widget.barberId);
   }
 
   @override
@@ -80,8 +68,6 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
         // ===== Sticky top bar =====
         _TopBar(
           barberId: widget.barberId,
-          favOverride: _favoritedOverride,
-          busy: _favoriteBusy,
           onFavorite: _toggleFavorite,
           onBack: () => context.pop(),
         ),
@@ -594,23 +580,20 @@ class _BarberDetailScreenState extends ConsumerState<BarberDetailScreen> {
 class _TopBar extends ConsumerWidget {
   const _TopBar({
     required this.barberId,
-    required this.favOverride,
-    required this.busy,
     required this.onFavorite,
     required this.onBack,
   });
   final String barberId;
-  final bool? favOverride;
-  final bool busy;
   final VoidCallback onFavorite;
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favoritesAsync = ref.watch(favoritesProvider);
-    final bool isFav = favOverride ??
-        favoritesAsync.maybeWhen<bool>(
-            data: (l) => l.any((b) => b.id == barberId), orElse: () => false);
+    // Read the optimistic favourite set directly — same source list
+    // cards use, so tap flips the icon on the same frame without the
+    // spinner-then-swap flicker the old busy-flag approach produced.
+    final favIds = ref.watch(favoritesControllerProvider);
+    final bool isFav = favIds.contains(barberId);
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.sm,
@@ -628,24 +611,11 @@ class _TopBar extends ConsumerWidget {
           onTap: onBack,
         ),
         const Spacer(),
-        busy
-            ? SizedBox(
-                width: 40,
-                height: 40,
-                child: Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: context.colors.textPrimary),
-                  ),
-                ),
-              )
-            : _CircleButton(
-                icon: isFav ? Icons.bookmark : Icons.bookmark_border,
-                iconColor: isFav ? AppColors.primary : context.colors.textPrimary,
-                onTap: onFavorite,
-              ),
+        _CircleButton(
+          icon: isFav ? Icons.bookmark : Icons.bookmark_border,
+          iconColor: isFav ? AppColors.primary : context.colors.textPrimary,
+          onTap: onFavorite,
+        ),
       ]),
     );
   }

@@ -84,8 +84,17 @@ class FavoritesController extends StateNotifier<Set<String>> {
 final favoritesControllerProvider =
     StateNotifierProvider<FavoritesController, Set<String>>((ref) {
   final ctrl = FavoritesController(ref);
-  // Whenever the server list resolves, seed the optimistic store.
+  // Seed the optimistic store from the server list — but ONLY when the
+  // fetch has actually settled. During `ref.invalidate(favoritesProvider)`
+  // triggered by `toggleOptimistic`, Riverpod re-delivers the previous
+  // cached value with `isRefreshing == true` before the new fetch
+  // completes. If we seed on that intermediate emission we replay the
+  // STALE list (the one that doesn't include the barber we just
+  // toggled), which blows away the optimistic flip and makes the
+  // bookmark icon ricochet: filled -> outline -> filled. Skipping while
+  // refreshing keeps the optimistic state until the fresh list arrives.
   ref.listen(favoritesProvider, (_, next) {
+    if (next.isRefreshing || next.isLoading) return;
     next.whenData((list) => ctrl.seed(list.map((b) => b.id)));
   });
   return ctrl;
