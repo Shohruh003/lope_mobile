@@ -53,7 +53,7 @@ Replace `REPLACE_WITH_YOUR_RELEASE_SHA256` and `REPLACE_WITH_YOUR_DEBUG_SHA256_I
 
 **What needs to be filled in:**
 `appIDs[0]` — format: `<TEAM_ID>.<BUNDLE_ID>`
-- Bundle ID (already correct in file): `uz.lopestyle.lopeMobile`
+- Bundle ID (already correct in file): `uz.lopestyle.mobile.ios`
 - Team ID: 10-character alphanumeric string from Apple Developer
 
 **Get the Apple Team ID:**
@@ -65,13 +65,13 @@ Replace `REPLACE_WITH_YOUR_RELEASE_SHA256` and `REPLACE_WITH_YOUR_DEBUG_SHA256_I
 Then edit `apple-app-site-association`, replacing:
 
 ```
-"REPLACE_WITH_APPLE_TEAM_ID.uz.lopestyle.lopeMobile"
+"REPLACE_WITH_APPLE_TEAM_ID.uz.lopestyle.mobile.ios"
 ```
 
 with:
 
 ```
-"A1B2C3D4E5.uz.lopestyle.lopeMobile"
+"A1B2C3D4E5.uz.lopestyle.mobile.ios"
 ```
 
 **Also required in Xcode:**

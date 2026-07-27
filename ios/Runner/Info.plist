@@ -14,6 +14,19 @@
 	<string>Selfi va portfolio rasmlarini olish uchun kamera ruxsati kerak.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Selfi va portfolio rasmlarini yuklash uchun galereya ruxsati kerak.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tg</string>
+		<string>whatsapp</string>
+		<string>instagram</string>
+		<string>fb</string>
+		<string>twitter</string>
+		<string>tiktok</string>
+		<string>youtube</string>
+		<string>geo</string>
+		<string>tel</string>
+		<string>mailto</string>
+	</array>
 	<!-- Custom URL scheme fallback for OAuth / dev deep links.
 	     Real user-facing deep links go through Universal Links
 	     (Associated Domains capability + apple-app-site-association
@@ -25,7 +38,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>uz.lopestyle.lopeMobile</string>
+			<string>uz.lopestyle.mobile.ios</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>lopestyle</string>
@@ -35,7 +48,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Lope Mobile</string>
+	<string>Lope Style</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -52,6 +65,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -77,6 +92,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
