@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/asset_url.dart';
+
 /// Fullscreen image viewer used across barbershop / barber / gallery pages.
 ///
 /// Mirrors the web's lightbox: swipe-paged carousel, pinch-zoom on each frame,
@@ -52,8 +54,16 @@ class _PhotoLightboxState extends State<PhotoLightbox> {
           itemBuilder: (context, i) => InteractiveViewer(
             minScale: 1, maxScale: 4,
             child: Center(
+              // Callers pass raw backend paths (/uploads/xyz.jpg) —
+              // CachedNetworkImage needs a full URL or the frame goes
+              // blank forever. Thumbnails on the gallery grid already
+              // run through assetUrl, but the lightbox was passing the
+              // raw path straight to CNI, so tap-to-preview showed
+              // nothing on real device builds. assetUrl passes fully-
+              // qualified URLs through untouched, so this is safe when
+              // a caller does hand over an https:// link.
               child: CachedNetworkImage(
-                imageUrl: widget.images[i],
+                imageUrl: assetUrl(widget.images[i]),
                 fit: BoxFit.contain,
                 placeholder: (context, _) =>
                     const CircularProgressIndicator(color: Colors.white),
