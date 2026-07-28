@@ -2110,37 +2110,54 @@ class _SheetAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TapScale(
-      onTap: onTap,
-      haptic: HapticStrength.selection,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
-        child: Row(children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: tint.withValues(alpha: 0.12),
-              borderRadius: AppRadius.rMd,
-            ),
-            child: Icon(icon, color: tint, size: 20),
+    // Wrapped in a bordered card — before, the row was flat text on the
+    // sheet background and read as a static list item rather than a
+    // tappable action. Border + surface fill + chevron makes it clear
+    // each row is an independent choice.
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg, vertical: 6),
+      child: TapScale(
+        onTap: onTap,
+        haptic: HapticStrength.selection,
+        scale: 0.98,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: context.colors.surfaceElevated,
+            borderRadius: AppRadius.rLg,
+            border: Border.all(color: context.colors.border),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: AppText.titleSm.copyWith(fontSize: 15)),
-                if (subtitle != null && subtitle!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(subtitle!, style: AppText.caption),
+          child: Row(children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: tint.withValues(alpha: 0.14),
+                borderRadius: AppRadius.rMd,
+              ),
+              child: Icon(icon, color: tint, size: 20),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: AppText.titleSm.copyWith(fontSize: 15)),
+                  if (subtitle != null && subtitle!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle!, style: AppText.caption),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ]),
+            const SizedBox(width: AppSpacing.sm),
+            Icon(Icons.chevron_right,
+                size: 18, color: context.colors.textMuted),
+          ]),
+        ),
       ),
     );
   }
