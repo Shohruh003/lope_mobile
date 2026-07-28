@@ -8,6 +8,7 @@ import '../../../core/errors.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../lopepay/data/balance_repository.dart';
 
 class BarberSettingsScreen extends ConsumerWidget {
   const BarberSettingsScreen({super.key});
@@ -19,10 +20,25 @@ class BarberSettingsScreen extends ConsumerWidget {
     // bottom nav shows "Profil" for this tab. Repeating the word at
     // the top of the screen was a visual duplication the user asked
     // us to remove.
+    final user = ref.watch(authControllerProvider).user;
+    final balance =
+        user == null ? null : ref.watch(myBalanceProvider(user.id));
     return Scaffold(
       body: ListView(
         padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
+          // Hero profile card — same widget the customer profile uses,
+          // avatar + name + phone on the primary gradient with a
+          // balance pill below. Tap the edit icon to open the same
+          // /barber/profile screen the old 'Profilni tahrirlash' tile
+          // used to route to, so the tile is now redundant and dropped.
+          ProfileHeroCard(
+            user: user,
+            balance: balance,
+            onEdit: () => context.push('/barber/profile'),
+            onTopUp: () => context.push('/transactions'),
+          ),
+          AppSpacing.gapLg,
           // Availability toggle lives on the Sartarosh profili screen
           // (barber_profile_edit_screen) so it sits next to the rest
           // of the barber's public profile controls. Duplicating it
@@ -32,12 +48,6 @@ class BarberSettingsScreen extends ConsumerWidget {
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
           _TileGroup(children: [
-            _SettingsTile(
-              icon: Icons.edit_outlined,
-              iconColor: AppColors.primary,
-              label: tr(ref, 'profile.editProfile', 'Profilni tahrirlash'),
-              onTap: () => context.push('/barber/profile'),
-            ),
             _SettingsTile(
               icon: Icons.lock_outline,
               iconColor: AppColors.warning,
