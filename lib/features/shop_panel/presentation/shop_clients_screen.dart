@@ -206,18 +206,19 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
               onRefresh: () async =>
                   ref.refresh(shopClientsProvider.future),
               child: Column(children: [
+                // ── Search ──
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.lg,
                     AppSpacing.md,
                     AppSpacing.lg,
-                    AppSpacing.xs,
+                    AppSpacing.md,
                   ),
                   child: Container(
-                    height: 44,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: context.colors.surface,
-                      borderRadius: AppRadius.rMd,
+                      borderRadius: AppRadius.rLg,
                       border: Border.all(color: context.colors.border),
                     ),
                     child: TextField(
@@ -230,7 +231,7 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
                         contentPadding:
-                            const EdgeInsets.symmetric(vertical: 12),
+                            const EdgeInsets.symmetric(vertical: 14),
                         prefixIcon: Icon(Icons.search,
                             color: context.colors.textMuted, size: 20),
                         hintText: tr(ref,
@@ -242,6 +243,13 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                     ),
                   ),
                 ),
+                // ── Filter chips (recency bucket) ──
+                // Above 'Hammasini tanlash' used to butt right up
+                // against the search bar with 4px between them. The
+                // top gap is now handled by the search block padding
+                // and the chip row has its own 44dp height + a bottom
+                // divider so the two sections feel intentionally
+                // separate rather than mashed together.
                 SizedBox(
                   height: 44,
                   child: ListView(
@@ -281,13 +289,26 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                     ],
                   ),
                 ),
+                // Thin divider between the filter row and the select-
+                // all bar. Gives the eye a clear line to rest on so
+                // the two rows don't blur into one control strip.
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg),
+                  child: Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: context.colors.border,
+                  ),
+                ),
+                // ── Select-all + count ──
                 if (filtered.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.lg,
-                      AppSpacing.xs,
+                      AppSpacing.sm,
                       AppSpacing.lg,
-                      0,
+                      AppSpacing.sm,
                     ),
                     child: Row(children: [
                       TapScale(
@@ -321,22 +342,45 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                               size: 20,
                               color: AppColors.primary,
                             ),
-                          AppSpacing.hGapXs,
+                          AppSpacing.hGapSm,
                           Text(
                             tr(
                                 ref,
                                 'mobile.shop.clients.selectAll',
                                 'Hammasini tanlash'),
-                            style: AppText.bodySm.copyWith(
+                            style: AppText.body.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                               color: context.colors.textBright,
                             ),
                           ),
                         ]),
                       ),
                       const Spacer(),
-                      Text(
-                        '${filtered.length}',
-                        style: AppText.caption,
+                      // Count pill — small chip with a person icon so
+                      // 'how many rows in this filter' reads at a
+                      // glance instead of being a lone number.
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: AppRadius.rPill,
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.people_alt_outlined,
+                              size: 12, color: AppColors.primary),
+                          AppSpacing.hGapXs,
+                          Text(
+                            '${filtered.length}',
+                            style: AppText.caption.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ]),
                       ),
                     ]),
                   ),
@@ -418,7 +462,7 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
   }
 }
 
-class _ClientRow extends StatelessWidget {
+class _ClientRow extends ConsumerWidget {
   const _ClientRow({
     required this.c,
     required this.df,
@@ -437,94 +481,207 @@ class _ClientRow extends StatelessWidget {
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
+  /// Days since last visit → recency colour. Green = "faol", moving
+  /// through amber/orange as the client goes quiet, red when they
+  /// haven't been in for two months. Applied to both the avatar ring
+  /// and the small "kecha / 3 kun oldin" pill so the eye can scan
+  /// the list and spot dormant clients without reading text.
+  Color _recencyColour(BuildContext context) {
+    final v = c.lastVisit;
+    if (v == null) return context.colors.textMuted;
+    final days = DateTime.now().difference(v).inDays;
+    if (days <= 7) return AppColors.success;
+    if (days <= 20) return AppColors.warning;
+    if (days <= 60) return const Color(0xFFF97316); // orange-500
+    return AppColors.danger;
+  }
+
+  /// Humanised time ago — 'Bugun / Kecha / 3 kun oldin / 2 hafta
+  /// oldin / 3 oy oldin'. Falls back to the DateFormat pattern for
+  /// visits older than a year so it's still readable.
+  String _lastVisitLabel(WidgetRef ref) {
+    final v = c.lastVisit;
+    if (v == null) return '—';
+    final now = DateTime.now();
+    final target = DateTime(v.year, v.month, v.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = today.difference(target).inDays;
+    if (diff <= 0) return tr(ref, 'mobile.dates.today', 'Bugun');
+    if (diff == 1) return tr(ref, 'mobile.dates.yesterday', 'Kecha');
+    if (diff < 7) {
+      return '$diff ${tr(ref, 'mobile.dates.daysAgo', 'kun oldin')}';
+    }
+    if (diff < 30) {
+      final w = (diff / 7).floor();
+      return '$w ${tr(ref, 'mobile.dates.weeksAgo', 'hafta oldin')}';
+    }
+    if (diff < 365) {
+      final m = (diff / 30).floor();
+      return '$m ${tr(ref, 'mobile.dates.monthsAgo', 'oy oldin')}';
+    }
+    return df.format(v.toLocal());
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ring = _recencyColour(context);
     return AppCard(
       variant: AppCardVariant.outlined,
-      padding: AppSpacing.cardPadding,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       onTap: () =>
           context.push('/shop/clients/${Uri.encodeComponent(c.phone)}'),
-      borderColor:
-          selected ? AppColors.primary : null,
-      child: Row(children: [
-        TapScale(
-          onTap: onToggle,
-          scale: 0.8,
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: Icon(
-              selected
-                  ? Icons.check_box
-                  : Icons.check_box_outline_blank,
-              color:
-                  selected ? AppColors.primary : context.colors.textMuted,
-              size: 22,
-            ),
-          ),
-        ),
-        AppSpacing.hGapXs,
-        Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            shape: BoxShape.circle,
-          ),
-          padding: const EdgeInsets.all(2),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: context.colors.surface,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              (c.name.isNotEmpty ? c.name[0] : '?').toUpperCase(),
-              style: AppText.titleMd,
-            ),
-          ),
-        ),
-        AppSpacing.hGapMd,
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                c.name.isEmpty ? c.phone : c.name,
-                style: AppText.titleSm,
+      color: selected ? AppColors.primary.withValues(alpha: 0.06) : null,
+      borderColor: selected ? AppColors.primary : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Compact checkbox tap area on the left. Kept always-visible
+          // rather than long-press-to-enter-selection because the bulk
+          // SMS send is the reason this screen exists — hiding the
+          // primary control behind a gesture makes the shop owner
+          // hunt for it.
+          TapScale(
+            onTap: onToggle,
+            scale: 0.85,
+            haptic: HapticStrength.none,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                selected
+                    ? Icons.check_box
+                    : Icons.check_box_outline_blank,
+                color: selected
+                    ? AppColors.primary
+                    : context.colors.textMuted,
+                size: 22,
               ),
-              if (c.phone.isNotEmpty)
-                Text(c.phone, style: AppText.caption),
-              Consumer(builder: (context, ref, _) {
-                if (c.lastVisit == null) return const SizedBox.shrink();
-                return Text(
-                    "${tr(ref, 'barberMyClients.lastVisit', 'Oxirgi tashrif')}: ${df.format(c.lastVisit!.toLocal())}",
-                    style: AppText.caption);
-              }),
-            ],
-          ),
-        ),
-        AppSpacing.hGapSm,
-        if (c.bookingsCount > 0)
-          AppBadge(
-            label: '${c.bookingsCount}',
-            variant: AppBadgeVariant.success,
-          ),
-        AppSpacing.hGapXs,
-        TapScale(
-          onTap: c.phone.isEmpty ? null : _call,
-          scale: 0.9,
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.phone_outlined,
-                color: AppColors.primary, size: 18),
           ),
-        ),
-      ]),
+          AppSpacing.hGapSm,
+          // Avatar with recency ring — the ring colour reflects how
+          // recently the client visited so the shop owner can scan
+          // for dormant clients (red rings) without reading the
+          // 'kecha / oy oldin' text on each row.
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: ring, width: 2),
+            ),
+            padding: const EdgeInsets.all(2),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                (c.name.isNotEmpty ? c.name[0] : '?').toUpperCase(),
+                style: AppText.titleSm.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          AppSpacing.hGapMd,
+          // Name + phone + last-visit chip.
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(children: [
+                  Expanded(
+                    child: Text(
+                      c.name.isEmpty ? c.phone : c.name,
+                      style: AppText.titleSm.copyWith(fontSize: 15),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (c.bookingsCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.14),
+                        borderRadius: AppRadius.rPill,
+                      ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.event_available_outlined,
+                            size: 10, color: AppColors.success),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${c.bookingsCount}',
+                          style: AppText.overline.copyWith(
+                            color: AppColors.success,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ]),
+                    ),
+                ]),
+                const SizedBox(height: 2),
+                Text(
+                  c.phone.isEmpty ? '—' : c.phone,
+                  style: AppText.caption.copyWith(
+                    color: context.colors.textMuted,
+                  ),
+                ),
+                if (c.lastVisit != null) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ring.withValues(alpha: 0.12),
+                      borderRadius: AppRadius.rPill,
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.schedule, size: 10, color: ring),
+                      const SizedBox(width: 3),
+                      Text(
+                        _lastVisitLabel(ref),
+                        style: AppText.overline.copyWith(
+                          color: ring,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ]),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          AppSpacing.hGapSm,
+          // Call button.
+          TapScale(
+            onTap: c.phone.isEmpty ? null : _call,
+            scale: 0.9,
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.14),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.phone_outlined,
+                  color: AppColors.primary, size: 18),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
