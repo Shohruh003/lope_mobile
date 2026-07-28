@@ -26,9 +26,12 @@ class ScheduleGeneratorScreen extends ConsumerStatefulWidget {
 
 class _ScheduleGeneratorScreenState
     extends ConsumerState<ScheduleGeneratorScreen> {
-  late DateTime _from = widget.initialDate ?? DateTime.now();
-  late DateTime _to = widget.initialDate ??
-      DateTime.now().add(const Duration(days: 7));
+  // Single target day only. The screen used to accept a from..to range
+  // ("sanadan sanagacha") but the only entry point is the day-view's
+  // "Jadval qo'shish" sheet where the barber has already picked a
+  // specific date, so the range was extra work. Fall back to today when
+  // opened without a date (e.g. deep link).
+  late final DateTime _date = widget.initialDate ?? DateTime.now();
   TimeOfDay _dayStart = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay _dayEnd = const TimeOfDay(hour: 20, minute: 0);
   int _slotMinutes = 30;
@@ -42,42 +45,37 @@ class _ScheduleGeneratorScreenState
       "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
 
   static const _monthsUz = [
-    'yan', 'fev', 'mar', 'apr', 'may', 'iyn',
-    'iyl', 'avg', 'sen', 'okt', 'noy', 'dek',
+    'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+    'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
+  ];
+  static const _weekDaysUz = [
+    'dushanba', 'seshanba', 'chorshanba', 'payshanba', 'juma', 'shanba', 'yakshanba',
   ];
 
-  /// Humanized label shown on the date-range picker cards. Uses
-  /// "Bugun / Ertaga / 11 iyl" so the barber can read the range at a
-  /// glance instead of parsing a raw ISO string.
-  String _dLabel(DateTime d, WidgetRef ref) {
+  /// Long-form label for the target date banner. e.g. "Bugun, 28 iyul"
+  /// or "Ertaga, 29 iyul, seshanba" — gives the barber enough context
+  /// to be sure this is the day they meant to generate for.
+  String _dateBannerLabel(DateTime d, WidgetRef ref) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(d.year, d.month, d.day);
     final diff = target.difference(today).inDays;
-    if (diff == 0) return tr(ref, 'mobile.dates.today', 'Bugun');
-    if (diff == 1) return tr(ref, 'mobile.dates.tomorrow', 'Ertaga');
     final month = _monthsUz[d.month - 1];
-    // Include year when the target is in a different calendar year.
-    if (d.year != now.year) return '${d.day} $month ${d.year}';
-    return '${d.day} $month';
+    final weekday = _weekDaysUz[d.weekday - 1];
+    final base = d.year != now.year
+        ? '${d.day} $month ${d.year}, $weekday'
+        : '${d.day} $month, $weekday';
+    if (diff == 0) {
+      return '${tr(ref, 'mobile.dates.today', 'Bugun')}, $base';
+    }
+    if (diff == 1) {
+      return '${tr(ref, 'mobile.dates.tomorrow', 'Ertaga')}, $base';
+    }
+    return base;
   }
 
   String _t(TimeOfDay t) =>
       "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
-
-  Future<void> _pickDate(bool start) async {
-    AppHaptics.light();
-    final picked = await AppDatePicker.show(
-      context,
-      ref: ref,
-      initial: start ? _from : _to,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null) {
-      setState(() => start ? _from = picked : _to = picked);
-    }
-  }
 
   Future<void> _pickTime(int which) async {
     AppHaptics.light();
@@ -112,19 +110,24 @@ class _ScheduleGeneratorScreenState
     AppHaptics.medium();
     final user = ref.read(authControllerProvider).user;
     if (user == null) return;
-    if (_to.isBefore(_from)) {
+    // Basic sanity — dayStart must be strictly before dayEnd, else the
+    // backend generates zero slots.
+    final startMin = _dayStart.hour * 60 + _dayStart.minute;
+    final endMin = _dayEnd.hour * 60 + _dayEnd.minute;
+    if (endMin <= startMin) {
       AppHaptics.error();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(ref, 'mobile.barber.scheduleGen.invalidRange',
-              "Sana oralig'i noto'g'ri"))));
+              "Yopilish vaqti ochilishdan keyin bo'lishi kerak"))));
       return;
     }
     setState(() => _busy = true);
     try {
+      final dateStr = _d(_date);
       await ref.read(barberPanelRepositoryProvider).generateSchedule(
             barberId: user.id,
-            dateFrom: _d(_from),
-            dateTo: _d(_to),
+            dateFrom: dateStr,
+            dateTo: dateStr,
             dayStart: _t(_dayStart),
             dayEnd: _t(_dayEnd),
             slotMinutes: _slotMinutes,
@@ -153,9 +156,7 @@ class _ScheduleGeneratorScreenState
 
   @override
   Widget build(BuildContext context) {
-    final dayCount = _to.difference(_from).inDays + 1;
     final slotsPerDay = _approxSlotsPerDay();
-    final total = (dayCount > 0 ? dayCount : 1) * slotsPerDay;
 
     return Scaffold(
       appBar: AppBar(
@@ -167,33 +168,51 @@ class _ScheduleGeneratorScreenState
       body: ListView(
         padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
-          _SectionTitle(
-            icon: Icons.calendar_month,
-            title: tr(ref, 'mobile.barber.scheduleGen.dateRange',
-                "Sana oralig'i"),
+          // Target-day banner — replaces the old sanadan-sanagacha
+          // picker. Screen is always opened with a specific date from
+          // the day view, so showing (not editing) it is enough and
+          // gives the barber peace of mind that they're generating for
+          // the day they meant.
+          AppCard(
+            variant: AppCardVariant.outlined,
+            padding: AppSpacing.cardPadding,
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderColor: AppColors.primary.withValues(alpha: 0.35),
+            child: Row(children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  borderRadius: AppRadius.rSm,
+                ),
+                child: const Icon(Icons.calendar_today,
+                    color: AppColors.primary, size: 20),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr(ref, 'mobile.barber.scheduleGen.forDate',
+                          'Shu kun uchun jadval'),
+                      style: AppText.caption
+                          .copyWith(color: AppColors.primary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _dateBannerLabel(_date, ref),
+                      style: AppText.titleSm.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ]),
           ),
-          AppSpacing.gapMd,
-          Row(children: [
-            Expanded(
-              child: _Picker(
-                icon: Icons.calendar_today,
-                label: tr(ref, 'mobile.barber.scheduleGen.start',
-                    'Boshlanish'),
-                value: _dLabel(_from, ref),
-                onTap: () => _pickDate(true),
-              ),
-            ),
-            AppSpacing.hGapSm,
-            Expanded(
-              child: _Picker(
-                icon: Icons.event,
-                label: tr(
-                    ref, 'mobile.barber.scheduleGen.end', 'Tugash'),
-                value: _dLabel(_to, ref),
-                onTap: () => _pickDate(false),
-              ),
-            ),
-          ]),
           AppSpacing.gapXl,
           _SectionTitle(
             icon: Icons.access_time,
@@ -346,12 +365,10 @@ class _ScheduleGeneratorScreenState
                 child: Text(
                   tr(
                       ref,
-                      'mobile.barber.scheduleGen.summary',
-                      'Taxminan {{days}} kun Г— {{slots}} slot = {{total}} slot yaratiladi',
+                      'mobile.barber.scheduleGen.summarySingleDay',
+                      'Taxminan {{slots}} ta slot yaratiladi',
                       {
-                        'days': '$dayCount',
                         'slots': '$slotsPerDay',
-                        'total': '$total',
                       }),
                   style: AppText.bodySm.copyWith(
                     color: AppColors.primary,
