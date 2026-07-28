@@ -176,9 +176,10 @@ class _LopepayCustomerFormScreenState
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _startDate,
+    final picked = await AppDatePicker.show(
+      context,
+      ref: ref,
+      initial: _startDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
