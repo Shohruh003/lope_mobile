@@ -162,12 +162,7 @@ class ProfileScreen extends ConsumerWidget {
             ],
 
             AppSpacing.gapMd,
-            Center(
-              child: Text(
-                tr(ref, 'profile.versionLabel', 'Versiya 1.0.0'),
-                style: AppText.caption,
-              ),
-            ),
+            const Center(child: AppVersionLabel()),
           ],
         ),
       ),

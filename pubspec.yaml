@@ -61,6 +61,11 @@ dependencies:
                                         # show an offline banner + trigger
                                         # auto-retry when the connection
                                         # comes back
+  package_info_plus: ^8.1.2             # read pubspec version+build at
+                                        # runtime so the profile screen's
+                                        # 'Versiya N.N.N' label stays in
+                                        # sync with each release without
+                                        # a manual string edit
 
 dev_dependencies:
   flutter_test:

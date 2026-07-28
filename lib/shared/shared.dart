@@ -37,3 +37,4 @@ export 'widgets/skeleton.dart';
 export 'widgets/branded_loader.dart';
 export 'widgets/client_avatar.dart';
 export 'widgets/profile_hero_card.dart';
+export 'widgets/app_version_label.dart';
