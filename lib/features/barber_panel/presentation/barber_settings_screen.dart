@@ -152,26 +152,117 @@ class BarberSettingsScreen extends ConsumerWidget {
             ),
           ]),
           AppSpacing.gapXl,
-          _TileGroup(children: [
-            _SettingsTile(
-              icon: Icons.logout,
-              iconColor: context.colors.textMuted,
-              label: tr(ref, 'barberApp.logout', 'Chiqish'),
-              onTap: () async {
-                AppHaptics.light();
-                await ref.read(authControllerProvider.notifier).logout();
+          // Danger zone — same layout as customer profile so a barber
+          // switching between roles sees a familiar Chiqish/O'chirish
+          // block instead of two red list rows. Logout was also
+          // firing without any confirmation before, which was easy to
+          // trigger by accident on the way down the tile list.
+          AppButton(
+            label: tr(ref, 'barberApp.logout', 'Chiqish'),
+            leadingIcon: Icons.logout,
+            variant: AppButtonVariant.secondary,
+            fullWidth: true,
+            onPressed: () async {
+              AppHaptics.light();
+              final yes = await _confirmLogout(context, ref);
+              if (yes == true) {
+                await ref
+                    .read(authControllerProvider.notifier)
+                    .logout();
                 if (context.mounted) context.go('/login');
-              },
+              }
+            },
+          ),
+          AppSpacing.gapSm,
+          Center(
+            child: TextButton(
+              onPressed: () => _confirmDelete(context, ref),
+              child: Text(
+                tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish"),
+                style: AppText.bodySm.copyWith(
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            _SettingsTile(
-              icon: Icons.delete_outline,
-              iconColor: AppColors.danger,
-              label: tr(ref, 'barberApp.deleteAccount', "Hisobni o'chirish"),
-              destructive: true,
-              onTap: () => _confirmDelete(context, ref),
+          ),
+          AppSpacing.gapMd,
+          Center(
+            child: Text(
+              tr(ref, 'profile.versionLabel', 'Versiya 1.0.0'),
+              style: AppText.caption,
             ),
-          ]),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// Same shape as the customer's logout dialog — icon + title +
+  /// message + Bekor/Chiqish. Barber logout used to fire immediately
+  /// on tile-tap, which was an easy misclick.
+  Future<bool?> _confirmLogout(BuildContext context, WidgetRef ref) {
+    AppHaptics.light();
+    return showDialog<bool>(
+      context: context,
+      builder: (dCtx) => Dialog(
+        backgroundColor: context.colors.surface,
+        shape: const RoundedRectangleBorder(borderRadius: AppRadius.rXl),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.logout,
+                      color: AppColors.danger, size: 22),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: Text(
+                    tr(ref, 'profile.logoutConfirmTitle',
+                        'Chiqishni tasdiqlang'),
+                    style: AppText.titleMd,
+                  ),
+                ),
+              ]),
+              AppSpacing.gapMd,
+              Text(
+                tr(ref, 'profile.logoutConfirmMsg',
+                    'Hisobingizdan chiqmoqchimisiz?'),
+                style: AppText.bodySm,
+              ),
+              AppSpacing.gapLg,
+              Row(children: [
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'common.cancel', 'Bekor'),
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => Navigator.pop(dCtx, false),
+                    fullWidth: true,
+                  ),
+                ),
+                AppSpacing.hGapMd,
+                Expanded(
+                  child: AppButton(
+                    label: tr(ref, 'barberApp.logout', 'Chiqish'),
+                    variant: AppButtonVariant.danger,
+                    onPressed: () => Navigator.pop(dCtx, true),
+                    fullWidth: true,
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -318,13 +409,11 @@ class _SettingsTile extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.onTap,
-    this.destructive = false,
   });
   final IconData icon;
   final Color iconColor;
   final String label;
   final VoidCallback onTap;
-  final bool destructive;
 
   @override
   Widget build(BuildContext context) {
@@ -352,17 +441,13 @@ class _SettingsTile extends StatelessWidget {
               label,
               style: AppText.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: destructive
-                    ? AppColors.danger
-                    : context.colors.textBright,
+                color: context.colors.textBright,
               ),
             ),
           ),
           Icon(
             Icons.chevron_right,
-            color: destructive
-                ? AppColors.danger.withValues(alpha: 0.7)
-                : context.colors.textMuted,
+            color: context.colors.textMuted,
             size: 18,
           ),
         ]),
