@@ -35,6 +35,29 @@ class _BarberWorkingHoursScreenState
   bool _seeded = false;
   bool _saving = false;
 
+  // Snapshot of the last-saved (or initial) state — Save stays disabled
+  // until the current form drifts away from this baseline. Reset after
+  // a successful save so a second tap can't fire an identical PUT.
+  late List<_DayConfig> _initialConfig;
+  int _initialSlotDuration = 30;
+  bool get _dirty {
+    if (_slotDuration != _initialSlotDuration) return true;
+    if (_config.length != _initialConfig.length) return true;
+    for (var i = 0; i < _config.length; i++) {
+      final a = _config[i];
+      final b = _initialConfig[i];
+      if (a.day != b.day ||
+          a.open != b.open ||
+          a.close != b.close ||
+          a.isOpen != b.isOpen ||
+          a.lunchStart != b.lunchStart ||
+          a.lunchEnd != b.lunchEnd) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +66,8 @@ class _BarberWorkingHoursScreenState
       (i) => _DayConfig(
           day: _dayKeys[i], open: '09:00', close: '20:00', isOpen: i < 6),
     );
+    _initialConfig = List<_DayConfig>.from(_config);
+    _initialSlotDuration = _slotDuration;
   }
 
   void _seedFromBarber(Map<String, dynamic> barber) {
@@ -92,6 +117,10 @@ class _BarberWorkingHoursScreenState
       final clamped = sd.toInt();
       _slotDuration = _slotOptions.contains(clamped) ? clamped : 30;
     }
+    // Freeze the seeded state as the dirty-check baseline. Everything
+    // beyond this point counts as an unsaved edit.
+    _initialConfig = List<_DayConfig>.from(_config);
+    _initialSlotDuration = _slotDuration;
   }
 
   Future<void> _pickTime(int i, bool isOpen) async {
@@ -204,6 +233,10 @@ class _BarberWorkingHoursScreenState
         },
       );
       ref.invalidate(barberProfileProvider(widget.barberId));
+      // Refresh the dirty baseline — a follow-up tap now needs a
+      // genuine edit before the button re-enables.
+      _initialConfig = List<_DayConfig>.from(_config);
+      _initialSlotDuration = _slotDuration;
       AppHaptics.success();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -407,19 +440,19 @@ class _BarberWorkingHoursScreenState
                       style: AppText.bodySm,
                     ),
                     AppSpacing.gapMd,
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        for (final d in _slotOptions)
-                          AppChip(
-                            label:
-                                "$d ${tr(ref, 'profile.minutesShort', 'daq')}",
-                            selected: _slotDuration == d,
-                            onTap: () =>
-                                setState(() => _slotDuration = d),
-                          ),
-                      ],
+                    _SlotIntervalTile(
+                      value: _slotDuration,
+                      onTap: () async {
+                        final picked = await AppSlotPicker.show(
+                          context,
+                          ref: ref,
+                          initial: _slotDuration,
+                          options: _slotOptions,
+                        );
+                        if (picked != null && picked != _slotDuration) {
+                          setState(() => _slotDuration = picked);
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -432,7 +465,7 @@ class _BarberWorkingHoursScreenState
                 size: AppButtonSize.lg,
                 fullWidth: true,
                 loading: _saving,
-                onPressed: _saving ? null : _save,
+                onPressed: (_saving || !_dirty) ? null : _save,
               ),
             ],
             ),
@@ -487,6 +520,53 @@ class _DayConfig {
         lunchStart: clearLunch ? null : (lunchStart ?? this.lunchStart),
         lunchEnd: clearLunch ? null : (lunchEnd ?? this.lunchEnd),
       );
+}
+
+/// Tappable row that displays the current slot interval and opens the
+/// wheel picker sheet. Replaces the old horizontal chip Wrap — the
+/// user asked for the same scroll-style picker the time chips use.
+class _SlotIntervalTile extends StatelessWidget {
+  const _SlotIntervalTile({
+    required this.value,
+    required this.onTap,
+  });
+  final int value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TapScale(
+      onTap: onTap,
+      scale: 0.98,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: AppRadius.rMd,
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(children: [
+          Expanded(
+            child: Text(
+              '$value daq',
+              style: AppText.titleSm.copyWith(
+                color: AppColors.primary,
+                fontFeatures: const [FontFeature.tabularFigures()],
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          Icon(Icons.expand_more,
+              color: AppColors.primary, size: 22),
+        ]),
+      ),
+    );
+  }
 }
 
 class _TimeChip extends StatelessWidget {

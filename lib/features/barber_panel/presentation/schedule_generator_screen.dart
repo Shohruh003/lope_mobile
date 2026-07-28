@@ -226,17 +226,46 @@ class _ScheduleGeneratorScreenState
                 'Bir slot davomiyligi'),
           ),
           AppSpacing.gapMd,
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [15, 20, 30, 45, 60, 90]
-                .map((m) => AppChip(
-                      label:
-                          "$m ${tr(ref, 'booking.duration', 'daq')}",
-                      selected: _slotMinutes == m,
-                      onTap: () => setState(() => _slotMinutes = m),
-                    ))
-                .toList(),
+          TapScale(
+            onTap: () async {
+              final picked = await AppSlotPicker.show(
+                context,
+                ref: ref,
+                initial: _slotMinutes,
+                options: const [15, 20, 30, 45, 60, 90],
+              );
+              if (picked != null && picked != _slotMinutes) {
+                setState(() => _slotMinutes = picked);
+              }
+            },
+            scale: 0.98,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.md,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: AppRadius.rMd,
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: Text(
+                    "$_slotMinutes ${tr(ref, 'booking.duration', 'daq')}",
+                    style: AppText.titleSm.copyWith(
+                      color: AppColors.primary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.expand_more,
+                    color: AppColors.primary, size: 22),
+              ]),
+            ),
           ),
           AppSpacing.gapXl,
           AppCard(
