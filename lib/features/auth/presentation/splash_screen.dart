@@ -11,7 +11,7 @@ import 'auth_controller.dart';
 ///   - Radial gradient background
 ///   - Gradient icon pill with glow, scale-in animation
 ///   - Wordmark with subtle rise + fade
-///   - Tagline (Sartaroshingiz — bir bosishda)
+///   - Tagline (Sartaroshlik olami — bir bosishda)
 ///   - 3-dot bouncing loader at the bottom
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});

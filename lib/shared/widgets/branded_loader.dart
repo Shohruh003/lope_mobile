@@ -94,7 +94,7 @@ class BrandedLoader extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              message ?? 'Sartaroshingiz — bir bosishda',
+              message ?? 'Sartaroshlik olami — bir bosishda',
               style: AppText.bodySm,
               textAlign: TextAlign.center,
             ),
