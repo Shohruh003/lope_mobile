@@ -738,16 +738,19 @@ class _BookingCard extends ConsumerWidget {
                 "Vaqtni uzaytirish (daqiqa)"),
             style: AppText.titleMd),
         content: StatefulBuilder(builder: (sCtx, setSt) {
-          return DropdownButtonFormField<int>(
-            initialValue: minutes,
-            items: const [
-              DropdownMenuItem(value: 15, child: Text("+15")),
-              DropdownMenuItem(value: 30, child: Text("+30")),
-              DropdownMenuItem(value: 45, child: Text("+45")),
-              DropdownMenuItem(value: 60, child: Text("+60")),
-              DropdownMenuItem(value: 90, child: Text("+90")),
+          return AppSelectField<int>(
+            label: tr(ref, 'mobile.shop.barber.extendTitle',
+                "Vaqtni uzaytirish (daqiqa)"),
+            icon: Icons.timelapse,
+            value: minutes,
+            options: const [
+              AppSelectOption(value: 15, label: '+15 daq'),
+              AppSelectOption(value: 30, label: '+30 daq'),
+              AppSelectOption(value: 45, label: '+45 daq'),
+              AppSelectOption(value: 60, label: '+60 daq'),
+              AppSelectOption(value: 90, label: '+90 daq'),
             ],
-            onChanged: (v) => setSt(() => minutes = v ?? 30),
+            onChanged: (v) => setSt(() => minutes = v),
           );
         }),
         actions: [

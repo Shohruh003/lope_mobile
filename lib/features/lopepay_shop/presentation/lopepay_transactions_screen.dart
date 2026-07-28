@@ -111,31 +111,39 @@ class _LopepayTransactionsScreenState
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    DropdownButtonFormField<String>(
-                      isDense: true,
-                      initialValue: _type,
-                      decoration: InputDecoration(
-                          labelText:
-                              tr(ref, 'lopePay.shop.filterType', "Turi")),
-                      items: [
-                        DropdownMenuItem(
-                            value: 'all',
-                            child: Text(tr(ref, 'common.all', "Hammasi"))),
-                        DropdownMenuItem(
-                            value: 'topup',
-                            child: Text(_typeLabel('topup'))),
-                        DropdownMenuItem(
-                            value: 'sms_deduction',
-                            child: Text(_typeLabel('sms_deduction'))),
-                        DropdownMenuItem(
-                            value: 'ai_deduction',
-                            child: Text(_typeLabel('ai_deduction'))),
-                        DropdownMenuItem(
-                            value: 'referral_bonus',
-                            child: Text(_typeLabel('referral_bonus'))),
+                    AppSelectField<String>(
+                      label: tr(ref, 'lopePay.shop.filterType', "Turi"),
+                      icon: Icons.receipt_long_outlined,
+                      value: _type,
+                      options: [
+                        AppSelectOption<String>(
+                          value: 'all',
+                          label: tr(ref, 'common.all', "Hammasi"),
+                          icon: Icons.all_inbox_outlined,
+                        ),
+                        AppSelectOption<String>(
+                          value: 'topup',
+                          label: _typeLabel('topup'),
+                          icon: Icons.arrow_downward_rounded,
+                        ),
+                        AppSelectOption<String>(
+                          value: 'sms_deduction',
+                          label: _typeLabel('sms_deduction'),
+                          icon: Icons.sms_outlined,
+                        ),
+                        AppSelectOption<String>(
+                          value: 'ai_deduction',
+                          label: _typeLabel('ai_deduction'),
+                          icon: Icons.auto_awesome,
+                        ),
+                        AppSelectOption<String>(
+                          value: 'referral_bonus',
+                          label: _typeLabel('referral_bonus'),
+                          icon: Icons.card_giftcard,
+                        ),
                       ],
                       onChanged: (v) => setState(() {
-                        _type = v ?? 'all';
+                        _type = v;
                         _page = 1;
                       }),
                     ),

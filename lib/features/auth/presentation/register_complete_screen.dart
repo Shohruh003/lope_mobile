@@ -345,61 +345,42 @@ class _RegisterCompleteScreenState
                         AppSpacing.gapMd,
 
                         // Role
-                        Text(tr(ref, 'auth.accountType', 'Hisob turi'),
-                            style: AppText.overline),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md),
-                          decoration: BoxDecoration(
-                            color: context.colors.surfaceElevated,
-                            borderRadius: AppRadius.rMd,
-                            border:
-                                Border.all(color: context.colors.border),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _role,
-                              isExpanded: true,
-                              icon: Icon(Icons.arrow_drop_down,
-                                  color: context.colors.textMuted),
-                              onChanged: (v) {
-                                if (v != null) {
-                                  AppHaptics.selection();
-                                  setState(() => _role = v);
-                                }
-                              },
-                              items: [
-                                DropdownMenuItem(
-                                  value: 'user',
-                                  child: Text(tr(ref,
-                                      'auth.roleCustomer', 'Mijoz')),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'barber',
-                                  child: Text(tr(ref,
-                                      'auth.roleBarber', 'Sartarosh')),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'stylist',
-                                  child: Text(tr(ref,
-                                      'auth.roleStylist', 'Stilist')),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'cosmetologist',
-                                  child: Text(tr(
-                                      ref,
-                                      'auth.roleCosmetologist',
-                                      'Kosmetolog')),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'barbershop',
-                                  child: Text(tr(ref,
-                                      'auth.roleShop', 'Salon')),
-                                ),
-                              ],
+                        AppSelectField<String>(
+                          label: tr(ref, 'auth.accountType', 'Hisob turi'),
+                          icon: Icons.badge_outlined,
+                          value: _role,
+                          options: [
+                            AppSelectOption<String>(
+                              value: 'user',
+                              label: tr(ref, 'auth.roleCustomer', 'Mijoz'),
+                              icon: Icons.person_outline,
                             ),
-                          ),
+                            AppSelectOption<String>(
+                              value: 'barber',
+                              label: tr(ref, 'auth.roleBarber', 'Sartarosh'),
+                              icon: Icons.content_cut,
+                            ),
+                            AppSelectOption<String>(
+                              value: 'stylist',
+                              label: tr(ref, 'auth.roleStylist', 'Stilist'),
+                              icon: Icons.brush_outlined,
+                            ),
+                            AppSelectOption<String>(
+                              value: 'cosmetologist',
+                              label: tr(ref, 'auth.roleCosmetologist',
+                                  'Kosmetolog'),
+                              icon: Icons.face_retouching_natural,
+                            ),
+                            AppSelectOption<String>(
+                              value: 'barbershop',
+                              label: tr(ref, 'auth.roleShop', 'Salon'),
+                              icon: Icons.storefront_outlined,
+                            ),
+                          ],
+                          onChanged: (v) {
+                            AppHaptics.selection();
+                            setState(() => _role = v);
+                          },
                         ),
 
                         if (_error != null) ...[
