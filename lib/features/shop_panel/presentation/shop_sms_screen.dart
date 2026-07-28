@@ -115,21 +115,21 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                     barbersAsync.when(
                       loading: () => const SizedBox.shrink(),
                       error: (_, _) => const SizedBox.shrink(),
-                      data: (barbers) => DropdownButtonFormField<String?>(
-                        isDense: true,
-                        initialValue: _barberId,
-                        decoration: InputDecoration(
-                          labelText: tr(ref, 'shop.filter.barber', "Master"),
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                              value: null,
-                              child: Text(
-                                  tr(ref, 'shop.filter.allBarbers', "Barchasi"))),
-                          ...barbers.map((b) => DropdownMenuItem(
+                      data: (barbers) => AppSelectField<String?>(
+                        label: tr(ref, 'shop.filter.barber', "Master"),
+                        icon: Icons.person_outline,
+                        value: _barberId,
+                        options: [
+                          AppSelectOption<String?>(
+                            value: null,
+                            label: tr(
+                                ref, 'shop.filter.allBarbers', "Barchasi"),
+                          ),
+                          for (final b in barbers)
+                            AppSelectOption<String?>(
                               value: b.id,
-                              child: Text(b.name,
-                                  overflow: TextOverflow.ellipsis))),
+                              label: b.name,
+                            ),
                         ],
                         onChanged: (v) => setState(() {
                           _barberId = v;
@@ -138,28 +138,34 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    DropdownButtonFormField<String>(
-                      isDense: true,
-                      initialValue: _type,
-                      decoration: InputDecoration(
-                        labelText: tr(ref, 'shop.filter.type', "Turi"),
-                      ),
-                      items: [
-                        DropdownMenuItem(
-                            value: 'all',
-                            child: Text(tr(ref, 'common.all', "Hammasi"))),
-                        DropdownMenuItem(
-                            value: 'confirmation',
-                            child: Text(_typeLabel('confirmation'))),
-                        DropdownMenuItem(
-                            value: 'reminder',
-                            child: Text(_typeLabel('reminder'))),
-                        DropdownMenuItem(
-                            value: 'retention',
-                            child: Text(_typeLabel('retention'))),
+                    AppSelectField<String>(
+                      label: tr(ref, 'shop.filter.type', "Turi"),
+                      icon: Icons.sms_outlined,
+                      value: _type,
+                      options: [
+                        AppSelectOption<String>(
+                          value: 'all',
+                          label: tr(ref, 'common.all', "Hammasi"),
+                          icon: Icons.all_inbox_outlined,
+                        ),
+                        AppSelectOption<String>(
+                          value: 'confirmation',
+                          label: _typeLabel('confirmation'),
+                          icon: Icons.check_circle_outline,
+                        ),
+                        AppSelectOption<String>(
+                          value: 'reminder',
+                          label: _typeLabel('reminder'),
+                          icon: Icons.notifications_active_outlined,
+                        ),
+                        AppSelectOption<String>(
+                          value: 'retention',
+                          label: _typeLabel('retention'),
+                          icon: Icons.campaign_outlined,
+                        ),
                       ],
                       onChanged: (v) => setState(() {
-                        _type = v ?? 'all';
+                        _type = v;
                         _page = 1;
                       }),
                     ),
