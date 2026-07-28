@@ -53,17 +53,13 @@ class ProfileScreen extends ConsumerWidget {
             AppSpacing.gapLg,
 
             // ═════════════ Menu links ═════════════
-            // Since we dropped the hamburger drawer, every non-tab
-            // destination lives here — this is the customer's single
-            // "everything else" surface (Uzum/Click pattern).
+            // Ordered by how often a customer actually reaches for the
+            // row: everyday actions on top, one-shot preferences at
+            // the bottom. 'Profilni tahrirlash' isn't listed because
+            // the edit icon on the hero card already goes there.
             if (user != null) ...[
+              // ── Everyday actions ──
               _MenuGroup(children: [
-                // Language row — compact tile with current flag; tap
-                // opens a bottom sheet with the four options.
-                _LangTile(currentLang: currentLang),
-                // Theme mode picker — cycles between System / Light /
-                // Dark. Preference persisted through themeModeProvider.
-                const AppThemeTile(),
                 if (user.role == 'user') ...[
                   _LinkTile(
                     icon: Icons.bookmark_border,
@@ -80,13 +76,11 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ],
                 _LinkTile(
-                  icon: Icons.person_outline,
+                  icon: Icons.receipt_long,
                   iconColor: AppColors.primary,
-                  label: tr(
-                      ref, 'profile.editProfile', 'Profilni tahrirlash'),
-                  onTap: () => context.push(isBarberRole(user.role)
-                      ? '/barber/profile'
-                      : '/profile-edit'),
+                  label: tr(ref, 'myTransactions.title',
+                      'Tranzaksiyalar tarixi'),
+                  onTap: () => context.push('/transactions'),
                 ),
                 _LinkTile(
                   icon: Icons.card_giftcard,
@@ -95,21 +89,18 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () => context.push('/promo'),
                 ),
                 _LinkTile(
-                  icon: Icons.receipt_long,
-                  iconColor: AppColors.primary,
-                  label: tr(ref, 'myTransactions.title',
-                      'Tranzaksiyalar tarixi'),
-                  onTap: () => context.push('/transactions'),
-                ),
-                _LinkTile(
                   icon: Icons.notifications_outlined,
                   iconColor: AppColors.primary,
                   label: tr(
                       ref, 'barberApp.notifications', 'Bildirishnomalar'),
                   onTap: () => context.push('/notifications'),
                 ),
-                // Sozlamalar / "Profil" link removed — it just re-opened
-                // the same profile screen and confused users.
+              ]),
+              AppSpacing.gapLg,
+              // ── Preferences (set-once) ──
+              _MenuGroup(children: [
+                _LangTile(currentLang: currentLang),
+                const AppThemeTile(),
               ]),
               AppSpacing.gapLg,
             ],
