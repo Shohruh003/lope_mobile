@@ -1757,6 +1757,17 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   // Bloklangan" wrap.
                   child: LayoutBuilder(
                     builder: (context, constraints) {
+                      // Two thresholds instead of one:
+                      //   ≥ 360dp — full labels on both action buttons
+                      //   < 360dp — icon-only pills so legend + both
+                      //             buttons stay on the SAME row
+                      // The old fallback dropped the buttons onto a
+                      // second line entirely, which the user flagged
+                      // as ugly ("yangi qatorga tushib qolibdi").
+                      // iPhone 13 Pro Max at portrait width sits right
+                      // on the previous 380dp boundary once card
+                      // padding is subtracted, hence the wrap.
+                      final showLabels = constraints.maxWidth >= 360;
                       final legend = FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
@@ -1764,50 +1775,37 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                           _LegendDot(
                               color: AppColors.success,
                               label: tr(ref, 'mobile.barber.schedule.legendFree', "Bo'sh")),
-                          const SizedBox(width: AppSpacing.md),
+                          const SizedBox(width: AppSpacing.sm),
                           _LegendDot(
                               color: AppColors.primary,
                               label: tr(ref, 'mobile.barber.schedule.legendBooked', "Band")),
-                          const SizedBox(width: AppSpacing.md),
+                          const SizedBox(width: AppSpacing.sm),
                           _LegendDot(
                               color: AppColors.danger,
                               label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
                         ]),
                       );
-                      final closeBtn = _TinyAction(
-                        icon: Icons.event_busy_outlined,
-                        color: AppColors.danger,
-                        label: tr(ref, 'mobile.barber.schedule.closeDay', "Kunni yopish"),
-                        onTap: () => _confirmCloseDay(barberId),
-                      );
-                      final addBtn = _TinyAction(
-                        icon: Icons.add,
-                        color: AppColors.primary,
-                        label: tr(ref, 'mobile.barber.schedule.add', "Qo'shish"),
-                        onTap: () => _openAddSchedule(barberId),
-                      );
-
-                      if (constraints.maxWidth >= 380) {
-                        return Row(children: [
-                          Expanded(child: legend),
-                          const SizedBox(width: AppSpacing.sm),
-                          closeBtn,
-                          const SizedBox(width: AppSpacing.xs),
-                          addBtn,
-                        ]);
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          legend,
-                          const SizedBox(height: AppSpacing.sm),
-                          Row(children: [
-                            Expanded(child: closeBtn),
-                            const SizedBox(width: AppSpacing.xs),
-                            Expanded(child: addBtn),
-                          ]),
-                        ],
-                      );
+                      return Row(children: [
+                        Expanded(child: legend),
+                        const SizedBox(width: AppSpacing.sm),
+                        _TinyAction(
+                          icon: Icons.event_busy_outlined,
+                          color: AppColors.danger,
+                          label: tr(ref, 'mobile.barber.schedule.closeDay',
+                              "Kunni yopish"),
+                          onTap: () => _confirmCloseDay(barberId),
+                          showLabel: showLabels,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        _TinyAction(
+                          icon: Icons.add,
+                          color: AppColors.primary,
+                          label: tr(ref, 'mobile.barber.schedule.add',
+                              "Qo'shish"),
+                          onTap: () => _openAddSchedule(barberId),
+                          showLabel: showLabels,
+                        ),
+                      ]);
                     },
                   ),
                 ),
@@ -2211,11 +2209,18 @@ class _TinyAction extends StatelessWidget {
     required this.color,
     required this.label,
     required this.onTap,
+    this.showLabel = true,
   });
   final IconData icon;
   final Color color;
   final String label;
   final VoidCallback onTap;
+
+  /// When false, only the icon is rendered inside a compact 32x32
+  /// pill. Used by the schedule header when the row is too narrow to
+  /// fit legend + both full labels — swapping to icon-only keeps
+  /// everything on one line instead of wrapping to a second row.
+  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -2223,18 +2228,26 @@ class _TinyAction extends StatelessWidget {
       onTap: onTap,
       haptic: HapticStrength.light,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+        padding: showLabel
+            ? const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm, vertical: AppSpacing.xs)
+            : const EdgeInsets.all(7),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: AppRadius.rSm,
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 3),
-          Text(label,
-              style: AppText.button.copyWith(color: color, fontSize: 11)),
-        ]),
+        child: showLabel
+            ? Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(icon, size: 13, color: color),
+                const SizedBox(width: 3),
+                Text(label,
+                    style:
+                        AppText.button.copyWith(color: color, fontSize: 11)),
+              ])
+            : Tooltip(
+                message: label,
+                child: Icon(icon, size: 16, color: color),
+              ),
       ),
     );
   }
