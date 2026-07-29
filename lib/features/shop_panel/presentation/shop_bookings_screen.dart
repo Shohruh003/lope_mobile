@@ -180,7 +180,7 @@ class _ShopBookingsScreenState extends ConsumerState<ShopBookingsScreen> {
               mastersAsync.maybeWhen(
                 data: (masters) => AppSelectField<String>(
                   label:
-                      tr(ref, 'mobile.shop.bookings.masterLabel', "Sartarosh"),
+                      tr(ref, 'mobile.shop.bookings.masterLabel', "Master"),
                   icon: Icons.person_outline,
                   value: _barberId,
                   options: [

@@ -284,7 +284,7 @@ class _ShopTransactionsScreenState
                         loading: () => const SizedBox.shrink(),
                         error: (_, _) => const SizedBox.shrink(),
                         data: (barbers) => AppSelectField<String?>(
-                          label: tr(ref, 'shop.filter.barber', "Sartarosh"),
+                          label: tr(ref, 'shop.filter.barber', "Master"),
                           icon: Icons.person_outline,
                           value: _barberId,
                           options: [

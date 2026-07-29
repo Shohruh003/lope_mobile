@@ -1342,7 +1342,7 @@
       "schedule": "Jadval",
       "stats": "Statistika",
       "dashboard": "Boshqaruv",
-      "masters": "Mastera"
+      "masters": "Masterlar"
     },
     "profile": {
       "title": "Profil",
@@ -1593,7 +1593,7 @@
       }
     },
     "shop": {
-      "home": { "dashboard": "Boshqaruv", "masters": "Mastera", "bookings": "Bronlar", "profile": "Profil" },
+      "home": { "dashboard": "Boshqaruv", "masters": "Masterlar", "bookings": "Bronlar", "profile": "Profil" },
       "dashboard": {
         "salonLabel": "Salonim",
         "weekTitle": "Bu hafta",
@@ -1602,13 +1602,13 @@
         "statRevenue": "Daromad",
         "statSms": "SMS",
         "navManagement": "Boshqaruv",
-        "navMasters": "Mastera (Barberlar)",
+        "navMasters": "Masterlar (Barberlar)",
         "navBookings": "Salon bronlari",
         "navTransactions": "Hisob va to'lovlar",
         "navSms": "SMS tarixi"
       },
       "masters": {
-        "title": "Mastera",
+        "title": "Masterlar",
         "singular": "Master",
         "addBtn": "Qo'shish",
         "empty": "Hali masterlar qo'shilmagan",
