@@ -244,24 +244,25 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                   ),
                 ),
                 // ── Filter chips (recency bucket) ──
-                // Above 'Hammasini tanlash' used to butt right up
-                // against the search bar with 4px between them. The
-                // top gap is now handled by the search block padding
-                // and the chip row has its own 44dp height + a bottom
-                // divider so the two sections feel intentionally
-                // separate rather than mashed together.
-                SizedBox(
-                  height: 44,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.lg),
-                    children: [
-                      AppChip(
-                        label: tr(ref, 'common.all', 'Hammasi'),
-                        selected: _bucket == 'all',
-                        onTap: () => setState(() => _bucket = 'all'),
-                      ),
+                // Wrapped in a symmetric-sm-padded scroller so the
+                // pills have breathing room above and below —
+                // previously they rendered flush against the search
+                // bar on top and 'Hammasini tanlash' below, which the
+                // shop owner flagged as 'chiplarga yopishib qolgan'.
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                  child: SizedBox(
+                    height: 44,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg),
+                      children: [
+                        AppChip(
+                          label: tr(ref, 'common.all', 'Barchasi'),
+                          selected: _bucket == 'all',
+                          onTap: () => setState(() => _bucket = 'all'),
+                        ),
                       AppSpacing.hGapSm,
                       AppChip(
                         label: '0-7',
@@ -287,6 +288,7 @@ class _ShopClientsScreenState extends ConsumerState<ShopClientsScreen> {
                         onTap: () => setState(() => _bucket = '60+'),
                       ),
                     ],
+                    ),
                   ),
                 ),
                 // Thin divider between the filter row and the select-

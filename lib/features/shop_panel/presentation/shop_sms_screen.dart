@@ -116,7 +116,7 @@ class _ShopSmsScreenState extends ConsumerState<ShopSmsScreen> {
                       loading: () => const SizedBox.shrink(),
                       error: (_, _) => const SizedBox.shrink(),
                       data: (barbers) => AppSelectField<String?>(
-                        label: tr(ref, 'shop.filter.barber', "Master"),
+                        label: tr(ref, 'shop.filter.barber', "Sartarosh"),
                         icon: Icons.person_outline,
                         value: _barberId,
                         options: [

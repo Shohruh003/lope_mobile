@@ -654,7 +654,13 @@ extension ShopRepoExtras on ShopRepository {
 
 final shopClientsProvider = FutureProvider<List<ShopClient>>((ref) {
   ref.watch(authControllerProvider.select((s) => s.user?.id));
-  return ref.watch(shopRepositoryProvider).clients();
+  // Load every client via the paginated loop instead of one 50-row
+  // page — the shop owner needs to scroll the full list (700+ names
+  // on real accounts). Client-side filtering (search + recency
+  // bucket) then works over the whole set. clientsAll() itself pages
+  // in 200-row chunks server-side and stops when a short chunk
+  // arrives, so the extra data cost is minimal for smaller shops.
+  return ref.watch(shopRepositoryProvider).clientsAll();
 });
 final shopSmsLogProvider = FutureProvider<List<ShopSmsLogEntry>>((ref) {
   ref.watch(authControllerProvider.select((s) => s.user?.id));
