@@ -400,84 +400,143 @@ class _BookingCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return AppCard(
-      variant: AppCardVariant.flat,
+      variant: AppCardVariant.outlined,
       padding: const EdgeInsets.all(AppSpacing.md),
       onTap: b.barberId.isEmpty
           ? null
           : () => GoRouter.of(context).push('/shop/barbers/${b.barberId}'),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: AppRadius.rSm,
-            border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.25)),
-          ),
-          child: Text(b.time,
-              style: AppText.button
-                  .copyWith(color: AppColors.primary, fontSize: 13)),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        ClipOval(
-          child: (b.barberAvatar?.isNotEmpty ?? false)
-              ? CachedNetworkImage(
-                  imageUrl: assetUrl(b.barberAvatar),
-                  width: 36,
-                  height: 36,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, _, _) => _avatarFallback(b.barberName),
-                )
-              : _avatarFallback(b.barberName),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(b.userName,
-                  style: AppText.titleSm.copyWith(fontSize: 14)),
-              const SizedBox(height: 3),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Icon(Icons.person_outline,
-                      size: 11, color: context.colors.textMuted),
-                  const SizedBox(width: 3),
-                  Text(b.barberName,
-                      style: AppText.caption.copyWith(fontSize: 11)),
-                  if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
-                    Text("  •  ",
-                        style: AppText.caption.copyWith(fontSize: 11)),
-                    Text(b.userPhone!,
-                        style: AppText.caption.copyWith(fontSize: 11)),
-                  ],
-                  if (b.totalDuration > 0) ...[
-                    Text("  •  ",
-                        style: AppText.caption.copyWith(fontSize: 11)),
-                    Icon(Icons.access_time,
-                        size: 11, color: context.colors.textMuted),
-                    const SizedBox(width: 2),
-                    Text("${b.totalDuration}m",
-                        style: AppText.caption.copyWith(fontSize: 11)),
-                  ],
-                  if (b.isManual) ...[
-                    const SizedBox(width: 6),
-                    AppBadge(
-                      label: tr(ref, 'mobile.shop.bookings.manualBadge',
-                          "Qo'lda"),
-                      variant: AppBadgeVariant.warning,
-                    ),
-                  ],
-                ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Row 1: time pill + client name + status pill ──
+          Row(children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: AppRadius.rSm,
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.25)),
               ),
-              if (b.notes != null && b.notes!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              child: Text(b.time,
+                  style: AppText.button.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 13,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  )),
+            ),
+            AppSpacing.hGapSm,
+            Expanded(
+              child: Text(
+                b.userName.isEmpty
+                    ? tr(ref, 'mobile.barber.bookingsAll.client', 'Mijoz')
+                    : b.userName,
+                style: AppText.titleSm.copyWith(fontSize: 15),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            AppBadge(
+              label: _statusText(ref),
+              variant: _statusVariant,
+              dot: true,
+            ),
+          ]),
+          AppSpacing.gapSm,
+          // ── Row 2: barber (avatar + name) ──
+          Row(children: [
+            ClipOval(
+              child: (b.barberAvatar?.isNotEmpty ?? false)
+                  ? CachedNetworkImage(
+                      imageUrl: assetUrl(b.barberAvatar),
+                      width: 28,
+                      height: 28,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) =>
+                          _avatarFallback(b.barberName),
+                    )
+                  : _avatarFallback(b.barberName),
+            ),
+            AppSpacing.hGapSm,
+            Expanded(
+              child: Text(
+                b.barberName,
+                style: AppText.bodySm.copyWith(
+                  color: context.colors.textBright,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (b.isManual)
+              AppBadge(
+                label: tr(ref, 'mobile.shop.bookings.manualBadge',
+                    "Qo'lda"),
+                variant: AppBadgeVariant.warning,
+              ),
+          ]),
+          // ── Row 3: phone + duration meta ──
+          if ((b.userPhone != null && b.userPhone!.isNotEmpty) ||
+              b.totalDuration > 0) ...[
+            const SizedBox(height: 6),
+            Row(children: [
+              if (b.userPhone != null && b.userPhone!.isNotEmpty) ...[
+                Icon(Icons.phone_outlined,
+                    size: 12, color: context.colors.textMuted),
+                const SizedBox(width: 4),
+                Text(b.userPhone!,
+                    style: AppText.caption.copyWith(fontSize: 12)),
+              ],
+              if (b.totalDuration > 0) ...[
+                if (b.userPhone != null && b.userPhone!.isNotEmpty)
+                  AppSpacing.hGapMd,
+                Icon(Icons.access_time,
+                    size: 12, color: context.colors.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                    "${b.totalDuration} ${tr(ref, 'booking.duration', 'daq')}",
+                    style: AppText.caption.copyWith(fontSize: 12)),
+              ],
+              const Spacer(),
+              if (b.totalPrice > 0)
+                Text(
+                    "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
+                    style: AppText.titleSm.copyWith(
+                        color: AppColors.primary, fontSize: 14)),
+            ]),
+          ] else if (b.totalPrice > 0) ...[
+            const SizedBox(height: 6),
+            Row(children: [
+              const Spacer(),
+              Text(
+                  "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
+                  style: AppText.titleSm
+                      .copyWith(color: AppColors.primary, fontSize: 14)),
+            ]),
+          ],
+          // ── Row 4 (optional): notes ──
+          if (b.notes != null && b.notes!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: context.colors.surfaceElevated
+                    .withValues(alpha: 0.6),
+                borderRadius: AppRadius.rSm,
+                border: Border(
+                  left: BorderSide(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      width: 3),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Icon(Icons.notes,
                       size: 12, color: context.colors.textMuted),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(b.notes!,
                         maxLines: 2,
@@ -485,88 +544,64 @@ class _BookingCard extends ConsumerWidget {
                         style: AppText.bodySm.copyWith(
                             fontStyle: FontStyle.italic, fontSize: 12)),
                   ),
-                ]),
-              ],
-              const SizedBox(height: AppSpacing.sm),
-              Row(children: [
-                AppBadge(
-                    label: _statusText(ref),
-                    variant: _statusVariant,
-                    dot: true),
-                const Spacer(),
-                if (b.totalPrice > 0)
-                  Text(
-                      "${_fmt(b.totalPrice)} ${tr(ref, 'common.currency', "so'm")}",
-                      style: AppText.titleSm.copyWith(
-                          color: AppColors.primary, fontSize: 14)),
-              ]),
-              if (b.status == 'confirmed') ...[
-                const SizedBox(height: AppSpacing.sm),
-                // Two-row layout so we never overflow on narrow phones:
-                // primary actions (Yakunlash / Bekor qilish) share
-                // the top row via `Expanded`; secondary actions
-                // (reschedule / extend) live below as text buttons
-                // instead of a cramped popup that fought the primary
-                // buttons for horizontal space.
-                Row(children: [
-                  Expanded(
-                    child: AppButton(
-                      label:
-                          tr(ref, 'myBookings.complete', "Yakunlash"),
-                      variant: AppButtonVariant.success,
-                      size: AppButtonSize.sm,
-                      fullWidth: true,
-                      leadingIcon: Icons.check_circle_outline,
-                      onPressed: () => _complete(context, ref),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: AppButton(
-                      label: tr(ref, 'myBookings.cancel', "Bekor qilish"),
-                      variant: AppButtonVariant.secondary,
-                      size: AppButtonSize.sm,
-                      fullWidth: true,
-                      leadingIcon: Icons.close,
-                      onPressed: () => _cancel(context, ref),
-                    ),
-                  ),
-                ]),
-                const SizedBox(height: 6),
-                // Secondary actions — TextButton.icon has fixed internal
-                // padding that overflowed at 50% width on narrow phones.
-                // Custom TapScale rows give us precise control: icon +
-                // text with tight spacing, FittedBox to scale down when
-                // the label runs long in translations.
-                Row(children: [
-                  Expanded(
-                    child: _SecondaryAction(
-                      icon: Icons.event_repeat,
-                      label: tr(ref, 'mobile.shop.barber.reschedule',
-                          "Ko'chirish"),
-                      onTap: () => _reschedule(context, ref),
-                    ),
-                  ),
-                  Expanded(
-                    child: _SecondaryAction(
-                      icon: Icons.timer_outlined,
-                      label: tr(ref, 'mobile.shop.barber.extend',
-                          "Uzaytirish"),
-                      onTap: () => _extend(context, ref),
-                    ),
-                  ),
-                ]),
-              ],
-            ],
-          ),
-        ),
-      ]),
+                ],
+              ),
+            ),
+          ],
+          // ── Row 5 (only for confirmed bookings): actions ──
+          if (b.status == 'confirmed') ...[
+            AppSpacing.gapMd,
+            Row(children: [
+              Expanded(
+                child: AppButton(
+                  label: tr(ref, 'myBookings.complete', "Yakunlash"),
+                  variant: AppButtonVariant.success,
+                  size: AppButtonSize.sm,
+                  fullWidth: true,
+                  leadingIcon: Icons.check_circle_outline,
+                  onPressed: () => _complete(context, ref),
+                ),
+              ),
+              AppSpacing.hGapSm,
+              Expanded(
+                child: AppButton(
+                  label: tr(ref, 'myBookings.cancel', "Bekor qilish"),
+                  variant: AppButtonVariant.secondary,
+                  size: AppButtonSize.sm,
+                  fullWidth: true,
+                  leadingIcon: Icons.close,
+                  onPressed: () => _cancel(context, ref),
+                ),
+              ),
+            ]),
+            AppSpacing.gapXs,
+            Row(children: [
+              Expanded(
+                child: _SecondaryAction(
+                  icon: Icons.event_repeat,
+                  label: tr(ref, 'mobile.shop.barber.reschedule',
+                      "Ko'chirish"),
+                  onTap: () => _reschedule(context, ref),
+                ),
+              ),
+              Expanded(
+                child: _SecondaryAction(
+                  icon: Icons.timer_outlined,
+                  label: tr(ref, 'mobile.shop.barber.extend',
+                      "Uzaytirish"),
+                  onTap: () => _extend(context, ref),
+                ),
+              ),
+            ]),
+          ],
+        ],
+      ),
     );
   }
 
   Widget _avatarFallback(String name) => Container(
-        width: 36,
-        height: 36,
+        width: 28,
+        height: 28,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -581,8 +616,8 @@ class _BookingCard extends ConsumerWidget {
         alignment: Alignment.center,
         child: Text(
           name.isNotEmpty ? name[0].toUpperCase() : '?',
-          style: AppText.titleSm
-              .copyWith(color: AppColors.primary, fontSize: 14),
+          style: AppText.caption
+              .copyWith(color: AppColors.primary, fontWeight: FontWeight.w800),
         ),
       );
 
