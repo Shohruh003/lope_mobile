@@ -176,6 +176,51 @@ class BarberSmsStats {
 
 /// Booking actions a barber can take on their own bookings. These are POSTed
 /// to existing NestJS endpoints; the web uses the same routes.
+extension BarberScheduleMetaApi on BarberPanelRepository {
+  /// GET /schedule/:barberId/scheduled-dates?dates=...&dates=...
+  /// Returns the subset of the requested dates that have a saved slot
+  /// list for this barber. Used by the horizontal date picker on the
+  /// barber schedule screen so days without a schedule fade out — a
+  /// quick "which days are booked vs empty" glance for the barber.
+  Future<Set<String>> scheduledDates(
+    String barberId,
+    List<String> dates,
+  ) async {
+    if (dates.isEmpty) return const {};
+    try {
+      final res = await _dio.get(
+        '/schedule/$barberId/scheduled-dates',
+        queryParameters: {'dates': dates},
+      );
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List
+              ? data['data'] as List
+              : <dynamic>[]);
+      return list.map((e) => e.toString()).toSet();
+    } catch (_) {
+      return const {};
+    }
+  }
+}
+
+/// 30-day scheduled-date lookup for the barber schedule screen's
+/// horizontal date picker. autoDispose so it releases when the tab is
+/// left. Family key = barberId. Refresh via ref.invalidate whenever a
+/// slot save could change the set (auto-generate, single-slot add,
+/// bulk save, or day close).
+final barberScheduledDatesProvider = FutureProvider.family
+    .autoDispose<Set<String>, String>((ref, barberId) async {
+  final now = DateTime.now();
+  String d(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  final dates = List.generate(30, (i) => d(now.add(Duration(days: i))));
+  return ref
+      .read(barberPanelRepositoryProvider)
+      .scheduledDates(barberId, dates);
+});
+
 extension BarberLookupApi on BarberPanelRepository {
   /// GET /bookings/barber/:id/lookup-client?phone=... — used by the
   /// manual booking dialog to auto-fill a returning client's name as

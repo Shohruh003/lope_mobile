@@ -395,6 +395,16 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     ref.invalidate(scheduleSlotsProvider(key));
     ref.invalidate(bookedSlotsProvider(key));
     ref.invalidate(blockedSlotsProvider(key));
+    // 'Bugungi bronlar' list under the slot grid reads this provider.
+    // Without invalidating it a manual booking would land in the DB
+    // but the list stayed empty until the barber left + reopened the
+    // tab. User feedback: 'mijoz yozdim lekin slotlar tagida list bo'lib
+    // chiqmayapti'.
+    ref.invalidate(barberDayBookingsProvider(key));
+    // Also refresh the 30-day 'which days have slots' set so the
+    // horizontal date picker's fade state stays in sync after add /
+    // delete / auto-generate / close-day mutations.
+    ref.invalidate(barberScheduledDatesProvider(barberId));
   }
 
   /// Merge `newSlots` into the day's existing slot list and save.
@@ -1496,9 +1506,9 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   icon: Icons.auto_awesome_motion,
                   tint: AppColors.primary,
                   title: tr(ref, 'mobile.barber.schedule.autoInterval',
-                      "Avtomatik (vaqt oralig'i)"),
+                      "Bir kunlik"),
                   subtitle: tr(ref, 'mobile.barber.schedule.autoIntervalHint',
-                      "Boshlanish va tugash vaqtidan slotlar generatsiya"),
+                      "Ochilish/yopilish vaqtidan slotlar generatsiya qilinadi"),
                   onTap: () => Navigator.of(sheetCtx).pop('generator'),
                 ),
                 _SheetAction(
@@ -1525,11 +1535,39 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       try {
         final dateStr = _dateStr(_selectedDate);
         final current = await ref.read(barberPanelRepositoryProvider).getDaySchedule(barberId, dateStr);
-        if (current.contains(time)) return;
+        // Was: `if (current.contains(time)) return;` — silently closing
+        // the sheet with no feedback. Barber flagged this: 'o'zi 10 da
+        // slot bor, bu yerda chiqishi kerak edi bu vaqtda slot bor deb'.
+        // Now surfaces a snack so the barber knows why nothing changed.
+        if (current.contains(time)) {
+          if (mounted) {
+            AppHaptics.medium();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(
+                ref,
+                'mobile.barber.schedule.slotAlreadyExists',
+                'Bu vaqtda ({{time}}) slot allaqachon bor',
+                {'time': time},
+              )),
+            ));
+          }
+          return;
+        }
         final updated = [...current, time]..sort();
         await ref.read(barberPanelRepositoryProvider)
             .saveDaySchedule(barberId: barberId, date: dateStr, slots: updated);
         _refreshDay(barberId);
+        if (mounted) {
+          AppHaptics.success();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(tr(
+              ref,
+              'mobile.barber.schedule.slotAdded',
+              '{{time}} vaqtiga slot qo\'shildi',
+              {'time': time},
+            )),
+          ));
+        }
       } catch (e) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${tr(ref, 'common.error', 'Xatolik')}: ${humanize(e)}")));
       }
@@ -1660,33 +1698,49 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
             height: 96,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 30,
-              itemBuilder: (context, i) {
-                final d = DateTime.now().add(Duration(days: i));
-                final dateOnly = DateTime(d.year, d.month, d.day);
-                final selectedOnly =
-                    DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-                final isSelected = dateOnly.isAtSameMomentAs(selectedOnly);
-                final isToday = i == 0;
+            child: Consumer(builder: (ctx, ref, _) {
+              // Which of the next 30 dates already have a saved slot
+              // list. Days without slots render at 40% opacity so the
+              // barber can scan the strip and immediately spot which
+              // dates still need Jadval qo'shish. Same UX the web
+              // frontend uses (scheduledDates.has in BarberScheduleScreen).
+              final hasSlotsSet = ref
+                      .watch(barberScheduledDatesProvider(barberId))
+                      .asData
+                      ?.value ??
+                  const <String>{};
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 30,
+                itemBuilder: (context, i) {
+                  final d = DateTime.now().add(Duration(days: i));
+                  final dateOnly = DateTime(d.year, d.month, d.day);
+                  final selectedOnly = DateTime(_selectedDate.year,
+                      _selectedDate.month, _selectedDate.day);
+                  final isSelected = dateOnly.isAtSameMomentAs(selectedOnly);
+                  final isToday = i == 0;
+                  final iso = _dateStr(dateOnly);
+                  final hasSlots = hasSlotsSet.contains(iso);
 
-                return Padding(
-                  padding: const EdgeInsets.only(right: AppSpacing.sm),
-                  child: _DatePill(
-                    weekday: weekDays[d.weekday - 1],
-                    day: d.day.toString(),
-                    month: months[d.month - 1].substring(0, 3).toLowerCase(),
-                    selected: isSelected,
-                    today: isToday,
-                    onTap: () {
-                      AppHaptics.selection();
-                      setState(() => _selectedDate = dateOnly);
-                    },
-                  ),
-                );
-              },
-            ),
+                  return Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
+                    child: _DatePill(
+                      weekday: weekDays[d.weekday - 1],
+                      day: d.day.toString(),
+                      month:
+                          months[d.month - 1].substring(0, 3).toLowerCase(),
+                      selected: isSelected,
+                      today: isToday,
+                      hasSlots: hasSlots,
+                      onTap: () {
+                        AppHaptics.selection();
+                        setState(() => _selectedDate = dateOnly);
+                      },
+                    ),
+                  );
+                },
+              );
+            }),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(dateHeader, style: AppText.titleSm),
@@ -2014,6 +2068,7 @@ class _DatePill extends StatelessWidget {
     required this.selected,
     required this.today,
     required this.onTap,
+    this.hasSlots = true,
   });
 
   final String weekday;
@@ -2021,6 +2076,13 @@ class _DatePill extends StatelessWidget {
   final String month;
   final bool selected;
   final bool today;
+
+  /// True when this date has a saved slot list on the backend.
+  /// Days without slots fade to 40% opacity — matches web frontend so
+  /// the barber can scan the strip and spot which days still need
+  /// Jadval qo'shish. Selected + today always render at full opacity
+  /// so the current position stays legible even on empty days.
+  final bool hasSlots;
   final VoidCallback onTap;
 
   @override
@@ -2030,8 +2092,10 @@ class _DatePill extends StatelessWidget {
         ? Colors.transparent
         : (today
             ? AppColors.primary.withValues(alpha: 0.4)
-            : context.colors.border);
-    return TapScale(
+            : hasSlots
+                ? context.colors.border
+                : context.colors.border.withValues(alpha: 0.5));
+    final content = TapScale(
       onTap: onTap,
       haptic: HapticStrength.none,
       child: Container(
@@ -2069,6 +2133,11 @@ class _DatePill extends StatelessWidget {
         ),
       ),
     );
+    // Fade unscheduled non-selected non-today pills so the barber can
+    // scan the strip and spot empty days. Selected + today keep full
+    // opacity — active position must always stay legible.
+    if (hasSlots || selected || today) return content;
+    return Opacity(opacity: 0.4, child: content);
   }
 }
 
