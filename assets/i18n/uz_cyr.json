@@ -1342,7 +1342,7 @@
       "schedule": "Жадвал",
       "stats": "Статистика",
       "dashboard": "Бошқарув",
-      "masters": "Мастера"
+      "masters": "Мастерлар"
     },
     "profile": {
       "title": "Профил",
@@ -1593,7 +1593,7 @@
       }
     },
     "shop": {
-      "home": { "dashboard": "Бошқарув", "masters": "Мастера", "bookings": "Бронлар", "profile": "Профил" },
+      "home": { "dashboard": "Бошқарув", "masters": "Мастерлар", "bookings": "Бронлар", "profile": "Профил" },
       "dashboard": {
         "salonLabel": "Салоним",
         "weekTitle": "Бу ҳафта",
@@ -1602,13 +1602,13 @@
         "statRevenue": "Даромад",
         "statSms": "SMS",
         "navManagement": "Бошқарув",
-        "navMasters": "Мастера (Барберлар)",
+        "navMasters": "Мастерлар (Барберлар)",
         "navBookings": "Салон бронлари",
         "navTransactions": "Ҳисоб ва тўловлар",
         "navSms": "SMS тарихи"
       },
       "masters": {
-        "title": "Мастера",
+        "title": "Мастерлар",
         "singular": "Мастер",
         "addBtn": "Қўшиш",
         "empty": "Ҳали мастерлар қўшилмаган",
