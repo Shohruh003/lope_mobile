@@ -101,24 +101,53 @@ class BarberClientsRepository {
   BarberClientsRepository(this._dio);
   final Dio _dio;
 
-  Future<List<BarberClient>> mine(String barberId) async {
-    // Backend endpoint: GET /bookings/barber/:barberId/clients
-    // (bookings.controller.ts:164). The old /barbers/:id/clients had
-    // no handler — barber's 'Mijozlarim' screen always loaded empty.
-    final res = await _dio.get('/bookings/barber/$barberId/clients');
+  /// Single page of the barber's client list. Backend endpoint:
+  /// GET /bookings/barber/:barberId/clients?page=N&limit=M
+  /// (bookings.controller.ts:167). Server-side default is limit=20,
+  /// max=100 — callers picking a large limit still get capped there.
+  Future<List<BarberClient>> minePage(
+    String barberId, {
+    int page = 1,
+    int limit = 100,
+  }) async {
+    final res = await _dio.get(
+      '/bookings/barber/$barberId/clients',
+      queryParameters: {'page': page, 'limit': limit},
+    );
     final data = res.data;
     final list = (data is List)
         ? data
-        : (data is Map && data['data'] is List ? data['data'] as List : <dynamic>[]);
-    final raw = list
+        : (data is Map && data['data'] is List
+            ? data['data'] as List
+            : <dynamic>[]);
+    return list
         .cast<Map<String, dynamic>>()
         .map(BarberClient.fromJson)
         .toList();
+  }
+
+  /// Fetches EVERY client across all pages. Same shape as the shop
+  /// panel's clientsAll — barber with 100+ clients used to only see
+  /// the first 20 because /bookings/barber/:id/clients pages by
+  /// default and the old mine() sent no ?page/?limit. Loops 100-row
+  /// chunks and stops when a short chunk arrives, with a 50-page
+  /// safety cap so a runaway backend can't spin forever.
+  Future<List<BarberClient>> mine(String barberId) async {
+    const pageSize = 100;
+    final out = <BarberClient>[];
+    var page = 1;
+    while (true) {
+      final chunk = await minePage(barberId, page: page, limit: pageSize);
+      out.addAll(chunk);
+      if (chunk.length < pageSize) break;
+      page += 1;
+      if (page > 50) break;
+    }
     // Dedupe by phone before returning — the backend has been known
     // to return both the guest-side and user-side entries for the
     // same phone once a registered user's account was linked to a
     // previously-manual booking.
-    return mergeBarberClients(raw);
+    return mergeBarberClients(out);
   }
 }
 
