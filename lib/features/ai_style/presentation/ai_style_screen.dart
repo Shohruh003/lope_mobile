@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -135,12 +136,21 @@ class _AiStyleScreenState extends ConsumerState<AiStyleScreen> {
       final safe = url.hashCode.toRadixString(16);
       final file = File('${dir.path}/preset_$safe.jpg');
       if (!file.existsSync()) {
-        // Delegate to the AI style repository's shared HTTP client so
-        // the download inherits auth headers / timeouts. Falls back to
-        // a plain HTTP fetch if the repo doesn't expose a helper.
-        await ref
-            .read(aiStyleRepositoryProvider)
-            .downloadAsset(url: url, saveTo: file);
+        if (url.startsWith('assets/')) {
+          // Local bundle asset — copy bytes out so the rest of the
+          // upload pipeline (which expects a File on disk) works
+          // unchanged.
+          final data = await rootBundle.load(url);
+          await file.writeAsBytes(
+              data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+              flush: true);
+        } else {
+          // Delegate to the AI style repository's shared HTTP client so
+          // the download inherits auth headers / timeouts.
+          await ref
+              .read(aiStyleRepositoryProvider)
+              .downloadAsset(url: url, saveTo: file);
+        }
       }
       if (!mounted) return;
       setState(() => _refImages[preset.category] = file);
@@ -1372,14 +1382,21 @@ class _PresetTile extends StatelessWidget {
                     isSelected ? AppRadius.lg - 2 : AppRadius.lg - 1),
                 child: Stack(fit: StackFit.expand, children: [
                   if (preset.imageUrl != null && preset.imageUrl!.isNotEmpty)
-                    CachedNetworkImage(
-                      imageUrl: preset.imageUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) =>
-                          _GradientFallback(colors: _paletteFor(preset.key)),
-                      errorWidget: (_, _, _) =>
-                          _GradientFallback(colors: _paletteFor(preset.key)),
-                    )
+                    preset.imageUrl!.startsWith('assets/')
+                        ? Image.asset(
+                            preset.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _GradientFallback(
+                                colors: _paletteFor(preset.key)),
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: preset.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (_, _) =>
+                                _GradientFallback(colors: _paletteFor(preset.key)),
+                            errorWidget: (_, _, _) =>
+                                _GradientFallback(colors: _paletteFor(preset.key)),
+                          )
                   else
                     _GradientFallback(colors: _paletteFor(preset.key)),
                   // Bottom scrim so name is always readable.
