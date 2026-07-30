@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -19,21 +19,33 @@ class TransactionsScreen extends ConsumerStatefulWidget {
 }
 
 class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
-  // Locale-neutral display formatter — pattern is language-agnostic
-  // so dropping the ru_RU locale doesn't change what the barber sees,
-  // it just stops advertising Russian formatting on a UZ-first app.
   static final _df = DateFormat('dd.MM.yyyy HH:mm');
-  // ISO shape kept for the backend query params only.
   static final _ymd = DateFormat('yyyy-MM-dd');
-  // Human-facing shape for filter pills — never the ISO string.
   static final _pretty = DateFormat('dd.MM.yyyy');
 
+  // Filter state — mutating any of these resets the accumulated list
+  // and refetches page 1 via _resetAndReload().
   String _direction = 'all';
   String _method = 'all';
   DateTime? _from;
   DateTime? _to;
-  int _page = 1;
   bool _filtersOpen = false;
+
+  // Infinite-scroll bookkeeping. Was: single-page provider with
+  // Oldingi/Keyingi buttons at the bottom of the ListView. User asked
+  // for the native-app infinite-scroll pattern ('men eng pastga
+  // tushganimda keyingi sahifadagi malumotlar chiqaversin') so we
+  // accumulate items in local state and prefetch the next page as the
+  // scroll approaches the bottom.
+  final ScrollController _scrollController = ScrollController();
+  final List<PaymentEntry> _items = [];
+  int _totalIncome = 0;
+  int _totalExpense = 0;
+  int _totalPages = 1;
+  int _currentPage = 0; // 0 = nothing loaded yet
+  bool _initialLoading = true;
+  bool _loadingMore = false;
+  Object? _error;
 
   String? _directionParam() {
     if (_direction == 'in') return 'income';
@@ -41,14 +53,97 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     return null;
   }
 
-  PaymentHistoryKey _key(String userId) => (
-        userId: userId,
-        direction: _directionParam() ?? 'all',
-        method: _method,
-        from: _from == null ? null : _ymd.format(_from!),
-        to: _to == null ? null : _ymd.format(_to!),
-        page: _page,
-      );
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadPage(1));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    // Fire ~400px before the end so the next page finishes loading
+    // before the user hits the very bottom — no visible spinner
+    // stall on fast connections.
+    if (pos.pixels < pos.maxScrollExtent - 400) return;
+    if (_loadingMore || _initialLoading) return;
+    if (_currentPage >= _totalPages) return;
+    _loadPage(_currentPage + 1);
+  }
+
+  Future<void> _loadPage(int page) async {
+    final user = ref.read(authControllerProvider).user;
+    if (user == null) return;
+
+    if (page == 1) {
+      setState(() {
+        _initialLoading = true;
+        _error = null;
+      });
+    } else {
+      setState(() => _loadingMore = true);
+    }
+
+    try {
+      final res =
+          await ref.read(balanceRepositoryProvider).historyEnvelope(
+                userId: user.id,
+                direction: _directionParam() ?? 'all',
+                method: _method,
+                from: _from == null ? null : _ymd.format(_from!),
+                to: _to == null ? null : _ymd.format(_to!),
+                page: page,
+              );
+      if (!mounted) return;
+      setState(() {
+        if (page == 1) {
+          _items
+            ..clear()
+            ..addAll(res.data);
+        } else {
+          _items.addAll(res.data);
+        }
+        _totalIncome = res.totalIncome;
+        _totalExpense = res.totalExpense;
+        _totalPages = res.totalPages;
+        _currentPage = page;
+        _initialLoading = false;
+        _loadingMore = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _initialLoading = false;
+        _loadingMore = false;
+        _error = e;
+      });
+    }
+  }
+
+  void _resetAndReload() {
+    setState(() {
+      _items.clear();
+      _currentPage = 0;
+      _totalPages = 1;
+      _totalIncome = 0;
+      _totalExpense = 0;
+      _error = null;
+    });
+    _loadPage(1);
+  }
+
+  Future<void> _refresh() async {
+    final user = ref.read(authControllerProvider).user;
+    if (user != null) ref.invalidate(myBalanceProvider(user.id));
+    await _loadPage(1);
+  }
 
   Future<void> _pickDate(bool isFrom) async {
     AppHaptics.light();
@@ -61,25 +156,21 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       lastDate: DateTime.now(),
     );
     if (picked == null) return;
-    setState(() {
-      if (isFrom) {
-        _from = picked;
-      } else {
-        _to = picked;
-      }
-      _page = 1;
-    });
+    if (isFrom) {
+      _from = picked;
+    } else {
+      _to = picked;
+    }
+    _resetAndReload();
   }
 
   void _resetFilters() {
     AppHaptics.light();
-    setState(() {
-      _direction = 'all';
-      _method = 'all';
-      _from = null;
-      _to = null;
-      _page = 1;
-    });
+    _direction = 'all';
+    _method = 'all';
+    _from = null;
+    _to = null;
+    _resetAndReload();
   }
 
   String _methodLabel(String m) {
@@ -146,8 +237,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
           body: Center(child: CircularProgressIndicator()));
     }
     final balance = ref.watch(myBalanceProvider(user.id));
-    final async =
-        ref.watch(paymentHistoryFilteredProvider(_key(user.id)));
 
     return Scaffold(
       appBar: AppBar(
@@ -176,7 +265,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 ),
                 child: Icon(
                   _filtersOpen ? Icons.filter_list_off : Icons.filter_list,
-                  color: _filtersOpen ? Colors.white : context.colors.textPrimary,
+                  color: _filtersOpen
+                      ? Colors.white
+                      : context.colors.textPrimary,
                   size: 18,
                 ),
               ),
@@ -186,13 +277,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: () async {
-          ref.invalidate(myBalanceProvider(user.id));
-          ref.invalidate(paymentHistoryFilteredProvider);
-          ref.invalidate(paymentHistoryProvider);
-        },
+        onRefresh: _refresh,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
+          controller: _scrollController,
+          padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg,
+              AppSpacing.lg, AppSpacing.pageBottom(context)),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             balance.when(
@@ -202,15 +291,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 height: 200,
                 child: AppErrorState(
                   message: humanize(e),
-                  onRetry: () =>
-                      ref.invalidate(myBalanceProvider(user.id)),
+                  onRetry: () => ref.invalidate(myBalanceProvider(user.id)),
                 ),
               ),
-              data: (b) => _BalanceCard(
-                  amount: b.amount, aiFree: b.aiFreeRemaining),
+              data: (b) =>
+                  _BalanceCard(amount: b.amount, aiFree: b.aiFreeRemaining),
             ),
-            async.maybeWhen(
-              data: (res) => Padding(
+            if (!_initialLoading && _error == null) ...[
+              Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.md),
                 child: Row(children: [
                   Expanded(
@@ -220,7 +308,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       label: tr(ref,
                           'mobile.customer.transactions.income', 'Kirim'),
                       value:
-                          "${_fmt(res.totalIncome)} ${tr(ref, 'common.currency', "so'm")}",
+                          "${_fmt(_totalIncome)} ${tr(ref, 'common.currency', "so'm")}",
                     ),
                   ),
                   AppSpacing.hGapSm,
@@ -233,13 +321,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                           'mobile.customer.transactions.expense',
                           'Chiqim'),
                       value:
-                          "${_fmt(res.totalExpense)} ${tr(ref, 'common.currency', "so'm")}",
+                          "${_fmt(_totalExpense)} ${tr(ref, 'common.currency', "so'm")}",
                     ),
                   ),
                 ]),
               ),
-              orElse: () => const SizedBox.shrink(),
-            ),
+            ],
             AppSpacing.gapXl,
             Text(
               tr(ref, 'mobile.customer.transactions.history',
@@ -247,7 +334,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               style: AppText.titleMd,
             ),
             AppSpacing.gapMd,
-
             SizedBox(
               height: 40,
               child: ListView(
@@ -256,10 +342,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   AppChip(
                     label: tr(ref, 'common.all', 'Hammasi'),
                     selected: _direction == 'all',
-                    onTap: () => setState(() {
+                    onTap: () {
                       _direction = 'all';
-                      _page = 1;
-                    }),
+                      _resetAndReload();
+                    },
                   ),
                   AppSpacing.hGapSm,
                   AppChip(
@@ -267,10 +353,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         'mobile.customer.transactions.income', 'Kirim'),
                     leadingIcon: Icons.trending_up,
                     selected: _direction == 'in',
-                    onTap: () => setState(() {
+                    onTap: () {
                       _direction = 'in';
-                      _page = 1;
-                    }),
+                      _resetAndReload();
+                    },
                   ),
                   AppSpacing.hGapSm,
                   AppChip(
@@ -278,15 +364,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         'mobile.customer.transactions.expense', 'Chiqim'),
                     leadingIcon: Icons.trending_down,
                     selected: _direction == 'out',
-                    onTap: () => setState(() {
+                    onTap: () {
                       _direction = 'out';
-                      _page = 1;
-                    }),
+                      _resetAndReload();
+                    },
                   ),
                 ],
               ),
             ),
-
             if (_filtersOpen) ...[
               AppSpacing.gapMd,
               AppCard(
@@ -322,10 +407,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                             label: _methodLabel('internal'),
                             icon: Icons.sync_alt),
                       ],
-                      onChanged: (v) => setState(() {
+                      onChanged: (v) {
                         _method = v;
-                        _page = 1;
-                      }),
+                        _resetAndReload();
+                      },
                     ),
                     AppSpacing.gapMd,
                     Row(children: [
@@ -339,7 +424,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       ),
                       AppSpacing.hGapSm,
                       Text('—',
-                          style: TextStyle(color: context.colors.textMuted)),
+                          style:
+                              TextStyle(color: context.colors.textMuted)),
                       AppSpacing.hGapSm,
                       Expanded(
                         child: _DatePill(
@@ -362,148 +448,131 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 ),
               ),
             ],
-
             AppSpacing.gapMd,
-            async.when(
-              loading: () => const Column(
-                children: [
-                  SkeletonRect(height: 68, radius: AppRadius.md),
-                  SizedBox(height: AppSpacing.sm),
-                  SkeletonRect(height: 68, radius: AppRadius.md),
-                  SizedBox(height: AppSpacing.sm),
-                  SkeletonRect(height: 68, radius: AppRadius.md),
-                ],
-              ),
-              error: (e, _) => SizedBox(
-                height: 300,
-                child: AppErrorState(
-                  message: humanize(e),
-                  onRetry: () =>
-                      ref.invalidate(paymentHistoryFilteredProvider),
-                ),
-              ),
-              data: (res) {
-                final list = res.data;
-                final pages = res.totalPages;
-                if (list.isEmpty) {
-                  return SizedBox(
-                    height: 260,
-                    child: AppEmptyState(
-                      icon: Icons.receipt_long_rounded,
-                      title: tr(
-                          ref,
-                          'mobile.customer.transactions.empty',
-                          "Hali tranzaktsiya yo'q"),
-                      message: tr(
-                        ref,
-                        'mobile.customer.transactions.emptyHint',
-                        "Hisobingizga to'lov qilinganda yoki xarid qilganingizda bu yerda ko'rinadi.",
-                      ),
-                    ),
-                  );
-                }
-                return Column(children: [
-                  ...List.generate(list.length, (i) {
-                    final p = list[i];
-                    final inflow = p.direction == 'in' || p.amount > 0;
-                    return Padding(
-                      padding:
-                          const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: AppCard(
-                        variant: AppCardVariant.outlined,
-                        padding: AppSpacing.cardPadding,
-                        child: Row(children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: (inflow
-                                      ? AppColors.success
-                                      : AppColors.danger)
-                                  .withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                                inflow
-                                    ? Icons.arrow_downward
-                                    : Icons.arrow_upward,
-                                size: 20,
-                                color: inflow
-                                    ? AppColors.success
-                                    : AppColors.danger),
-                          ),
-                          AppSpacing.hGapMd,
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                    p.description ??
-                                        _methodRowLabel(ref, p.method),
-                                    style: AppText.body.copyWith(
-                                        fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 2),
-                                Text(_df.format(p.createdAt.toLocal()),
-                                    style: AppText.caption),
-                              ],
-                            ),
-                          ),
-                          Text(
-                              "${inflow ? '+' : '−'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
-                              style: AppText.body.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: inflow
-                                    ? AppColors.success
-                                    : AppColors.danger,
-                              )),
-                        ]),
-                      ),
-                    ).animate().fadeIn(
-                        duration: 200.ms, delay: (i * 20).ms);
-                  }),
-                  if (pages > 1) ...[
-                    AppSpacing.gapSm,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AppButton(
-                          label: tr(ref, 'common.prev', 'Oldingi'),
-                          leadingIcon: Icons.chevron_left,
-                          variant: AppButtonVariant.secondary,
-                          size: AppButtonSize.sm,
-                          onPressed: _page <= 1
-                              ? null
-                              : () => setState(() => _page--),
-                        ),
-                        AppSpacing.hGapMd,
-                        Text(
-                          '$_page / $pages',
-                          style: AppText.body.copyWith(
-                            color: context.colors.textMuted,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        AppSpacing.hGapMd,
-                        AppButton(
-                          label: tr(ref, 'common.next', 'Keyingi'),
-                          trailingIcon: Icons.chevron_right,
-                          variant: AppButtonVariant.secondary,
-                          size: AppButtonSize.sm,
-                          onPressed: _page >= pages
-                              ? null
-                              : () => setState(() => _page++),
-                        ),
-                      ],
-                    ),
-                  ],
-                ]);
-              },
-            ),
+            _buildListSection(user),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildListSection(dynamic user) {
+    // Initial load — skeleton rows so the customer sees something
+    // happening while the first page is in flight.
+    if (_initialLoading) {
+      return const Column(
+        children: [
+          SkeletonRect(height: 68, radius: AppRadius.md),
+          SizedBox(height: AppSpacing.sm),
+          SkeletonRect(height: 68, radius: AppRadius.md),
+          SizedBox(height: AppSpacing.sm),
+          SkeletonRect(height: 68, radius: AppRadius.md),
+        ],
+      );
+    }
+    final err = _error;
+    if (err != null) {
+      return SizedBox(
+        height: 300,
+        child: AppErrorState(
+          message: humanize(err),
+          onRetry: () => _loadPage(1),
+        ),
+      );
+    }
+    if (_items.isEmpty) {
+      return SizedBox(
+        height: 260,
+        child: AppEmptyState(
+          icon: Icons.receipt_long_rounded,
+          title: tr(ref, 'mobile.customer.transactions.empty',
+              "Hali tranzaktsiya yo'q"),
+          message: tr(
+            ref,
+            'mobile.customer.transactions.emptyHint',
+            "Hisobingizga to'lov qilinganda yoki xarid qilganingizda bu yerda ko'rinadi.",
+          ),
+        ),
+      );
+    }
+    return Column(children: [
+      ...List.generate(_items.length, (i) {
+        final p = _items[i];
+        final inflow = p.direction == 'in' || p.amount > 0;
+        // Cap the fade-in delay for later rows — otherwise page 3+
+        // items delay animations for 60+ frames each.
+        final delayMs = (i * 20).clamp(0, 400);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: AppCard(
+            variant: AppCardVariant.outlined,
+            padding: AppSpacing.cardPadding,
+            child: Row(children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: (inflow ? AppColors.success : AppColors.danger)
+                      .withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                    inflow
+                        ? Icons.arrow_downward
+                        : Icons.arrow_upward,
+                    size: 20,
+                    color: inflow
+                        ? AppColors.success
+                        : AppColors.danger),
+              ),
+              AppSpacing.hGapMd,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        p.description ??
+                            _methodRowLabel(ref, p.method),
+                        style: AppText.body
+                            .copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(_df.format(p.createdAt.toLocal()),
+                        style: AppText.caption),
+                  ],
+                ),
+              ),
+              Text(
+                  "${inflow ? '+' : '−'}${_fmt(p.amount.abs())} ${tr(ref, 'common.currency', "so'm")}",
+                  style: AppText.body.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: inflow
+                        ? AppColors.success
+                        : AppColors.danger,
+                  )),
+            ]),
+          ),
+        ).animate().fadeIn(duration: 200.ms, delay: delayMs.ms);
+      }),
+      // Infinite-scroll tail. Was: 'Oldingi | 2 / 9 | Keyingi' row.
+      // Now: small centered spinner while the next page loads, or
+      // silent no-op once the last page is loaded.
+      if (_loadingMore) ...[
+        AppSpacing.gapMd,
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ]);
   }
 }
 
@@ -546,7 +615,8 @@ class _StatTile extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppText.titleSm.copyWith(color: context.colors.textBright),
+            style:
+                AppText.titleSm.copyWith(color: context.colors.textBright),
           ),
         ],
       ),
@@ -662,8 +732,7 @@ class _BalanceCardState extends ConsumerState<_BalanceCard> {
                 borderRadius: AppRadius.rPill,
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                const Icon(Icons.add,
-                    color: AppColors.primary, size: 18),
+                const Icon(Icons.add, color: AppColors.primary, size: 18),
                 AppSpacing.hGapSm,
                 Text(
                   tr(ref, 'mobile.customer.transactions.topUp',
