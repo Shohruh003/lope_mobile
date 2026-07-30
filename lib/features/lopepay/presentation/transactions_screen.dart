@@ -229,6 +229,37 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     return buf.toString();
   }
 
+  /// yyyy-MM-dd key for day grouping — used to decide when to render
+  /// a new date header between two consecutive rows.
+  String _dayKey(DateTime d) {
+    final local = d.toLocal();
+    return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+  }
+
+  static const _monthsUz = [
+    'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
+    'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
+  ];
+
+  /// Humanised day header: 'Bugun' / 'Kecha' / '3 kun oldin' / '25
+  /// iyul' / '25 iyul 2025' for older years. Kept short — it's a
+  /// section separator, not a body row.
+  String _dayHeader(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final local = d.toLocal();
+    final target = DateTime(local.year, local.month, local.day);
+    final diff = today.difference(target).inDays;
+    if (diff == 0) return tr(ref, 'mobile.dates.today', 'Bugun');
+    if (diff == 1) return tr(ref, 'mobile.dates.yesterday', 'Kecha');
+    if (diff < 7) {
+      return '$diff ${tr(ref, 'mobile.dates.daysAgo', 'kun oldin')}';
+    }
+    final month = _monthsUz[local.month - 1];
+    if (local.year != now.year) return '${local.day} $month ${local.year}';
+    return '${local.day} $month';
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authControllerProvider).user;
@@ -502,9 +533,34 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         // Cap the fade-in delay for later rows — otherwise page 3+
         // items delay animations for 60+ frames each.
         final delayMs = (i * 20).clamp(0, 400);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: AppCard(
+        // Insert a small day header whenever the date changes from
+        // the previous row (or on the very first row). Groups the
+        // feed into 'Bugun / Kecha / 25 iyul' sections so the customer
+        // can scan by day instead of reading full timestamps.
+        final showDayHeader = i == 0 ||
+            _dayKey(p.createdAt) !=
+                _dayKey(_items[i - 1].createdAt);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (showDayHeader) ...[
+              if (i > 0) AppSpacing.gapMd,
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 4, bottom: AppSpacing.xs),
+                child: Text(
+                  _dayHeader(p.createdAt),
+                  style: AppText.overline.copyWith(
+                    color: context.colors.textMuted,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: AppCard(
             variant: AppCardVariant.outlined,
             padding: AppSpacing.cardPadding,
             child: Row(children: [
@@ -549,8 +605,10 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         ? AppColors.success
                         : AppColors.danger,
                   )),
-            ]),
-          ),
+                ]),
+              ),
+            ),
+          ],
         ).animate().fadeIn(duration: 200.ms, delay: delayMs.ms);
       }),
       // Infinite-scroll tail. Was: 'Oldingi | 2 / 9 | Keyingi' row.
