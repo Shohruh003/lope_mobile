@@ -102,7 +102,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             if (b.lat == 0 && b.lng == 0) return false;
             return true;
           }).toList(growable: false);
-          final missing = list.length - located.length;
           if (located.isEmpty) {
             return AppEmptyState(
               icon: Icons.location_off_outlined,
@@ -152,6 +151,25 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     userAgentPackageName: 'uz.lopestyle.mobile',
                     maxNativeZoom: 19,
                     maxZoom: 20,
+                    // CartoDB Dark Matter reads 'juda ham qora' — a
+                    // near-black canvas with barely-visible roads. Ran
+                    // the dark tiles through a lightening + slight
+                    // blue-tint matrix so streets stand out and the
+                    // whole surface reads 'night map' instead of
+                    // 'blackout'. Multiplies RGB by 1.6 and lifts the
+                    // black point ~30 to keep landmasses distinct from
+                    // the water/void.
+                    tileBuilder: isDark
+                        ? (context, child, tile) => ColorFiltered(
+                              colorFilter: const ColorFilter.matrix([
+                                1.55, 0, 0, 0, 32,
+                                0, 1.55, 0, 0, 32,
+                                0, 0, 1.65, 0, 36,
+                                0, 0, 0, 1, 0,
+                              ]),
+                              child: child,
+                            )
+                        : null,
                   );
                 }),
                 if (myLL != null)
@@ -187,24 +205,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 ),
               ],
             ),
-            // OSM attribution — required by license.
+            // OSM + CARTO attribution — required by license, kept as
+            // small as we can legally get away with (7pt text, 40%
+            // alpha, tap-through) so it stays present without stealing
+            // customer attention. Butunlay olib tashlash mumkin emas —
+            // OSM ODbL va CARTO CC BY 3.0 attribution talab qiladi.
             const Positioned(
-              left: AppSpacing.sm,
-              bottom: AppSpacing.sm,
+              left: 4,
+              bottom: 4,
               child: _OsmAttribution(),
             ),
-            // Missing-location hint. When a chunk of the feed doesn't
-            // have coordinates set we surface the count so the user
-            // knows "faqat ayrimlari ko'rinyapti" isn't the app losing
-            // pins — those sartaroshlar just haven't set their manzil
-            // yet in the barber panel.
-            if (missing > 0)
-              Positioned(
-                top: AppSpacing.sm,
-                left: AppSpacing.lg,
-                right: AppSpacing.lg,
-                child: _MissingLocationBanner(count: missing),
-              ),
+            // Missing-location banner used to render here — 'N ta
+            // sartarosh manzilni sozlamagan'. Barber dropped it
+            // because it distracted customers from the actual map;
+            // sartaroshlar who haven't set a location just aren't
+            // pinned, no banner needed. missing count still computed
+            // above in case we want to expose it in an info sheet
+            // later.
             // Selected barber preview card
             if (_selected != null)
               Positioned(
@@ -327,59 +344,6 @@ class _BarberPin extends StatelessWidget {
   }
 }
 
-class _MissingLocationBanner extends ConsumerWidget {
-  const _MissingLocationBanner({required this.count});
-  final int count;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return IgnorePointer(
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: context.colors.surface.withValues(alpha: 0.92),
-          borderRadius: AppRadius.rPill,
-          border: Border.all(
-              color: context.colors.border.withValues(alpha: 0.6)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.info_outline,
-                size: 14, color: context.colors.textMuted),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                tr(
-                  ref,
-                  'mobile.map.someMissingLocation',
-                  '$count ta sartarosh manzilni sozlamagan',
-                ),
-                style: AppText.caption.copyWith(
-                    color: context.colors.textSecondary,
-                    fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _OsmAttribution extends StatelessWidget {
   const _OsmAttribution();
   @override
@@ -387,18 +351,21 @@ class _OsmAttribution extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // CARTO tiles require attributing both the underlying OSM data
     // and CartoDB's styling. Light mode uses raw OSM tiles so only
-    // the OSM credit is needed.
-    final label = isDark ? '© OpenStreetMap · © CARTO' : '© OpenStreetMap';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: AppRadius.rSm,
-      ),
+    // the OSM credit is needed. Rendered as small as we can legally
+    // get away with — barber flagged the previous pill as a customer
+    // distraction. 7pt text, 35% alpha, no chip background — still
+    // readable if you look, invisible in a glance.
+    final label = isDark ? '© OSM · CARTO' : '© OSM';
+    return IgnorePointer(
+      ignoring: true,
       child: Text(
         label,
-        style: AppText.overline.copyWith(
-            color: Colors.white70, fontSize: 9, letterSpacing: 0.2),
+        style: TextStyle(
+          fontSize: 7,
+          height: 1.1,
+          letterSpacing: 0.15,
+          color: Colors.white.withValues(alpha: 0.35),
+        ),
       ),
     );
   }
