@@ -504,10 +504,13 @@ class _TunerSheetState extends ConsumerState<_TunerSheet> {
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: [
-                  _sortChip('rating', tr(ref, 'barbers.rating', 'Reyting'),
-                      Icons.star),
+                  // 'Yaqinroq' promoted to the front — it's the app
+                  // default sort and matches how customers actually
+                  // pick a barber (nearest first).
                   _sortChip('distance',
                       tr(ref, 'barbers.nearest', 'Eng yaqin'), Icons.near_me),
+                  _sortChip('rating', tr(ref, 'barbers.rating', 'Reyting'),
+                      Icons.star),
                   _sortChip(
                       'name', tr(ref, 'barbers.sortByName', 'Ism'), Icons.sort_by_alpha),
                   _sortChip('experience',
@@ -543,8 +546,13 @@ class _TunerSheetState extends ConsumerState<_TunerSheet> {
                     variant: AppButtonVariant.secondary,
                     onPressed: () {
                       AppHaptics.light();
+                      // Reset back to the app default sort (distance),
+                      // matching the initial state when the screen
+                      // first opens. Was resetting to 'rating' which
+                      // silently changed the customer's default preference
+                      // after every filter clear.
                       setState(() {
-                        _sort = 'rating';
+                        _sort = 'distance';
                         _gender = 'ALL';
                       });
                     },
