@@ -671,12 +671,17 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               title: tr(ref, 'mobile.barber.schedule.unblockSlot', "Blokni olib tashlash"),
               onTap: () => Navigator.of(sheetCtx).pop('unblock'),
             ),
-          _SheetAction(
-            icon: Icons.delete_outline,
-            tint: AppColors.danger,
-            title: tr(ref, 'mobile.barber.schedule.deleteSlot', "Slotni o'chirish"),
-            onTap: () => Navigator.of(sheetCtx).pop('delete'),
-          ),
+          // Slotni o'chirish faqat bosh vaqtlar uchun ko'rinadi. Mijoz
+          // yozilgan slot'ni o'chirish urinishi ma'lumot yo'qotishga
+          // olib keladi (mijoz kelib, uni band deb topilmagan slotni
+          // ko'radi). Barber avval bronni bekor qilishi kerak.
+          if (status != 'booked')
+            _SheetAction(
+              icon: Icons.delete_outline,
+              tint: AppColors.danger,
+              title: tr(ref, 'mobile.barber.schedule.deleteSlot', "Slotni o'chirish"),
+              onTap: () => Navigator.of(sheetCtx).pop('delete'),
+            ),
           _SheetAction(
             icon: Icons.close,
             tint: context.colors.textMuted,
@@ -707,6 +712,25 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       if (picked == 'block' || picked == 'unblock') {
         await repo.toggleSlotBlock(barberId, dateStr, time);
       } else if (picked == 'delete') {
+        // Belt-and-suspenders: the sheet already hides the delete
+        // action for booked slots, but if a race puts a booking on
+        // the slot between the sheet opening and the barber tapping
+        // delete, refuse the mutation and surface a snack so the slot
+        // survives.
+        final bookedNow = await repo.getBookedSlots(barberId, dateStr);
+        if (bookedNow.contains(time)) {
+          if (mounted) {
+            AppHaptics.medium();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(
+                ref,
+                'mobile.barber.schedule.cantDeleteBooked',
+                'Bu slot band, avval bronni bekor qiling',
+              )),
+            ));
+          }
+          return;
+        }
         // Confirm before removing the slot — the previous flow
         // deleted it immediately with no undo, easy to mis-tap on.
         if (!mounted) return;
