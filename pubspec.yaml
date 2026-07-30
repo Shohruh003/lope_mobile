@@ -1,7 +1,7 @@
 name: lope_mobile
 description: "Lope Style — sartaroshlik bron ilovasi (Flutter)."
 publish_to: 'none'
-version: 1.8.0+8
+version: 1.10.0+10
 
 environment:
   sdk: ^3.12.2
