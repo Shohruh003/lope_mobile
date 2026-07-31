@@ -16,20 +16,21 @@ class ShopSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // AppBar removed — ShopHomeShell already renders a top _Header,
+    // so an inner AppBar duplicated the header and pushed the first
+    // section way down. Screen title now lives as the first row of
+    // the ListView (kept as titleLg so it still reads as a page
+    // heading, not a section label).
     return Scaffold(
-      appBar: AppBar(
-        // "Profil" — this screen is now a hub for personal + salon
-        // settings, theme / language, support links and destructive
-        // actions. Renamed from "Sozlamalar" per user's mental model
-        // of the drawer entry.
-        title: Text(
-          tr(ref, 'mobile.tabs.profile', 'Profil'),
-          style: AppText.titleMd,
-        ),
-      ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
+          Text(
+            tr(ref, 'mobile.tabs.profile', 'Profil'),
+            style: AppText.titleLg
+                .copyWith(color: context.colors.textBright),
+          ),
+          AppSpacing.gapMd,
           _SectionLabel(
               tr(ref, 'profile.section.account', 'Akkaunt').toUpperCase()),
           AppSpacing.gapSm,
@@ -68,9 +69,10 @@ class ShopSettingsScreen extends ConsumerWidget {
               tr(ref, 'profile.section.preferences', 'Sozlamalar')
                   .toUpperCase()),
           AppSpacing.gapSm,
-          const _TileGroup(children: [
+          _TileGroup(children: const [
             AppThemeTile(),
             AppLanguageTile(),
+            _ShopSmsLanguageSettingsTile(),
           ]),
           AppSpacing.gapXl,
           _SectionLabel(
@@ -408,5 +410,35 @@ class _BalanceCard extends ConsumerWidget {
       if (ri > 1 && ri % 3 == 1) buf.write(' ');
     }
     return (n < 0 ? '−' : '') + buf.toString();
+  }
+}
+
+/// Shop-wide default SMS language. Reads current value from
+/// [shopMeProvider] and PATCHes /barbershop/me/sms-language on pick.
+/// After save, invalidates shopMeProvider so the tile re-reads the fresh
+/// value. Barbers may still override via their own settings.
+class _ShopSmsLanguageSettingsTile extends ConsumerWidget {
+  const _ShopSmsLanguageSettingsTile();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shopAsync = ref.watch(shopMeProvider);
+    return shopAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (data) {
+        final current = data['smsLanguage']?.toString() ?? 'uz';
+        return SmsLanguageTile(
+          currentValue: current,
+          onSave: (v) async {
+            // Shop-wide value is non-nullable ('uz' | 'ru'). Default to
+            // 'uz' if the user somehow picks null.
+            await ref
+                .read(shopRepositoryProvider)
+                .updateShopSmsLanguage(v ?? 'uz');
+            ref.invalidate(shopMeProvider);
+          },
+        );
+      },
+    );
   }
 }

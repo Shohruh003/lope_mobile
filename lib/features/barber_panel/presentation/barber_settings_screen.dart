@@ -9,6 +9,7 @@ import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/data/balance_repository.dart';
+import '../data/barber_profile_repository.dart';
 
 class BarberSettingsScreen extends ConsumerWidget {
   const BarberSettingsScreen({super.key});
@@ -129,9 +130,10 @@ class BarberSettingsScreen extends ConsumerWidget {
           _SectionLabel(tr(ref, 'profile.section.preferences', 'Sozlamalar')
               .toUpperCase()),
           AppSpacing.gapSm,
-          const _TileGroup(children: [
-            AppThemeTile(),
-            AppLanguageTile(),
+          _TileGroup(children: [
+            const AppThemeTile(),
+            const AppLanguageTile(),
+            if (user != null) _BarberSmsLanguageSettingsTile(barberId: user.id),
           ]),
           AppSpacing.gapXl,
           _SectionLabel(
@@ -394,6 +396,59 @@ class _TileGroup extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Loads the barber's smsLanguage lazily so the tile knows the current
+/// pick and whether to expose the "inherit from shop" option. Standalone
+/// barbers don't see the inherit choice.
+class _BarberSmsLanguageSettingsTile extends ConsumerStatefulWidget {
+  const _BarberSmsLanguageSettingsTile({required this.barberId});
+  final String barberId;
+  @override
+  ConsumerState<_BarberSmsLanguageSettingsTile> createState() =>
+      _BarberSmsLanguageSettingsTileState();
+}
+
+class _BarberSmsLanguageSettingsTileState
+    extends ConsumerState<_BarberSmsLanguageSettingsTile> {
+  Future<Map<String, dynamic>>? _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = ref
+        .read(barberProfileRepositoryProvider)
+        .getBarber(widget.barberId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _future,
+      builder: (context, snap) {
+        if (!snap.hasData) return const SizedBox.shrink();
+        final data = snap.data!;
+        final current = data['smsLanguage']?.toString();
+        final barbershopId = data['barbershopId']?.toString();
+        return SmsLanguageTile(
+          currentValue: current,
+          showInherit: barbershopId != null && barbershopId.isNotEmpty,
+          onSave: (v) async {
+            await ref
+                .read(barberProfileRepositoryProvider)
+                .updateSmsLanguage(widget.barberId, v);
+            if (mounted) {
+              setState(() {
+                _future = ref
+                    .read(barberProfileRepositoryProvider)
+                    .getBarber(widget.barberId);
+              });
+            }
+          },
+        );
+      },
     );
   }
 }

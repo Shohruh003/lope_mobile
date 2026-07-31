@@ -533,6 +533,19 @@ extension ShopRepoExtras on ShopRepository {
     await _dio.patch('/barbershop/me', data: patch);
   }
 
+  /// PATCH /barbershop/me/sms-language — shop-wide default language for
+  /// outgoing customer SMS. Barbers may override via
+  /// PATCH /barbers/:id/sms-language (BarberProfileRepository).
+  Future<String> updateShopSmsLanguage(String language) async {
+    final res = await _dio.patch('/barbershop/me/sms-language',
+        data: {'language': language});
+    final data = res.data;
+    if (data is Map && data['smsLanguage'] is String) {
+      return data['smsLanguage'] as String;
+    }
+    return language;
+  }
+
   Future<List<ShopClient>> clients({int page = 1, int limit = 50, String? search}) async {
     final res = await _dio.get('/barbershop/clients', queryParameters: {
       'page': page, 'limit': limit,

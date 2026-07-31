@@ -121,6 +121,19 @@ class BarberProfileRepository {
     return enabled;
   }
 
+  /// PATCH /barbers/:id/sms-language — language for outgoing customer SMS
+  /// (booking confirmations, reminders, retention). Pass null / '' to clear
+  /// the override so this barber inherits the shop's default.
+  Future<String?> updateSmsLanguage(String barberId, String? language) async {
+    final res = await _dio.patch('/barbers/$barberId/sms-language',
+        data: {'language': language});
+    if (res.data is Map) {
+      final v = (res.data as Map)['smsLanguage'];
+      return v?.toString();
+    }
+    return language;
+  }
+
   // Avatar
   Future<String> uploadAvatar(String userId, File file) async {
     // Backend field name is 'avatar' (users.controller.ts:79), not 'file'.
