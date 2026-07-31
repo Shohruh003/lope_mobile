@@ -1311,6 +1311,14 @@
       "confirm": "Tasdiqlash",
       "pageNotFound": "Sahifa topilmadi: {{uri}}"
     },
+    "smsLanguage": {
+      "title": "SMS tili",
+      "subtitle": "Mijozlarga yuboriladigan SMS matnining tili",
+      "inherit": "Salon sozlamasidan",
+      "uz": "O'zbek",
+      "ru": "Rus tili",
+      "saved": "Saqlandi"
+    },
     "imagePicker": {
       "camera": "Kamera",
       "gallery": "Galereya"

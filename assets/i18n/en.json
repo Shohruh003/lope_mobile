@@ -1311,6 +1311,14 @@
       "confirm": "Confirm",
       "pageNotFound": "Page not found: {{uri}}"
     },
+    "smsLanguage": {
+      "title": "SMS language",
+      "subtitle": "Language for SMS sent to customers",
+      "inherit": "From salon setting",
+      "uz": "Uzbek",
+      "ru": "Russian",
+      "saved": "Saved"
+    },
     "imagePicker": {
       "camera": "Camera",
       "gallery": "Gallery"
