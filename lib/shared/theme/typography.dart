@@ -8,17 +8,22 @@ import 'lope_colors.dart';
 /// `letterSpacing` aniq belgilangan — Uzum/Click sifatidagi tozalik shu
 /// tafsilotlardan chiqadi.
 ///
-/// Ranglar `AppText.brightness` orqali runtime'da almashadi. `app.dart`
-/// har build oldida bu qiymatni themeModeProvider'dan hisoblab qo'yadi
-/// va getter'lar shu paytdagi paletka rangini qaytaradi. Shuning uchun
-/// `AppText.titleLg` chaqirig'i qorong'i rejimda oq, yorug' rejimda
-/// esa slate-900 (deyarli qora) rangda chiqadi — hech qaerni tegishga
-/// hojat qolmaydi.
+/// Ranglar `AppText.brightness` orqali runtime'da almashadi. Notifier —
+/// `app.dart` har build oldida bu qiymatni themeModeProvider'dan
+/// hisoblab qo'yadi, root'dagi ListenableBuilder esa hamma tree'ni
+/// avtomatik rebuild qiladi. Aks holda ba'zi widgetlar theme o'zgarishida
+/// eski rangda "muzlab" qolar edi — chunki AppText.* static getterlar
+/// Theme.of(context)'ga bog'liq emas.
 class AppText {
   AppText._();
 
   // ─── Runtime brightness ────────────────────────────────────────────
-  static Brightness brightness = Brightness.dark;
+  static final ValueNotifier<Brightness> brightnessNotifier =
+      ValueNotifier(Brightness.dark);
+  static Brightness get brightness => brightnessNotifier.value;
+  static set brightness(Brightness value) {
+    if (brightnessNotifier.value != value) brightnessNotifier.value = value;
+  }
   static LopeColors get _palette =>
       brightness == Brightness.dark ? LopeColors.dark : LopeColors.light;
 

@@ -156,6 +156,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
       if (!mounted) return;
       ref.invalidate(
           scheduleSlotsProvider((barberId: barberId, date: date)));
+      // Also refresh the horizontal date strip so the just-created day
+      // flips from "empty" (grey border, no dot) to "scheduled" (green
+      // border + dot) without waiting for the next app launch.
+      ref.invalidate(barberScheduledDatesProvider(barberId));
       AppHaptics.success();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(tr(
@@ -2068,10 +2072,13 @@ class _VoiceBookingCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppText.titleSm),
+              Text(title,
+                  style: AppText.titleSm
+                      .copyWith(color: context.colors.textBright)),
               const SizedBox(height: 2),
               Text(subtitle,
-                  style: AppText.caption,
+                  style: AppText.caption
+                      .copyWith(color: context.colors.textSecondary),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
             ],
@@ -2117,8 +2124,13 @@ class _DatePill extends StatelessWidget {
         : (today
             ? AppColors.primary.withValues(alpha: 0.4)
             : hasSlots
-                ? context.colors.border
-                : context.colors.border.withValues(alpha: 0.5));
+                ? AppColors.success.withValues(alpha: 0.5)
+                : context.colors.border.withValues(alpha: 0.4));
+    final dotColor = selected
+        ? Colors.white
+        : hasSlots
+            ? AppColors.success
+            : Colors.transparent;
     final content = TapScale(
       onTap: onTap,
       haptic: HapticStrength.none,
@@ -2130,7 +2142,8 @@ class _DatePill extends StatelessWidget {
           gradient: gradient,
           color: selected ? null : context.colors.surface,
           borderRadius: AppRadius.rLg,
-          border: Border.all(color: borderColor),
+          border: Border.all(
+              color: borderColor, width: hasSlots && !selected ? 1.5 : 1),
           boxShadow: selected
               ? AppShadows.primaryGlow(AppColors.primary)
               : null,
@@ -2153,15 +2166,25 @@ class _DatePill extends StatelessWidget {
                 style: AppText.overline.copyWith(
                     fontSize: 10,
                     color: selected ? Colors.white70 : context.colors.textMuted)),
+            const SizedBox(height: 4),
+            // 4px status dot — green when the day has slots, invisible
+            // otherwise. Combined with the green border it makes the
+            // scheduled-vs-empty state readable at a glance without
+            // needing the barber to tap through each day.
+            Container(
+              width: 5,
+              height: 5,
+              decoration:
+                  BoxDecoration(color: dotColor, shape: BoxShape.circle),
+            ),
           ],
         ),
       ),
     );
-    // Fade unscheduled non-selected non-today pills so the barber can
-    // scan the strip and spot empty days. Selected + today keep full
-    // opacity — active position must always stay legible.
+    // Fade unscheduled non-selected non-today pills further so the
+    // strip visibly splits into "ready" and "empty" halves.
     if (hasSlots || selected || today) return content;
-    return Opacity(opacity: 0.4, child: content);
+    return Opacity(opacity: 0.55, child: content);
   }
 }
 

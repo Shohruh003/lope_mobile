@@ -32,12 +32,6 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(shopBarbersPagedProvider(_key));
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          tr(ref, 'mobile.shop.masters.title', 'Mastera'),
-          style: AppText.titleMd,
-        ),
-      ),
       floatingActionButton: TapScale(
         onTap: () => _openEditor(context, ref),
         scale: 0.94,
@@ -85,6 +79,22 @@ class _ShopBarbersScreenState extends ConsumerState<ShopBarbersScreen> {
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg,
                   AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xs,
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    tr(ref, 'mobile.shop.masters.title', 'Masterlar'),
+                    style: AppText.titleLg
+                        .copyWith(color: context.colors.textBright),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.sm,
                   AppSpacing.lg,
                   AppSpacing.sm,
                 ),

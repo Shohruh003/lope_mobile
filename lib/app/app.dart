@@ -60,7 +60,9 @@ class _LopeAppState extends ConsumerState<LopeApp> {
       ThemeMode.system => systemBrightness,
     };
     AppText.brightness = effectiveBrightness;
-    return MaterialApp.router(
+    return ValueListenableBuilder<Brightness>(
+      valueListenable: AppText.brightnessNotifier,
+      builder: (_, __, ___) => MaterialApp.router(
       title: 'Lope Style',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(Brightness.light),
@@ -100,6 +102,7 @@ class _LopeAppState extends ConsumerState<LopeApp> {
         Locale('ru'),
         Locale('en'),
       ],
+    ),
     );
   }
 }

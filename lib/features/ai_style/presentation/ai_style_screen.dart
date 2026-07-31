@@ -517,12 +517,14 @@ class _HeaderBlock extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(tr(ref, 'aiStyle.title', 'AI Stil'),
-                        style: AppText.titleLg),
+                        style: AppText.titleLg
+                            .copyWith(color: context.colors.textBright)),
                     const SizedBox(height: 2),
                     Text(
                       tr(ref, 'mobile.aiStyle.subtitle',
                           "Sun'iy intellekt yordamida yangi imidjni ko'ring"),
-                      style: AppText.bodySm,
+                      style: AppText.bodySm
+                          .copyWith(color: context.colors.textSecondary),
                     ),
                   ],
                 ),

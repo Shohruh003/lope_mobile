@@ -49,7 +49,12 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
     return Scaffold(
       drawer: const AppDrawer(),
       body: Column(children: [
-        const _Header(),
+        _Header(
+          // Show a back-to-home affordance on every non-dashboard tab so
+          // the barbershop admin has a one-tap way to return to the
+          // Boshqaruv landing without opening the drawer.
+          onBack: _index == 0 ? null : () => setState(() => _index = 0),
+        ),
         Expanded(child: IndexedStack(index: _index, children: _tabs)),
       ]),
     );
@@ -57,7 +62,8 @@ class _ShopHomeShellState extends ConsumerState<ShopHomeShell> {
 }
 
 class _Header extends ConsumerWidget {
-  const _Header();
+  const _Header({this.onBack});
+  final VoidCallback? onBack;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
@@ -74,6 +80,28 @@ class _Header extends ConsumerWidget {
           AppSpacing.sm,
         ),
         child: Row(children: [
+          if (onBack != null) ...[
+            TapScale(
+              onTap: () {
+                AppHaptics.selection();
+                onBack!();
+              },
+              scale: 0.9,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: context.colors.surface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: context.colors.border),
+                ),
+                alignment: Alignment.center,
+                child: Icon(Icons.arrow_back_rounded,
+                    color: context.colors.textPrimary, size: 20),
+              ),
+            ),
+            AppSpacing.hGapSm,
+          ],
           Container(
             width: 34,
             height: 34,
