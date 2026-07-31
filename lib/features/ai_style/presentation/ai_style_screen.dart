@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -1094,18 +1097,7 @@ class _ResultView extends ConsumerWidget {
               aspectRatio: 3 / 4,
               child: ClipRRect(
                 borderRadius: AppRadius.rLg,
-                child: CachedNetworkImage(
-                  imageUrl: resultUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, _) =>
-                      const SkeletonRect(radius: AppRadius.lg),
-                  errorWidget: (_, _, _) => Container(
-                    color: context.colors.surfaceElevated,
-                    alignment: Alignment.center,
-                    child:
-                        const Icon(Icons.broken_image, color: AppColors.danger),
-                  ),
-                ),
+                child: _AiResultImage(url: resultUrl),
               ),
             ),
           ]),
@@ -1121,6 +1113,34 @@ class _ResultView extends ConsumerWidget {
             size: AppButtonSize.md,
             fullWidth: true,
             onPressed: () async {
+              // The backend returns the generated image as a
+              // `data:image/png;base64,...` URL, so plain launchUrl()
+              // won't open it in a browser. For data URLs we decode +
+              // save to the app's temp dir + open via the OS share
+              // sheet so the user can copy it to Photos. For HTTP URLs
+              // we keep the old external-browser flow.
+              if (resultUrl.startsWith('data:')) {
+                try {
+                  final commaIdx = resultUrl.indexOf(',');
+                  if (commaIdx <= 0) return;
+                  final bytes = base64Decode(resultUrl.substring(commaIdx + 1));
+                  final dir = await getTemporaryDirectory();
+                  final f = File(
+                      '${dir.path}/lopestyle_ai_${DateTime.now().millisecondsSinceEpoch}.png');
+                  await f.writeAsBytes(bytes, flush: true);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                        tr(ref, 'aiStyle.savedLocal',
+                            'Rasm ilova papkasiga saqlandi'),
+                      ),
+                    ));
+                  }
+                } catch (e) {
+                  developer.log('download data URL failed: $e', name: 'ai-style');
+                }
+                return;
+              }
               final uri = Uri.tryParse(resultUrl);
               if (uri == null) return;
               if (uri.scheme != 'http' && uri.scheme != 'https') return;
@@ -1644,6 +1664,61 @@ class _FocusTile extends StatelessWidget {
               size: 14, color: colors.textMuted),
         ]),
       ),
+    );
+  }
+}
+
+/// Renders the AI-generated image. Backend returns
+/// `data:image/png;base64,...` — CachedNetworkImage / NetworkImage don't
+/// understand data URLs and would silently fall through to the errorWidget
+/// (which the customer sees as a broken-image icon after paying 1000 so'm).
+/// We branch on the URL scheme and use Image.memory for data URLs,
+/// CachedNetworkImage for HTTP(S). Also logs at every failure branch so
+/// future 'paid but no image' incidents leave a diagnostic trail.
+class _AiResultImage extends StatelessWidget {
+  const _AiResultImage({required this.url});
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget broken(String reason) {
+      developer.log(
+        'AI RENDER FAIL reason=$reason urlLen=${url.length}',
+        name: 'ai-style',
+      );
+      return Container(
+        color: context.colors.surfaceElevated,
+        alignment: Alignment.center,
+        child: const Icon(Icons.broken_image, color: AppColors.danger),
+      );
+    }
+
+    if (url.isEmpty) return broken('empty-url');
+
+    if (url.startsWith('data:')) {
+      final commaIdx = url.indexOf(',');
+      if (commaIdx <= 0) return broken('data-url-missing-comma');
+      Uint8List bytes;
+      try {
+        bytes = base64Decode(url.substring(commaIdx + 1));
+      } catch (e) {
+        return broken('data-url-decode-error: $e');
+      }
+      if (bytes.length < 500) return broken('decoded-bytes-tiny:${bytes.length}');
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (_, e, _) => broken('image-memory-error:$e'),
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.cover,
+      placeholder: (context, _) => const SkeletonRect(radius: AppRadius.lg),
+      // CachedNetworkImage callback signature is (context, url, error).
+      errorWidget: (_, _, err) => broken('cni-error:$err'),
     );
   }
 }

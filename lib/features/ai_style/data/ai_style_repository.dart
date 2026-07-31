@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -78,11 +79,36 @@ class AiStyleRepository {
     // parity with web's payload.
     form.fields.add(MapEntry('gender', gender));
     extra.forEach((k, v) => form.fields.add(MapEntry(k, v)));
-    final res = await _dio.post('/ai-style/generate', data: form, options: Options(
-      sendTimeout: const Duration(minutes: 2),
-      receiveTimeout: const Duration(minutes: 2),
-    ));
+    final startedAt = DateTime.now();
+    developer.log(
+      'AI START photoBytes=${await selfie.length()} '
+      'styles=${styles.join(",")} refs=${references.keys.join(",")}',
+      name: 'ai-style',
+    );
+    late final Response<dynamic> res;
+    try {
+      res = await _dio.post('/ai-style/generate', data: form, options: Options(
+        sendTimeout: const Duration(minutes: 2),
+        receiveTimeout: const Duration(minutes: 2),
+      ));
+    } on DioException catch (e) {
+      developer.log(
+        'AI DIO ERROR status=${e.response?.statusCode} type=${e.type.name} '
+        'msg=${e.message} took=${DateTime.now().difference(startedAt).inMilliseconds}ms',
+        name: 'ai-style',
+        error: e,
+      );
+      rethrow;
+    }
     final raw = res.data;
+    developer.log(
+      'AI HTTP OK status=${res.statusCode} '
+      'took=${DateTime.now().difference(startedAt).inMilliseconds}ms '
+      'contentType=${res.headers.value('content-type')} '
+      'bodyType=${raw.runtimeType} '
+      'bodyPreview=${raw is Map ? raw.keys.take(6).join(",") : raw.toString().substring(0, raw.toString().length > 80 ? 80 : raw.toString().length)}',
+      name: 'ai-style',
+    );
     final result = raw is Map
         ? AiStyleResult.fromJson(Map<String, dynamic>.from(raw))
         : AiStyleResult(imageUrl: raw?.toString() ?? '');
@@ -96,11 +122,22 @@ class AiStyleRepository {
     // there, so this is belt-and-suspenders.
     final url = result.imageUrl;
     final isDataUrl = url.startsWith('data:');
+    final urlKb = (url.length / 1024).round();
     if (url.isEmpty ||
         (isDataUrl && url.length < _minDataUrlChars) ||
         (!isDataUrl && url.startsWith('http') == false && !url.startsWith('/'))) {
+      developer.log(
+        'AI REJECT reason=${url.isEmpty ? "empty" : isDataUrl ? "short-data-url" : "invalid-scheme"} '
+        'urlLen=${url.length} isDataUrl=$isDataUrl urlPreview=${url.length > 60 ? "${url.substring(0, 60)}..." : url}',
+        name: 'ai-style',
+      );
       throw Exception('empty-or-invalid-image');
     }
+    developer.log(
+      'AI ACCEPT scheme=${isDataUrl ? "data" : "http"} sizeKB=$urlKb '
+      'balanceAfter=${result.balanceAfter} freeRemaining=${result.aiFreeRemaining}',
+      name: 'ai-style',
+    );
     return result;
   }
 
