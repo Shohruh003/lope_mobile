@@ -1306,12 +1306,9 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   ),
                 ]),
                 const SizedBox(height: AppSpacing.md),
-                TextField(
-                  controller: nameCtrl,
-                  decoration: InputDecoration(
-                      hintText: tr(ref, 'mobile.barber.schedule.clientName', "Mijoz ismi")),
-                ),
-                const SizedBox(height: AppSpacing.sm),
+                // Phone first so the barber's usual flow — type the number,
+                // let the lookup autofill the returning client's name — reads
+                // top-down instead of jumping between fields.
                 AppPhoneField(
                   controller: phoneCtrl,
                   hintText: tr(ref,
@@ -1337,6 +1334,12 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       setSheet(() => nameCtrl.text = hit.name);
                     }
                   },
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                      hintText: tr(ref, 'mobile.barber.schedule.clientName', "Mijoz ismi")),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 if (services.isEmpty)
