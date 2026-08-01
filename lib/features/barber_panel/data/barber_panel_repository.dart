@@ -203,6 +203,33 @@ extension BarberScheduleMetaApi on BarberPanelRepository {
       return const {};
     }
   }
+
+  /// GET /schedule/:barberId/saved-dates?dates=...&dates=...
+  /// Superset of scheduledDates — includes days the barber explicitly
+  /// CLOSED (slots=[]). Auto-generator uses this to distinguish "barber
+  /// never touched this day" from "barber closed it" so a re-entered
+  /// screen doesn't silently reverse the close action.
+  Future<Set<String>> savedDates(
+    String barberId,
+    List<String> dates,
+  ) async {
+    if (dates.isEmpty) return const {};
+    try {
+      final res = await _dio.get(
+        '/schedule/$barberId/saved-dates',
+        queryParameters: {'dates': dates},
+      );
+      final data = res.data;
+      final list = (data is List)
+          ? data
+          : (data is Map && data['data'] is List
+              ? data['data'] as List
+              : <dynamic>[]);
+      return list.map((e) => e.toString()).toSet();
+    } catch (_) {
+      return const {};
+    }
+  }
 }
 
 /// 30-day scheduled-date lookup for the barber schedule screen's
@@ -219,6 +246,21 @@ final barberScheduledDatesProvider = FutureProvider.family
   return ref
       .read(barberPanelRepositoryProvider)
       .scheduledDates(barberId, dates);
+});
+
+/// 30-day 'has-any-saved-row' lookup — includes days with slots=[] so
+/// the auto-generator knows a day was explicitly closed and doesn't
+/// re-fill it. Invalidated together with barberScheduledDatesProvider
+/// whenever a slot save could change the underlying rows.
+final barberSavedDatesProvider = FutureProvider.family
+    .autoDispose<Set<String>, String>((ref, barberId) async {
+  final now = DateTime.now();
+  String d(DateTime dt) =>
+      '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  final dates = List.generate(30, (i) => d(now.add(Duration(days: i))));
+  return ref
+      .read(barberPanelRepositoryProvider)
+      .savedDates(barberId, dates);
 });
 
 extension BarberLookupApi on BarberPanelRepository {
