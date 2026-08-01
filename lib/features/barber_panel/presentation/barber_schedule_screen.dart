@@ -1788,8 +1788,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             }),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(dateHeader, style: AppText.titleSm),
-          const SizedBox(height: AppSpacing.xs),
           slotsAsync.when(
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -1842,6 +1840,21 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   data: (v) => v, orElse: () => <BarberBooking>[]);
 
               return Column(children: [
+                // Compact date-header row above the legend card — replaces the
+                // old standalone Text('1-avgust, shanba') that was often lost
+                // in low-contrast whitespace. Sits flush with the legend so
+                // the barber sees the active date + colour key together.
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: AppSpacing.xs, bottom: AppSpacing.xs),
+                  child: Row(children: [
+                    Text(
+                      dateHeader,
+                      style: AppText.titleSm
+                          .copyWith(color: context.colors.textBright),
+                    ),
+                  ]),
+                ),
                 AppCard(
                   variant: AppCardVariant.flat,
                   padding: const EdgeInsets.symmetric(
@@ -1908,7 +1921,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                     },
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.xs),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
