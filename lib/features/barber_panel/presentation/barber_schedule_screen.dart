@@ -1840,21 +1840,9 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                   data: (v) => v, orElse: () => <BarberBooking>[]);
 
               return Column(children: [
-                // Compact date-header row above the legend card — replaces the
-                // old standalone Text('1-avgust, shanba') that was often lost
-                // in low-contrast whitespace. Sits flush with the legend so
-                // the barber sees the active date + colour key together.
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: AppSpacing.xs, bottom: AppSpacing.xs),
-                  child: Row(children: [
-                    Text(
-                      dateHeader,
-                      style: AppText.titleSm
-                          .copyWith(color: context.colors.textBright),
-                    ),
-                  ]),
-                ),
+                // Date header lives INSIDE the AppCard as the top row of a
+                // compact 2-line block (date on top, legend + actions below)
+                // so there's zero whitespace between the strip and the grid.
                 AppCard(
                   variant: AppCardVariant.flat,
                   padding: const EdgeInsets.symmetric(
@@ -1873,12 +1861,6 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       //   ≥ 360dp — full labels on both action buttons
                       //   < 360dp — icon-only pills so legend + both
                       //             buttons stay on the SAME row
-                      // The old fallback dropped the buttons onto a
-                      // second line entirely, which the user flagged
-                      // as ugly ("yangi qatorga tushib qolibdi").
-                      // iPhone 13 Pro Max at portrait width sits right
-                      // on the previous 380dp boundary once card
-                      // padding is subtracted, hence the wrap.
                       final showLabels = constraints.maxWidth >= 360;
                       final legend = FittedBox(
                         fit: BoxFit.scaleDown,
@@ -1897,31 +1879,43 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                               label: tr(ref, 'mobile.barber.schedule.legendBlocked', "Bloklangan")),
                         ]),
                       );
-                      return Row(children: [
-                        Expanded(child: legend),
-                        const SizedBox(width: AppSpacing.sm),
-                        _TinyAction(
-                          icon: Icons.event_busy_outlined,
-                          color: AppColors.danger,
-                          label: tr(ref, 'mobile.barber.schedule.closeDay',
-                              "Kunni yopish"),
-                          onTap: () => _confirmCloseDay(barberId),
-                          showLabel: showLabels,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        _TinyAction(
-                          icon: Icons.add,
-                          color: AppColors.primary,
-                          label: tr(ref, 'mobile.barber.schedule.add',
-                              "Qo'shish"),
-                          onTap: () => _openAddSchedule(barberId),
-                          showLabel: showLabels,
-                        ),
-                      ]);
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dateHeader,
+                            style: AppText.titleSm
+                                .copyWith(color: context.colors.textBright),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Row(children: [
+                            Expanded(child: legend),
+                            const SizedBox(width: AppSpacing.sm),
+                            _TinyAction(
+                              icon: Icons.event_busy_outlined,
+                              color: AppColors.danger,
+                              label: tr(ref, 'mobile.barber.schedule.closeDay',
+                                  "Kunni yopish"),
+                              onTap: () => _confirmCloseDay(barberId),
+                              showLabel: showLabels,
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            _TinyAction(
+                              icon: Icons.add,
+                              color: AppColors.primary,
+                              label: tr(ref, 'mobile.barber.schedule.add',
+                                  "Qo'shish"),
+                              onTap: () => _openAddSchedule(barberId),
+                              showLabel: showLabels,
+                            ),
+                          ]),
+                        ],
+                      );
                     },
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.sm),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
