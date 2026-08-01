@@ -1770,9 +1770,9 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               );
             }),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.sm),
           Text(dateHeader, style: AppText.titleSm),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.xs),
           slotsAsync.when(
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
@@ -1891,7 +1891,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                     },
                   ),
                 ),
-                const SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.sm),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),

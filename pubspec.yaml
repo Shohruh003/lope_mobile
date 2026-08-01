@@ -66,6 +66,10 @@ dependencies:
                                         # 'Versiya N.N.N' label stays in
                                         # sync with each release without
                                         # a manual string edit
+  gal: ^2.3.0                           # save AI-generated images to the
+                                        # phone's Photos gallery — required
+                                        # NSPhotoLibraryAddUsageDescription
+                                        # in ios/Info.plist
 
 dev_dependencies:
   flutter_test:

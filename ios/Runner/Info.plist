@@ -14,6 +14,8 @@
 	<string>Selfi va portfolio rasmlarini olish uchun kamera ruxsati kerak.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Selfi va portfolio rasmlarini yuklash uchun galereya ruxsati kerak.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>AI yaratgan rasmlarni galereyaga saqlash uchun ruxsat kerak.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>tg</string>

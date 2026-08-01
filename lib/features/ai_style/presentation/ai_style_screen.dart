@@ -4,6 +4,8 @@ import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:gal/gal.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -1074,11 +1076,18 @@ class _ResultView extends ConsumerWidget {
             AppSpacing.gapSm,
             AspectRatio(
               aspectRatio: 3 / 4,
-              child: ClipRRect(
-                borderRadius: AppRadius.rLg,
-                child: original != null
-                    ? Image.file(original!, fit: BoxFit.cover)
-                    : Container(color: context.colors.surfaceElevated),
+              child: TapScale(
+                onTap: original == null
+                    ? null
+                    : () => _openFullscreenAiImage(
+                        context, Image.file(original!, fit: BoxFit.contain)),
+                scale: 0.98,
+                child: ClipRRect(
+                  borderRadius: AppRadius.rLg,
+                  child: original != null
+                      ? Image.file(original!, fit: BoxFit.cover)
+                      : Container(color: context.colors.surfaceElevated),
+                ),
               ),
             ),
           ]),
@@ -1095,9 +1104,14 @@ class _ResultView extends ConsumerWidget {
             AppSpacing.gapSm,
             AspectRatio(
               aspectRatio: 3 / 4,
-              child: ClipRRect(
-                borderRadius: AppRadius.rLg,
-                child: _AiResultImage(url: resultUrl),
+              child: TapScale(
+                onTap: () => _openFullscreenAiImage(
+                    context, _AiResultImage(url: resultUrl, fit: BoxFit.contain)),
+                scale: 0.98,
+                child: ClipRRect(
+                  borderRadius: AppRadius.rLg,
+                  child: _AiResultImage(url: resultUrl),
+                ),
               ),
             ),
           ]),
@@ -1113,31 +1127,48 @@ class _ResultView extends ConsumerWidget {
             size: AppButtonSize.md,
             fullWidth: true,
             onPressed: () async {
-              // The backend returns the generated image as a
-              // `data:image/png;base64,...` URL, so plain launchUrl()
-              // won't open it in a browser. For data URLs we decode +
-              // save to the app's temp dir + open via the OS share
-              // sheet so the user can copy it to Photos. For HTTP URLs
-              // we keep the old external-browser flow.
+              // Backend returns the generated image as a
+              // `data:image/png;base64,...` URL. We decode it and hand
+              // the raw bytes to Gal, which writes to the phone's
+              // Photos gallery (matches user expectation of 'yuklab
+              // olish' — previously we wrote to the app's sandbox temp
+              // dir, which never showed up in the gallery).
               if (resultUrl.startsWith('data:')) {
                 try {
                   final commaIdx = resultUrl.indexOf(',');
                   if (commaIdx <= 0) return;
                   final bytes = base64Decode(resultUrl.substring(commaIdx + 1));
-                  final dir = await getTemporaryDirectory();
-                  final f = File(
-                      '${dir.path}/lopestyle_ai_${DateTime.now().millisecondsSinceEpoch}.png');
-                  await f.writeAsBytes(bytes, flush: true);
+                  final hasAccess = await Gal.hasAccess(toAlbum: false);
+                  if (!hasAccess) {
+                    final granted = await Gal.requestAccess(toAlbum: false);
+                    if (!granted) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(tr(ref, 'aiStyle.saveDenied',
+                              'Galereyaga saqlash uchun ruxsat berilmadi')),
+                        ));
+                      }
+                      return;
+                    }
+                  }
+                  await Gal.putImageBytes(
+                    bytes,
+                    name: 'lopestyle_ai_${DateTime.now().millisecondsSinceEpoch}',
+                  );
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(
-                        tr(ref, 'aiStyle.savedLocal',
-                            'Rasm ilova papkasiga saqlandi'),
-                      ),
+                      content: Text(tr(ref, 'aiStyle.savedGallery',
+                          'Rasm galereyaga saqlandi')),
                     ));
                   }
                 } catch (e) {
                   developer.log('download data URL failed: $e', name: 'ai-style');
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          "${tr(ref, 'common.error', 'Xatolik')}: $e"),
+                    ));
+                  }
                 }
                 return;
               }
@@ -1676,8 +1707,9 @@ class _FocusTile extends StatelessWidget {
 /// CachedNetworkImage for HTTP(S). Also logs at every failure branch so
 /// future 'paid but no image' incidents leave a diagnostic trail.
 class _AiResultImage extends StatelessWidget {
-  const _AiResultImage({required this.url});
+  const _AiResultImage({required this.url, this.fit = BoxFit.cover});
   final String url;
+  final BoxFit fit;
 
   @override
   Widget build(BuildContext context) {
@@ -1707,7 +1739,7 @@ class _AiResultImage extends StatelessWidget {
       if (bytes.length < 500) return broken('decoded-bytes-tiny:${bytes.length}');
       return Image.memory(
         bytes,
-        fit: BoxFit.cover,
+        fit: fit,
         gaplessPlayback: true,
         errorBuilder: (_, e, _) => broken('image-memory-error:$e'),
       );
@@ -1715,10 +1747,52 @@ class _AiResultImage extends StatelessWidget {
 
     return CachedNetworkImage(
       imageUrl: url,
-      fit: BoxFit.cover,
+      fit: fit,
       placeholder: (context, _) => const SkeletonRect(radius: AppRadius.lg),
       // CachedNetworkImage callback signature is (context, url, error).
       errorWidget: (_, _, err) => broken('cni-error:$err'),
     );
   }
+}
+
+/// Opens the AI-generated image (or the original selfie) in a full-screen
+/// viewer with pinch-to-zoom + tap-to-close. Reuses the same widget the
+/// grid cell renders, just with BoxFit.contain so the whole face is
+/// visible instead of centre-cropped.
+void _openFullscreenAiImage(BuildContext context, Widget imageWidget) {
+  AppHaptics.light();
+  showDialog<void>(
+    context: context,
+    barrierColor: Colors.black.withValues(alpha: 0.94),
+    builder: (dCtx) => GestureDetector(
+      onTap: () => Navigator.of(dCtx).pop(),
+      child: Stack(children: [
+        Positioned.fill(
+          child: InteractiveViewer(
+            minScale: 1.0,
+            maxScale: 4.0,
+            child: Center(child: imageWidget),
+          ),
+        ),
+        Positioned(
+          top: MediaQuery.of(dCtx).padding.top + 8,
+          right: 12,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.close, color: Colors.white, size: 22),
+              onPressed: () => Navigator.of(dCtx).pop(),
+            ),
+          ),
+        ),
+      ]),
+    ),
+  );
 }
