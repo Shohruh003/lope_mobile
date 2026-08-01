@@ -36,15 +36,14 @@ class SmsLanguageTile extends ConsumerWidget {
   final bool showInherit;
 
   String _labelFor(String? v, WidgetRef ref) {
-    if (v == null) {
-      return tr(ref, 'mobile.smsLanguage.inherit', 'Salon sozlamasidan');
-    }
+    // Null (barber never picked / inherit-from-shop) renders the effective
+    // fallback — Uzbek — so the tile never shows an ambiguous "settings"
+    // hint when the app first loads.
     if (v == 'ru') return tr(ref, 'mobile.smsLanguage.ru', 'Русский');
     return tr(ref, 'mobile.smsLanguage.uz', "O'zbek");
   }
 
   String _flagFor(String? v) {
-    if (v == null) return '⚙';
     if (v == 'ru') return '🇷🇺';
     return '🇺🇿';
   }
@@ -73,23 +72,12 @@ class SmsLanguageTile extends ConsumerWidget {
           ),
           AppSpacing.hGapMd,
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tr(ref, 'mobile.smsLanguage.title', 'SMS tili'),
-                  style: AppText.body.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: context.colors.textBright,
-                  ),
-                ),
-                Text(
-                  tr(ref, 'mobile.smsLanguage.subtitle',
-                      "Mijozlarga yuboriladigan SMS matnining tili"),
-                  style: AppText.caption
-                      .copyWith(color: context.colors.textMuted),
-                ),
-              ],
+            child: Text(
+              tr(ref, 'mobile.smsLanguage.title', 'SMS tili'),
+              style: AppText.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: context.colors.textBright,
+              ),
             ),
           ),
           Text(_flagFor(currentValue),
@@ -149,13 +137,6 @@ class SmsLanguageTile extends ConsumerWidget {
                 tr(ref, 'mobile.smsLanguage.title', 'SMS tili'),
                 style: AppText.titleMd
                     .copyWith(color: context.colors.textBright),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                tr(ref, 'mobile.smsLanguage.subtitle',
-                    "Mijozlarga yuboriladigan SMS matnining tili"),
-                style: AppText.caption
-                    .copyWith(color: context.colors.textSecondary),
               ),
               AppSpacing.gapMd,
               for (final opt in options)
