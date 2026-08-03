@@ -1849,7 +1849,10 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
               final bookings = dayBookingsAsync.maybeWhen(
                   data: (v) => v, orElse: () => <BarberBooking>[]);
 
-              return Column(children: [
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                 // Date header lives INSIDE the AppCard as the top row of a
                 // compact 2-line block (date on top, legend + actions below)
                 // so there's zero whitespace between the strip and the grid.
@@ -1925,9 +1928,20 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                     },
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                GridView.builder(
+                const SizedBox(height: AppSpacing.xs),
+                // Explicit zero padding + no top MediaQuery inheritance —
+                // Flutter's default nested-scrollable behaviour on iOS was
+                // adding a ~130px safe-area-derived top pad here, showing
+                // up as a huge whitespace band between the legend card and
+                // the slot grid. shrinkWrap + NeverScrollable is enough,
+                // we don't need any implicit top inset.
+                MediaQuery.removePadding(
+                  context: context,
+                  removeTop: true,
+                  removeBottom: true,
+                  child: GridView.builder(
                   shrinkWrap: true,
+                  padding: EdgeInsets.zero,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -1946,6 +1960,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                       onTap: () => _openSlotAction(barberId, time, status),
                     ).animate().fadeIn(duration: 150.ms, delay: (i * 15).ms);
                   },
+                ),
                 ),
                 // Bugungi bronlar ro'yxati — jadval ostida chiqadi.
                 // Web frontend'dagi todayBookings blokining port'i:
