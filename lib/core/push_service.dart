@@ -55,6 +55,10 @@ class PushService {
         await Permission.notification.request();
       }
 
+      // On iOS getToken() throws 'apns-token-not-set' if called before APNs
+      // has delivered the device token to Firebase. Wait for the APNs handshake
+      // before we ask FCM for the mapped token.
+      await _waitForApnsToken();
       final token = await messaging.getToken();
       debugPrint('[FCM] getToken → ${token == null ? "NULL" : "${token.length} chars, prefix=${token.substring(0, token.length > 30 ? 30 : token.length)}..."}');
       if (token != null && token.isNotEmpty) await _registerToken(token);
@@ -204,6 +208,10 @@ class PushService {
       // first cached-session app open after install).
       await FirebaseMessaging.instance.requestPermission(
           alert: true, badge: true, sound: true);
+      // iOS: FCM getToken() throws 'apns-token-not-set' if APNs hasn't
+      // handed a device token to Firebase yet — poll briefly so the very
+      // first launch after install still lands a token instead of bailing.
+      await _waitForApnsToken();
       final token = await FirebaseMessaging.instance.getToken();
       debugPrint('[FCM] registerCurrentToken getToken → ${token == null ? "NULL" : "${token.length} chars"}');
       if (token == null || token.isEmpty) return;
@@ -212,6 +220,26 @@ class PushService {
     } catch (e) {
       debugPrint('[FCM] registerCurrentToken FAILED: $e');
     }
+  }
+
+  /// Polls FirebaseMessaging.getAPNSToken() until iOS delivers the APNs
+  /// device token to Firebase, or up to ~6s. On Android this is a no-op
+  /// (getAPNSToken returns null). Fixes 'apns-token-not-set' the very
+  /// first time the app runs on a device — the FCM handshake needs the
+  /// APNs token to exist BEFORE getToken() is called.
+  Future<void> _waitForApnsToken() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    for (var i = 0; i < 20; i++) {
+      try {
+        final apns = await FirebaseMessaging.instance.getAPNSToken();
+        if (apns != null && apns.isNotEmpty) {
+          debugPrint('[FCM] APNs token ready after ${i * 300}ms');
+          return;
+        }
+      } catch (_) { /* swallow — try again */ }
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+    debugPrint('[FCM] APNs token still null after 6s — proceeding anyway');
   }
 
   /// Tear down on logout so the next user doesn't inherit pushes.
