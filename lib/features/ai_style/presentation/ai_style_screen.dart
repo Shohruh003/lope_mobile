@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -1162,7 +1161,6 @@ class _ResultView extends ConsumerWidget {
                     ));
                   }
                 } catch (e) {
-                  developer.log('download data URL failed: $e', name: 'ai-style');
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(
@@ -1713,35 +1711,29 @@ class _AiResultImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget broken(String reason) {
-      developer.log(
-        'AI RENDER FAIL reason=$reason urlLen=${url.length}',
-        name: 'ai-style',
-      );
-      return Container(
-        color: context.colors.surfaceElevated,
-        alignment: Alignment.center,
-        child: const Icon(Icons.broken_image, color: AppColors.danger),
-      );
-    }
+    Widget broken() => Container(
+          color: context.colors.surfaceElevated,
+          alignment: Alignment.center,
+          child: const Icon(Icons.broken_image, color: AppColors.danger),
+        );
 
-    if (url.isEmpty) return broken('empty-url');
+    if (url.isEmpty) return broken();
 
     if (url.startsWith('data:')) {
       final commaIdx = url.indexOf(',');
-      if (commaIdx <= 0) return broken('data-url-missing-comma');
+      if (commaIdx <= 0) return broken();
       Uint8List bytes;
       try {
         bytes = base64Decode(url.substring(commaIdx + 1));
-      } catch (e) {
-        return broken('data-url-decode-error: $e');
+      } catch (_) {
+        return broken();
       }
-      if (bytes.length < 500) return broken('decoded-bytes-tiny:${bytes.length}');
+      if (bytes.length < 500) return broken();
       return Image.memory(
         bytes,
         fit: fit,
         gaplessPlayback: true,
-        errorBuilder: (_, e, _) => broken('image-memory-error:$e'),
+        errorBuilder: (_, _, _) => broken(),
       );
     }
 
@@ -1749,8 +1741,7 @@ class _AiResultImage extends StatelessWidget {
       imageUrl: url,
       fit: fit,
       placeholder: (context, _) => const SkeletonRect(radius: AppRadius.lg),
-      // CachedNetworkImage callback signature is (context, url, error).
-      errorWidget: (_, _, err) => broken('cni-error:$err'),
+      errorWidget: (_, _, _) => broken(),
     );
   }
 }

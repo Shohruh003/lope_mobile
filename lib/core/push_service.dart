@@ -40,19 +40,23 @@ class PushService {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       }
-    } catch (_) {
+      debugPrint('[FCM] Firebase.initializeApp OK');
+    } catch (e) {
+      debugPrint('[FCM] Firebase.initializeApp FAILED: $e');
       return;
     }
 
     final messaging = FirebaseMessaging.instance;
     try {
       final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
+      debugPrint('[FCM] permission status=${settings.authorizationStatus}');
       if (settings.authorizationStatus == AuthorizationStatus.denied) return;
       if (defaultTargetPlatform == TargetPlatform.android) {
         await Permission.notification.request();
       }
 
       final token = await messaging.getToken();
+      debugPrint('[FCM] getToken → ${token == null ? "NULL" : "${token.length} chars, prefix=${token.substring(0, token.length > 30 ? 30 : token.length)}..."}');
       if (token != null && token.isNotEmpty) await _registerToken(token);
 
       _refreshSub?.cancel();
@@ -158,15 +162,19 @@ class PushService {
   }
 
   Future<void> _registerToken(String token) async {
-    if (_lastToken == token) return;
+    if (_lastToken == token) {
+      debugPrint('[FCM] _registerToken skipped (same token cached)');
+      return;
+    }
     _lastToken = token;
     try {
-      await _dio.post('/auth/register-device', data: {
+      final res = await _dio.post('/auth/register-device', data: {
         'fcmToken': token,
         'platform': defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
       });
-    } catch (_) {
-      // Quietly. Backend may not have the endpoint in every env.
+      debugPrint('[FCM] /auth/register-device OK status=${res.statusCode}');
+    } catch (e) {
+      debugPrint('[FCM] /auth/register-device FAILED: $e');
     }
   }
 
@@ -178,12 +186,32 @@ class PushService {
   Future<void> registerCurrentToken() async {
     if (kIsWeb) return;
     try {
-      if (Firebase.apps.isEmpty) return;
+      // Force-init Firebase if the app-level bootstrap hasn't finished
+      // yet — race window is common on cold-start: _restore() fires as
+      // soon as the notifier builds, but initIfPossible runs inside an
+      // addPostFrameCallback that hasn't landed on the first tick.
+      if (Firebase.apps.isEmpty) {
+        try {
+          await Firebase.initializeApp();
+          debugPrint('[FCM] registerCurrentToken: force-init OK');
+        } catch (e) {
+          debugPrint('[FCM] registerCurrentToken: force-init FAILED: $e');
+          return;
+        }
+      }
+      // Same permission request — a no-op if the user already granted
+      // it, otherwise iOS shows the prompt (also required for the very
+      // first cached-session app open after install).
+      await FirebaseMessaging.instance.requestPermission(
+          alert: true, badge: true, sound: true);
       final token = await FirebaseMessaging.instance.getToken();
+      debugPrint('[FCM] registerCurrentToken getToken → ${token == null ? "NULL" : "${token.length} chars"}');
       if (token == null || token.isEmpty) return;
       _lastToken = null;
       await _registerToken(token);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[FCM] registerCurrentToken FAILED: $e');
+    }
   }
 
   /// Tear down on logout so the next user doesn't inherit pushes.

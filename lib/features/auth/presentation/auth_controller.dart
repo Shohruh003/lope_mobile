@@ -40,6 +40,14 @@ class AuthController extends Notifier<AuthState> {
     if (user != null) {
       // ignore: unawaited_futures
       _refreshSilent();
+      // Re-register the FCM device token on every app open with a
+      // restored session. Without this, existing users who never
+      // hit signedIn() (they just launched the app with a cached
+      // token) never landed a DeviceToken row on the backend, so
+      // push notifications silently failed for them. registerCurrentToken
+      // is idempotent — a no-op if the same token is already registered.
+      // ignore: unawaited_futures
+      ref.read(pushServiceProvider).registerCurrentToken();
     }
   }
 

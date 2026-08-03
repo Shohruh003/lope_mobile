@@ -86,6 +86,13 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     ref.invalidate(scheduleSlotsProvider(key));
     ref.invalidate(bookedSlotsProvider(key));
     ref.invalidate(blockedSlotsProvider(key));
+    // 'Bugungi bronlar' list under the slot grid — without this a booking
+    // placed via the app / public link while the barber's app was in the
+    // background never surfaced until a full exit+relaunch. Same story for
+    // the horizontal date-strip green dots + auto-generator safety net.
+    ref.invalidate(barberDayBookingsProvider(key));
+    ref.invalidate(barberScheduledDatesProvider(id));
+    ref.invalidate(barberSavedDatesProvider(id));
   }
 
   /// Explicit `widget.barberId` wins (shop admin viewing a specific
