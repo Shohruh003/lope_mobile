@@ -1,5 +1,6 @@
 ﻿import 'package:dio/dio.dart';
 import '../../../core/errors.dart';
+import '../../../core/push_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -1712,6 +1713,19 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final dateStr = _dateStr(_selectedDate);
     final key = (barberId: barberId, date: dateStr);
 
+    // Real-time refresh trigger — every foreground FCM push (new booking,
+    // cancel, reschedule) bumps fcmForegroundPushSignal and we re-fetch
+    // the slot + booking providers so the grid updates without waiting
+    // for the barber to leave and reopen the app.
+    ref.listen<int>(fcmForegroundPushSignal, (_, __) {
+      ref.invalidate(scheduleSlotsProvider(key));
+      ref.invalidate(bookedSlotsProvider(key));
+      ref.invalidate(blockedSlotsProvider(key));
+      ref.invalidate(barberDayBookingsProvider(key));
+      ref.invalidate(barberScheduledDatesProvider(barberId));
+      ref.invalidate(barberSavedDatesProvider(barberId));
+    });
+
     final slotsAsync = ref.watch(scheduleSlotsProvider(key));
     final bookedAsync = ref.watch(bookedSlotsProvider(key));
     final blockedAsync = ref.watch(blockedSlotsProvider(key));
@@ -1928,13 +1942,15 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
                     },
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.md),
                 // Explicit zero padding + no top MediaQuery inheritance —
                 // Flutter's default nested-scrollable behaviour on iOS was
                 // adding a ~130px safe-area-derived top pad here, showing
                 // up as a huge whitespace band between the legend card and
                 // the slot grid. shrinkWrap + NeverScrollable is enough,
-                // we don't need any implicit top inset.
+                // we don't need any implicit top inset. Keep a small
+                // breathing gap (md ≈ 12px) so the card doesn't visually
+                // fuse into the first row of slot tiles.
                 MediaQuery.removePadding(
                   context: context,
                   removeTop: true,

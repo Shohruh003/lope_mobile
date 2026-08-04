@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors.dart';
 import '../../../core/l10n.dart';
+import '../../../core/push_service.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
@@ -25,6 +26,12 @@ class NotificationsScreen extends ConsumerWidget {
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    // Auto-refresh when a foreground FCM push arrives so a fresh
+    // notification lands in the list without waiting for a pull-to-
+    // refresh or app restart.
+    ref.listen<int>(fcmForegroundPushSignal, (_, __) {
+      ref.invalidate(notificationsProvider(user.role));
+    });
     final async = ref.watch(notificationsProvider(user.role));
 
     return Scaffold(

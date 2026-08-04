@@ -40,27 +40,32 @@ class PushService {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       }
-      debugPrint('[FCM] Firebase.initializeApp OK');
-    } catch (e) {
-      debugPrint('[FCM] Firebase.initializeApp FAILED: $e');
+    } catch (_) {
       return;
     }
 
     final messaging = FirebaseMessaging.instance;
     try {
       final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
-      debugPrint('[FCM] permission status=${settings.authorizationStatus}');
       if (settings.authorizationStatus == AuthorizationStatus.denied) return;
       if (defaultTargetPlatform == TargetPlatform.android) {
         await Permission.notification.request();
       }
+      // iOS silences system banners while the app is in the foreground by
+      // default. Opt in so a booking / cancel push still surfaces the
+      // native banner (sound + badge) on top of the running app —
+      // otherwise the barber sees nothing until they reopen the app.
+      await messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
       // On iOS getToken() throws 'apns-token-not-set' if called before APNs
       // has delivered the device token to Firebase. Wait for the APNs handshake
       // before we ask FCM for the mapped token.
       await _waitForApnsToken();
       final token = await messaging.getToken();
-      debugPrint('[FCM] getToken → ${token == null ? "NULL" : "${token.length} chars, prefix=${token.substring(0, token.length > 30 ? 30 : token.length)}..."}');
       if (token != null && token.isNotEmpty) await _registerToken(token);
 
       _refreshSub?.cancel();
@@ -80,12 +85,24 @@ class PushService {
         _openedSub = FirebaseMessaging.onMessageOpenedApp
             .listen((m) => _route(router, m));
         _foregroundSub?.cancel();
-        _foregroundSub = FirebaseMessaging.onMessage
-            .listen((m) => _showForegroundBanner(router, m));
+        _foregroundSub = FirebaseMessaging.onMessage.listen((m) {
+          _bumpForegroundSignal();
+          _showForegroundBanner(router, m);
+        });
       }
     } catch (_) {
       // Best-effort. Push not working should never block the rest of the app.
     }
+  }
+
+  /// Bump the foreground-push signal so any screen listening to
+  /// [fcmForegroundPushSignal] can invalidate its providers and re-fetch.
+  /// Fires for EVERY message onMessage delivers, regardless of whether we
+  /// end up rendering the SnackBar (the SnackBar has its own guard for
+  /// empty title+body).
+  void _bumpForegroundSignal() {
+    final n = _ref.read(fcmForegroundPushSignal.notifier);
+    n.state = n.state + 1;
   }
 
   /// Foreground message → in-app snackbar so the user knows something
@@ -166,19 +183,15 @@ class PushService {
   }
 
   Future<void> _registerToken(String token) async {
-    if (_lastToken == token) {
-      debugPrint('[FCM] _registerToken skipped (same token cached)');
-      return;
-    }
+    if (_lastToken == token) return;
     _lastToken = token;
     try {
-      final res = await _dio.post('/auth/register-device', data: {
+      await _dio.post('/auth/register-device', data: {
         'fcmToken': token,
         'platform': defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
       });
-      debugPrint('[FCM] /auth/register-device OK status=${res.statusCode}');
-    } catch (e) {
-      debugPrint('[FCM] /auth/register-device FAILED: $e');
+    } catch (_) {
+      // Quietly. Backend may not have the endpoint in every env.
     }
   }
 
@@ -197,9 +210,7 @@ class PushService {
       if (Firebase.apps.isEmpty) {
         try {
           await Firebase.initializeApp();
-          debugPrint('[FCM] registerCurrentToken: force-init OK');
-        } catch (e) {
-          debugPrint('[FCM] registerCurrentToken: force-init FAILED: $e');
+        } catch (_) {
           return;
         }
       }
@@ -213,13 +224,10 @@ class PushService {
       // first launch after install still lands a token instead of bailing.
       await _waitForApnsToken();
       final token = await FirebaseMessaging.instance.getToken();
-      debugPrint('[FCM] registerCurrentToken getToken → ${token == null ? "NULL" : "${token.length} chars"}');
       if (token == null || token.isEmpty) return;
       _lastToken = null;
       await _registerToken(token);
-    } catch (e) {
-      debugPrint('[FCM] registerCurrentToken FAILED: $e');
-    }
+    } catch (_) {}
   }
 
   /// Polls FirebaseMessaging.getAPNSToken() until iOS delivers the APNs
@@ -232,14 +240,10 @@ class PushService {
     for (var i = 0; i < 20; i++) {
       try {
         final apns = await FirebaseMessaging.instance.getAPNSToken();
-        if (apns != null && apns.isNotEmpty) {
-          debugPrint('[FCM] APNs token ready after ${i * 300}ms');
-          return;
-        }
+        if (apns != null && apns.isNotEmpty) return;
       } catch (_) { /* swallow — try again */ }
       await Future.delayed(const Duration(milliseconds: 300));
     }
-    debugPrint('[FCM] APNs token still null after 6s — proceeding anyway');
   }
 
   /// Tear down on logout so the next user doesn't inherit pushes.
@@ -261,3 +265,8 @@ class PushService {
 
 final pushServiceProvider =
     Provider<PushService>((ref) => PushService(ref.watch(dioProvider), ref));
+
+/// Bumps every time a foreground FCM push arrives. Screens that need to
+/// react to remote server changes (schedule / bookings / notifications)
+/// can `ref.listen` to this signal and invalidate their own providers.
+final fcmForegroundPushSignal = StateProvider<int>((ref) => 0);

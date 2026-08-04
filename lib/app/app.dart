@@ -1,3 +1,4 @@
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,8 @@ import '../core/connectivity_service.dart';
 import '../core/deep_link_service.dart';
 import '../core/push_service.dart';
 import '../core/theme_mode_provider.dart';
+import '../features/auth/presentation/auth_controller.dart';
+import '../features/notifications/data/notifications_repository.dart';
 import '../shared/theme/typography.dart';
 import '../shared/widgets/offline_banner.dart';
 import 'router.dart';
@@ -28,6 +31,25 @@ class _LopeAppState extends ConsumerState<LopeApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+
+    // Keep the iOS / Android home-screen icon badge in sync with the
+    // unread notification count from notificationsProvider — the same
+    // number the in-app bell shows. Fires whenever the notifications
+    // list refetches (login, mark-as-read, foreground FCM push).
+    final currentUser = ref.watch(authControllerProvider).user;
+    if (currentUser != null) {
+      ref.listen(notificationsProvider(currentUser.role), (_, next) {
+        next.whenData((list) {
+          final unread = list.where((n) => !n.read).length;
+          AppBadgePlus.updateBadge(unread);
+        });
+      });
+    } else {
+      // Logged out — wipe the badge so the previous user's count doesn't
+      // leak onto the home screen.
+      // ignore: unawaited_futures
+      AppBadgePlus.updateBadge(0);
+    }
 
     // Fire-and-forget FCM bootstrap on the first build. Wrapped in a guard so
     // it only runs once across rebuilds and only after the router is ready

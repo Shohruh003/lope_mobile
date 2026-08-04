@@ -1,7 +1,7 @@
 name: lope_mobile
 description: "Lope Style — sartaroshlik bron ilovasi (Flutter)."
 publish_to: 'none'
-version: 1.17.0+19
+version: 1.18.0+20
 
 environment:
   sdk: ^3.12.2
@@ -70,6 +70,10 @@ dependencies:
                                         # phone's Photos gallery — required
                                         # NSPhotoLibraryAddUsageDescription
                                         # in ios/Info.plist
+  app_badge_plus: ^1.1.4                # keep the iOS home-screen icon
+                                        # badge count in sync with the
+                                        # in-app notification bell
+                                        # (unread notifications count)
 
 dev_dependencies:
   flutter_test:
