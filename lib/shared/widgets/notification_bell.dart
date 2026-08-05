@@ -30,7 +30,15 @@ class NotificationBell extends ConsumerWidget {
         visualDensity: VisualDensity.compact,
         icon: Icon(Icons.notifications_outlined,
             color: palette.textPrimary, size: 22),
-        onPressed: () => context.push('/notifications'),
+        onPressed: () {
+          // Force a fresh fetch every time the bell is tapped — the
+          // notifications provider is otherwise cached and users would
+          // see stale data on the screen until they pulled-to-refresh.
+          if (user != null) {
+            ref.invalidate(notificationsProvider(user.role));
+          }
+          context.push('/notifications');
+        },
       ),
       if (unread > 0)
         Positioned(

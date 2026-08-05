@@ -8,7 +8,10 @@ import '../core/deep_link_service.dart';
 import '../core/push_service.dart';
 import '../core/theme_mode_provider.dart';
 import '../features/auth/presentation/auth_controller.dart';
+import '../features/barber_panel/data/barber_panel_repository.dart';
+import '../features/bookings/data/booking_repository.dart';
 import '../features/notifications/data/notifications_repository.dart';
+import '../features/shop_panel/data/shop_repository.dart';
 import '../shared/theme/typography.dart';
 import '../shared/widgets/offline_banner.dart';
 import 'router.dart';
@@ -43,6 +46,34 @@ class _LopeAppState extends ConsumerState<LopeApp> {
           final unread = list.where((n) => !n.read).length;
           AppBadgePlus.updateBadge(unread);
         });
+      });
+      // Global refresh trigger — every foreground FCM push invalidates
+      // the notifications provider AND every booking/schedule provider
+      // family across the app. This way, no matter what screen the user
+      // is on (or was on when the push arrived), the schedule grid, the
+      // bookings tab, the shop bookings list, and the notifications
+      // history all reflect the server state on the next mount. Without
+      // this, a cancelled booking would still show as ЗАНЯТО in the
+      // barber's schedule until they pulled to refresh.
+      //
+      // Invalidating a family (no argument) drops every cached variant
+      // so re-mounted screens with any (barberId, date) key get fresh
+      // data. Providers no one is watching are no-ops.
+      ref.listen<int>(fcmForegroundPushSignal, (_, __) {
+        ref.invalidate(notificationsProvider(currentUser.role));
+        // Barber-side
+        ref.invalidate(barberDayBookingsProvider);
+        ref.invalidate(barberAllBookingsProvider);
+        ref.invalidate(scheduleSlotsProvider);
+        ref.invalidate(bookedSlotsProvider);
+        ref.invalidate(blockedSlotsProvider);
+        ref.invalidate(barberScheduledDatesProvider);
+        ref.invalidate(barberSavedDatesProvider);
+        // Customer-side
+        ref.invalidate(myBookingsProvider);
+        ref.invalidate(myBookingsPagedProvider);
+        // Shop-side
+        ref.invalidate(shopBookingsProvider);
       });
     } else {
       // Logged out — wipe the badge so the previous user's count doesn't
