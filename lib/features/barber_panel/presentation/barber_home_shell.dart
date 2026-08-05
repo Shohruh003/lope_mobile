@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:go_router/go_router.dart';
 
+import '../../../core/live_refresh.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../lopepay/presentation/low_balance_modal.dart';
 import 'barber_schedule_screen.dart';
 import 'barber_bookings_screen.dart';
@@ -82,7 +84,16 @@ class _BarberHomeShellState extends ConsumerState<BarberHomeShell> {
       bottomNavigationBar: _BottomBar(
         items: items,
         index: _index,
-        onSelect: (i) => setState(() => _index = i),
+        onSelect: (i) {
+          setState(() => _index = i);
+          // Global refresh trigger #3 — every tab tap re-fetches every
+          // live provider. Boring, reliable fallback for when FCM push
+          // didn't fire (debug builds, background throttling, denied
+          // notification permission). Users expect that navigating to
+          // a screen shows current data.
+          final role = ref.read(authControllerProvider).user?.role;
+          invalidateLiveDataW(ref, role: role);
+        },
       ),
     );
   }

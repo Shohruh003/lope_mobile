@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../../core/live_refresh.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/app_states.dart';
@@ -1749,7 +1750,20 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
     final isPushedView = widget.barberId != null;
     return Scaffold(
       appBar: isPushedView ? _buildShopAdminAppBar(context, ref) : null,
-      body: ListView(
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async {
+          // Pull-to-refresh on the schedule was missing entirely — the
+          // barber had no way to force a re-fetch after a booking on
+          // another device didn't push through. Invalidate every live
+          // provider and wait one frame so RefreshIndicator's spinner
+          // actually animates.
+          final role = ref.read(authControllerProvider).user?.role;
+          invalidateLiveDataW(ref, role: role);
+          await Future<void>.delayed(const Duration(milliseconds: 400));
+        },
+        child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.pageBottom(context)),
         children: [
           _VoiceBookingCard(
@@ -1997,6 +2011,7 @@ class _BarberScheduleScreenState extends ConsumerState<BarberScheduleScreen>
             },
           ),
         ],
+        ),
       ),
     );
   }

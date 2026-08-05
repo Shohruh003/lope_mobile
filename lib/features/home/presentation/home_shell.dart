@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/live_refresh.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../../../shared/widgets/notification_bell.dart';
 import '../../ai_style/presentation/ai_style_screen.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../barbers/presentation/barbers_list_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
@@ -72,7 +74,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       bottomNavigationBar: _BottomTabBar(
         items: items,
         index: _index,
-        onSelect: (i) => setState(() => _index = i),
+        onSelect: (i) {
+          setState(() => _index = i);
+          final role = ref.read(authControllerProvider).user?.role;
+          invalidateLiveDataW(ref, role: role);
+        },
       ),
     );
   }
