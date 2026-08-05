@@ -39,15 +39,23 @@ class PushService {
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
+        debugPrint('[PUSH] Firebase.initializeApp done');
+      } else {
+        debugPrint('[PUSH] Firebase already initialised');
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[PUSH] Firebase.initializeApp FAILED: $e');
       return;
     }
 
     final messaging = FirebaseMessaging.instance;
     try {
       final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
-      if (settings.authorizationStatus == AuthorizationStatus.denied) return;
+      debugPrint('[PUSH] permission status: ${settings.authorizationStatus}');
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        debugPrint('[PUSH] permission DENIED — user must enable in Settings');
+        return;
+      }
       if (defaultTargetPlatform == TargetPlatform.android) {
         await Permission.notification.request();
       }
@@ -60,13 +68,19 @@ class PushService {
         badge: true,
         sound: true,
       );
+      debugPrint('[PUSH] foreground presentation options set');
 
       // On iOS getToken() throws 'apns-token-not-set' if called before APNs
       // has delivered the device token to Firebase. Wait for the APNs handshake
       // before we ask FCM for the mapped token.
       await _waitForApnsToken();
       final token = await messaging.getToken();
-      if (token != null && token.isNotEmpty) await _registerToken(token);
+      if (token != null && token.isNotEmpty) {
+        debugPrint('[PUSH] FCM token acquired (${token.length} chars, prefix ${token.substring(0, 12)}...)');
+        await _registerToken(token);
+      } else {
+        debugPrint('[PUSH] FCM token is NULL — push will not work');
+      }
 
       _refreshSub?.cancel();
       _refreshSub = messaging.onTokenRefresh.listen(_registerToken);
@@ -86,11 +100,14 @@ class PushService {
             .listen((m) => _route(router, m));
         _foregroundSub?.cancel();
         _foregroundSub = FirebaseMessaging.onMessage.listen((m) {
+          debugPrint('[PUSH] onMessage fired: title="${m.notification?.title}", body="${m.notification?.body}", data=${m.data}');
           _bumpForegroundSignal();
           _showForegroundBanner(router, m);
         });
+        debugPrint('[PUSH] onMessage listener attached');
       }
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[PUSH] init FAILED: $e\n$st');
       // Best-effort. Push not working should never block the rest of the app.
     }
   }
@@ -110,10 +127,17 @@ class PushService {
   /// whatever screen the payload points to.
   void _showForegroundBanner(GoRouter router, RemoteMessage m) {
     final messenger = _messengerKey?.currentState;
-    if (messenger == null) return;
+    if (messenger == null) {
+      debugPrint('[PUSH] _showForegroundBanner: messengerKey.currentState is NULL — no banner shown');
+      return;
+    }
     final title = m.notification?.title ?? m.data['title']?.toString() ?? '';
     final body = m.notification?.body ?? m.data['body']?.toString() ?? '';
-    if (title.isEmpty && body.isEmpty) return;
+    if (title.isEmpty && body.isEmpty) {
+      debugPrint('[PUSH] _showForegroundBanner: title AND body empty — data-only message, no banner');
+      return;
+    }
+    debugPrint('[PUSH] _showForegroundBanner: showing SnackBar');
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
       duration: const Duration(seconds: 6),
@@ -183,15 +207,20 @@ class PushService {
   }
 
   Future<void> _registerToken(String token) async {
-    if (_lastToken == token) return;
+    if (_lastToken == token) {
+      debugPrint('[PUSH] _registerToken skipped — same token already registered');
+      return;
+    }
     _lastToken = token;
     try {
-      await _dio.post('/auth/register-device', data: {
+      final res = await _dio.post('/auth/register-device', data: {
         'fcmToken': token,
         'platform': defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
       });
-    } catch (_) {
-      // Quietly. Backend may not have the endpoint in every env.
+      debugPrint('[PUSH] register-device OK (status=${res.statusCode}) — backend will now deliver push to this device');
+    } catch (e) {
+      debugPrint('[PUSH] register-device FAILED: $e — push will NOT be delivered until this succeeds');
+      // Push not working should never block the rest of the app.
     }
   }
 
