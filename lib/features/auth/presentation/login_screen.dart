@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/routes.dart';
+import '../../../core/storage.dart';
 import '../../../core/tr.dart';
 import '../../../shared/shared.dart';
 import '../data/auth_repository.dart';
@@ -60,6 +61,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final user = await ref.read(authRepositoryProvider).login(
           phone: phone, password: _passwordController.text);
+      // Admin accounts don't have a mobile panel — reject login here so
+      // the user never gets stuck on /admin-blocked with no way out.
+      // auth_repository.login() has already persisted the token/user to
+      // secure storage; wipe it so the app doesn't restore an admin
+      // session on next cold-start.
+      if (user.role == 'admin') {
+        await ref.read(storageProvider).clearAll();
+        AppHaptics.error();
+        if (!mounted) return;
+        setState(() => _error = tr(
+              ref,
+              'mobile.admin.loginBlocked',
+              "Admin panel mobil ilovada mavjud emas. Veb-versiyadan foydalaning: app.lopestyle.uz",
+            ));
+        return;
+      }
       await ref.read(authControllerProvider.notifier).signedIn(user);
       if (!mounted) return;
       AppHaptics.success();

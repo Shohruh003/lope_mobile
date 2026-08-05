@@ -285,7 +285,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => PublicBookingScreen(slug: state.pathParameters['slug']!),
       ),
 
-      // Admin role isn't a panel — direct it to a friendly stub.
+      // Admin role isn't a panel — direct it to a friendly stub with a
+      // logout button so a user who accidentally signed in as admin can
+      // still get out. Without the button they were fully trapped.
       GoRoute(
         path: '/admin-blocked',
         builder: (context, state) => Consumer(
@@ -307,6 +309,31 @@ final routerProvider = Provider<GoRouter>((ref) {
                       Text(tr(wRef, 'mobile.admin.subtitle', "Veb-versiyadan foydalaning: app.lopestyle.uz"),
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
                           textAlign: TextAlign.center),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.danger,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () async {
+                            await wRef
+                                .read(authControllerProvider.notifier)
+                                .logout();
+                            if (context.mounted) context.go('/login');
+                          },
+                          icon: const Icon(Icons.logout, size: 18),
+                          label: Text(
+                            tr(wRef, 'common.logout', 'Chiqish'),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 15),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

@@ -57,7 +57,14 @@ AppException _fromDio(DioException e) {
   }
 
   // Serverdan kelgan aniq xabarni ustuvor qilamiz (agar bor bo'lsa).
-  final serverMsg = _extractServerMessage(e.response?.data);
+  // 5xx status kodida esa aniq xabarni ISHLATMAYMIZ — reverse-proxy
+  // (nginx/cloudfront/CDN) odatda 502/503/504 uchun HTML sahifa qaytaradi
+  // (<html><body>502 Bad Gateway...</body></html>). U foydalanuvchiga
+  // ko'rsatilsa xunuk ko'rinadi. Faqat 4xx da server matnini ishlatamiz —
+  // 4xx odatda NestJS'dan structured JSON keladi.
+  final serverMsg = (status != null && status >= 500)
+      ? null
+      : _extractServerMessage(e.response?.data);
 
   switch (status) {
     case 401:
@@ -112,15 +119,30 @@ String? _extractServerMessage(dynamic data) {
   if (data is Map) {
     // NestJS default: { message: string | string[], statusCode: number }
     final m = data['message'];
-    if (m is String && m.isNotEmpty && !m.startsWith('DioException')) return m;
-    if (m is List && m.isNotEmpty && m.first is String) return m.first as String;
+    if (m is String && m.isNotEmpty && !m.startsWith('DioException') && !_looksLikeHtml(m)) return m;
+    if (m is List && m.isNotEmpty && m.first is String) {
+      final first = m.first as String;
+      if (!_looksLikeHtml(first)) return first;
+    }
     final err = data['error'];
-    if (err is String && err.isNotEmpty && err != 'Bad Request') return err;
+    if (err is String && err.isNotEmpty && err != 'Bad Request' && !_looksLikeHtml(err)) return err;
   }
-  if (data is String && data.isNotEmpty && !data.contains('DioException')) {
+  if (data is String && data.isNotEmpty && !data.contains('DioException') && !_looksLikeHtml(data)) {
     return data;
   }
   return null;
+}
+
+// nginx/apache/CDN'lar 5xx uchun xom HTML sahifa qaytaradi
+// (<html>...<title>502 Bad Gateway...). UI'da bunday matn ko'rsatilishi
+// juda xunuk, foydalanuvchini qo'rqitadi. Har qanday HTML-boshli javob'ni
+// rad etamiz — o'rniga generik "Serverda vaqtincha xatolik" chiqadi.
+bool _looksLikeHtml(String s) {
+  final trimmed = s.trimLeft().toLowerCase();
+  return trimmed.startsWith('<') ||
+      trimmed.contains('<html') ||
+      trimmed.contains('<body') ||
+      trimmed.contains('<!doctype');
 }
 
 /// Convenience — swap any raw error to a user-friendly Uzbek string.
