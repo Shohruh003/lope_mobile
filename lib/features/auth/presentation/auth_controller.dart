@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n.dart';
 import '../../../core/push_service.dart';
 import '../data/auth_repository.dart';
 import '../domain/user.dart';
@@ -48,7 +49,21 @@ class AuthController extends Notifier<AuthState> {
       // is idempotent — a no-op if the same token is already registered.
       // ignore: unawaited_futures
       ref.read(pushServiceProvider).registerCurrentToken();
+      // Push the app's current locale to backend so server-side push
+      // notifications (bookings, cancellations, reminders) render in the
+      // right language for this user.
+      // ignore: unawaited_futures
+      _syncLocaleToBackend(user.id);
     }
+  }
+
+  Future<void> _syncLocaleToBackend(String userId) async {
+    try {
+      final localeAsync = ref.read(localeProvider);
+      final locale = localeAsync.value?.locale;
+      if (locale == null || locale.isEmpty) return;
+      await ref.read(authRepositoryProvider).updateMyLocale(userId, locale);
+    } catch (_) {}
   }
 
   Future<void> _refreshSilent() async {
@@ -92,6 +107,10 @@ class AuthController extends Notifier<AuthState> {
     // filled in the background before they ever open the promo screen.
     // ignore: unawaited_futures
     _ensureReferralCode(user);
+    // Sync the app's current locale to backend for localized push
+    // notifications from now on.
+    // ignore: unawaited_futures
+    _syncLocaleToBackend(user.id);
   }
 
   Future<void> logout() async {

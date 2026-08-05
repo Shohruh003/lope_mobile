@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api_client.dart';
 import 'constants.dart';
+import 'storage.dart';
 
 /// Lightweight in-app i18n. The web app ships the same four locales as JSON
 /// files; we read those exact files from /assets/i18n and look up keys via
@@ -86,6 +88,27 @@ class LocaleNotifier extends AsyncNotifier<L10n> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefsKey, locale);
     state = AsyncValue.data(await L10n.load(locale));
+    // Best-effort: push the new locale to backend so server-side push
+    // notifications render in this language. Silent — a failure never
+    // blocks the UI switch. We resolve the userId out of the stored
+    // session to avoid a dependency on the auth controller (which imports
+    // this file), keeping the module graph acyclic.
+    // ignore: unawaited_futures
+    _pushLocaleToBackend(locale);
+  }
+
+  Future<void> _pushLocaleToBackend(String locale) async {
+    try {
+      final storage = ref.read(storageProvider);
+      final userJson = await storage.readUser();
+      if (userJson == null || userJson.isEmpty) return;
+      final decoded = jsonDecode(userJson);
+      if (decoded is! Map) return;
+      final userId = decoded['id']?.toString();
+      if (userId == null || userId.isEmpty) return;
+      final dio = ref.read(dioProvider);
+      await dio.patch('/users/$userId/locale', data: {'locale': locale});
+    } catch (_) {}
   }
 }
 

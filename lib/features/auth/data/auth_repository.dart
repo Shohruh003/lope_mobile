@@ -148,6 +148,19 @@ class AuthRepository {
     await _dio
         .patch('/users/$userId/profile', data: {'name': newName});
   }
+
+  /// Push the app's current locale to backend so server-side push
+  /// notifications render in the right language. Called on login,
+  /// session restore, and whenever the user switches locale from settings.
+  /// Silent — a locale sync failure never blocks the UI.
+  Future<void> updateMyLocale(String userId, String locale) async {
+    try {
+      await _dio.patch('/users/$userId/locale', data: {'locale': locale});
+    } catch (_) {
+      // Best-effort — old backend versions without this endpoint or transient
+      // network errors leave User.locale as-is (backend falls back to 'uz').
+    }
+  }
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
