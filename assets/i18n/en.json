@@ -101,7 +101,17 @@
     },
     "loginToViewProfile": "Sign in to profile",
     "guestExplore": "Explore the app",
-    "or": "or"
+    "or": "or",
+    "apply": "Apply",
+    "cannotOpenLink": "Cannot open link",
+    "copy": "Copy",
+    "done": "Done",
+    "hourShort": "h",
+    "noResultsHint": "Clear search or change filter.",
+    "noSlots": "No free slots on this day",
+    "open": "Open",
+    "sms": "SMS",
+    "telegramNotInstalled": "Telegram app not found"
   },
   "nav": {
     "home": "Home",
@@ -159,7 +169,10 @@
     "reviewsTab": "Reviews",
     "locationNotSet": "Address not set",
     "noReviews": "No reviews yet",
-    "closed": "Closed"
+    "closed": "Closed",
+    "genderFemale": "Female",
+    "genderMale": "Male",
+    "noBarbersHint": "Try changing the filter or clearing search."
   },
   "booking": {
     "title": "Book Appointment",
@@ -219,7 +232,10 @@
     "completeConfirmMsg": "The booking will be marked as completed.",
     "cancelConfirmTitle": "Cancel this booking?",
     "cancelConfirmMsg": "Once cancelled, it cannot be restored.",
-    "cancelled": "Booking cancelled"
+    "cancelled": "Booking cancelled",
+    "emptyCancelledHint": "Cancelled bookings are stored here",
+    "emptyPastHint": "Completed bookings will appear here",
+    "totalPriceLabel": "Amount received (optional)"
   },
   "profile": {
     "title": "My Profile",
@@ -307,8 +323,11 @@
     "section": {
       "account": "Account",
       "app": "App",
-      "help": "Help"
-    }
+      "help": "Help",
+      "finance": "Finance",
+      "preferences": "Settings"
+    },
+    "slotInterval": "Slot interval (minutes)"
   },
   "auth": {
     "loginTitle": "Welcome Back",
@@ -398,7 +417,15 @@
     "roleCustomerDesc": "Book barber services",
     "roleShop": "Barbershop",
     "roleShopDesc": "Manage a barbershop",
-    "promoIfAny": "If you have one"
+    "promoIfAny": "If you have one",
+    "invalidCredentials": "Invalid phone or password",
+    "otpRateLimited": "Too many requests — please wait",
+    "passwordMismatch": "Passwords do not match",
+    "phoneNumber": "Phone number",
+    "promoInvalid": "Invalid promo code",
+    "promoValid": "Promo code is valid",
+    "roleCosmetologist": "Cosmetologist",
+    "roleStylist": "Stylist"
   },
   "admin": {
     "title": "Admin Dashboard",
@@ -774,7 +801,8 @@
     "extendEndTime": "End time",
     "extendCustom": "Enter custom minutes",
     "shrinkExtra": "Reduce time",
-    "shrinkMinError": "Duration cannot be less than {{min}} minutes"
+    "shrinkMinError": "Duration cannot be less than {{min}} minutes",
+    "route": "Route"
   },
   "customerApp": {
     "map": "Map",
@@ -854,7 +882,9 @@
     "progressFinalizing": "🖼️ Finalizing...",
     "progressDone": "✅ Done!",
     "topUpClick": "💳 Top up (Click)",
-    "topUpTelegram": "✈️ Top up (Telegram)"
+    "topUpTelegram": "✈️ Top up (Telegram)",
+    "saveDenied": "No permission to save to gallery",
+    "savedGallery": "Image saved to gallery"
   },
   "barberGender": {
     "maleOnly": "Men only",
@@ -885,7 +915,9 @@
     "later": "Later",
     "currentBalance": "Current balance",
     "fill": "Top up",
-    "dontShowAgain": "Don't show again"
+    "dontShowAgain": "Don't show again",
+    "amountHint": "10 000",
+    "short": "Top up"
   },
   "adminPayments": {
     "title": "Payments",
@@ -988,7 +1020,8 @@
     "smsTypes": {
       "confirmation": "Confirmation",
       "reminder": "Reminder",
-      "retention": "Promotion"
+      "retention": "Promotion",
+      "label": "SMS type"
     },
     "period": {
       "7d": "7 days",
@@ -1022,7 +1055,8 @@
       "editTitle": "Edit client",
       "name": "Name",
       "phone": "Phone",
-      "editEmpty": "Nothing entered"
+      "editEmpty": "Nothing entered",
+      "nameHint": "Last name First name"
     },
     "days": {
       "monday": "Monday",
@@ -1112,7 +1146,8 @@
     "skipped": "Skipped",
     "outOfBalance": "Out of balance",
     "failedList": "Not sent",
-    "waitForFinish": "Wait for completion"
+    "waitForFinish": "Wait for completion",
+    "waitingHint": "Will close when finished…"
   },
   "adminBarberBot": {
     "title": "Barber's Telegram bot",
@@ -1280,7 +1315,8 @@
       "emptySms": "No SMS sent",
       "transactionsTitle": "Transactions",
       "emptyTransactions": "No transactions",
-      "currentBalance": "Current balance"
+      "currentBalance": "Current balance",
+      "customerNamePlaceholder": "Last name First name"
     }
   },
   "mobile": {
@@ -1321,12 +1357,52 @@
     },
     "imagePicker": {
       "camera": "Camera",
-      "gallery": "Gallery"
+      "gallery": "Gallery",
+      "cameraHint": "Take a new photo",
+      "galleryHint": "Pick from existing photos",
+      "subtitle": "Where to take the photo from?",
+      "title": "Pick a photo source"
     },
     "dates": {
-      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-      "weekDaysShort": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-      "weekDaysLong": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "weekDaysShort": [
+        "Mo",
+        "Tu",
+        "We",
+        "Th",
+        "Fr",
+        "Sa",
+        "Su"
+      ],
+      "weekDaysLong": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "daysAgo": "days ago",
+      "monthsAgo": "months ago",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "weeksAgo": "weeks ago",
+      "yearsAgo": "years ago",
+      "yesterday": "Yesterday"
     },
     "auth": {
       "phone": "Phone",
@@ -1358,11 +1434,24 @@
       "transactions": "Wallet & payments",
       "notifications": "Notifications",
       "favorites": "Favorites",
-      "selectLanguage": "Choose language"
+      "selectLanguage": "Choose language",
+      "theme": "Theme",
+      "themeDark": "Dark",
+      "themeHint": "The app's light and dark theme adapts based on the selected setting.",
+      "themeLight": "Light",
+      "themeSystem": "System"
     },
     "customer": {
-      "favorites": { "title": "Favorites", "empty": "Favorites list is empty" },
-      "profileEdit": { "title": "Profile", "changeAvatar": "Change avatar", "avatarUpdated": "Avatar updated" },
+      "favorites": {
+        "title": "Favorites",
+        "empty": "Favorites list is empty",
+        "emptyHint": "To add a barber to favorites, tap the bookmark icon on their card."
+      },
+      "profileEdit": {
+        "title": "Profile",
+        "changeAvatar": "Change avatar",
+        "avatarUpdated": "Avatar updated"
+      },
       "aiStyle": {
         "title": "AI Style",
         "step1": "1. Your photo",
@@ -1409,11 +1498,18 @@
         "methodReferral": "Referral bonus",
         "methodDefault": "Transaction",
         "income": "Income",
-        "expense": "Expense"
+        "expense": "Expense",
+        "emptyHint": "Will appear here when you top up or make a purchase.",
+        "methodInternal": "Internal"
       }
     },
     "barber": {
-      "home": { "schedule": "Schedule", "bookings": "Bookings", "stats": "Stats", "profile": "Profile" },
+      "home": {
+        "schedule": "Schedule",
+        "bookings": "Bookings",
+        "stats": "Stats",
+        "profile": "Profile"
+      },
       "schedule": {
         "title": "Schedule",
         "empty": "No schedule",
@@ -1441,22 +1537,60 @@
         "singleSlot": "Add a single slot",
         "singleSlotHint": "Add an exact HH:MM time",
         "contactsDenied": "Contacts permission denied",
-        "contactReadError": "Couldn't read the contact"
+        "contactReadError": "Couldn't read the contact",
+        "autoGenerated": "Today's schedule was auto-generated",
+        "cantDeleteBooked": "This slot is booked — cancel the booking first",
+        "closeDay": "Close day",
+        "closeDayNoBookings": "All slots for this day will be deleted. Continue?",
+        "closeDayTitle": "Close the day?",
+        "closeDayWithBookings": "There are {{count}} bookings on this day. They will be cancelled and clients notified via SMS. Continue?",
+        "closed": "Day closed",
+        "closedWithCancels": "Day closed. {{count}} bookings cancelled.",
+        "deleteSlotBody": "The {{time}} slot will be removed from the schedule. This cannot be undone.",
+        "deleteSlotTitle": "Delete slot?",
+        "slotAdded": "Slot {{time}} added",
+        "slotAlreadyExists": "A slot at {{time}} already exists",
+        "todayBookings": "Today's bookings",
+        "voiceAnalysing": "Analyzing...",
+        "voiceEmpty": "No slots matching the criteria",
+        "voiceRecording": "Recording...",
+        "voiceSlotsAdded": "{{n}} slots added",
+        "voiceSlotsRemoved": "{{n}} slots removed",
+        "voiceSubIdle": "Tap the mic and say the name and time",
+        "voiceSubRec": "Tap again to stop",
+        "voiceTitle": "Voice booking",
+        "voiceUnsupported": "Voice not recognized. Try phrasing differently."
       },
-      "bookingsAll": { "title": "All bookings", "empty": "No bookings yet", "client": "Client", "today": "Today" },
+      "bookingsAll": {
+        "title": "All bookings",
+        "empty": "No bookings yet",
+        "client": "Client",
+        "today": "Today"
+      },
       "bookings": {
-        "searchPlaceholder": "Client name or phone"
+        "searchPlaceholder": "Client name or phone",
+        "emptyHint": "No bookings on this date. When clients book, they will appear here."
       },
       "account": {
         "phoneReadOnly": "Phone (read-only)",
-        "currentPassword": "Current password"
+        "currentPassword": "Current password",
+        "confirmPassword": "Confirm new password"
       },
       "location": {
-        "invalidLatLng": "Invalid lat/lng",
+        "editHint": "Enter precise address and coordinates so clients can find you on the map",
+        "openYandex": "Pick coordinates from Yandex Maps",
+        "addressLabel": "Address text",
+        "addressPlaceholder": "Tashkent, Yunusabad district, Amir Temur str. 7",
+        "changeBtn": "Change address",
         "copied": "Copied",
-        "addressPlaceholder": "Tashkent, Yunusabad district, Amir Temur St. 7"
+        "gpsUnavailable": "Could not determine location. Please enable GPS in settings.",
+        "invalidLatLng": "Invalid latitude / longitude",
+        "setBtn": "Set address"
       },
-      "settings": { "salon": "SALON", "salonProfile": "Salon profile" },
+      "settings": {
+        "salon": "SALON",
+        "salonProfile": "Salon profile"
+      },
       "admins": {
         "addBtn": "Add admin",
         "empty": "No admins yet",
@@ -1485,7 +1619,9 @@
         "generate": "Generate schedule",
         "invalidRange": "Invalid date range",
         "created": "Schedule created",
-        "summary": "About {{days}} days × {{slots}} slots = {{total}} slots"
+        "summary": "About {{days}} days × {{slots}} slots = {{total}} slots",
+        "forDate": "Schedule for this day",
+        "summarySingleDay": "Approximately {{slots}} slots will be created"
       },
       "cards": {
         "title": "My cards",
@@ -1499,7 +1635,9 @@
         "deleteTitle": "Delete card?",
         "deleteConfirm": "{{masked}} will be deleted",
         "primary": "Primary",
-        "cardHolder": "CARD HOLDER"
+        "cardHolder": "CARD HOLDER",
+        "holderNameHint": "LAST NAME FIRST NAME",
+        "makePrimary": "Set as primary"
       },
       "stats": {
         "title": "Stats",
@@ -1522,11 +1660,8 @@
         "smsReminder": "Reminders",
         "smsRetention": "Promotion",
         "smsReturned": "Returned",
-        "thisMonth": "This month"
-      },
-      "location": {
-        "editHint": "Enter precise address and coordinates so clients can find you on the map",
-        "openYandex": "Pick coordinates from Yandex Maps"
+        "thisMonth": "This month",
+        "smsConversion": "Conversion"
       },
       "profileEdit": {
         "title": "Edit profile",
@@ -1551,7 +1686,11 @@
         "tabGallery": "Gallery",
         "hoursSub": "Set your working hours for each day",
         "servicesSub": "Service list with prices and durations",
-        "gallerySub": "Upload photos of your work"
+        "gallerySub": "Upload photos of your work",
+        "bioPlaceholderRu": "Brief about yourself (for Russian-speaking clients)",
+        "experiencePlaceholder": "Years: 5, 8+, 10+",
+        "locationPlaceholderRu": "Tashkent, Yunusabad",
+        "usernamePlaceholder": "username"
       },
       "services": {
         "title": "My services",
@@ -1564,16 +1703,26 @@
         "pricePh": "Price (soum)",
         "durationPh": "Duration (minutes)",
         "deleteAsk": "Delete \"{{name}}\"?",
-        "deleteTitle": "Delete service?"
+        "deleteTitle": "Delete service?",
+        "nameEnHint": "Haircut",
+        "nameEnLabel": "Name (EN)",
+        "nameRuHint": "Стрижка",
+        "nameRuLabel": "Name (RU)",
+        "priceMaxPh": "Max (optional)"
       },
-      "hours": { "title": "Working hours" },
+      "hours": {
+        "title": "Working hours",
+        "invalidRange": "Closing time must be after opening",
+        "noLunch": "No break"
+      },
       "gallery": {
         "title": "Portfolio",
         "addBtn": "Add",
         "empty": "Portfolio is empty",
         "emptyHint": "Upload photos of your work",
         "deleteTitle": "Delete photo?",
-        "uploadError": "Upload error: {{msg}}"
+        "uploadError": "Upload error: {{msg}}",
+        "deleteBody": "The image will be permanently removed from the portfolio. This cannot be undone."
       },
       "reminders": {
         "title": "Reminder settings",
@@ -1583,7 +1732,16 @@
         "hoursSuffix": " h",
         "daysSuffix": " d"
       },
-      "sms": { "title": "SMS history", "empty": "No SMS", "statusOk": "Delivered", "statusFail": "Failed", "typeConfirm": "Confirmation", "typeReminder": "Reminder", "typeRetention": "Retention" },
+      "sms": {
+        "title": "SMS history",
+        "empty": "No SMS",
+        "statusOk": "Delivered",
+        "statusFail": "Failed",
+        "typeConfirm": "Confirmation",
+        "typeReminder": "Reminder",
+        "typeRetention": "Retention",
+        "emptyHint": "Sent SMS will appear here."
+      },
       "publicLink": {
         "title": "Public link",
         "hint": "Public booking link for customers. Share via Telegram, SMS or socials.",
@@ -1598,10 +1756,42 @@
         "directDesc": "Public booking page that opens in a browser",
         "tgTitle": "Telegram bot link",
         "tgDesc": "Opens inside Telegram, phone is verified automatically"
+      },
+      "clientDetail": {
+        "completed": "Completed",
+        "empty": "No bookings found",
+        "emptyHint": "No bookings in history from this number",
+        "visits": "Visits",
+        "visitsTitle": "Visit history"
+      },
+      "clients": {
+        "empty": "No clients yet",
+        "emptyHint": "Clients will appear here after their first booking with you."
+      },
+      "vacations": {
+        "add": "Add vacation",
+        "addHint": "Clients cannot book on vacation days",
+        "days": "{{n}} days",
+        "deleteHint": "The vacation-day block will be removed. When you create a new schedule, slots will reappear.",
+        "deleteTitle": "Delete vacation?",
+        "empty": "No vacation set yet",
+        "emptyHint": "Set vacation days in advance — clients cannot book those days.",
+        "endDate": "End",
+        "past": "Past ({{n}})",
+        "reason": "Reason (optional)",
+        "reasonHint": "e.g. Travel, Sports",
+        "startDate": "Start",
+        "title": "Vacation days",
+        "upcoming": "Upcoming ({{n}})"
       }
     },
     "shop": {
-      "home": { "dashboard": "Dashboard", "masters": "Masters", "bookings": "Bookings", "profile": "Profile" },
+      "home": {
+        "dashboard": "Dashboard",
+        "masters": "Masters",
+        "bookings": "Bookings",
+        "profile": "Profile"
+      },
       "dashboard": {
         "salonLabel": "My salon",
         "weekTitle": "This week",
@@ -1613,7 +1803,9 @@
         "navMasters": "Masters (Barbers)",
         "navBookings": "Salon bookings",
         "navTransactions": "Wallet & payments",
-        "navSms": "SMS history"
+        "navSms": "SMS history",
+        "todayBreakdown": "{{c}} completed • {{t}} total bookings",
+        "todayCashLabel": "TODAY'S REVENUE"
       },
       "masters": {
         "title": "Masters",
@@ -1627,7 +1819,11 @@
         "phonePh": "Phone (optional)",
         "experience": "Experience: {{value}}",
         "deleteTitle": "Remove master?",
-        "deleteAsk": "Remove \"{{name}}\" from the salon?"
+        "deleteAsk": "Remove \"{{name}}\" from the salon?",
+        "gender": "Gender",
+        "removed": "Master removed",
+        "role": "Role",
+        "roleHint": "This word is used in SMS sent to clients."
       },
       "barberDetail": {
         "title": "Master",
@@ -1639,7 +1835,10 @@
         "master": "Master: {{name}}",
         "masterLabel": "Master",
         "statusLabel": "Status",
-        "emptyForDay": "No bookings on this date"
+        "emptyForDay": "No bookings on this date",
+        "allDates": "All dates",
+        "emptyForDayHint": "When clients book, all barbers' bookings will appear here.",
+        "manualBadge": "Manual"
       },
       "clients": {
         "empty": "Client list is empty",
@@ -1647,11 +1846,14 @@
         "sendSmsBtn": "Send SMS to {{n}} clients",
         "bulkSendTitle": "Send SMS to selected?",
         "bulkSendMsg": "{{n}} clients will receive a retention SMS.",
-        "bulkSendQueued": "{{n}} SMS queued"
+        "bulkSendQueued": "{{n}} SMS queued",
+        "emptyHint": "All clients will appear here.",
+        "noResultsHint": "Try changing your search criteria."
       },
       "client": {
         "visitsHistory": "Visit history",
-        "noVisits": "No visits"
+        "noVisits": "No visits",
+        "smsHistory": "SMS history"
       },
       "reminders": {
         "title": "Awaiting reminder",
@@ -1660,10 +1862,54 @@
         "statusSent": "Sent",
         "hint": "Clients whose last visit was {{n}} days or more ago.",
         "changeBtn": "Change",
-        "daysAgo": "{{n}} days ago"
+        "daysAgo": "{{n}} days ago",
+        "emptyHint": "Great! All clients have visited recently.",
+        "smsSent": "SMS sent"
+      },
+      "admins": {
+        "addBtn": "Add admin",
+        "editTitle": "Edit admin",
+        "empty": "No admins added yet",
+        "emptyHint": "Add a helper admin — they can manage the salon too.",
+        "fillAll": "All fields required (password ≥ 6 chars)",
+        "newPassword": "New password (optional)",
+        "removeBody": "This admin will be removed from salon management. Cannot be undone.",
+        "removeTitle": "Remove admin?",
+        "removed": "Admin removed"
+      },
+      "barber": {
+        "extend": "Extend",
+        "extendHint": "Pick a time to extend or shorten the booking",
+        "extendTitle": "Extend time (minutes)",
+        "extendTooShort": "Booking duration would be too short",
+        "reschedule": "Reschedule"
+      },
+      "profile": {
+        "basicInfo": "Basic info",
+        "dragHint": "Drag the map to set location",
+        "geoAddress": "Geo address (on map)",
+        "invalidReminder": "Reminder days must be between 1-365",
+        "invalidSlot": "Slot must be between 5-240 minutes",
+        "locationDenied": "Could not determine location. Grant permission in app settings.",
+        "reminderDays": "Reminder days (since last visit)",
+        "reminderHours": "Reminder before booking (hours)",
+        "salonName": "Salon name",
+        "settings": "Settings",
+        "slotDuration": "Slot duration"
+      },
+      "settings": {
+        "salon": "SALON",
+        "salonProfile": "Salon profile"
+      },
+      "transactions": {
+        "adminGift": "Gift"
       }
     },
-    "notifications": { "title": "Notifications", "empty": "No notifications", "markAllRead": "Mark all read" },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No notifications",
+      "markAllRead": "Mark all read"
+    },
     "reviews": {
       "title": "Reviews",
       "leaveReview": "Leave a review",
@@ -1671,12 +1917,15 @@
       "commentPlaceholder": "Your review (optional)",
       "submit": "Submit",
       "rateHint": "Rate {{name}}'s work",
-      "skip": "Skip"
+      "skip": "Skip",
+      "emptyHint": "Be the first to leave a review — it helps other clients decide."
     },
     "map": {
       "title": "Nearby",
       "empty": "No barbers nearby",
-      "directions": "Directions"
+      "directions": "Directions",
+      "locationDenied": "Location permission denied. Enable it in settings.",
+      "recenter": "Find me"
     },
     "publicBooking": {
       "invalidLink": "This link is outdated or invalid",
@@ -1684,7 +1933,9 @@
       "successTitle": "You're booked!",
       "successMsg": "{{name}} is waiting for you. A confirmation SMS will arrive.",
       "pickServiceTime": "Pick a service and time",
-      "otpRequired": "This barber requires phone verification. Please contact them directly."
+      "otpRequired": "This barber requires phone verification. Please contact them directly.",
+      "invalidLinkHint": "Ask the barber for a new link or find them in the app.",
+      "phoneHint": "90 123 45 67"
     },
     "payment": {
       "successTitle": "Payment successful",
@@ -1692,7 +1943,11 @@
       "successMsg": "Your balance will update shortly",
       "failMsg": "Nothing was charged. Please try again",
       "openWallet": "Open wallet",
-      "home": "Home"
+      "home": "Home",
+      "delayedMsg": "Payment taken, but balance not yet updated. Please reopen in a few minutes.",
+      "delayedTitle": "Update is delayed",
+      "pendingMsg": "Payment received. Waiting for balance to update...",
+      "pendingTitle": "Balance updating..."
     },
     "lopepay": {
       "sms": {
@@ -1705,7 +1960,8 @@
         "empty": "No installments found",
         "daysLate": "{{n}} days late",
         "dueTomorrow": "Tomorrow",
-        "upcoming": "Upcoming"
+        "upcoming": "Upcoming",
+        "emptyHint": "Will appear here when you set up an installment for a new client."
       },
       "installment": {
         "markPaid": "Mark month as paid",
@@ -1713,7 +1969,8 @@
         "undoConfirmTitle": "Undo the last payment?",
         "delete": "Delete installment",
         "deleteConfirmTitle": "Delete this installment?",
-        "deleteConfirmMsg": "The installment and all its payments will be removed."
+        "deleteConfirmMsg": "The installment and all its payments will be removed.",
+        "markPaidTitle": "Mark month as paid ({{n}}/{{total}})"
       },
       "home": {
         "subtitle": "Installments management",
@@ -1738,7 +1995,13 @@
         "newProduct": "New product",
         "namePh": "Name",
         "pricePh": "Price (sum)",
-        "deleteTitle": "Delete product?"
+        "deleteTitle": "Delete product?",
+        "active": "Active",
+        "editTitle": "Edit product",
+        "emptyHint": "Add a product for installments — clients will be able to pick it.",
+        "inactive": "Inactive",
+        "searchHint": "Product name",
+        "usedTimes": "Used {{n}} times"
       },
       "customer": {
         "recordPayment": "Record payment",
@@ -1752,7 +2015,9 @@
         "remaining": "Remaining: {{amount}} {{currency}}",
         "statusOverdue": "Overdue",
         "statusPaid": "Paid",
-        "statusActive": "Active"
+        "statusActive": "Active",
+        "paymentGeneric": "Payment",
+        "paymentMonth": "Month {{n}} / {{m}}"
       },
       "customerForm": {
         "newTitle": "New installment",
@@ -1768,7 +2033,20 @@
         "notes": "Notes (optional)",
         "defaultPrice": "Default price (optional)",
         "addNewProduct": "Add new",
-        "fillRequired": "Please fill in all required fields"
+        "fillRequired": "Please fill in all required fields",
+        "customerSection": "Client",
+        "paymentSection": "Payment"
+      },
+      "tabs": {
+        "customers": "Clients",
+        "dashboard": "Dashboard",
+        "profile": "Profile"
+      },
+      "txn": {
+        "typeAi": "AI payment",
+        "typeReferral": "Referral",
+        "typeSms": "SMS payment",
+        "typeTopup": "Balance topped up"
       }
     },
     "promo": {
@@ -1782,9 +2060,66 @@
       "notFound": "No such code",
       "alreadyUsed": "This code has already been used",
       "myCodeTitle": "Your referral code",
-      "invitedCount": "{{n}} people used your code"
+      "invitedCount": "{{n}} people used your code",
+      "hintBody": "Send your code — when they register, both of you get a bonus.",
+      "hintExample": "PROMO20",
+      "hintTitle": "Recommend to a friend"
     },
-    "admin": { "title": "Admin panel is not available on mobile", "subtitle": "Use the web version: app.lopestyle.uz" },
-    "status": { "confirmed": "Confirmed", "completed": "Completed", "cancelled": "Cancelled" }
+    "admin": {
+      "title": "Admin panel is not available on mobile",
+      "subtitle": "Use the web version: app.lopestyle.uz"
+    },
+    "status": {
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "aiStyle": {
+      "errorBalance": "Insufficient balance. Please top up.",
+      "errorGeneric": "Generation failed",
+      "errorInternet": "Internet connection issue",
+      "errorInvalidImage": "AI couldn't produce an image. Funds will be refunded automatically — wait a moment and try again.",
+      "focusSubtitle": "AI will focus on this part",
+      "focusTitle": "What to change?",
+      "pickCategoryFirst": "Pick a part above or start generation — AI will ask",
+      "selfieMissing": "Please upload your photo first",
+      "selfieReady": "Photo ready",
+      "stageAnalysing": "Analyzing your face...",
+      "stageApplying": "Selecting style...",
+      "stageCreating": "Creating new look...",
+      "stageFinalising": "Finalizing...",
+      "step1": "What would you like to change?",
+      "step1Hint": "Pick the parts you want or skip — AI will decide",
+      "step2": "Upload your selfie",
+      "step2Hint": "A bright photo with a clearly visible face gives the best result",
+      "step3Library": "Pick a hairstyle",
+      "step3LibraryHint": "Pick a preset or upload your own via the button at the end",
+      "subtitle": "See a new look with AI",
+      "uploadHint2": "Choose from camera or gallery"
+    },
+    "barbers": {
+      "genderLabel": "Gender",
+      "salonBadge": "Salon",
+      "sortLabel": "Sort",
+      "tunerTitle": "Sort and filter"
+    },
+    "booking": {
+      "multiSelectHint": "You can select one or multiple services",
+      "pickDateFirst": "Pick a date to see available times",
+      "reviewHint": "Review the details",
+      "stepConfirm": "Confirm",
+      "stepServices": "Service",
+      "stepTime": "Time",
+      "tryAnotherDate": "Try picking another date"
+    },
+    "datePicker": {
+      "title": "Pick a date"
+    },
+    "offline": {
+      "banner": "No internet — showing data from recent days"
+    },
+    "timePicker": {
+      "title": "Pick a time"
+    }
   }
 }

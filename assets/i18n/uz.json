@@ -101,7 +101,17 @@
     },
     "loginToViewProfile": "Profilga kirish",
     "guestExplore": "Ilova bilan tanishish",
-    "or": "yoki"
+    "or": "yoki",
+    "apply": "Qo'llash",
+    "cannotOpenLink": "Havolani ochib bo'lmadi",
+    "copy": "Nusxa",
+    "done": "Tayyor",
+    "hourShort": "soat",
+    "noResultsHint": "Qidiruvni tozalab yoki filtrni o'zgartirib ko'ring.",
+    "noSlots": "Bu kunda bo'sh vaqt yo'q",
+    "open": "Ochish",
+    "sms": "SMS",
+    "telegramNotInstalled": "Telegram ilovasi topilmadi"
   },
   "nav": {
     "home": "Bosh sahifa",
@@ -159,7 +169,10 @@
     "reviewsTab": "Sharhlar",
     "locationNotSet": "Manzil ko'rsatilmagan",
     "noReviews": "Sharhlar yo'q",
-    "closed": "Yopiq"
+    "closed": "Yopiq",
+    "genderFemale": "Ayol",
+    "genderMale": "Erkak",
+    "noBarbersHint": "Filtrni o'zgartirib ko'ring yoki qidiruvni tozalang."
   },
   "booking": {
     "title": "Yozilish",
@@ -219,7 +232,10 @@
     "completeConfirmMsg": "Bron yakunlangan deb belgilanadi.",
     "cancelConfirmTitle": "Bronni bekor qilasizmi?",
     "cancelConfirmMsg": "Bekor qilingach, qaytarib bo'lmaydi.",
-    "cancelled": "Bron bekor qilindi"
+    "cancelled": "Bron bekor qilindi",
+    "emptyCancelledHint": "Bekor qilingan bronlar bu yerda saqlanadi",
+    "emptyPastHint": "Yakunlangan bronlar bu yerda ko'rinadi",
+    "totalPriceLabel": "Olingan summa (ixtiyoriy)"
   },
   "profile": {
     "title": "Mening profilim",
@@ -307,8 +323,11 @@
     "section": {
       "account": "Akkaunt",
       "app": "Ilova",
-      "help": "Yordam"
-    }
+      "help": "Yordam",
+      "finance": "Moliya",
+      "preferences": "Sozlamalar"
+    },
+    "slotInterval": "Slot oralig'i (daqiqa)"
   },
   "auth": {
     "loginTitle": "Xush kelibsiz",
@@ -398,7 +417,15 @@
     "roleCustomerDesc": "Sartarosh xizmatlari bron qilish",
     "roleShop": "Salon",
     "roleShopDesc": "Sartaroshxonani boshqarish",
-    "promoIfAny": "Agar bor bo'lsa"
+    "promoIfAny": "Agar bor bo'lsa",
+    "invalidCredentials": "Telefon yoki parol noto'g'ri",
+    "otpRateLimited": "Juda tez-tez so'radingiz — biroz kuting",
+    "passwordMismatch": "Parollar mos kelmadi",
+    "phoneNumber": "Telefon raqami",
+    "promoInvalid": "Promo-kod noto'g'ri",
+    "promoValid": "Promo-kod yaroqli",
+    "roleCosmetologist": "Kosmetolog",
+    "roleStylist": "Stilist"
   },
   "admin": {
     "title": "Admin paneli",
@@ -774,7 +801,8 @@
     "extendEndTime": "Tugash vaqti",
     "extendCustom": "Boshqa daqiqa kiriting",
     "shrinkExtra": "Qisqartirish",
-    "shrinkMinError": "Vaqt {{min}} daqiqadan kam bo'la olmaydi"
+    "shrinkMinError": "Vaqt {{min}} daqiqadan kam bo'la olmaydi",
+    "route": "Yo'l"
   },
   "customerApp": {
     "map": "Xarita",
@@ -854,7 +882,9 @@
     "progressFinalizing": "🖼️ Yakunlanmoqda...",
     "progressDone": "✅ Tayyor!",
     "topUpClick": "💳 Hisob to'ldirish (Click)",
-    "topUpTelegram": "✈️ Hisob to'ldirish (Telegram)"
+    "topUpTelegram": "✈️ Hisob to'ldirish (Telegram)",
+    "saveDenied": "Galereyaga saqlash uchun ruxsat berilmadi",
+    "savedGallery": "Rasm galereyaga saqlandi"
   },
   "barberGender": {
     "maleOnly": "Faqat erkaklar",
@@ -885,7 +915,9 @@
     "later": "Keyinroq",
     "currentBalance": "Joriy balans",
     "fill": "To'ldirish",
-    "dontShowAgain": "Qaytib ko'rsatma"
+    "dontShowAgain": "Qaytib ko'rsatma",
+    "amountHint": "10 000",
+    "short": "To'ldirish"
   },
   "adminPayments": {
     "title": "To'lovlar",
@@ -988,7 +1020,8 @@
     "smsTypes": {
       "confirmation": "Tasdiqlash",
       "reminder": "Eslatma",
-      "retention": "Reklama"
+      "retention": "Reklama",
+      "label": "SMS turi"
     },
     "period": {
       "7d": "7 kun",
@@ -1022,7 +1055,8 @@
       "editTitle": "Mijozni tahrirlash",
       "name": "Ism",
       "phone": "Telefon",
-      "editEmpty": "Hech narsa kiritilmadi"
+      "editEmpty": "Hech narsa kiritilmadi",
+      "nameHint": "Familya Ism"
     },
     "days": {
       "monday": "Dushanba",
@@ -1112,7 +1146,8 @@
     "skipped": "O'tkazilgan",
     "outOfBalance": "Balans yetmadi",
     "failedList": "Yuborilmaganlar",
-    "waitForFinish": "Tugashini kuting"
+    "waitForFinish": "Tugashini kuting",
+    "waitingHint": "Tugaganda yopiladi…"
   },
   "adminBarberBot": {
     "title": "Sartaroshning Telegram boti",
@@ -1280,7 +1315,8 @@
       "emptySms": "SMS yuborilmagan",
       "transactionsTitle": "Tranzaksiyalar",
       "emptyTransactions": "Tranzaksiya yo'q",
-      "currentBalance": "Joriy balans"
+      "currentBalance": "Joriy balans",
+      "customerNamePlaceholder": "Familya Ism"
     }
   },
   "mobile": {
@@ -1321,12 +1357,52 @@
     },
     "imagePicker": {
       "camera": "Kamera",
-      "gallery": "Galereya"
+      "gallery": "Galereya",
+      "cameraHint": "Hozir yangi rasm oling",
+      "galleryHint": "Mavjud rasmlardan tanlang",
+      "subtitle": "Qayerdan rasm olmoqchisiz?",
+      "title": "Rasm manbasini tanlang"
     },
     "dates": {
-      "months": ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"],
-      "weekDaysShort": ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"],
-      "weekDaysLong": ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]
+      "months": [
+        "Yanvar",
+        "Fevral",
+        "Mart",
+        "Aprel",
+        "May",
+        "Iyun",
+        "Iyul",
+        "Avgust",
+        "Sentabr",
+        "Oktabr",
+        "Noyabr",
+        "Dekabr"
+      ],
+      "weekDaysShort": [
+        "Du",
+        "Se",
+        "Ch",
+        "Pa",
+        "Ju",
+        "Sh",
+        "Ya"
+      ],
+      "weekDaysLong": [
+        "Dushanba",
+        "Seshanba",
+        "Chorshanba",
+        "Payshanba",
+        "Juma",
+        "Shanba",
+        "Yakshanba"
+      ],
+      "daysAgo": "kun oldin",
+      "monthsAgo": "oy oldin",
+      "today": "Bugun",
+      "tomorrow": "Ertaga",
+      "weeksAgo": "hafta oldin",
+      "yearsAgo": "yil oldin",
+      "yesterday": "Kecha"
     },
     "auth": {
       "phone": "Telefon",
@@ -1358,11 +1434,24 @@
       "transactions": "Hisobim va to'lovlar",
       "notifications": "Bildirishnomalar",
       "favorites": "Sevimlilar",
-      "selectLanguage": "Tilni tanlash"
+      "selectLanguage": "Tilni tanlash",
+      "theme": "Rejim",
+      "themeDark": "Qorong'i",
+      "themeHint": "Ilovaning yorug' va qorong'i rejimi tanlangan sozlamalarga qarab moslashadi.",
+      "themeLight": "Yorug'",
+      "themeSystem": "Tizim"
     },
     "customer": {
-      "favorites": { "title": "Sevimlilar", "empty": "Sevimlilar ro'yxati bo'sh" },
-      "profileEdit": { "title": "Profil", "changeAvatar": "Avatarni o'zgartirish", "avatarUpdated": "Avatar yangilandi" },
+      "favorites": {
+        "title": "Sevimlilar",
+        "empty": "Sevimlilar ro'yxati bo'sh",
+        "emptyHint": "Sartaroshni masterlaringizga qo'shish uchun uning kartochkasida bookmark belgisini bosing."
+      },
+      "profileEdit": {
+        "title": "Profil",
+        "changeAvatar": "Avatarni o'zgartirish",
+        "avatarUpdated": "Avatar yangilandi"
+      },
       "aiStyle": {
         "title": "AI Stil",
         "step1": "1. O'zingizning rasmingiz",
@@ -1409,11 +1498,18 @@
         "methodReferral": "Referal bonus",
         "methodDefault": "Tranzaktsiya",
         "income": "Kirim",
-        "expense": "Chiqim"
+        "expense": "Chiqim",
+        "emptyHint": "Hisobingizga to'lov qilinganda yoki xarid qilganingizda bu yerda ko'rinadi.",
+        "methodInternal": "Ichki"
       }
     },
     "barber": {
-      "home": { "schedule": "Jadval", "bookings": "Bronlar", "stats": "Statistika", "profile": "Profil" },
+      "home": {
+        "schedule": "Jadval",
+        "bookings": "Bronlar",
+        "stats": "Statistika",
+        "profile": "Profil"
+      },
       "schedule": {
         "title": "Jadval",
         "empty": "Jadval yo'q",
@@ -1441,22 +1537,60 @@
         "singleSlot": "Bitta slot qo'shish",
         "singleSlotHint": "Aniq bir HH:MM vaqtni qo'shish",
         "contactsDenied": "Kontaktlarga ruxsat berilmadi",
-        "contactReadError": "Kontaktni o'qib bo'lmadi"
+        "contactReadError": "Kontaktni o'qib bo'lmadi",
+        "autoGenerated": "Bugungi jadval avtomatik yaratildi",
+        "cantDeleteBooked": "Bu slot band, avval bronni bekor qiling",
+        "closeDay": "Kunni yopish",
+        "closeDayNoBookings": "Bu kundagi barcha slotlar o'chiriladi. Davom etamizmi?",
+        "closeDayTitle": "Kunni yopamizmi?",
+        "closeDayWithBookings": "Bu kunda {{count}} ta bron bor. Ular bekor qilinadi va mijozlarga SMS/xabar boradi. Davom etamizmi?",
+        "closed": "Kun yopildi",
+        "closedWithCancels": "Kun yopildi. {{count}} ta bron bekor qilindi.",
+        "deleteSlotBody": "{{time}} vaqti jadvaldan olib tashlanadi. Bu jarayonni bekor qilib bo'lmaydi.",
+        "deleteSlotTitle": "Slotni o'chirish?",
+        "slotAdded": "{{time}} vaqtiga slot qo'shildi",
+        "slotAlreadyExists": "Bu vaqtda ({{time}}) slot allaqachon bor",
+        "todayBookings": "Bugungi bronlar",
+        "voiceAnalysing": "Tahlil qilinmoqda...",
+        "voiceEmpty": "Ushbu shartga mos slot yo'q",
+        "voiceRecording": "Yozilmoqda...",
+        "voiceSlotsAdded": "{{n}} ta slot qo'shildi",
+        "voiceSlotsRemoved": "{{n}} ta slot o'chirildi",
+        "voiceSubIdle": "Mikrofonni bosib, ismni, vaqtni ayting",
+        "voiceSubRec": "To'xtatish uchun yana bosing",
+        "voiceTitle": "Ovoz bilan bron",
+        "voiceUnsupported": "Ovoz tushunilmadi. Boshqacha aytib ko'ring."
       },
-      "bookingsAll": { "title": "Barcha bronlar", "empty": "Hali bron yo'q", "client": "Mijoz", "today": "Bugun" },
+      "bookingsAll": {
+        "title": "Barcha bronlar",
+        "empty": "Hali bron yo'q",
+        "client": "Mijoz",
+        "today": "Bugun"
+      },
       "bookings": {
-        "searchPlaceholder": "Mijoz nomi yoki telefon"
+        "searchPlaceholder": "Mijoz nomi yoki telefon",
+        "emptyHint": "Bu sanada bron yo'q. Mijozlar yozilishi bilan bu yerda ko'rinadi."
       },
       "account": {
         "phoneReadOnly": "Telefon (o'zgartirilmaydi)",
-        "currentPassword": "Joriy parol"
+        "currentPassword": "Joriy parol",
+        "confirmPassword": "Yangi parolni tasdiqlash"
       },
       "location": {
-        "invalidLatLng": "Lat/Lng noto'g'ri",
+        "editHint": "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting",
+        "openYandex": "Yandex Maps'dan koordinata olish",
+        "addressLabel": "Manzil matni",
+        "addressPlaceholder": "Toshkent, Yunusobod tumani, Amir Temur ko'chasi 7",
+        "changeBtn": "Manzilni o'zgartirish",
         "copied": "Nusxalandi",
-        "addressPlaceholder": "Toshkent, Yunusobod tumani, Amir Temur ko'chasi 7"
+        "gpsUnavailable": "Joylashuvni aniqlab bo'lmadi. Sozlamalardan GPS ruxsatini yoqing.",
+        "invalidLatLng": "Kenglik / Uzunlik noto'g'ri",
+        "setBtn": "Manzilni belgilash"
       },
-      "settings": { "salon": "SALON", "salonProfile": "Salon profili" },
+      "settings": {
+        "salon": "SALON",
+        "salonProfile": "Salon profili"
+      },
       "admins": {
         "addBtn": "Admin qo'shish",
         "empty": "Hali admin qo'shilmagan",
@@ -1485,7 +1619,9 @@
         "generate": "Jadval yaratish",
         "invalidRange": "Sana oralig'i noto'g'ri",
         "created": "Jadval yaratildi",
-        "summary": "Taxminan {{days}} kun × {{slots}} slot = {{total}} slot yaratiladi"
+        "summary": "Taxminan {{days}} kun × {{slots}} slot = {{total}} slot yaratiladi",
+        "forDate": "Shu kun uchun jadval",
+        "summarySingleDay": "Taxminan {{slots}} ta slot yaratiladi"
       },
       "cards": {
         "title": "Mening kartalarim",
@@ -1499,7 +1635,9 @@
         "deleteTitle": "Kartani o'chirish?",
         "deleteConfirm": "{{masked}} karta o'chiriladi",
         "primary": "Asosiy",
-        "cardHolder": "KARTA EGASI"
+        "cardHolder": "KARTA EGASI",
+        "holderNameHint": "FAMILIYA ISM",
+        "makePrimary": "Asosiy qil"
       },
       "stats": {
         "title": "Statistika",
@@ -1522,11 +1660,8 @@
         "smsReminder": "Eslatma",
         "smsRetention": "Reklama",
         "smsReturned": "Qaytib kelganlar",
-        "thisMonth": "Bu oy"
-      },
-      "location": {
-        "editHint": "Mijozlar sizni xaritada topa olishi uchun aniq manzil va koordinatalarni kiriting",
-        "openYandex": "Yandex Maps'dan koordinata olish"
+        "thisMonth": "Bu oy",
+        "smsConversion": "Konversiya"
       },
       "profileEdit": {
         "title": "Profilni tahrirlash",
@@ -1551,7 +1686,11 @@
         "tabGallery": "Galereya",
         "hoursSub": "Har kun uchun ish vaqtini sozlash",
         "servicesSub": "Narx va davomiyligi bilan xizmat ro'yxati",
-        "gallerySub": "Ishlaringizdan rasmlar yuklash"
+        "gallerySub": "Ishlaringizdan rasmlar yuklash",
+        "bioPlaceholderRu": "Кратко о себе (для русскоязычных клиентов)",
+        "experiencePlaceholder": "Yillar: 5, 8+, 10+",
+        "locationPlaceholderRu": "Ташкент, Юнусабад",
+        "usernamePlaceholder": "username"
       },
       "services": {
         "title": "Xizmatlarim",
@@ -1564,16 +1703,26 @@
         "pricePh": "Narxi (so'm)",
         "durationPh": "Davomiyligi (daqiqa)",
         "deleteAsk": "\"{{name}}\" o'chirilsinmi?",
-        "deleteTitle": "Xizmatni o'chirish?"
+        "deleteTitle": "Xizmatni o'chirish?",
+        "nameEnHint": "Haircut",
+        "nameEnLabel": "Name (EN)",
+        "nameRuHint": "Стрижка",
+        "nameRuLabel": "Название (RU)",
+        "priceMaxPh": "Maks (ixtiyoriy)"
       },
-      "hours": { "title": "Ish soatlari" },
+      "hours": {
+        "title": "Ish soatlari",
+        "invalidRange": "Yopilish vaqti ochilishdan keyin bo'lishi kerak",
+        "noLunch": "Tanaffus yo'q"
+      },
       "gallery": {
         "title": "Portfolio",
         "addBtn": "Qo'shish",
         "empty": "Portfolio bo'sh",
         "emptyHint": "Ishlaringizdan rasm yuklang",
         "deleteTitle": "Rasmni o'chirish?",
-        "uploadError": "Yuklashda xato: {{msg}}"
+        "uploadError": "Yuklashda xato: {{msg}}",
+        "deleteBody": "Rasm portfolyodan butunlay o'chiriladi. Bu jarayonni bekor qilib bo'lmaydi."
       },
       "reminders": {
         "title": "Eslatma sozlamalari",
@@ -1583,7 +1732,16 @@
         "hoursSuffix": " soat",
         "daysSuffix": " kun"
       },
-      "sms": { "title": "SMS tarixi", "empty": "SMS yo'q", "statusOk": "Yetkazildi", "statusFail": "Xato", "typeConfirm": "Tasdiqlash", "typeReminder": "Eslatma", "typeRetention": "Qayta jalb" },
+      "sms": {
+        "title": "SMS tarixi",
+        "empty": "SMS yo'q",
+        "statusOk": "Yetkazildi",
+        "statusFail": "Xato",
+        "typeConfirm": "Tasdiqlash",
+        "typeReminder": "Eslatma",
+        "typeRetention": "Qayta jalb",
+        "emptyHint": "Yuborilgan SMS'lar shu yerda ko'rinadi."
+      },
       "publicLink": {
         "title": "Ommaviy havola",
         "hint": "Mijozlar uchun ommaviy bron havolasi. Telegram, SMS yoki ijtimoiy tarmoqlarda ulashing.",
@@ -1598,10 +1756,42 @@
         "directDesc": "Brauzerda ochiladigan ommaviy bron sahifasi",
         "tgTitle": "Telegram bot havolasi",
         "tgDesc": "Telegram ichida ochiladi, telefon avtomatik tasdiqlanadi"
+      },
+      "clientDetail": {
+        "completed": "Yakunlangan",
+        "empty": "Bronlar topilmadi",
+        "emptyHint": "Bu raqamdan hech qanday bron tarixida yo'q",
+        "visits": "Tashriflar",
+        "visitsTitle": "Tashriflar tarixi"
+      },
+      "clients": {
+        "empty": "Hali mijoz yo'q",
+        "emptyHint": "Mijozlar sizga bir marta yozilganidan keyin bu yerda paydo bo'ladi."
+      },
+      "vacations": {
+        "add": "Ta'til qo'shish",
+        "addHint": "Ta'til kunlariga mijozlar bron qila olmaydi",
+        "days": "{{n}} kun",
+        "deleteHint": "Ta'til kunlaridagi bloklash olib tashlanadi. Yangi jadval yaratganda bu kunlarga slotlar qayta chiqadi.",
+        "deleteTitle": "Ta'til o'chirilsinmi?",
+        "empty": "Hali ta'til belgilanmagan",
+        "emptyHint": "Ta'til kunlarini oldindan belgilab qo'ying — mijozlar bu kunlarga bron qila olmaydi.",
+        "endDate": "Tugash",
+        "past": "O'tgan ({{n}})",
+        "reason": "Sabab (ixtiyoriy)",
+        "reasonHint": "Masalan: Sayohat, Sport",
+        "startDate": "Boshlanish",
+        "title": "Ta'til kunlari",
+        "upcoming": "Kelayotgan ({{n}})"
       }
     },
     "shop": {
-      "home": { "dashboard": "Boshqaruv", "masters": "Masterlar", "bookings": "Bronlar", "profile": "Profil" },
+      "home": {
+        "dashboard": "Boshqaruv",
+        "masters": "Masterlar",
+        "bookings": "Bronlar",
+        "profile": "Profil"
+      },
       "dashboard": {
         "salonLabel": "Salonim",
         "weekTitle": "Bu hafta",
@@ -1613,7 +1803,9 @@
         "navMasters": "Masterlar (Barberlar)",
         "navBookings": "Salon bronlari",
         "navTransactions": "Hisob va to'lovlar",
-        "navSms": "SMS tarixi"
+        "navSms": "SMS tarixi",
+        "todayBreakdown": "{{c}} yakunlangan • {{t}} jami buyurtma",
+        "todayCashLabel": "BUGUNGI TUSHUM"
       },
       "masters": {
         "title": "Masterlar",
@@ -1627,7 +1819,11 @@
         "phonePh": "Telefon (ixtiyoriy)",
         "experience": "Tajriba: {{value}}",
         "deleteTitle": "Masterni o'chirish?",
-        "deleteAsk": "\"{{name}}\" salondan olib tashlansinmi?"
+        "deleteAsk": "\"{{name}}\" salondan olib tashlansinmi?",
+        "gender": "Jinsi",
+        "removed": "Master olib tashlandi",
+        "role": "Kasbi",
+        "roleHint": "Mijozlarga yuboriladigan SMS'da shu so'z ishlatiladi."
       },
       "barberDetail": {
         "title": "Sartarosh",
@@ -1639,7 +1835,10 @@
         "master": "Master: {{name}}",
         "masterLabel": "Master",
         "statusLabel": "Status",
-        "emptyForDay": "Bu sanada bronlar yo'q"
+        "emptyForDay": "Bu sanada bronlar yo'q",
+        "allDates": "Barcha sanalar",
+        "emptyForDayHint": "Mijozlar yozilishi bilan barcha barberlarning bronlari shu yerda ko'rinadi.",
+        "manualBadge": "Qo'lda"
       },
       "clients": {
         "empty": "Mijozlar ro'yxati bo'sh",
@@ -1647,11 +1846,14 @@
         "sendSmsBtn": "{{n}} ta mijozga SMS",
         "bulkSendTitle": "Tanlanganlarga SMS yuborilsinmi?",
         "bulkSendMsg": "{{n}} ta mijozga retention SMS jo'natiladi.",
-        "bulkSendQueued": "{{n}} ta SMS navbatga qo'shildi"
+        "bulkSendQueued": "{{n}} ta SMS navbatga qo'shildi",
+        "emptyHint": "Barcha mijozlar bu yerda paydo bo'ladi.",
+        "noResultsHint": "Qidiruv shartlarini o'zgartirib ko'ring."
       },
       "client": {
         "visitsHistory": "Tashriflar tarixi",
-        "noVisits": "Tashriflar yo'q"
+        "noVisits": "Tashriflar yo'q",
+        "smsHistory": "SMS tarixi"
       },
       "reminders": {
         "title": "Eslatma kutmoqda",
@@ -1660,10 +1862,54 @@
         "statusSent": "Yuborildi",
         "hint": "Oxirgi tashrifidan {{n}} kun yoki undan ko'p o'tgan mijozlar.",
         "changeBtn": "O'zgartirish",
-        "daysAgo": "{{n}} kun oldin"
+        "daysAgo": "{{n}} kun oldin",
+        "emptyHint": "Ajoyib! Barcha mijozlar so'nggi paytda tashrif buyurishgan.",
+        "smsSent": "SMS yuborilgan"
+      },
+      "admins": {
+        "addBtn": "Admin qo'shish",
+        "editTitle": "Adminni tahrirlash",
+        "empty": "Hali admin qo'shilmagan",
+        "emptyHint": "Yordamchi admin qo'shsangiz — u ham salon bilan boshqara oladi.",
+        "fillAll": "Barcha maydonlar majburiy (parol ≥ 6 belgi)",
+        "newPassword": "Yangi parol (ixtiyoriy)",
+        "removeBody": "Bu admin salon boshqaruvidan olib tashlanadi. Bu jarayonni bekor qilib bo'lmaydi.",
+        "removeTitle": "Adminni olib tashlash?",
+        "removed": "Admin olib tashlandi"
+      },
+      "barber": {
+        "extend": "Uzaytirish",
+        "extendHint": "Bronni cho'zish yoki qisqartirish uchun vaqtni tanlang",
+        "extendTitle": "Vaqtni uzaytirish (daqiqa)",
+        "extendTooShort": "Bron davomiyligi juda qisqarib ketadi",
+        "reschedule": "Ko'chirish"
+      },
+      "profile": {
+        "basicInfo": "Asosiy ma'lumotlar",
+        "dragHint": "Xaritani surib joyni belgilang",
+        "geoAddress": "Geo manzil (xaritada)",
+        "invalidReminder": "Eslatma kunlari 1-365 oraliqda bo'lsin",
+        "invalidSlot": "Slot 5-240 daqiqa oraliqda bo'lsin",
+        "locationDenied": "Joylashuvni aniqlab bo'lmadi. Ilova sozlamalarida ruxsat bering.",
+        "reminderDays": "Eslatma kunlari (oxirgi tashrifdan)",
+        "reminderHours": "Bron oldidan eslatma (soat)",
+        "salonName": "Salon nomi",
+        "settings": "Sozlamalar",
+        "slotDuration": "Slot davomiyligi"
+      },
+      "settings": {
+        "salon": "SALON",
+        "salonProfile": "Salon profili"
+      },
+      "transactions": {
+        "adminGift": "Sovg'a"
       }
     },
-    "notifications": { "title": "Bildirishnomalar", "empty": "Bildirishnomalar yo'q", "markAllRead": "Hammasini o'qish" },
+    "notifications": {
+      "title": "Bildirishnomalar",
+      "empty": "Bildirishnomalar yo'q",
+      "markAllRead": "Hammasini o'qish"
+    },
     "reviews": {
       "title": "Sharhlar",
       "leaveReview": "Sharh qoldirish",
@@ -1671,12 +1917,15 @@
       "commentPlaceholder": "Sharhingiz (ixtiyoriy)",
       "submit": "Yuborish",
       "rateHint": "{{name}}'ning ishini baholang",
-      "skip": "O'tkazib yuborish"
+      "skip": "O'tkazib yuborish",
+      "emptyHint": "Birinchi bo'lib sharh qoldiring — boshqa mijozlarga tanlashda yordam beradi."
     },
     "map": {
       "title": "Yaqin atrofda",
       "empty": "Yaqin atrofda sartaroshlar topilmadi",
-      "directions": "Yo'l ko'rsatish"
+      "directions": "Yo'l ko'rsatish",
+      "locationDenied": "Joylashuv ruxsati yo'q. Sozlamalardan yoqing.",
+      "recenter": "Meni topish"
     },
     "publicBooking": {
       "invalidLink": "Bu havola eski yoki noto'g'ri",
@@ -1684,7 +1933,9 @@
       "successTitle": "Yozildingiz!",
       "successMsg": "{{name}} sizni kutadi. Tasdiqlash SMS keladi.",
       "pickServiceTime": "Xizmat va vaqt tanlang",
-      "otpRequired": "Bu sartarosh telefon tasdiqlashni talab qiladi. Iltimos, sartarosh bilan to'g'ridan-to'g'ri bog'laning."
+      "otpRequired": "Bu sartarosh telefon tasdiqlashni talab qiladi. Iltimos, sartarosh bilan to'g'ridan-to'g'ri bog'laning.",
+      "invalidLinkHint": "Sartaroshdan yangi havola so'rang yoki ilovadan qidiring.",
+      "phoneHint": "90 123 45 67"
     },
     "payment": {
       "successTitle": "To'lov muvaffaqiyatli",
@@ -1692,7 +1943,11 @@
       "successMsg": "Hisobingiz tezda yangilanadi",
       "failMsg": "Hech narsa yechilmadi. Qaytadan urinib ko'ring",
       "openWallet": "Hisobni ochish",
-      "home": "Bosh sahifa"
+      "home": "Bosh sahifa",
+      "delayedMsg": "Pul yechilgan, lekin balans hali yangilanmadi. Bir necha daqiqadan keyin qayta oching.",
+      "delayedTitle": "Yangilanish kechikmoqda",
+      "pendingMsg": "To'lovingiz qabul qilindi. Balans yangilanishini kutyapmiz...",
+      "pendingTitle": "Balans yangilanmoqda..."
     },
     "lopepay": {
       "sms": {
@@ -1705,7 +1960,8 @@
         "empty": "Rassrochka topilmadi",
         "daysLate": "{{n}} kun kechikkan",
         "dueTomorrow": "Ertaga",
-        "upcoming": "Kelajakda"
+        "upcoming": "Kelajakda",
+        "emptyHint": "Yangi mijoz uchun rassrochka rasmiylashtirsangiz shu yerda ko'rinadi."
       },
       "installment": {
         "markPaid": "Oyni to'langan deb belgilash",
@@ -1713,7 +1969,8 @@
         "undoConfirmTitle": "Oxirgi to'lov bekor qilinsinmi?",
         "delete": "Rassrochkani o'chirish",
         "deleteConfirmTitle": "Rassrochka o'chirilsinmi?",
-        "deleteConfirmMsg": "Rassrochka va uning barcha to'lovlari o'chiriladi."
+        "deleteConfirmMsg": "Rassrochka va uning barcha to'lovlari o'chiriladi.",
+        "markPaidTitle": "Oyni to'langan deb belgilash ({{n}}/{{total}})"
       },
       "home": {
         "subtitle": "Rassrochka boshqaruvi",
@@ -1738,7 +1995,13 @@
         "newProduct": "Yangi mahsulot",
         "namePh": "Nomi",
         "pricePh": "Narxi (so'm)",
-        "deleteTitle": "Mahsulotni o'chirish?"
+        "deleteTitle": "Mahsulotni o'chirish?",
+        "active": "Faol",
+        "editTitle": "Mahsulotni tahrirlash",
+        "emptyHint": "Rassrochka uchun mahsulot qo'shsangiz — mijozlarga tanlash imkoniyati beriladi.",
+        "inactive": "Faol emas",
+        "searchHint": "Mahsulot nomi",
+        "usedTimes": "{{n}} marta ishlatilgan"
       },
       "customer": {
         "recordPayment": "To'lov qabul qilish",
@@ -1752,7 +2015,9 @@
         "remaining": "Qoldi: {{amount}} {{currency}}",
         "statusOverdue": "Muddati o'tgan",
         "statusPaid": "To'langan",
-        "statusActive": "Faol"
+        "statusActive": "Faol",
+        "paymentGeneric": "To'lov",
+        "paymentMonth": "Oy {{n}} / {{m}}"
       },
       "customerForm": {
         "newTitle": "Yangi rassrochka",
@@ -1768,7 +2033,20 @@
         "notes": "Eslatma (ixtiyoriy)",
         "defaultPrice": "Standart narx (ixtiyoriy)",
         "addNewProduct": "Yangi qo'shish",
-        "fillRequired": "Iltimos, barcha majburiy maydonlarni to'ldiring"
+        "fillRequired": "Iltimos, barcha majburiy maydonlarni to'ldiring",
+        "customerSection": "Mijoz",
+        "paymentSection": "To'lov"
+      },
+      "tabs": {
+        "customers": "Mijozlar",
+        "dashboard": "Boshqaruv",
+        "profile": "Profil"
+      },
+      "txn": {
+        "typeAi": "AI to'lovi",
+        "typeReferral": "Referral",
+        "typeSms": "SMS to'lovi",
+        "typeTopup": "Hisob to'ldirildi"
       }
     },
     "promo": {
@@ -1782,9 +2060,66 @@
       "notFound": "Bunday kod yo'q",
       "alreadyUsed": "Bu kod allaqachon ishlatilgan",
       "myCodeTitle": "Sizning referral kodingiz",
-      "invitedCount": "{{n}} kishi sizning kodingizdan foydalandi"
+      "invitedCount": "{{n}} kishi sizning kodingizdan foydalandi",
+      "hintBody": "Kodingizni yuboring — ular ro'yxatdan o'tganda ikkalangizga bonus tushadi.",
+      "hintExample": "PROMO20",
+      "hintTitle": "Do'stingizga tavsiya qiling"
     },
-    "admin": { "title": "Admin panel mobile'da mavjud emas", "subtitle": "Veb-versiyadan foydalaning: app.lopestyle.uz" },
-    "status": { "confirmed": "Tasdiqlangan", "completed": "Yakunlangan", "cancelled": "Bekor qilingan" }
+    "admin": {
+      "title": "Admin panel mobile'da mavjud emas",
+      "subtitle": "Veb-versiyadan foydalaning: app.lopestyle.uz"
+    },
+    "status": {
+      "confirmed": "Tasdiqlangan",
+      "completed": "Yakunlangan",
+      "cancelled": "Bekor qilingan"
+    },
+    "aiStyle": {
+      "errorBalance": "Balansingiz yetarli emas. Hisobni to'ldiring.",
+      "errorGeneric": "Generatsiya bajarilmadi",
+      "errorInternet": "Internet bilan muammo",
+      "errorInvalidImage": "AI rasm chiqara olmadi. Pul avtomatik qaytariladi — biroz kutib qayta urinib ko'ring.",
+      "focusSubtitle": "AI shu qismga e'tibor beradi",
+      "focusTitle": "Nimani o'zgartiray?",
+      "pickCategoryFirst": "Yuqoridan qismni tanlang yoki generatsiyani boshlang — AI o'zi so'raydi",
+      "selfieMissing": "Avval o'zingizning rasmingizni yuklang",
+      "selfieReady": "Rasm tayyor",
+      "stageAnalysing": "Yuzingizni tahlil qilyapmiz...",
+      "stageApplying": "Stilni tanlayapmiz...",
+      "stageCreating": "Yangi ko'rinishni yaratyapmiz...",
+      "stageFinalising": "Yakunlanmoqda...",
+      "step1": "Nimani o'zgartirmoqchisiz?",
+      "step1Hint": "Xohlagan qismlarni tanlang yoki tashlab keting — AI o'zi tanlaydi",
+      "step2": "Selfingizni yuklang",
+      "step2Hint": "Yuz aniq ko'rinadigan yorug' rasm eng yaxshi natija beradi",
+      "step3Library": "Turmakni tanlang",
+      "step3LibraryHint": "Namunalardan birini tanlang yoki oxirdagi tugma orqali o'z rasmingizni yuklang",
+      "subtitle": "Sun'iy intellekt yordamida yangi imidjni ko'ring",
+      "uploadHint2": "Kameradan yoki galereyadan tanlash"
+    },
+    "barbers": {
+      "genderLabel": "Jinsi",
+      "salonBadge": "Salon",
+      "sortLabel": "Saralash",
+      "tunerTitle": "Saralash va filter"
+    },
+    "booking": {
+      "multiSelectHint": "Bir yoki bir necha xizmatni tanlashingiz mumkin",
+      "pickDateFirst": "Vaqtlarni ko'rish uchun sanani tanlang",
+      "reviewHint": "Ma'lumotlarni tekshirib chiqing",
+      "stepConfirm": "Tasdiq",
+      "stepServices": "Xizmat",
+      "stepTime": "Vaqt",
+      "tryAnotherDate": "Boshqa sanani tanlab ko'ring"
+    },
+    "datePicker": {
+      "title": "Sanani tanlang"
+    },
+    "offline": {
+      "banner": "Internet yo'q — ma'lumotlar so'nggi kunlaringizdan ko'rsatilyapti"
+    },
+    "timePicker": {
+      "title": "Vaqtni tanlang"
+    }
   }
 }
