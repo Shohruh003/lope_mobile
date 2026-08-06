@@ -18,7 +18,15 @@ import UserNotifications
     FirebaseApp.configure()
     // Explicit APNs registration so iOS starts the handshake even if the
     // Flutter plugin's requestPermission() hasn't fired yet.
-    UNUserNotificationCenter.current().delegate = self
+    //
+    // DO NOT set `UNUserNotificationCenter.current().delegate = self` —
+    // firebase_messaging swizzles this delegate to install its own
+    // implementation, which in turn honours the Flutter-side
+    // setForegroundNotificationPresentationOptions(alert:true,...) call.
+    // Overriding the delegate to `self` (with no willPresent method)
+    // silently reverts iOS to its default foreground behaviour: the
+    // banner is suppressed and onMessage never fires. Background push
+    // still works because it takes a different path.
     application.registerForRemoteNotifications()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
