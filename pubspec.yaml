@@ -85,6 +85,20 @@ dev_dependencies:
   json_serializable: ^6.8.0
   custom_lint: ^0.7.0
   riverpod_lint: ^2.6.3
+  flutter_launcher_icons: ^0.14.4
+
+# App icon generator config. Run with:
+#   dart run flutter_launcher_icons
+# after any change to app_icon.png. Generates every iOS+Android size
+# (Assets.xcassets/AppIcon.appiconset + res/mipmap-*/) from the 512x512
+# source. remove_alpha_ios strips the transparency layer — App Store
+# rejects PNGs with alpha in the AppIcon set.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  remove_alpha_ios: true
+  min_sdk_android: 21
 
 # Pin record_linux to a version that implements the same platform-interface
 # methods the rest of `record` expects. Without this, the old transitive
@@ -103,3 +117,4 @@ flutter:
   assets:
     - assets/i18n/
     - assets/hairstyles/
+    - assets/icon/

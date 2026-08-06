@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.4"
+  app_badge_plus:
+    dependency: "direct main"
+    description:
+      name: app_badge_plus
+      sha256: "4fe5ba94f20ca43b0935ba88eb4f7e2d89b580ff79965eed68221798e1862a48"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.3"
   app_links:
     dependency: "direct main"
     description:
@@ -526,6 +534,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.2"
+  flutter_launcher_icons:
+    dependency: "direct dev"
+    description:
+      name: flutter_launcher_icons
+      sha256: "10f13781741a2e3972126fae08393d3c4e01fa4cd7473326b94b72cf594195e7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.14.4"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -789,6 +805,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  image:
+    dependency: transitive
+    description:
+      name: image
+      sha256: "6300175e00616bbc832e2fc91bfa4d776af5402c81c7151bee6905bb08473c52"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.9.1"
   image_picker:
     dependency: "direct main"
     description:
