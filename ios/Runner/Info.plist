@@ -71,14 +71,27 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<!-- UIApplicationSceneManifest deliberately removed. When present, iOS
-	     routes notification lifecycle events through the SceneDelegate,
-	     bypassing firebase_messaging's swizzle on the UIApplicationDelegate.
-	     The result: background push works but foreground push never fires
-	     onMessage / never shows an in-app banner. Removing this block
-	     forces classic AppDelegate lifecycle so Firebase's swizzled
-	     willPresent handler actually runs and setForegroundNotification-
-	     PresentationOptions(alert:true,...) takes effect. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
