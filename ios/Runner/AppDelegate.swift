@@ -1,5 +1,7 @@
 import Flutter
 import UIKit
+import FirebaseCore
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -7,20 +9,24 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Firebase configuration is handled by the firebase_core plugin's
-    // auto-registration (GeneratedPluginRegistrant → FLTFirebaseCorePlugin).
-    // Do NOT call FirebaseApp.configure() here — the plugin does it too
-    // and Firebase throws NSException 'Default app has already been
-    // configured' on the second call.
+    // Native-side Firebase configure BEFORE any Dart runs. Without this,
+    // firebase_messaging's iOS swizzling races Dart's Firebase.initializeApp()
+    // and never wires up the APNs delegate — the tell-tale log is
+    // "[FirebaseCore][I-COR000005] No app has been configured yet." which
+    // appears BEFORE our [FCM] traces. Fixes 'apns-token-not-set' on real
+    // devices where all the App ID / entitlements setup is already correct.
+    FirebaseApp.configure()
+    // Explicit APNs registration so iOS starts the handshake even if the
+    // Flutter plugin's requestPermission() hasn't fired yet.
     //
-    // Do NOT set UNUserNotificationCenter.current().delegate = self —
+    // DO NOT set `UNUserNotificationCenter.current().delegate = self` —
     // firebase_messaging swizzles this delegate to install its own
-    // implementation, which honours setForegroundNotificationPresentation-
-    // Options(alert:true,...). Overriding it silently suppresses the
-    // foreground banner and prevents onMessage from firing.
-    //
-    // The only thing we still do here is kick off the APNs handshake
-    // early so getAPNSToken() doesn't return null on the first launch.
+    // implementation, which in turn honours the Flutter-side
+    // setForegroundNotificationPresentationOptions(alert:true,...) call.
+    // Overriding the delegate to `self` (with no willPresent method)
+    // silently reverts iOS to its default foreground behaviour: the
+    // banner is suppressed and onMessage never fires. Background push
+    // still works because it takes a different path.
     application.registerForRemoteNotifications()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
