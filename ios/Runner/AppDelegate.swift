@@ -15,7 +15,15 @@ import UserNotifications
     // "[FirebaseCore][I-COR000005] No app has been configured yet." which
     // appears BEFORE our [FCM] traces. Fixes 'apns-token-not-set' on real
     // devices where all the App ID / entitlements setup is already correct.
-    FirebaseApp.configure()
+    //
+    // Guard against double-configure: with UISceneDelegate lifecycle the
+    // launch path can end up here after Dart has already called
+    // Firebase.initializeApp(), and calling configure() twice throws
+    // NSException 'Default app has already been configured'. Only
+    // configure if no app exists yet.
+    if FirebaseApp.app() == nil {
+      FirebaseApp.configure()
+    }
     // Explicit APNs registration so iOS starts the handshake even if the
     // Flutter plugin's requestPermission() hasn't fired yet.
     //
