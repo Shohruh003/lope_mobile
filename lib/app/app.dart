@@ -8,10 +8,12 @@ import '../core/deep_link_service.dart';
 import '../core/live_refresh.dart';
 import '../core/push_service.dart';
 import '../core/theme_mode_provider.dart';
+import '../core/update_check_service.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/notifications/data/notifications_repository.dart';
 import '../shared/theme/typography.dart';
 import '../shared/widgets/offline_banner.dart';
+import '../shared/widgets/update_available_dialog.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -24,6 +26,7 @@ class LopeApp extends ConsumerStatefulWidget {
 
 class _LopeAppState extends ConsumerState<LopeApp> with WidgetsBindingObserver {
   bool _pushInited = false;
+  bool _updateCheckShown = false;
   // Global ScaffoldMessenger key so push_service can show a foreground
   // banner from outside the widget tree when an FCM message arrives
   // while the app has focus.
@@ -103,6 +106,26 @@ class _LopeAppState extends ConsumerState<LopeApp> with WidgetsBindingObserver {
         await ref.read(deepLinkServiceProvider).initIfPossible(router);
       });
     }
+
+    // "Yangi versiya bor" modal — fires once per app launch, after the
+    // update check resolves. Uses the root navigator (via messengerKey's
+    // context) so it sits on top of the router. Guarded by _updateCheckShown
+    // so a rebuild during the async fetch doesn't re-open the dialog.
+    ref.listen<AsyncValue<UpdateCheckResult>>(updateCheckProvider, (_, next) {
+      next.whenData((result) {
+        if (_updateCheckShown) return;
+        if (result.status == UpdateStatus.upToDate) return;
+        final navContext = _messengerKey.currentContext;
+        if (navContext == null || !navContext.mounted) return;
+        _updateCheckShown = true;
+        showDialog<void>(
+          context: navContext,
+          barrierDismissible: result.status == UpdateStatus.softUpdate,
+          useRootNavigator: true,
+          builder: (_) => UpdateAvailableDialog(result: result),
+        );
+      });
+    });
 
     // Real light/dark mode: buildAppTheme(brightness) returns a
     // ThemeData that registers the matching LopeColors extension, and
