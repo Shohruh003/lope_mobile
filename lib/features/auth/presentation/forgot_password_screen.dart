@@ -96,10 +96,16 @@ class _ForgotPasswordScreenState
       _error = null;
     });
     try {
+      // Backend contract (auth.controller.ts): { phone, password }.
+      // Sending `newPassword` here left backend's `password` undefined,
+      // validatePassword() threw, and users got a generic error even
+      // though the OTP verify step had already stored the "verified"
+      // flag. Field rename is the whole fix — no code re-verification
+      // required because the backend reads verification state, not the
+      // code, on reset.
       await ref.read(dioProvider).post('/auth/forgot-password/reset', data: {
         'phone': _phone,
-        'code': _otp,
-        'newPassword': newPassword,
+        'password': newPassword,
       });
       if (!mounted) return;
       AppHaptics.success();
@@ -192,7 +198,7 @@ class _PhoneStepState extends ConsumerState<_PhoneStep> {
           autofocus: true,
           keyboardType: TextInputType.phone,
           inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
+            const PhonePasteFormatter(),
             LengthLimitingTextInputFormatter(9),
           ],
           style: AppText.body,

@@ -456,8 +456,8 @@ class _PublicBookingScreenState extends ConsumerState<PublicBookingScreen> {
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(9)
+                        const PhonePasteFormatter(),
+                        LengthLimitingTextInputFormatter(9),
                       ],
                       decoration: InputDecoration(
                         prefix: const Padding(

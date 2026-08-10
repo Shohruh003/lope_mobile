@@ -34,8 +34,19 @@ class AppPhoneField extends StatefulWidget {
 
   /// Extract the 9-digit local part (without `+998`) from an arbitrary
   /// phone string. Handles the paste patterns listed on the class doc.
+  ///
+  /// Strips a leading rendered "+998 " prefix FIRST so paste-into-existing-
+  /// prefix ("+998 " + "+998901234567") lands as "901234567" instead of
+  /// double-counting the country code and truncating to the wrong 9 digits.
   static String extractDigits(String value) {
-    final d = value.replaceAll(RegExp(r'\D'), '');
+    var s = value;
+    // Fold "+998 " and "+998" prefixes that the widget itself rendered.
+    if (s.startsWith('+998 ')) {
+      s = s.substring(5);
+    } else if (s.startsWith('+998')) {
+      s = s.substring(4);
+    }
+    final d = s.replaceAll(RegExp(r'\D'), '');
     if (d.startsWith('998')) {
       final rest = d.substring(3);
       return rest.length > 9 ? rest.substring(0, 9) : rest;
@@ -121,12 +132,53 @@ class _PhonePrefixFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
+    // Reject backspace attempts that eat into the "+998" prefix. Without
+    // this guard, deleting a char when the local part is empty (field
+    // shows only "+998") lets the naïve extractor see "+99", interpret
+    // that as a 2-digit local part, and re-render "+998 99". The user
+    // then has to backspace repeatedly to escape a value they never typed.
+    final oldDigits = AppPhoneField.extractDigits(oldValue.text);
+    final isDeletion = newValue.text.length < oldValue.text.length;
+    if (isDeletion && oldDigits.isEmpty) {
+      return const TextEditingValue(
+        text: '+998',
+        selection: TextSelection.collapsed(offset: 4),
+      );
+    }
+
     final digits = AppPhoneField.extractDigits(newValue.text);
     final formatted = AppPhoneField.formatDisplay(digits);
     final text = formatted.isEmpty ? '+998' : '+998 $formatted';
     return TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+
+/// Use this on plain TextField widgets that render `+998` as a `prefixText`
+/// decoration (login / register / forgot-password screens) so pasting the
+/// full `+998901234567` still ends up as `901234567` in the field. Without
+/// this, a naive FilteringTextInputFormatter.digitsOnly + LengthLimit(9)
+/// combo eats the leading `998` and keeps the wrong 9 digits.
+///
+///   pasted "+998901234567"   → 901234567 ✓
+///   pasted "998901234567"    → 901234567 ✓
+///   pasted "0901234567"      → 901234567 ✓
+///   pasted "90 123-45 67"    → 901234567 ✓
+///   typed  "9"               → 9         ✓
+class PhonePasteFormatter extends TextInputFormatter {
+  const PhonePasteFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = AppPhoneField.extractDigits(newValue.text);
+    return TextEditingValue(
+      text: digits,
+      selection: TextSelection.collapsed(offset: digits.length),
     );
   }
 }

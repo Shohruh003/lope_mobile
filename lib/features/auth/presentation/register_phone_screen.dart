@@ -140,7 +140,7 @@ class _RegisterPhoneScreenState extends ConsumerState<RegisterPhoneScreen> {
                           autofocus: true,
                           keyboardType: TextInputType.phone,
                           inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
+                            const PhonePasteFormatter(),
                             LengthLimitingTextInputFormatter(9),
                           ],
                           style: AppText.body,

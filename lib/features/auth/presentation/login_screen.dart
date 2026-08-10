@@ -176,7 +176,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
                           inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
+                            // PhonePasteFormatter first so a pasted
+                            // "+998901234567" gets normalised to the local
+                            // 9-digit part before the length limit kicks in.
+                            // Without it, digitsOnly + LengthLimit(9) took
+                            // "998901234" — first 9 digits of the country
+                            // code — and users saw garbage in the field.
+                            const PhonePasteFormatter(),
                             LengthLimitingTextInputFormatter(9),
                           ],
                           style: AppText.body,
