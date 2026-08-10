@@ -20,7 +20,6 @@ class _ForgotPasswordScreenState
     extends ConsumerState<ForgotPasswordScreen> {
   int _step = 0;
   String _phone = '';
-  String _otp = '';
   String? _error;
   bool _busy = false;
 
@@ -63,22 +62,22 @@ class _ForgotPasswordScreenState
       _error = null;
     });
     try {
-      final res = await ref.read(dioProvider).post(
+      await ref.read(dioProvider).post(
         '/auth/forgot-password/verify-code',
         data: {'phone': _phone, 'code': code},
       );
       if (!mounted) return;
-      if (res.statusCode == 200 || res.data == true) {
-        AppHaptics.success();
-        setState(() {
-          _otp = code;
-          _step = 2;
-        });
-      } else {
-        AppHaptics.error();
-        setState(() =>
-            _error = tr(ref, 'auth.codeWrong', "Kod noto'g'ri"));
-      }
+      // Any non-throwing response is a success. Nest.js POST returns 201
+      // with body `true`, and dio's validateStatus (<400) turns 4xx/5xx
+      // into DioException — which the catch below handles. The old
+      // `statusCode == 200 || res.data == true` check was double-wrong
+      // (real status is 201, and dio sometimes returned the boolean as
+      // a String), so users saw "Kod noto'g'ri" even after backend
+      // logged [VERIFY] OK.
+      AppHaptics.success();
+      setState(() {
+        _step = 2;
+      });
     } catch (_) {
       AppHaptics.error();
       if (!mounted) return;
