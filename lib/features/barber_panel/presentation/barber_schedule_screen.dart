@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/live_refresh.dart';
 import '../../../core/tr.dart';
@@ -2561,7 +2562,34 @@ class _BookedClientCard extends ConsumerWidget {
                 ],
               ),
             ),
-            if (booking.totalPrice > 0)
+            // Phone call shortcut — barber taps the green handset to
+            // dial the client directly from the slot action sheet.
+            // Only shown when we actually have a phone number to dial.
+            if (phone.isNotEmpty) ...[
+              AppSpacing.hGapSm,
+              TapScale(
+                onTap: () async {
+                  AppHaptics.selection();
+                  final digits = phone.replaceAll(RegExp(r'[^\d+]'), '');
+                  if (digits.isEmpty) return;
+                  final uri = Uri.parse('tel:$digits');
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.15),
+                    borderRadius: AppRadius.rMd,
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.phone,
+                      color: AppColors.success, size: 20),
+                ),
+              ),
+            ],
+            if (booking.totalPrice > 0) ...[
+              AppSpacing.hGapSm,
               Text(
                 "${booking.totalPrice} ${tr(ref, 'common.currency', "so'm")}",
                 style: AppText.body.copyWith(
@@ -2569,6 +2597,7 @@ class _BookedClientCard extends ConsumerWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
+            ],
           ]),
           if (services.isNotEmpty) ...[
             AppSpacing.gapSm,
