@@ -47,9 +47,18 @@ class AuthRepository {
   }
 
   /// Step 2 — verify the SMS code. Returns true on success.
+  ///
+  /// Reaching the return line means Dio didn't throw, which per the
+  /// global validateStatus (<400) means HTTP was 2xx — the OTP matched
+  /// server-side. The old `res.data == true` check was too strict:
+  /// Nest.js POST returns 201 with body `true`, and Dio sometimes
+  /// decoded that body as a String "true" depending on Content-Type,
+  /// which made this function return false even after backend logged
+  /// [VERIFY] OK. Same bug as forgot-password had; fixing here too so
+  /// registration OTP doesn't false-negative for the same reason.
   Future<bool> verifyRegistrationCode({required String phone, required String code}) async {
-    final res = await _dio.post('/auth/register/verify-code', data: {'phone': phone, 'code': code});
-    return res.data == true || (res.data is Map && res.data['valid'] == true);
+    await _dio.post('/auth/register/verify-code', data: {'phone': phone, 'code': code});
+    return true;
   }
 
   /// Step 3 — actually create the account and grab the JWT.
