@@ -2629,10 +2629,15 @@ class _TodayBookingsList extends ConsumerWidget {
   final ValueChanged<BarberBooking> onTapBooking;
 
   String _endTime(String start, int durationMin) {
+    // Guard against zero/negative durations — legacy bookings created
+    // before the backend fallback shipped stored totalDuration=0, which
+    // then rendered as "15:00 - 15:00". Assume a full 60-min slot when
+    // we have nothing else to go on.
+    final dur = durationMin > 0 ? durationMin : 60;
     final parts = start.split(':');
     final h = int.tryParse(parts[0]) ?? 0;
     final m = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
-    final total = h * 60 + m + durationMin;
+    final total = h * 60 + m + dur;
     final eh = (total ~/ 60) % 24;
     final em = total % 60;
     return '${eh.toString().padLeft(2, '0')}:${em.toString().padLeft(2, '0')}';
