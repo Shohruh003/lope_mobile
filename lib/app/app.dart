@@ -1,4 +1,7 @@
+import 'dart:io' show Platform;
+
 import 'package:app_badge_plus/app_badge_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,18 +67,28 @@ class _LopeAppState extends ConsumerState<LopeApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
 
-    // Keep the iOS / Android home-screen icon badge in sync with the
-    // unread notification count from notificationsProvider — the same
-    // number the in-app bell shows. Fires whenever the notifications
-    // list refetches (login, mark-as-read, foreground FCM push).
+    // Keep the iOS home-screen icon badge in sync with the unread
+    // notification count from notificationsProvider — the same number
+    // the in-app bell shows. Fires whenever the notifications list
+    // refetches (login, mark-as-read, foreground FCM push).
+    //
+    // Android is SKIPPED intentionally. On Xiaomi / Huawei / older
+    // Samsung launchers, AppBadgePlus.updateBadge posts a system
+    // notification with the count as the body to force the launcher
+    // to render the badge — that surfaces as extra "Lope Style 1 / 2 /
+    // 3" phantom notifications alongside our real push, and users
+    // rightly complained. iOS has native badge APIs, so it stays on.
+    final canSetBadge = !kIsWeb && Platform.isIOS;
     final currentUser = ref.watch(authControllerProvider).user;
     if (currentUser != null) {
-      ref.listen(notificationsProvider(currentUser.role), (_, next) {
-        next.whenData((list) {
-          final unread = list.where((n) => !n.read).length;
-          AppBadgePlus.updateBadge(unread);
+      if (canSetBadge) {
+        ref.listen(notificationsProvider(currentUser.role), (_, next) {
+          next.whenData((list) {
+            final unread = list.where((n) => !n.read).length;
+            AppBadgePlus.updateBadge(unread);
+          });
         });
-      });
+      }
       // Global refresh trigger #1 — every foreground FCM push invalidates
       // notifications + every booking/schedule provider family so the
       // bell, badge, and any open screen all react live. Delegated to
@@ -84,9 +97,9 @@ class _LopeAppState extends ConsumerState<LopeApp> with WidgetsBindingObserver {
       ref.listen<int>(fcmForegroundPushSignal, (_, __) {
         invalidateLiveDataW(ref, role: currentUser.role);
       });
-    } else {
+    } else if (canSetBadge) {
       // Logged out — wipe the badge so the previous user's count doesn't
-      // leak onto the home screen.
+      // leak onto the home screen. iOS-only for the same reason above.
       // ignore: unawaited_futures
       AppBadgePlus.updateBadge(0);
     }
