@@ -69,6 +69,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Default FCM channel — used when a push payload doesn't set
+             its own channel_id. Must match the channel MainActivity
+             creates (lopestyle_notifications, HIGH importance) so
+             notifications drop from the top with sound instead of
+             landing silently in the tray. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="lopestyle_notifications" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
