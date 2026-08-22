@@ -5,6 +5,10 @@ plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Wires google-services.json into the build — must come AFTER the
+    // Android application plugin so it can hook the release/debug
+    // variants. Declared in android/settings.gradle.kts.
+    id("com.google.gms.google-services")
 }
 
 // Load release signing config from android/key.properties. The file
